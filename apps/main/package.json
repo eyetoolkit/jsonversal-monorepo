@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev --port 4320",
-    "build": "astro build",
+    "dev": "astro dev",
+    "build": "astro build --root .",
     "preview": "astro preview"
   },
   "dependencies": {
