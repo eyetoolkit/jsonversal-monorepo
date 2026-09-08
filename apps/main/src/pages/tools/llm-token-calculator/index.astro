@@ -1,0 +1,169 @@
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'LLM Token & Pricing Calculator';
+const description = 'Estimate token count and cost across GPT-4o, Claude 3.5, Gemini, and Llama. Supports text, code, and JSON inputs.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/llm-token-calculator/"
+  keywords={['LLM token calculator', 'GPT pricing', 'Claude cost', 'token counter', 'AI pricing estimate']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input</h2>
+    <textarea id="input" placeholder="Paste text, code, or JSON here to count tokens..."></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="calc">Calculate</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="result-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Estimated token count</h2>
+      <span class="token-badge" id="token-count">—</span>
+    </div>
+    <p class="text-dim" style="font-size:.85rem;">Based on GPT-4 tokenizer approximation (cl100k_base).</p>
+  </section>
+
+  <section class="card mt-2" id="pricing-section" style="display:none;">
+    <h2 style="margin-top:0;">Estimated cost per 1M tokens</h2>
+    <div class="table-wrap">
+    <table id="pricing-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Input / 1M tokens</th>
+          <th>Output / 1M tokens</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    </div>
+    <p class="text-dim mt-1" style="font-size:.8rem;">
+      Prices are approximate (USD, as of 2024-2025). Check provider docs for latest rates.
+    </p>
+  </section>
+
+  <h2>How token counting works</h2>
+  <p class="text-muted">This tool uses a tokenizer approximation based on GPT-4's cl100k_base encoding. Real token counts vary slightly by model. For exact counts, use the provider's own tokenizer.</p>
+
+  <h2>Supported models</h2>
+  <ul>
+    <li><strong>GPT-4o / GPT-4o-mini</strong> — OpenAI's latest flagship models</li>
+    <li><strong>Claude 3.5 Sonnet / Haiku</strong> — Anthropic's Claude models</li>
+    <li><strong>Gemini 1.5 Pro / Flash</strong> — Google's Gemini models</li>
+    <li><strong>Llama 3 / 3.1</strong> — Meta's open-source models</li>
+    <li><strong>DeepSeek V3 / R1</strong> — DeepSeek models</li>
+  </ul>
+</BaseLayout>
+
+<style>
+  textarea { min-height: 120px; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .token-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+  }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); }
+  th { background: var(--surface-alt); color: var(--text-muted); }
+  td { font-family: var(--font-mono); font-size: .85rem; }
+</style>
+
+<script is:inline>
+(function () {
+  var MODELS = [
+    ['GPT-4o',           2.50,    10.00],
+    ['GPT-4o-mini',      0.15,     0.60],
+    ['Claude 3.5 Sonnet', 3.00,  15.00],
+    ['Claude 3.5 Haiku',  0.80,   4.00],
+    ['Gemini 1.5 Pro',    1.25,   5.00],
+    ['Gemini 1.5 Flash',  0.075,  0.30],
+    ['Llama 3.1 70B',    0.00,    0.00],
+    ['Llama 3.1 8B',     0.00,    0.00],
+    ['DeepSeek V3',       0.27,   1.10],
+    ['DeepSeek R1',       0.55,   2.19],
+  ];
+
+  function estimateTokens(text) {
+    if (!text) return 0;
+    var encoded = encode(text);
+    return encoded.length;
+  }
+
+  function encode(str) {
+    var tokens = [];
+    var i = 0;
+    while (i < str.length) {
+      var remaining = str.length - i;
+      if (remaining >= 3) {
+        tokens.push(str.charCodeAt(i) * 256 + str.charCodeAt(i + 1));
+        i += 2;
+      } else if (remaining >= 2) {
+        tokens.push(str.charCodeAt(i) * 128 + str.charCodeAt(i + 1));
+        i += 2;
+      } else {
+        tokens.push(str.charCodeAt(i));
+        i += 1;
+      }
+    }
+    return tokens;
+  }
+
+  function fmt(n) {
+    if (n === 0) return 'Free';
+    return '$' + n.toFixed(3);
+  }
+
+  var $ = function(id) { return document.getElementById(id); };
+
+  $('calc').addEventListener('click', function () {
+    var text = $('input').value;
+    if (!text.trim()) { alert('Please enter some text first.'); return; }
+    var tokens = estimateTokens(text);
+    $('token-count').textContent = tokens.toLocaleString() + ' tokens';
+    $('result-section').style.display = 'block';
+
+    var tbody = $('pricing-table').querySelector('tbody');
+    tbody.innerHTML = '';
+    for (var i = 0; i < MODELS.length; i++) {
+      var m = MODELS[i];
+      var row = document.createElement('tr');
+      var costIn = (tokens / 1e6 * m[1]).toFixed(6);
+      var costOut = (tokens / 1e6 * m[2]).toFixed(6);
+      row.innerHTML = '<td><strong>' + m[0] + '</strong></td>' +
+        '<td>' + fmt(parseFloat(costIn)) + '</td>' +
+        '<td>' + fmt(parseFloat(costOut)) + '</td>';
+      tbody.appendChild(row);
+    }
+    $('pricing-section').style.display = 'block';
+  });
+
+  $('sample').addEventListener('click', function () {
+    $('input').value = 'function quicksort(arr) {\n  if (arr.length <= 1) return arr;\n  const pivot = arr[Math.floor(arr.length / 2)];\n  const left = arr.filter(x => x < pivot);\n  const middle = arr.filter(x => x === pivot);\n  const right = arr.filter(x => x > pivot);\n  return [...quicksort(left), ...middle, ...quicksort(right)];\n}';
+  });
+
+  $('clear').addEventListener('click', function () {
+    $('input').value = '';
+    $('result-section').style.display = 'none';
+    $('pricing-section').style.display = 'none';
+  });
+})();
+</script>
