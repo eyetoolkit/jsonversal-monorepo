@@ -34,16 +34,20 @@ jobs:
         run: |
           rm -rf apps/main/dist apps/main/.astro
           pnpm run build:main
-          echo "=== VERIFY ===" && grep -c "{title}" apps/main/dist/tools/json-to-typescript/index.html 2>/dev/null || echo "file not found"
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-main
-          directory: apps/main/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          skipTrailingSlashRedirect: true
+      - name: Verify build output
+        run: |
+          echo "=== VERIFY: checking for raw {title} in dist ===" && \
+          grep -c "{title}" apps/main/dist/tools/json-to-typescript/index.html 2>/dev/null && echo "WARNING: {title} still raw!" || echo "OK: no raw {title}"
+      - name: Deploy with wrangler (no-build)
+        run: |
+          npx wrangler pages deploy apps/main/dist \
+            --project-name=jsonversal-main \
+            --branch=main \
+            --no-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CF_ACCOUNT_ID }}
+
   deploy-devops:
     name: Deploy devops
     runs-on: ubuntu-latest
@@ -61,15 +65,16 @@ jobs:
         run: |
           rm -rf apps/devops/dist apps/devops/.astro
           pnpm run build:devops
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-devops
-          directory: apps/devops/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          skipTrailingSlashRedirect: true
+      - name: Deploy with wrangler (no-build)
+        run: |
+          npx wrangler pages deploy apps/devops/dist \
+            --project-name=jsonversal-devops \
+            --branch=main \
+            --no-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CF_ACCOUNT_ID }}
+
   deploy-codegen:
     name: Deploy codegen
     runs-on: ubuntu-latest
@@ -87,15 +92,16 @@ jobs:
         run: |
           rm -rf apps/codegen/dist apps/codegen/.astro
           pnpm run build:codegen
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-codegen
-          directory: apps/codegen/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          skipTrailingSlashRedirect: true
+      - name: Deploy with wrangler (no-build)
+        run: |
+          npx wrangler pages deploy apps/codegen/dist \
+            --project-name=jsonversal-codegen \
+            --branch=main \
+            --no-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CF_ACCOUNT_ID }}
+
   deploy-sec:
     name: Deploy sec
     runs-on: ubuntu-latest
@@ -113,12 +119,12 @@ jobs:
         run: |
           rm -rf apps/sec/dist apps/sec/.astro
           pnpm run build:sec
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-sec
-          directory: apps/sec/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          skipTrailingSlashRedirect: true
+      - name: Deploy with wrangler (no-build)
+        run: |
+          npx wrangler pages deploy apps/sec/dist \
+            --project-name=jsonversal-sec \
+            --branch=main \
+            --no-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CF_ACCOUNT_ID }}
