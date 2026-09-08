@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const tools = [
+  { title: 'YAML ↔ JSON Converter', description: 'Two-way conversion, pretty-print, validate.', href: '/tools/yaml-json/' },
+  { title: 'Base64 Encoder / Decoder', description: 'Plain and URL-safe Base64.', href: '/tools/base64/' },
+  { title: 'JWT Decoder', description: 'Decode header and payload of any JWT.', href: '/tools/jwt-decoder/' },
+  { title: 'Crontab Explainer', description: 'Human-readable schedule + next 10 runs.', href: '/tools/crontab/' },
+  { title: 'Regex Visualizer', description: 'Test regex against sample input, highlight matches.', href: '/tools/regex/' },
+];
+---
+
+<BaseLayout site="devops" title="All DevOps Tools" current="/tools/">
+  <h1>DevOps Tools</h1>
+  <p class="text-muted">Every tool runs in your browser. No uploads, no secrets leaked.</p>
+  <div class="grid">
+    {tools.map(tool => <ToolCard {...tool} />)}
+  </div>
+</BaseLayout>
