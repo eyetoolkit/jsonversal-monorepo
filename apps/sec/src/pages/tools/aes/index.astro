@@ -1,0 +1,146 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'AES Encryption / Decryption';
+const description = 'Encrypt and decrypt text with AES-GCM or AES-CBC using your own key. All cryptographic operations run locally in your browser.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://sec.jsonversal.com/tools/aes/"
+  keywords={['AES', 'AES encryption', 'AES decryption', 'AES-GCM', 'Web Crypto']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Input</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label class="text-muted">Algorithm</label>
+        <select id="algo">
+          <option value="AES-GCM">AES-GCM (authenticated, recommended)</option>
+          <option value="AES-CBC">AES-CBC (needs IV)</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-muted">Key size</label>
+        <select id="keysize">
+          <option value="256">256-bit (most secure)</option>
+          <option value="192">192-bit</option>
+          <option value="128">128-bit</option>
+        </select>
+      </div>
+    </div>
+    <label class="text-muted" style="margin-top:12px;">Passphrase (we derive a key with PBKDF2-SHA256)</label>
+    <input id="pass" type="text" placeholder="your-secret-passphrase" />
+    <label class="text-muted" style="margin-top:12px;">Plaintext / Ciphertext</label>
+    <textarea id="input" placeholder="Text to encrypt, or base64 ciphertext to decrypt..." style="min-height:120px;"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="primary" id="encrypt">Encrypt</button>
+      <button class="ghost" id="decrypt">Decrypt</button>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Output</strong>
+    <pre id="out" class="mt-2" style="white-space:pre-wrap;"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <h2>Format</h2>
+  <p class="text-muted">Ciphertext output format: <code>salt(16).iv(12).ct(base64)</code> all base64-encoded in one blob. For CBC, IV is 16 bytes. For GCM, IV is 12 bytes and includes authentication tag.</p>
+
+  <h2>⚠️ Important</h2>
+  <ul>
+    <li>Do not encrypt production secrets in a web form.</li>
+    <li>PBKDF2 iterations: 100,000 (strong, but slow on weak devices).</li>
+    <li>This tool is for education and quick experiments. Use a real KMS for production.</li>
+  </ul>
+</BaseLayout>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  async function deriveKey(pass, salt, size) {
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(pass), { name: 'PBKDF2' }, false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: $('algo').value, length: size },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  function b64(bytes) {
+    const bin = Array.from(new Uint8Array(bytes)).map(b => String.fromCharCode(b)).join('');
+    return btoa(bin);
+  }
+  function b64toBytes(s) {
+    const bin = atob(s);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  async function doEncrypt() {
+    const algo = $('algo').value;
+    const keysize = +$('keysize').value;
+    const pass = $('pass').value.trim();
+    const plain = $('input').value;
+    if (!pass) { $('out').textContent = 'Error: passphrase required'; return; }
+
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const ivLen = algo === 'AES-GCM' ? 12 : 16;
+    const iv = crypto.getRandomValues(new Uint8Array(ivLen));
+    const key = await deriveKey(pass, salt, keysize);
+
+    const params = algo === 'AES-GCM'
+      ? { name: 'AES-GCM', iv }
+      : { name: 'AES-CBC', iv };
+
+    const ct = await crypto.subtle.encrypt(params, key, enc.encode(plain));
+
+    const blob = new Uint8Array(salt.length + iv.length + ct.byteLength);
+    blob.set(salt, 0);
+    blob.set(iv, salt.length);
+    blob.set(new Uint8Array(ct), salt.length + iv.length);
+    $('out').textContent = b64(blob);
+  }
+
+  async function doDecrypt() {
+    const algo = $('algo').value;
+    const keysize = +$('keysize').value;
+    const pass = $('pass').value.trim();
+    const blob = b64toBytes($('input').value.trim());
+    if (!pass) { $('out').textContent = 'Error: passphrase required'; return; }
+
+    const salt = blob.slice(0, 16);
+    const ivLen = algo === 'AES-GCM' ? 12 : 16;
+    const iv = blob.slice(16, 16 + ivLen);
+    const ct = blob.slice(16 + ivLen);
+
+    const key = await deriveKey(pass, salt, keysize);
+    const params = algo === 'AES-GCM'
+      ? { name: 'AES-GCM', iv }
+      : { name: 'AES-CBC', iv };
+
+    try {
+      const pt = await crypto.subtle.decrypt(params, key, ct);
+      $('out').textContent = dec.decode(pt);
+    } catch (e) {
+      $('out').textContent = 'Decryption failed. Wrong passphrase, wrong algo, or corrupted data.';
+    }
+  }
+
+  $('encrypt').addEventListener('click', doEncrypt);
+  $('decrypt').addEventListener('click', doDecrypt);
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent='Copied!'; setTimeout(()=>$('copy').textContent='Copy',1200); } catch {}
+  });
+})();
+</script>
