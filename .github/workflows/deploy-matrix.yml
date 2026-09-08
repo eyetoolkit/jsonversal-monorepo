@@ -13,7 +13,6 @@ permissions:
   contents: write
   deployments: write
 
-
 env:
   CF_ACCOUNT_ID: 00cb5cd6be4881053e57a338ce62de2f
 
@@ -35,6 +34,8 @@ jobs:
         run: |
           rm -rf apps/main/dist apps/main/.astro
           pnpm run build:main
+          find apps/main/dist -name "*.html" | head -5
+          grep -l "{title}" apps/main/dist/tools/json-to-typescript/index.html || echo "NO RAW TITLE FOUND"
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -43,8 +44,6 @@ jobs:
           projectName: jsonversal-main
           directory: apps/main/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          buildConfig: |
-            {"buildCommand":"","outputDirectory":"","deployConfigs":{}}
 
   deploy-devops:
     name: Deploy devops
@@ -71,8 +70,6 @@ jobs:
           projectName: jsonversal-devops
           directory: apps/devops/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          buildConfig: |
-            {"buildCommand":"","outputDirectory":"","deployConfigs":{}}
 
   deploy-codegen:
     name: Deploy codegen
@@ -99,8 +96,6 @@ jobs:
           projectName: jsonversal-codegen
           directory: apps/codegen/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          buildConfig: |
-            {"buildCommand":"","outputDirectory":"","deployConfigs":{}}
 
   deploy-sec:
     name: Deploy sec
@@ -127,5 +122,3 @@ jobs:
           projectName: jsonversal-sec
           directory: apps/sec/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          buildConfig: |
-            {"buildCommand":"","outputDirectory":"","deployConfigs":{}}
