@@ -1,0 +1,83 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Base64 Encoder / Decoder';
+const description = 'Encode any text to Base64, or decode Base64 back to text. Supports standard and URL-safe variants.';
+---
+
+<BaseLayout site="devops" title={title} description={description}
+  canonical="https://devops.jsonversal.com/tools/base64/"
+  keywords={['Base64 encode', 'Base64 decode', 'URL-safe Base64', 'base64 converter']}
+  current="/tools/">
+
+  <nav class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>Input</strong>
+        <label class="text-muted" style="font-size:.8rem;">
+          <input type="checkbox" id="urlsafe" /> URL-safe
+        </label>
+      </div>
+      <textarea id="input" placeholder="Text or Base64..." style="margin-top:12px;min-height:260px;"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="primary" id="encode">→ Encode</button>
+        <button class="ghost" id="decode">← Decode</button>
+        <button class="ghost" id="clear">Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div><strong>Output</strong></div>
+      <pre id="output" style="min-height:260px;margin-top:12px;white-space:pre-wrap;">—</pre>
+      <button class="ghost" id="copy" style="margin-top:8px;">Copy</button>
+    </div>
+  </div>
+
+  <h2>Notes</h2>
+  <ul>
+    <li>Standard Base64 uses <code>+</code>, <code>/</code>, <code>=</code>. URL-safe replaces them with <code>-</code>, <code>_</code> and drops padding.</li>
+    <li>Supports Unicode text via UTF-8 encoding.</li>
+  </ul>
+</BaseLayout>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  function toB64(text, urlsafe) {
+    const bytes = new TextEncoder().encode(text);
+    let bin = '';
+    bytes.forEach(b => bin += String.fromCharCode(b));
+    let s = btoa(bin);
+    if (urlsafe) s = s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return s;
+  }
+  function fromB64(b64, urlsafe) {
+    if (urlsafe) b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  $('encode').addEventListener('click', () => {
+    try { $('output').textContent = toB64($('input').value, $('urlsafe').checked); }
+    catch (e) { $('output').textContent = 'Error: ' + e.message; }
+  });
+  $('decode').addEventListener('click', () => {
+    try { $('output').textContent = fromB64($('input').value.trim(), $('urlsafe').checked); }
+    catch (e) { $('output').textContent = 'Error: ' + e.message; }
+  });
+  $('clear').addEventListener('click', () => { $('input').value = ''; $('output').textContent = '—'; });
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('output').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); } catch {}
+  });
+})();
+</script>
