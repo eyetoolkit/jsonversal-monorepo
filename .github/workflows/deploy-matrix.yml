@@ -18,7 +18,7 @@ env:
 
 jobs:
   deploy-main:
-    name: 部署 main（jsonversal.com）
+    name: Build main
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -32,18 +32,15 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build main
         run: pnpm --filter @versal/site-main build
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-main
-          directory: apps/main/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          name: main-dist
+          path: apps/main/dist
+          retention-days: 7
 
   deploy-devops:
-    name: 部署 devops.jsonversal.com
+    name: Build devops
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -57,18 +54,15 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build devops
         run: pnpm --filter @versal/site-devops build
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-devops
-          directory: apps/devops/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          name: devops-dist
+          path: apps/devops/dist
+          retention-days: 7
 
   deploy-codegen:
-    name: 部署 codegen.jsonversal.com
+    name: Build codegen
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -82,18 +76,15 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build codegen
         run: pnpm --filter @versal/site-codegen build
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-codegen
-          directory: apps/codegen/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          name: codegen-dist
+          path: apps/codegen/dist
+          retention-days: 7
 
   deploy-sec:
-    name: 部署 sec.jsonversal.com
+    name: Build sec
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -107,12 +98,9 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build sec
         run: pnpm --filter @versal/site-sec build
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: jsonversal-sec
-          directory: apps/sec/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          name: sec-dist
+          path: apps/sec/dist
+          retention-days: 7
