@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://devops.jsonversal.com/sitemap.xml
