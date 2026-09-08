@@ -1,0 +1,27 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const tools = [
+  { title: 'Hash Generator', description: 'Compute MD5, SHA-1, SHA-256, SHA-512 of any text.', href: '/tools/hash/' },
+  { title: 'AES Encryption / Decryption', description: 'Encrypt and decrypt text with AES using your own key. AES-GCM supported.', href: '/tools/aes/' },
+  { title: 'Password Strength Analyzer', description: 'Score a password and get a human-readable strength hint.', href: '/tools/password-strength/' },
+  { title: 'CSP Generator', description: 'Build a strict Content-Security-Policy header from toggles.', href: '/tools/csp/' },
+  { title: 'Certificate Signing Request Decoder', description: 'Decode a PEM-encoded CSR and show subject, SANs, and public key.', href: '/tools/csr/' },
+];
+---
+
+<BaseLayout site="sec" current="/">
+  <h1>Security tools that run in your browser.</h1>
+  <p class="text-muted">No signup, no upload. Everything stays on your device — keys, secrets, passwords never leave your browser.</p>
+  <h2>Tools</h2>
+  <div class="grid">
+    {tools.map(tool => <ToolCard {...tool} />)}
+  </div>
+  <h2>Related</h2>
+  <div class="grid">
+    <ToolCard title="DevOps Tools" description="devops.jsonversal.com — YAML/JSON, Base64, JWT, crontab." href="https://devops.jsonversal.com/" />
+    <ToolCard title="Code Generators" description="codegen.jsonversal.com — .gitignore, license, CI workflow." href="https://codegen.jsonversal.com/" />
+    <ToolCard title="JSON / LLM Tools" description="jsonversal.com — UUID v7, JSON to TypeScript." href="https://jsonversal.com/" />
+  </div>
+</BaseLayout>
