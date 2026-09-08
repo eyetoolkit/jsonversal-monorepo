@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
   deployments: write
 
 env:
@@ -30,6 +30,13 @@ jobs:
         run: npm i -g pnpm@10.12.1
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
+      - name: Commit pnpm-lock.yaml
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'github-actions@users.noreply.github.com'
+          git add pnpm-lock.yaml
+          git diff --cached --quiet || git commit -m 'chore: add pnpm-lock.yaml'
+          git push
       - name: Build main
         run: pnpm --filter @versal/site-main build
       - name: Upload artifact
