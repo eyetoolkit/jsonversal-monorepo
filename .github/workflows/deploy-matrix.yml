@@ -32,8 +32,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build main
         run: |
-          rm -rf apps/main/dist apps/main/.astro apps/main/.turbo .turbo
-          cd apps/main && pnpm exec astro build --root .
+          rm -rf apps/main/dist apps/main/.astro
+          cd apps/main && pnpm exec astro build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -42,6 +42,7 @@ jobs:
           projectName: jsonversal-main
           directory: apps/main/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-devops:
     name: Deploy devops
     runs-on: ubuntu-latest
@@ -57,8 +58,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build devops
         run: |
-          rm -rf apps/devops/dist apps/devops/.astro apps/devops/.turbo .turbo
-          cd apps/devops && pnpm exec astro build --root .
+          rm -rf apps/devops/dist apps/devops/.astro
+          cd apps/devops && pnpm exec astro build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -67,6 +68,7 @@ jobs:
           projectName: jsonversal-devops
           directory: apps/devops/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-codegen:
     name: Deploy codegen
     runs-on: ubuntu-latest
@@ -82,8 +84,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build codegen
         run: |
-          rm -rf apps/codegen/dist apps/codegen/.astro apps/codegen/.turbo .turbo
-          cd apps/codegen && pnpm exec astro build --root .
+          rm -rf apps/codegen/dist apps/codegen/.astro
+          cd apps/codegen && pnpm exec astro build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -92,6 +94,7 @@ jobs:
           projectName: jsonversal-codegen
           directory: apps/codegen/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-sec:
     name: Deploy sec
     runs-on: ubuntu-latest
@@ -107,8 +110,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build sec
         run: |
-          rm -rf apps/sec/dist apps/sec/.astro apps/sec/.turbo .turbo
-          cd apps/sec && pnpm exec astro build --root .
+          rm -rf apps/sec/dist apps/sec/.astro
+          cd apps/sec && pnpm exec astro build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
