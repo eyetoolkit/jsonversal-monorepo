@@ -8,16 +8,16 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:main":       "astro dev --root apps/main",
-    "dev:devops":     "astro dev --root apps/devops --port 4321",
-    "dev:codegen":    "astro dev --root apps/codegen --port 4322",
-    "dev:sec":        "astro dev --root apps/sec --port 4323",
-    "build":          "turbo run build",
-    "build:main":     "astro build --root apps/main",
-    "build:devops":   "astro build --root apps/devops",
-    "build:codegen":  "astro build --root apps/codegen",
-    "build:sec":      "astro build --root apps/sec",
-    "preview":        "astro preview --root apps/main"
+    "dev:main":     "pnpm astro dev --root apps/main",
+    "dev:devops":   "pnpm astro dev --root apps/devops --port 4321",
+    "dev:codegen":  "pnpm astro dev --root apps/codegen --port 4322",
+    "dev:sec":     "pnpm astro dev --root apps/sec --port 4323",
+    "build":        "turbo run build",
+    "build:main":   "pnpm astro build --root apps/main",
+    "build:devops": "pnpm astro build --root apps/devops",
+    "build:codegen":"pnpm astro build --root apps/codegen",
+    "build:sec":   "pnpm astro build --root apps/sec",
+    "preview":      "pnpm astro preview --root apps/main"
   },
   "devDependencies": {
     "astro": "^4.16.18",
