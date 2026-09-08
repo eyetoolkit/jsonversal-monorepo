@@ -1,4 +1,4 @@
-# Cloudflare Pages project config (reference only — actual bindings happen in CF Dashboard)
+# Cloudflare Pages project config (reference only - actual bindings happen in CF Dashboard)
 # After creating this Pages project in the CF dashboard, bind custom domain devops.jsonversal.com
 # via Cloudflare for SaaS.
 

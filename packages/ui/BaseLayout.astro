@@ -11,7 +11,7 @@ export interface Props {
   description?: string;
   canonical?: string;
   current?: string;
-  /** 工具页关键词数组（可选） */
+  /** ????????(??) */
   keywords?: string[];
 }
 
@@ -54,13 +54,13 @@ const pageKeywords = keywords?.join(', ') || seo.keywords;
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDesc} />
 
-    {/* Theme color 按子站差异化 */}
+    {/* Theme color ?????? */}
     <meta name="theme-color" content={t.accent} />
 
-    {/* favicon 占位 */}
+    {/* favicon ?? */}
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E{t.emoji}%3C/text%3E%3C/svg%3E" />
 
-    {/* Cloudflare Web Analytics —— 占位 id 由子站覆盖 */}
+    {/* Cloudflare Web Analytics -- ?? id ????? */}
     <slot name="head" />
   </head>
   <body style={`--accent:${t.accent};--accent-dark:${t.accentDark};`}>
@@ -71,7 +71,7 @@ const pageKeywords = keywords?.join(', ') || seo.keywords;
     <Footer site={site} />
     <ConsentBanner />
 
-    {/* Cloudflare Insights beacon —— 在子站 base 配置里替换为实际 token */}
+    {/* Cloudflare Insights beacon -- ??? base ???????? token */}
     <script is:inline>
       // placeholder for Cloudflare beacon
     </script>

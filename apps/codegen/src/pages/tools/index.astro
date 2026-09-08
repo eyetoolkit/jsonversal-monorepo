@@ -4,7 +4,7 @@ import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
   { title: '.gitignore Generator', description: 'Pick languages and frameworks, download a templated .gitignore.', href: '/tools/gitignore/' },
-  { title: 'License Generator', description: 'MIT, Apache, GPL, BSD, MPL, Unlicense — pick one, fill year/name.', href: '/tools/license/' },
+  { title: 'License Generator', description: 'MIT, Apache, GPL, BSD, MPL, Unlicense - pick one, fill year/name.', href: '/tools/license/' },
   { title: 'README Skeleton', description: 'Build a professional README with badges, sections, CI info.', href: '/tools/readme/' },
   { title: 'GitHub Actions Workflow', description: 'Scaffold CI workflows for Node / Python / Go / Rust / Docker.', href: '/tools/ci-workflow/' },
   { title: 'Conventional Commit', description: 'Format commit messages as feat/fix/chore with scope and body.', href: '/tools/commit-msg/' },
@@ -12,7 +12,7 @@ const tools = [
 ---
 <BaseLayout site="codegen" title="All Code Generators" current="/tools/">
   <h1>Code Generators</h1>
-  <p class="text-muted">Every generator runs in your browser. Templates bundled locally — nothing uploaded.</p>
+  <p class="text-muted">Every generator runs in your browser. Templates bundled locally - nothing uploaded.</p>
   <div class="grid">
     {tools.map(tool => <ToolCard {...tool} />)}
   </div>

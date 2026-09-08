@@ -2,7 +2,7 @@
   "name": "jsonversal-monorepo",
   "private": true,
   "version": "0.1.0",
-  "description": "jsonversal brand matrix monorepo — jsonversal + devops + codegen + sec subdomains",
+  "description": "jsonversal brand matrix monorepo - jsonversal + devops + codegen + sec subdomains",
   "workspaces": [
     "apps/*",
     "packages/*"

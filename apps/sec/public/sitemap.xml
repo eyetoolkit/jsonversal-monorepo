@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://sec.jsonversal.com/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/hash/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/aes/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/password-strength/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/csp/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/csr/</loc></url>
   <url><loc>https://sec.jsonversal.com/privacy/</loc></url>
   <url><loc>https://sec.jsonversal.com/terms/</loc></url>
 </urlset>

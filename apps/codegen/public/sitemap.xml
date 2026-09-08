@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://codegen.jsonversal.com/</loc></url>
+  <url><loc>https://codegen.jsonversal.com/tools/</loc></url>
+  <url><loc>https://codegen.jsonversal.com/tools/gitignore/</loc></url>
+  <url><loc>https://codegen.jsonversal.com/tools/license/</loc></url>
+  <url><loc>https://codegen.jsonversal.com/tools/readme/</loc></url>
+  <url><loc>https://codegen.jsonversal.com/tools/ci-workflow/</loc></url>
+  <url><loc>https://codegen.jsonversal.com/tools/commit-msg/</loc></url>
   <url><loc>https://codegen.jsonversal.com/privacy/</loc></url>
   <url><loc>https://codegen.jsonversal.com/terms/</loc></url>
 </urlset>
