@@ -1,0 +1,52 @@
+---
+/**
+ * Cookie 同意条 —— 4 站共享
+ * 首次访问显示；用户选择后写入 localStorage 永久记住
+ */
+---
+
+<div id="versal-consent" hidden>
+  <div class="msg">
+    We respect your privacy. We only set necessary cookies.
+    Personalized ads are only loaded if you consent.
+    <a href="/privacy/">Read our Privacy Policy</a>.
+  </div>
+  <button class="primary" id="versal-consent-accept">Accept necessary only</button>
+</div>
+
+<script is:inline>
+  (function () {
+      const banner = document.getElementById('versal-consent');
+      const key = 'versal-consent-v1';
+      if (!banner) return;
+      try {
+        const stored = localStorage.getItem(key);
+        if (!stored) banner.hidden = false;
+      } catch { banner.hidden = false; }
+      const btn = document.getElementById('versal-consent-accept');
+      btn && btn.addEventListener('click', function () {
+        try { localStorage.setItem(key, 'necessary'); } catch {}
+        banner.hidden = true;
+        document.dispatchEvent(new CustomEvent('versal:consent', { detail: { level: 'necessary' } }));
+      });
+    })();
+</script>
+
+<style>
+  #versal-consent {
+    position: fixed; left: 16px; right: 16px; bottom: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    box-shadow: var(--shadow-md);
+    z-index: 50;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+  #versal-consent a { color: var(--accent); }
+  button.primary {
+    padding: 8px 14px; flex-shrink: 0;
+  }
+</style>
