@@ -15,7 +15,6 @@ permissions:
 
 env:
   CF_ACCOUNT_ID: 00cb5cd6be4881053e57a338ce62de2f
-  TURBO_FORCE: '1'
 
 jobs:
   deploy-main:
@@ -33,8 +32,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build main
         run: |
-          rm -rf apps/main/dist apps/main/.astro
-          cd apps/main && pnpm run build
+          rm -rf apps/main/dist apps/main/.astro apps/main/.turbo
+          pnpm astro build --root apps/main
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -59,8 +58,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build devops
         run: |
-          rm -rf apps/devops/dist apps/devops/.astro
-          cd apps/devops && pnpm run build
+          rm -rf apps/devops/dist apps/devops/.astro apps/devops/.turbo
+          pnpm astro build --root apps/devops
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -85,8 +84,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build codegen
         run: |
-          rm -rf apps/codegen/dist apps/codegen/.astro
-          cd apps/codegen && pnpm run build
+          rm -rf apps/codegen/dist apps/codegen/.astro apps/codegen/.turbo
+          pnpm astro build --root apps/codegen
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -111,8 +110,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Build sec
         run: |
-          rm -rf apps/sec/dist apps/sec/.astro
-          cd apps/sec && pnpm run build
+          rm -rf apps/sec/dist apps/sec/.astro apps/sec/.turbo
+          pnpm astro build --root apps/sec
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
