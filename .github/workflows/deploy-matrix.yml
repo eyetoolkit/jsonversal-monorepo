@@ -34,6 +34,15 @@ jobs:
         run: |
           rm -rf apps/main/dist apps/main/.astro
           pnpm --filter @versal/site-main build
+      - name: Purge Cloudflare cache
+        uses: nwtgck/actions-http-request@v3
+        with:
+          url: "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache"
+          method: POST
+          headers: |
+            Authorization: Bearer ${{ secrets.CF_PURGE_TOKEN }}
+            Content-Type: application/json
+          body: '{"files":["https://jsonversal.com/*","https://jsonversal-main.pages.dev/*"]}'
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
