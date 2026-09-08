@@ -1,0 +1,104 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JWT Decoder';
+const description = 'Decode any JSON Web Token and inspect its header, payload, and expiration — without verifying the signature.';
+---
+
+<BaseLayout site="devops" title={title} description={description}
+  canonical="https://devops.jsonversal.com/tools/jwt-decoder/"
+  keywords={['JWT', 'JWT decoder', 'JSON Web Token', 'decode JWT']}
+  current="/tools/">
+
+  <nav class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card">
+    <label class="text-muted">Paste a JWT</label>
+    <input id="jwt" type="text" placeholder="eyJhbGciOi..." style="margin-top:8px;font-family:var(--font-mono);" />
+    <button class="primary mt-2" id="decode">Decode</button>
+    <button class="ghost mt-2" id="sample">Load sample</button>
+  </div>
+
+  <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+    <div class="card">
+      <strong>Header</strong>
+      <pre id="header" class="mt-2">—</pre>
+    </div>
+    <div class="card">
+      <strong>Payload</strong>
+      <pre id="payload" class="mt-2">—</pre>
+    </div>
+  </div>
+
+  <div class="card mt-2">
+    <strong>Summary</strong>
+    <div id="summary" class="mt-2 text-muted">—</div>
+  </div>
+
+  <h2>Notes</h2>
+  <ul>
+    <li>This tool does <strong>not</strong> verify the JWT signature. It only decodes Base64URL parts.</li>
+    <li>Never paste production tokens into shared chat rooms or support tickets.</li>
+  </ul>
+</BaseLayout>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  function b64urlToJson(s) {
+    let b = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (b.length % 4) b += '=';
+    const bin = atob(b);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+  function fmtTime(epoch) {
+    if (!epoch) return '—';
+    const d = new Date(epoch * 1000);
+    const now = Date.now();
+    const diff = epoch * 1000 - now;
+    const rel = diff > 0
+      ? `expires in ${Math.round(diff/1000)}s`
+      : `expired ${Math.round(-diff/1000)}s ago`;
+    return `${d.toISOString()} (${rel})`;
+  }
+
+  function decode() {
+    const token = $('jwt').value.trim();
+    const parts = token.split('.');
+    if (parts.length !== 3) { $('header').textContent = 'Invalid JWT (need 3 parts)'; return; }
+    try {
+      const h = b64urlToJson(parts[0]);
+      const p = b64urlToJson(parts[1]);
+      $('header').textContent = JSON.stringify(h, null, 2);
+      $('payload').textContent = JSON.stringify(p, null, 2);
+      const summary = [
+        `Algorithm: ${h.alg}`,
+        `Type: ${h.typ || '—'}`,
+        `Issuer: ${p.iss || '—'}`,
+        `Subject: ${p.sub || '—'}`,
+        `Issued: ${p.iat ? fmtTime(p.iat) : '—'}`,
+        `Expires: ${p.exp ? fmtTime(p.exp) : '—'}`,
+      ].join('\n');
+      $('summary').textContent = summary;
+    } catch (e) {
+      $('header').textContent = 'Error: ' + e.message;
+      $('payload').textContent = '—';
+      $('summary').textContent = '—';
+    }
+  }
+
+  $('decode').addEventListener('click', decode);
+  $('sample').addEventListener('click', () => {
+    // A demo JWT with alg=HS256 payload { sub:"1234567890", name:"John Doe", iat:1516239022, exp:1516240000 }
+    $('jwt').value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyNDAwMDB9.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+    decode();
+  });
+})();
+</script>
