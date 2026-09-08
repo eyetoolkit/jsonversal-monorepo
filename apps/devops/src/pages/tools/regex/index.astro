@@ -51,9 +51,8 @@ const description = 'Test a regular expression against sample input, highlight m
 </BaseLayout>
 
 
-<script is:inline>
+<script is:inline client:load>
 (function () {
-  if (typeof document === 'undefined') return;
   const $ = (id) => document.getElementById(id);
   const PALETTE = ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#06b6d4', '#ec4899'];
 

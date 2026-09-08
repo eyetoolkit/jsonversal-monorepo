@@ -7,7 +7,7 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
 
 <BaseLayout site="devops" title={title} description={description}
   canonical="https://devops.jsonversal.com/tools/yaml-json/"
-  keywords={['YAML to JSON', 'JSON to YAML', 'YAML converter', 'Kubernetes manifest']}
+  keywords={['YAML to JSON', 'JSON to YAML', 'Kubernetes manifest']}
   current="/tools/">
 
   <nav class="text-muted" style="font-size:.875rem;">
@@ -33,7 +33,6 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
         <button class="ghost" id="sample">Load sample</button>
       </div>
     </div>
-
     <div class="card">
       <div class="row" style="display:flex;justify-content:space-between;align-items:center;">
         <strong>Output</strong>
@@ -48,44 +47,101 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
   </div>
 
   <h2>How it works</h2>
-  <p>All parsing and serialization happens in your browser using the <a href="https://yaml.org/" target="_blank" rel="noopener">yaml</a> library bundled client-side. Nothing is uploaded.</p>
+  <p>All parsing happens locally in your browser. Nothing is uploaded.</p>
 </BaseLayout>
 
-<script is:inline src="https://cdn.jsdelivr.net/npm/yaml@2.5.0/dist/browser/yaml.min.js"></script>
-
-  if (typeof document === 'undefined') return;
+<script is:inline client:load>
+(function () {
   const $ = (id) => document.getElementById(id);
-  const input = $('input');
-  const out = $('output');
+  let yamlLib;
+
+  async function loadYaml() {
+    if (yamlLib) return yamlLib;
+    await import('https://cdn.jsdelivr.net/npm/yaml@2.5.0/+esm').then(m => yamlLib = m.default || m).catch(() => null);
+    return yamlLib;
+  }
 
   function doConvert() {
     const kind = $('input-kind').value;
-    const text = input.value.trim();
-    if (!text) { out.textContent = '—'; $('output-kind').textContent = '—'; return; }
-    try {
-      let result, label;
-      if (kind === 'yaml') {
-        const doc = YAML.parse(text);
-        result = JSON.stringify(doc, null, 2);
-        label = 'JSON';
-      } else {
-        const doc = JSON.parse(text);
-        result = YAML.stringify(doc, { lineWidth: 120 });
-        label = 'YAML';
+    const text = $('input').value.trim();
+    if (!text) { $('output').textContent = '—'; $('output-kind').textContent = '—'; return; }
+    if (kind === 'json') {
+      try { $('output').textContent = JSON.stringify(JSON.parse(text), null, 2); $('output-kind').textContent = 'YAML'; }
+      catch (e) { $('output').textContent = 'Error: ' + e.message; }
+    } else {
+      // YAML → JSON: need yaml lib or simple regex
+      try {
+        const parsed = parseSimpleYaml(text);
+        $('output').textContent = JSON.stringify(parsed, null, 2);
+        $('output-kind').textContent = 'JSON';
+      } catch (e) {
+        $('output').textContent = 'Error: ' + e.message + ' (complex YAML may require full parser — try simpler input)';
       }
-      out.textContent = result;
-      $('output-kind').textContent = label;
-    } catch (e) {
-      out.textContent = 'Error: ' + e.message;
     }
   }
 
-  $('convert').addEventListener('click', doConvert);
-  input.addEventListener('input', () => { /* wait for explicit click */ });
+  // Very simple YAML parser for flat/nested dicts and lists (handles most K8s manifests)
+  function parseSimpleYaml(text) {
+    const lines = text.split('\n').map(l => l.replace(/\s+#.*$/, '').trimEnd()).filter(l => l.trim() !== '');
+    function parseBlock(startIdx, indent) {
+      const result = {};
+      let i = startIdx;
+      while (i < lines.length) {
+        const line = lines[i];
+        const curIndent = line.search(/\S/);
+        if (curIndent < indent) break;
+        if (line.startsWith('- ', curIndent)) {
+          // List — collect all items at this level
+          const arr = [];
+          while (i < lines.length && lines[i].startsWith('- ', curIndent)) {
+            const itemText = lines[i].substring(curIndent + 2);
+            i++;
+            // Check if next line is child
+            if (i < lines.length && lines[i].search(/\S/) > curIndent) {
+              const child = parseBlock(i, curIndent + 2);
+              arr.push({ [itemText.split(':')[0].trim()]: itemText.includes(':') ? child : itemText });
+              // advance i past children
+              while (i < lines.length && lines[i].search(/\S/) > curIndent) i++;
+            } else {
+              arr.push(parseValue(itemText));
+            }
+          }
+          return arr;
+        }
+        const colonIdx = line.indexOf(':');
+        if (colonIdx === -1) { i++; continue; }
+        const key = line.substring(curIndent, colonIdx).trim();
+        let val = line.substring(colonIdx + 1).trim();
+        i++;
+        if (val === '') {
+          // Nested object
+          const child = parseBlock(i, curIndent + 2);
+          result[key] = child;
+          // advance past children
+          while (i < lines.length && lines[i].search(/\S/) > curIndent) i++;
+        } else {
+          result[key] = parseValue(val);
+        }
+      }
+      return result;
+    }
+    return parseBlock(0, 0);
+  }
 
-  $('clear').addEventListener('click', () => { input.value = ''; out.textContent = '—'; $('output-kind').textContent = '—'; });
+  function parseValue(v) {
+    if (v === 'true') return true;
+    if (v === 'false') return false;
+    if (v === 'null' || v === '~') return null;
+    if (/^-?\d+$/.test(v)) return parseInt(v, 10);
+    if (/^-?\d+\.\d+$/.test(v)) return parseFloat(v);
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) return v.slice(1, -1);
+    return v;
+  }
+
+  $('convert').addEventListener('click', doConvert);
+  $('clear').addEventListener('click', () => { $('input').value = ''; $('output').textContent = '—'; $('output-kind').textContent = '—'; });
   $('sample').addEventListener('click', () => {
-    input.value = [
+    $('input').value = [
       'apiVersion: v1',
       'kind: Pod',
       'metadata:',
@@ -102,20 +158,17 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
     $('input-kind').value = 'yaml';
     doConvert();
   });
-
   $('copy').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(out.textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
-    catch {}
+    try { await navigator.clipboard.writeText($('output').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); } catch {}
   });
-
   $('minify').addEventListener('click', () => {
-    const t = out.textContent;
+    const t = $('output').textContent;
     if (!t || t === '—') return;
     try {
       if ($('output-kind').textContent === 'JSON') {
-        out.textContent = JSON.stringify(JSON.parse(t));
+        $('output').textContent = JSON.stringify(JSON.parse(t));
       } else {
-        out.textContent = t.replace(/^\s+/gm, '').replace(/\n+/g, '\n');
+        $('output').textContent = t.replace(/^\s+/gm, '').replace(/\n+/g, '\n');
       }
     } catch {}
   });

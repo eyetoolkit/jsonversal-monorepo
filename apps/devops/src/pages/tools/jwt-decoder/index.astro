@@ -48,9 +48,8 @@ const description = 'Decode any JSON Web Token and inspect its header, payload, 
 </BaseLayout>
 
 
-<script is:inline>
+<script is:inline client:load>
 (function () {
-  if (typeof document === 'undefined') return;
   const $ = (id) => document.getElementById(id);
   function b64urlToJson(s) {
     let b = s.replace(/-/g, '+').replace(/_/g, '/');

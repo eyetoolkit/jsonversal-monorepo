@@ -48,10 +48,8 @@ const description = 'Translate a crontab expression into human-readable schedule
   </ul>
 </BaseLayout>
 
-<script is:inline>
+<script is:inline client:load>
 (function () {
-  if (typeof document === 'undefined') return;
-
   const $ = (id) => document.getElementById(id);
 
   function parseField(str, min, max, names) {
