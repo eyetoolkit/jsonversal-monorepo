@@ -48,6 +48,8 @@ const description = 'Encode any text to Base64, or decode Base64 back to text. S
 </BaseLayout>
 
 
+<script is:inline>
+(function () {
   if (typeof document === 'undefined') return;
   const $ = (id) => document.getElementById(id);
   function toB64(text, urlsafe) {
