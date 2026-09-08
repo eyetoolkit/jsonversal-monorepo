@@ -33,9 +33,9 @@ jobs:
       - name: Build main
         run: |
           rm -rf apps/main/dist apps/main/.astro
-          pnpm run build:main
-          find apps/main/dist -name "*.html" | head -5
-          grep -l "{title}" apps/main/dist/tools/json-to-typescript/index.html || echo "NO RAW TITLE FOUND"
+          pnpm turbo run build --filter=apps/main
+          echo "=== DIST CONTENTS ===" && find apps/main/dist -name "*.html" | head -5
+          echo "=== CHECK RAW TITLE ===" && grep -c "{title}" apps/main/dist/tools/json-to-typescript/index.html || echo "0 matches"
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -61,7 +61,7 @@ jobs:
       - name: Build devops
         run: |
           rm -rf apps/devops/dist apps/devops/.astro
-          pnpm run build:devops
+          pnpm turbo run build --filter=apps/devops
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -87,7 +87,7 @@ jobs:
       - name: Build codegen
         run: |
           rm -rf apps/codegen/dist apps/codegen/.astro
-          pnpm run build:codegen
+          pnpm turbo run build --filter=apps/codegen
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -113,7 +113,7 @@ jobs:
       - name: Build sec
         run: |
           rm -rf apps/sec/dist apps/sec/.astro
-          pnpm run build:sec
+          pnpm turbo run build --filter=apps/sec
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
