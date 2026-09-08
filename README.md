@@ -11,6 +11,14 @@ jsonversal 品牌矩阵 monorepo —— 通过 Astro 多 host 路由 + Cloudflar
 | `codegen.jsonversal.com` | 代码/配置文件生成器 | 🚧 MVP |
 | `sec.jsonversal.com` | 安全 / 加密 | 🚧 MVP |
 
+## 主站工具
+
+- UUID v7 Generator & Timestamp Decoder
+- JSON to TypeScript Interface
+- JSON to Zod Schema
+- LLM Token & Pricing Calculator
+- Structured Output JSON Schema Generator
+
 ## 架构
 
 ```
