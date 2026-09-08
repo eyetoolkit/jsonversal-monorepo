@@ -1,0 +1,117 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'UUID v7 Generator & Timestamp Decoder';
+const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and decode the embedded millisecond timestamp back to a readable date. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/uuid-v7/"
+  keywords={['UUIDv7', 'RFC 9562', 'timestamp decoder', 'UUID generator']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Generate</h2>
+    <label class="text-muted">Count</label>
+    <input id="count" type="number" value="5" min="1" max="100" style="max-width:120px;" />
+
+    <label class="text-muted mt-2" style="display:block;">Format</label>
+    <select id="format">
+      <option value="standard">Standard (lowercase)</option>
+      <option value="upper">UPPERCASE</option>
+      <option value="no-hyphens">No hyphens</option>
+      <option value="urn">URN</option>
+    </select>
+
+    <button class="primary mt-2" id="gen">Generate UUID v7</button>
+    <button class="ghost mt-2" id="copy">Copy</button>
+
+    <pre id="output" class="mt-2">—</pre>
+  </section>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Decode timestamp from a UUID v7</h2>
+    <input id="decode-input" type="text" placeholder="Paste a UUID v7, e.g. 018f5f4b-...-..." />
+    <button class="primary mt-2" id="decode-btn">Decode timestamp</button>
+    <pre id="decode-out" class="mt-2">—</pre>
+  </section>
+
+  <h2>How to use</h2>
+  <ol>
+    <li>Choose how many IDs you need and the output format.</li>
+    <li>Click <strong>Generate UUID v7</strong> — IDs appear instantly, generated with the Web Crypto API.</li>
+    <li>Copy the result, or paste a v7 UUID below to decode its embedded timestamp.</li>
+  </ol>
+
+  <h2>Use cases</h2>
+  <ul>
+    <li>Sortable, time-ordered primary keys for databases and event logs.</li>
+    <li>Message and job IDs that correlate with when they were created.</li>
+    <li>Migrating away from v4 when ordering or recency matters.</li>
+  </ul>
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    function uuidv7() {
+      // 48-bit timestamp (ms) + 80-bit random
+      const ts = Date.now();
+      const tsHex = ts.toString(16).padStart(12, '0');
+      const rand = crypto.getRandomValues(new Uint8Array(10));
+      const randHex = Array.from(rand).map(b => b.toString(16).padStart(2, '0')).join('');
+      // Set version (7) in the 13th hex digit (high nibble of byte 6)
+      const bytes = (tsHex + randHex).slice(0, 32).split('');
+      bytes[12] = '7';
+      // Set variant (10xx) in the 17th hex digit
+      const v = parseInt(bytes[17], 16);
+      bytes[17] = ((v & 0x3) | 0x8).toString(16);
+      const hex = bytes.join('');
+      return [
+          hex.slice(0,8), hex.slice(8,12), hex.slice(12,16),
+          hex.slice(16,20), hex.slice(20,32)
+        ].join('-');
+    }
+    function format(uuid, mode) {
+      if (mode === 'upper') return uuid.toUpperCase();
+      if (mode === 'no-hyphens') return uuid.replace(/-/g, '');
+      if (mode === 'urn') return 'urn:uuid:' + uuid;
+      return uuid;
+    }
+    const $ = (id) => document.getElementById(id);
+    $('gen').addEventListener('click', function () {
+      const n = Math.max(1, Math.min(100, parseInt($('count').value, 10) || 5));
+      const mode = $('format').value;
+      const list = [];
+      for (let i = 0; i < n; i++) list.push(format(uuidv7(), mode));
+      $('output').textContent = list.join('\n');
+    });
+    $('copy').addEventListener('click', async function () {
+      const t = $('output').textContent;
+      try { await navigator.clipboard.writeText(t); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+      catch { $('copy').textContent = 'Copy failed'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+    });
+    $('decode-btn').addEventListener('click', function () {
+      const raw = $('decode-input').value.trim().replace(/[^0-9a-fA-F]/g, '');
+      if (raw.length < 16) { $('decode-out').textContent = 'Invalid UUID'; return; }
+      const tsHex = raw.slice(0, 12);
+      const ms = parseInt(tsHex, 16);
+      const d = new Date(ms);
+      const lines = [
+        'UTC:   ' + d.toISOString(),
+        'Local: ' + d.toString(),
+        'Unix ms:  ' + ms,
+        'Unix sec: ' + Math.floor(ms / 1000),
+      ];
+      $('decode-out').textContent = lines.join('\n');
+    });
+  })();
+</script>
