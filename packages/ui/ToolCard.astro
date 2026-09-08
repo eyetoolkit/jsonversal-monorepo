@@ -1,0 +1,31 @@
+---
+export interface Props {
+  title: string;
+  description: string;
+  href: string;
+  status?: 'live' | 'soon';
+}
+
+const { title, description, href, status = 'live' } = Astro.props as Props;
+---
+
+<a href={href} class="tool-card card">
+  <div class="row">
+    <h3>{title}</h3>
+    {status === 'soon' && <span class="badge">Coming soon</span>}
+  </div>
+  <p class="text-muted">{description}</p>
+</a>
+
+<style>
+  .tool-card { color: var(--text); text-decoration: none; display: block; }
+  .tool-card:hover { text-decoration: none; border-color: var(--accent); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .row h3 { margin: 0; }
+  p { margin: 8px 0 0; font-size: 0.95rem; }
+  .badge {
+    background: var(--surface-alt); color: var(--text-muted);
+    border: 1px solid var(--border);
+    font-size: 0.7rem; padding: 2px 8px; border-radius: 999px;
+  }
+</style>
