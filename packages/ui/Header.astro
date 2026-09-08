@@ -1,0 +1,49 @@
+---
+import { tokens } from '@versal/config/tokens';
+
+export interface Props {
+  site: string;
+  current?: string;
+}
+
+const { site, current = '/' } = Astro.props as Props;
+const t = tokens.sites[site];
+---
+
+<header class="site-header">
+  <div class="container row">
+    <a href="/" class="brand">
+      <span class="brand-json">json</span><span class="brand-versal">versal</span>
+      <span class="brand-emoji">{t.emoji}</span>
+    </a>
+    <nav>
+      <a href="/" class={current === '/' ? 'active' : ''}>Home</a>
+      <a href="/tools/" class={current === '/tools/' ? 'active' : ''}>Tools</a>
+      <a href="https://jsonversal.com/" class="muted">↗ main</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    font-weight: 700; font-size: 1.25rem; color: var(--text);
+    text-decoration: none;
+  }
+  .brand-json { color: var(--text); }
+  .brand-versal { color: var(--accent); }
+  .brand-emoji { margin-left: 6px; }
+  nav a {
+    color: var(--text-muted); margin-left: 20px; font-weight: 500;
+  }
+  nav a:hover { color: var(--text); text-decoration: none; }
+  nav a.active { color: var(--accent); }
+  nav a.muted { color: var(--text-dim); font-size: 0.875rem; }
+</style>
