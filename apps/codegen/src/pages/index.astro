@@ -1,0 +1,27 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const tools = [
+  { title: '.gitignore Generator', description: 'Generate .gitignore for any language or framework.', href: '/tools/gitignore/' },
+  { title: 'License Generator', description: 'Pick a license, fill in metadata, download the file.', href: '/tools/license/' },
+  { title: 'README Skeleton', description: 'Generate a professional README structure for your repo.', href: '/tools/readme/' },
+  { title: 'GitHub Actions Workflow', description: 'Scaffold CI workflows: Node, Python, Go, Docker.', href: '/tools/ci-workflow/' },
+  { title: 'Conventional Commit', description: 'Format commit messages: feat/fix/chore with scope.', href: '/tools/commit-msg/' },
+];
+---
+
+<BaseLayout site="codegen" current="/">
+  <h1>Code generators that run in your browser.</h1>
+  <p class="text-muted">No signup, no upload. Every generator on codegen.jsonversal runs 100% locally — your templates never leave your device.</p>
+  <h2>Tools</h2>
+  <div class="grid">
+    {tools.map(tool => <ToolCard {...tool} />)}
+  </div>
+  <h2>Related</h2>
+  <div class="grid">
+    <ToolCard title="DevOps Tools" description="devops.jsonversal.com — YAML/JSON, Base64, JWT, crontab, regex." href="https://devops.jsonversal.com/" />
+    <ToolCard title="JSON / LLM Tools" description="jsonversal.com — UUID v7, JSON to TS, LLM token calculator." href="https://jsonversal.com/" />
+    <ToolCard title="Security Tools" description="sec.jsonversal.com — Hash, AES, password strength." href="https://sec.jsonversal.com/" />
+  </div>
+</BaseLayout>
