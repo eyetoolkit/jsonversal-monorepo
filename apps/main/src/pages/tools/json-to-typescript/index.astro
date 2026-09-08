@@ -1,0 +1,231 @@
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON to TypeScript Interface';
+const description = 'Convert JSON data into clean TypeScript interfaces. Includes nested types, optional fields, arrays, and union types. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-to-typescript/"
+  keywords={['JSON to TypeScript', 'TypeScript interface', 'JSON schema to TypeScript', 'ts interface generator']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input JSON</h2>
+    <textarea id="input" placeholder='&#123;&#10;  "id": 42,&#10;  "name": "Alice",&#10;  "email": "alice@example.com",&#10;  "active": true&#10;&#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="convert">Convert to TypeScript</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="output-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">TypeScript Interface</h2>
+      <div class="row" style="gap:8px;">
+        <button class="ghost" id="copy-ts">Copy</button>
+        <button class="ghost" id="toggle-optional">Make all optional</button>
+      </div>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste any valid JSON on the left.</li>
+    <li>Click <strong>Convert to TypeScript</strong> — the interface appears instantly.</li>
+    <li>All types are inferred from the JSON values: numbers, strings, booleans, arrays, objects, and <code>null</code>.</li>
+    <li>Click <strong>Make all optional</strong> to prefix every field with <code>?</code>.</li>
+  </ul>
+
+  <h2>Type mapping rules</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>JSON value</th><th>TypeScript type</th></tr></thead>
+    <tbody>
+      <tr><td><code>42</code>, <code>3.14</code></td><td><code>number</code></td></tr>
+      <tr><td><code>"hello"</code></td><td><code>string</code></td></tr>
+      <tr><td><code>true</code> / <code>false</code></td><td><code>boolean</code></td></tr>
+      <tr><td><code>null</code></td><td><code>null</code></td></tr>
+      <tr><td><code>[1, 2, 3]</code></td><td><code>number[]</code></td></tr>
+      <tr><td><code>[&#123;...&#125;, &#123;...&#125;]</code> (array of objects)</td><td><code>NestedType[]</code></td></tr>
+      <tr><td><code>&#123;"a": 1&#125;</code></td><td><code>NestedObject &#123; a: number &#125;</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 180px; }
+  pre { min-height: 80px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); }
+  th { background: var(--surface-alt); color: var(--text-muted); }
+  td code { background: none; border: none; padding: 0; font-size: .85rem; }
+</style>
+
+<script is:inline>
+(function () {
+  function jsonToTs(json, name) {
+    if (json === null) return 'null';
+    if (typeof json === 'boolean') return 'boolean';
+    if (typeof json === 'number') return 'number';
+    if (typeof json === 'string') return 'string';
+    if (Array.isArray(json)) {
+      if (json.length === 0) return 'unknown[]';
+      const types = new Set();
+      const objectTypes = [];
+      for (const item of json) {
+        if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
+          objectTypes.push(item);
+        } else {
+          types.add(jsonToTs(item, ''));
+        }
+      }
+      if (objectTypes.length > 0) {
+        const merged = mergeObjects(objectTypes);
+        const inner = tsType(merged, '');
+        if (types.size === 0) return inner + '[]';
+        types.add(inner);
+        return Array.from(types).join(' | ') + '[]';
+      }
+      const arr = Array.from(types);
+      return (arr.length === 1 ? arr[0] : arr.join(' | ')) + '[]';
+    }
+    if (typeof json === 'object') {
+      return tsType(json, name);
+    }
+    return 'unknown';
+  }
+
+  function mergeObjects(objs) {
+    const result = {};
+    for (const obj of objs) {
+      for (const [k, v] of Object.entries(obj)) {
+        if (!(k in result)) result[k] = v;
+      }
+    }
+    return result;
+  }
+
+  function tsType(obj, name) {
+    const entries = Object.entries(obj);
+    if (entries.length === 0) return 'Record<string, unknown>';
+    const typeName = name || 'RootObject';
+    let s = 'interface ' + typeName + ' {\n';
+    const subNames = [];
+    for (const [k, v] of entries) {
+      const safeKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
+      const isOpt = v === null;
+      const val = isOpt ? null : v;
+      let t;
+      if (Array.isArray(val)) {
+        t = jsonToTs(val, capitalize(k));
+      } else if (val !== null && typeof val === 'object') {
+        t = capitalize(k);
+        subNames.push({ obj: val, name: capitalize(k) });
+      } else {
+        t = jsonToTs(val, '');
+      }
+      s += '  ' + safeKey + (isOpt ? '?: ' : ': ') + t + ';\n';
+    }
+    s += '}';
+    for (const sub of subNames) {
+      s = jsonToTs(sub.obj, sub.name) + '\n\n' + s;
+    }
+    return s;
+  }
+
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function makeAllOptional(code) {
+    return code.replace(/^(\s*)(\w[\w\d]*)\s*:/gm, '$1$2?:');
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const input = $('input');
+  const outputSection = $('output-section');
+  const errorSection = $('error-section');
+  const output = $('output');
+  const errorOut = $('error-out');
+
+  $('convert').addEventListener('click', function () {
+    const raw = input.value.trim();
+    if (!raw) { alert('Please paste some JSON first.'); return; }
+    try {
+      const obj = JSON.parse(raw);
+      const ts = jsonToTs(obj, 'RootObject');
+      output.textContent = ts;
+      outputSection.style.display = 'block';
+      errorSection.style.display = 'none';
+    } catch (e) {
+      errorOut.textContent = e.message;
+      errorSection.style.display = 'block';
+      outputSection.style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', function () {
+    input.value = JSON.stringify({
+      id: 42,
+      name: "Alice",
+      email: "alice@example.com",
+      active: true,
+      age: null,
+      scores: [98, 87, 95],
+      address: {
+        street: "123 Main St",
+        city: "New York",
+        zip: 10001
+      },
+      tags: ["premium", "beta-tester"]
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', function () {
+    input.value = '';
+    outputSection.style.display = 'none';
+    errorSection.style.display = 'none';
+  });
+
+  $('copy-ts').addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText(output.textContent);
+      $('copy-ts').textContent = 'Copied!';
+      setTimeout(() => $('copy-ts').textContent = 'Copy', 1200);
+    } catch {
+      $('copy-ts').textContent = 'Failed';
+      setTimeout(() => $('copy-ts').textContent = 'Copy', 1200);
+    }
+  });
+
+  $('toggle-optional').addEventListener('click', function () {
+    const original = output.textContent;
+    if (original.includes('?:')) {
+      output.textContent = original.replace(/^(\s*)(\w[\w\d]*)\?:/gm, '$1$2:');
+      $('toggle-optional').textContent = 'Make all optional';
+    } else {
+      output.textContent = makeAllOptional(original);
+      $('toggle-optional').textContent = 'Undo optional';
+    }
+  });
+})();
+</script>
