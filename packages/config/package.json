@@ -7,6 +7,8 @@
   "exports": {
     ".": "./tokens.js",
     "./tokens": "./tokens.js",
-    "./sites": "./sites.js"
+    "./tokens.js": "./tokens.js",
+    "./sites": "./sites.js",
+    "./sites.js": "./sites.js"
   }
 }

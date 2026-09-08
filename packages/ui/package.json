@@ -7,10 +7,16 @@
   "exports": {
     ".": "./index.js",
     "./BaseLayout": "./BaseLayout.astro",
+    "./BaseLayout.astro": "./BaseLayout.astro",
     "./Header": "./Header.astro",
+    "./Header.astro": "./Header.astro",
     "./Footer": "./Footer.astro",
+    "./Footer.astro": "./Footer.astro",
     "./ConsentBanner": "./ConsentBanner.astro",
+    "./ConsentBanner.astro": "./ConsentBanner.astro",
     "./ToolCard": "./ToolCard.astro",
+    "./ToolCard.astro": "./ToolCard.astro",
+    "./base.css": "./base.css",
     "./styles": "./base.css"
   }
 }
