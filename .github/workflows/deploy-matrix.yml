@@ -26,8 +26,6 @@ permissions:
 
 env:
   CF_ACCOUNT_ID: 00cb5cd6be4881053e57a338ce62de2f
-  NODE_VERSION: '22'
-  PNPM_VERSION: '9.12.0'
 
 jobs:
   # ─────────── 检测变更 ───────────
@@ -58,21 +56,24 @@ jobs:
               - 'apps/sec/**'
               - 'packages/**'
 
-  # ─────────── 构建 + 部署（为每个子站单独 job） ───────────
+  # ─────────── 构建 + 部署 ───────────
   deploy-main:
     name: 部署 main（jsonversal.com）
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     needs: changes
     if: |
       needs.changes.outputs.main == 'true' ||
       (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'main'))
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install pnpm
-        run: npm i -g pnpm@${{ env.PNPM_VERSION }}
+        run: npm i -g pnpm@10.12.1
       - name: Install deps
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
       - name: Build main
         run: pnpm --filter @versal/site-main build
       - name: Deploy to Cloudflare Pages
@@ -88,17 +89,20 @@ jobs:
   deploy-devops:
     name: 部署 devops.jsonversal.com
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     needs: changes
     if: |
       needs.changes.outputs.devops == 'true' ||
       (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'devops'))
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install pnpm
-        run: npm i -g pnpm@${{ env.PNPM_VERSION }}
+        run: npm i -g pnpm@10.12.1
       - name: Install deps
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
       - name: Build devops
         run: pnpm --filter @versal/site-devops build
       - name: Deploy to Cloudflare Pages
@@ -114,17 +118,20 @@ jobs:
   deploy-codegen:
     name: 部署 codegen.jsonversal.com
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     needs: changes
     if: |
       needs.changes.outputs.codegen == 'true' ||
       (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'codegen'))
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install pnpm
-        run: npm i -g pnpm@${{ env.PNPM_VERSION }}
+        run: npm i -g pnpm@10.12.1
       - name: Install deps
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
       - name: Build codegen
         run: pnpm --filter @versal/site-codegen build
       - name: Deploy to Cloudflare Pages
@@ -140,17 +147,20 @@ jobs:
   deploy-sec:
     name: 部署 sec.jsonversal.com
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     needs: changes
     if: |
       needs.changes.outputs.sec == 'true' ||
       (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'sec'))
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install pnpm
-        run: npm i -g pnpm@${{ env.PNPM_VERSION }}
+        run: npm i -g pnpm@10.12.1
       - name: Install deps
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
       - name: Build sec
         run: pnpm --filter @versal/site-sec build
       - name: Deploy to Cloudflare Pages
