@@ -2,5 +2,5 @@ name = "jsonversal-sec"
 compatibility_date = "2026-09-08"
 
 [pages]
-build_config.build_command = "exit 0"
+build_config.build_command = "pnpm install && pnpm turbo run build --filter=@versal/site-sec"
 build_config.output_dir = "apps/sec/dist"
