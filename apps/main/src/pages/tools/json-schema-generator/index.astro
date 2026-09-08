@@ -1,0 +1,297 @@
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Schema Generator';
+const description = 'Generate a strict JSON Schema for LLM structured output. Create validation schemas for AI responses with support for required fields, enums, and nested objects.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-schema-generator/"
+  keywords={['JSON Schema generator', 'LLM structured output', 'JSON Schema draft-2020-12', 'schema validation']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Step 1 — Define fields</h2>
+    <p class="text-dim" style="font-size:.875rem;">Add fields that the LLM should return. Each field becomes a JSON Schema property.</p>
+    <div id="fields-list"></div>
+    <button class="ghost mt-1" id="add-field">+ Add field</button>
+  </section>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Step 2 — Preview &amp; generate</h2>
+    <div class="row">
+      <label class="text-muted" for="schema-id" style="min-width:120px;">Schema ID</label>
+      <input id="schema-id" type="text" value="user_schema" style="max-width:300px;" />
+    </div>
+    <div class="row mt-1">
+      <label class="text-muted" for="root-desc" style="min-width:120px;">Description</label>
+      <input id="root-desc" type="text" value="The generated response object" style="max-width:400px;" />
+    </div>
+    <button class="primary mt-2" id="generate">Generate JSON Schema</button>
+  </section>
+
+  <section class="card mt-2" id="output-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Generated JSON Schema</h2>
+      <div class="row" style="gap:8px;">
+        <button class="ghost" id="copy">Copy</button>
+        <button class="ghost" id="validate-btn">Validate sample</button>
+      </div>
+    </div>
+    <pre id="output">—</pre>
+  </section>
+
+  <section class="card mt-2" id="validate-section" style="display:none;">
+    <h2 style="margin-top:0;">Validate against schema</h2>
+    <textarea id="sample-input" placeholder='&#123;&#10;  "fieldName": "value"&#10;&#125;' style="min-height:100px;"></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="run-validate">Validate</button>
+      <button class="ghost" id="load-sample">Load example</button>
+    </div>
+    <pre id="validate-out" class="mt-1" style="display:none;"></pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Add fields with names, types, and optional descriptions.</li>
+    <li>Choose types: string, number, boolean, array, object, or enum.</li>
+    <li>Mark fields as required or optional.</li>
+    <li>Generate a <strong>JSON Schema Draft-2020-12</strong> compatible schema.</li>
+    <li>Use with OpenAI <code>response_format</code> or Anthropic structured output.</li>
+  </ul>
+
+  <h2>LLM integration example</h2>
+  <h3>OpenAI (Python)</h3>
+  <pre>from openai import OpenAI
+import json
+
+client = OpenAI()
+
+completion = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[&#123;"role": "user", "content": "Get user info for alice"&#125;],
+    response_format=&#123;"type": "json_schema", "json_schema": &#123;
+        "name": "user_schema",
+        "schema": &#123;...&#125;
+    &#125;&#125;,
+)
+result = json.loads(completion.choices[0].message.content)</pre>
+
+  <h3>Anthropic (Python)</h3>
+  <pre>import anthropic
+
+client = anthropic.Anthropic()
+
+message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    messages=[&#123;"role": "user", "content": "Get user info for alice"&#125;],
+    response_format=&#123;
+        "type": "json_schema",
+        "json_schema": &#123;
+            "name": "user_schema",
+            "schema": &#123;...&#125;
+        &#125;
+    &#125;,
+)</pre>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 80px; }
+  pre { min-height: 80px; }
+  code { font-size: .85rem; }
+  .field-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 8px; }
+  .field-row input[type=text], .field-row select { max-width: 160px; }
+  .field-row input[type=checkbox] { width: auto; }
+  label { font-size: .875rem; }
+  .text-dim { color: var(--text-dim); }
+  .success { color: var(--success); }
+  .error { color: var(--danger); }
+</style>
+
+<script is:inline>
+(function () {
+  var fields = [];
+  var fieldCount = 0;
+
+  function renderFields() {
+    var list = document.getElementById('fields-list');
+    list.innerHTML = '';
+    for (var i = 0; i < fields.length; i++) {
+      (function (idx) {
+        var f = fields[idx];
+        var div = document.createElement('div');
+        div.className = 'field-row';
+        div.innerHTML =
+          '<input type="text" placeholder="field_name" value="' + escHtml(f.name) + '" style="max-width:140px;" data-idx="' + idx + '" data-key="name" class="field-name" />' +
+          '<select data-idx="' + idx + '" data-key="type" class="field-type">' +
+            '<option value="string"' + (f.type === 'string' ? ' selected' : '') + '>string</option>' +
+            '<option value="number"' + (f.type === 'number' ? ' selected' : '') + '>number</option>' +
+            '<option value="boolean"' + (f.type === 'boolean' ? ' selected' : '') + '>boolean</option>' +
+            '<option value="array"' + (f.type === 'array' ? ' selected' : '') + '>array</option>' +
+            '<option value="object"' + (f.type === 'object' ? ' selected' : '') + '>object</option>' +
+            '<option value="enum"' + (f.type === 'enum' ? ' selected' : '') + '>enum</option>' +
+          '</select>' +
+          '<input type="text" placeholder="description (optional)" value="' + escHtml(f.desc || '') + '" style="max-width:200px;" data-idx="' + idx + '" data-key="desc" class="field-desc" />' +
+          '<input type="text" placeholder="enum: a,b,c" value="' + escHtml(f.enumVals || '') + '" style="max-width:140px;display:' + (f.type === 'enum' ? 'block' : 'none') + ';" data-idx="' + idx + '" data-key="enumVals" class="field-enum" />' +
+          '<label style="min-width:auto;"><input type="checkbox" ' + (f.required ? 'checked' : '') + ' data-idx="' + idx + '" class="field-req" /> Required</label>' +
+          '<button class="ghost" style="padding:4px 8px;font-size:.8rem;" data-idx="' + idx + '" class="remove-btn">✕</button>';
+        list.appendChild(div);
+      })(i);
+    }
+
+    list.querySelectorAll('.field-name').forEach(function (el) {
+      el.addEventListener('input', function () { fields[this.dataset.idx].name = this.value; });
+    });
+    list.querySelectorAll('.field-type').forEach(function (el) {
+      el.addEventListener('change', function () {
+        fields[this.dataset.idx].type = this.value;
+        renderFields();
+      });
+    });
+    list.querySelectorAll('.field-desc').forEach(function (el) {
+      el.addEventListener('input', function () { fields[this.dataset.idx].desc = this.value; });
+    });
+    list.querySelectorAll('.field-enum').forEach(function (el) {
+      el.addEventListener('input', function () { fields[this.dataset.idx].enumVals = this.value; });
+    });
+    list.querySelectorAll('.field-req').forEach(function (el) {
+      el.addEventListener('change', function () { fields[this.dataset.idx].required = this.checked; });
+    });
+    list.querySelectorAll('.remove-btn').forEach(function (el) {
+      el.addEventListener('click', function () { fields.splice(this.dataset.idx, 1); renderFields(); });
+    });
+  }
+
+  function escHtml(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function generateSchema() {
+    var id = document.getElementById('schema-id').value.trim() || 'schema';
+    var desc = document.getElementById('root-desc').value.trim();
+    var required = [];
+    var properties = {};
+    for (var i = 0; i < fields.length; i++) {
+      var f = fields[i];
+      if (!f.name) continue;
+      var prop = {};
+      if (f.desc) prop.description = f.desc;
+      switch (f.type) {
+        case 'string': prop.type = 'string'; break;
+        case 'number': prop.type = 'number'; break;
+        case 'boolean': prop.type = 'boolean'; break;
+        case 'array': prop.type = 'array'; prop.items = { type: 'string' }; break;
+        case 'object': prop.type = 'object'; prop.properties = {}; prop.required = []; break;
+        case 'enum':
+          prop.type = 'string';
+          if (f.enumVals) prop.enum = f.enumVals.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+          break;
+      }
+      properties[f.name] = prop;
+      if (f.required) required.push(f.name);
+    }
+    var schema = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      name: id,
+      description: desc || undefined,
+      type: 'object',
+      properties: properties,
+      required: required.length ? required : undefined,
+    };
+    return JSON.stringify(schema, null, 2);
+  }
+
+  var $ = function(id) { return document.getElementById(id); };
+
+  $('add-field').addEventListener('click', function () {
+    fields.push({ name: 'field' + (++fieldCount), type: 'string', required: true, desc: '', enumVals: '' });
+    renderFields();
+  });
+
+  $('generate').addEventListener('click', function () {
+    var schema = generateSchema();
+    $('output').textContent = schema;
+    $('output-section').style.display = 'block';
+    $('validate-section').style.display = 'block';
+    $('validate-out').style.display = 'none';
+  });
+
+  $('copy').addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(function() { $('copy').textContent = 'Copy'; }, 1200);
+    } catch (e) {
+      $('copy').textContent = 'Failed';
+      setTimeout(function() { $('copy').textContent = 'Copy'; }, 1200);
+    }
+  });
+
+  $('load-sample').addEventListener('click', function () {
+    $('sample-input').value = JSON.stringify({ name: 'Alice', age: 30, email: 'alice@example.com', role: 'admin' }, null, 2);
+  });
+
+  $('run-validate').addEventListener('click', function () {
+    try {
+      var input = JSON.parse($('sample-input').value);
+      var schema = JSON.parse($('output').textContent);
+      var errors = validate(input, schema);
+      var out = $('validate-out');
+      out.style.display = 'block';
+      if (errors.length === 0) {
+        out.innerHTML = '<span class="success">✓ Valid — the sample matches the schema.</span>';
+      } else {
+        out.innerHTML = '<span class="error">✗ Invalid:</span>\n' + errors.join('\n');
+      }
+    } catch (e) {
+      var out = $('validate-out');
+      out.style.display = 'block';
+      out.innerHTML = '<span class="error">Parse error: ' + escHtml(e.message) + '</span>';
+    }
+  });
+
+  function validate(data, schema) {
+    var errors = [];
+    if (schema.type === 'object') {
+      if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+        errors.push('Expected object, got ' + typeof data);
+        return errors;
+      }
+      if (schema.required) {
+        for (var i = 0; i < schema.required.length; i++) {
+          if (!(schema.required[i] in data)) {
+            errors.push('Missing required field: ' + schema.required[i]);
+          }
+        }
+      }
+      for (var key in data) {
+        if (schema.properties && schema.properties[key]) {
+          var prop = schema.properties[key];
+          var val = data[key];
+          if (prop.type === 'string' && typeof val !== 'string') errors.push(key + ': expected string');
+          else if (prop.type === 'number' && typeof val !== 'number') errors.push(key + ': expected number');
+          else if (prop.type === 'boolean' && typeof val !== 'boolean') errors.push(key + ': expected boolean');
+          else if (prop.type === 'array' && !Array.isArray(val)) errors.push(key + ': expected array');
+          else if (prop.enum && !prop.enum.includes(val)) errors.push(key + ': value "' + val + '" not in enum ' + JSON.stringify(prop.enum));
+        }
+      }
+    }
+    return errors;
+  }
+
+  fields.push({ name: 'name', type: 'string', required: true, desc: 'User full name', enumVals: '' });
+  fields.push({ name: 'age', type: 'number', required: false, desc: 'User age in years', enumVals: '' });
+  fields.push({ name: 'email', type: 'string', required: true, desc: 'Email address', enumVals: '' });
+  renderFields();
+})();
+</script>
