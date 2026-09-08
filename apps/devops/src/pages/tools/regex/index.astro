@@ -50,8 +50,8 @@ const description = 'Test a regular expression against sample input, highlight m
   </ul>
 </BaseLayout>
 
-<script is:inline>
-(function () {
+
+  if (typeof document === 'undefined') return;
   const $ = (id) => document.getElementById(id);
   const PALETTE = ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#06b6d4', '#ec4899'];
 
@@ -102,6 +102,6 @@ const description = 'Test a regular expression against sample input, highlight m
 
   $('test').addEventListener('click', run);
   [$('pattern'), $('flags'), $('input')].forEach(el => el.addEventListener('input', () => run()));
-  run();
+  if (typeof document !== 'undefined') run();
 })();
 </script>

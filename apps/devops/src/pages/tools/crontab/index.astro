@@ -48,8 +48,8 @@ const description = 'Translate a crontab expression (5-field or 6-field) into hu
   </ul>
 </BaseLayout>
 
-<script is:inline>
-(function () {
+
+  if (typeof document === 'undefined') return;
   const $ = (id) => document.getElementById(id);
 
   // Parse cron expression into arrays of allowed values per field

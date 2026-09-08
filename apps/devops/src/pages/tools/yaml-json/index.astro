@@ -52,8 +52,8 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
 </BaseLayout>
 
 <script is:inline src="https://cdn.jsdelivr.net/npm/yaml@2.5.0/dist/browser/yaml.min.js"></script>
-<script is:inline>
-(function () {
+
+  if (typeof document === 'undefined') return;
   const $ = (id) => document.getElementById(id);
   const input = $('input');
   const out = $('output');
