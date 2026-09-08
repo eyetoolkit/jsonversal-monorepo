@@ -1,0 +1,172 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'Content-Security-Policy Generator';
+const description = 'Build a strict Content-Security-Policy header by toggling what resources are allowed where. Works for headers and meta tags.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://sec.jsonversal.com/tools/csp/"
+  keywords={['CSP', 'content-security-policy', 'CSP generator', 'web security']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Resource directives</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+      <!-- script-src -->
+      <div><strong>script-src</strong>
+        <div class="row" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;font-size:.85rem;">
+          <label><input id="s-self" type="checkbox" checked /> 'self'</label>
+          <label><input id="s-unsafe-inline" type="checkbox" /> 'unsafe-inline'</label>
+          <label><input id="s-unsafe-eval" type="checkbox" /> 'unsafe-eval'</label>
+          <label><input id="s-hashes" type="checkbox" /> 'sha256-...' (subresource integrity)</label>
+          <label><input id="s-google" type="checkbox" /> https://*.googleapis.com</label>
+          <label><input id="s-cloudflare" type="checkbox" /> https://cdnjs.cloudflare.com</label>
+          <input id="s-custom" type="text" placeholder="custom source (optional)" />
+        </div>
+      </div>
+      <!-- style-src -->
+      <div><strong>style-src</strong>
+        <div class="row" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;font-size:.85rem;">
+          <label><input id="st-self" type="checkbox" checked /> 'self'</label>
+          <label><input id="st-unsafe-inline" type="checkbox" checked /> 'unsafe-inline'</label>
+          <label><input id="st-google" type="checkbox" /> https://fonts.googleapis.com</label>
+          <label><input id="st-cloudflare" type="checkbox" /> https://cdnjs.cloudflare.com</label>
+        </div>
+      </div>
+      <!-- img-src -->
+      <div><strong>img-src</strong>
+        <div class="row" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;font-size:.85rem;">
+          <label><input id="i-self" type="checkbox" checked /> 'self'</label>
+          <label><input id="i-data" type="checkbox" checked /> data:</label>
+          <label><input id="i-blob" type="checkbox" /> blob:</label>
+          <label><input id="i-https" type="checkbox" checked /> https:</label>
+        </div>
+      </div>
+      <!-- connect-src -->
+      <div><strong>connect-src</strong>
+        <div class="row" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;font-size:.85rem;">
+          <label><input id="c-self" type="checkbox" checked /> 'self'</label>
+          <label><input id="c-ws" type="checkbox" /> wss:</label>
+          <label><input id="c-apis" type="checkbox" /> https://api.*</label>
+        </div>
+      </div>
+      <!-- font-src -->
+      <div><strong>font-src</strong>
+        <div class="row" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;font-size:.85rem;">
+          <label><input id="f-self" type="checkbox" checked /> 'self'</label>
+          <label><input id="f-google" type="checkbox" /> https://fonts.gstatic.com</label>
+          <label><input id="f-data" type="checkbox" /> data:</label>
+        </div>
+      </div>
+      <!-- frame-src -->
+      <div><strong>frame-src</strong>
+        <div class="row" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;font-size:.85rem;">
+          <label><input id="fr-none" type="checkbox" checked /> 'none'</label>
+          <label><input id="fr-self" type="checkbox" /> 'self'</label>
+          <label><input id="fr-youtube" type="checkbox" /> https://www.youtube.com</label>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:6px;"><input id="fsd" type="checkbox" checked /> form-action 'self'</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="bb" type="checkbox" checked /> base-uri 'self'</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="nn" type="checkbox" checked /> object-src 'none'</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="ft" type="checkbox" /> frame-ancestors 'none'</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="report" type="checkbox" /> report-uri /csp-report</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="upgrade" type="checkbox" checked /> upgrade-insecure-requests</label>
+    </div>
+    <button class="primary mt-2" id="gen">Generate CSP</button>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Header</strong>
+    <pre id="out" class="mt-2" style="white-space:pre-wrap;"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="copy-full">Copy HTTP header</button>
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  function buildDirective(name, parts) {
+    if (!parts.length) return null;
+    return name + ' ' + parts.join(' ');
+  }
+
+  function gen() {
+    const lines = [];
+    const s = [];
+    if ($('s-self').checked) s.push("'self'");
+    if ($('s-unsafe-inline').checked) s.push("'unsafe-inline'");
+    if ($('s-unsafe-eval').checked) s.push("'unsafe-eval'");
+    if ($('s-hashes').checked) s.push("'sha256-'");
+    if ($('s-google').checked) s.push('https://*.googleapis.com');
+    if ($('s-cloudflare').checked) s.push('https://cdnjs.cloudflare.com');
+    if ($('s-custom').value.trim()) s.push($('s-custom').value.trim());
+    if (s.length) lines.push(buildDirective('script-src', s));
+
+    const st = [];
+    if ($('st-self').checked) st.push("'self'");
+    if ($('st-unsafe-inline').checked) st.push("'unsafe-inline'");
+    if ($('st-google').checked) st.push('https://fonts.googleapis.com');
+    if ($('st-cloudflare').checked) st.push('https://cdnjs.cloudflare.com');
+    if (st.length) lines.push(buildDirective('style-src', st));
+
+    const i = [];
+    if ($('i-self').checked) i.push("'self'");
+    if ($('i-data').checked) i.push('data:');
+    if ($('i-blob').checked) i.push('blob:');
+    if ($('i-https').checked) i.push('https:');
+    if (i.length) lines.push(buildDirective('img-src', i));
+
+    const c = [];
+    if ($('c-self').checked) c.push("'self'");
+    if ($('c-ws').checked) c.push('wss:');
+    if ($('c-apis').checked) c.push('https:');
+    if (c.length) lines.push(buildDirective('connect-src', c));
+
+    const f = [];
+    if ($('f-self').checked) f.push("'self'");
+    if ($('f-google').checked) f.push('https://fonts.gstatic.com');
+    if ($('f-data').checked) f.push('data:');
+    if (f.length) lines.push(buildDirective('font-src', f));
+
+    const fr = [];
+    if ($('fr-none').checked) fr.push("'none'");
+    if ($('fr-self').checked) fr.push("'self'");
+    if ($('fr-youtube').checked) fr.push('https://www.youtube.com');
+    if (fr.length) lines.push(buildDirective('frame-src', fr));
+
+    // fallback: default-src if nothing else
+    if (lines.length === 0) lines.push("default-src 'self'");
+
+    if ($('fsd').checked) lines.push("form-action 'self'");
+    if ($('bb').checked) lines.push("base-uri 'self'");
+    if ($('nn').checked) lines.push("object-src 'none'");
+    if ($('ft').checked) lines.push("frame-ancestors 'none'");
+    if ($('report').checked) lines.push("report-uri /csp-report");
+    if ($('upgrade').checked) lines.push("upgrade-insecure-requests");
+
+    const csp = lines.join('; ');
+    $('out').textContent = csp;
+  }
+
+  $('gen').addEventListener('click', gen);
+  document.querySelectorAll('input[type=checkbox], input[type=text]').forEach(el => el.addEventListener('change', gen));
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent='Copied!'; setTimeout(()=>$('copy').textContent='Copy',1200); } catch {}
+  });
+  $('copy-full').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText('Content-Security-Policy: ' + $('out').textContent); $('copy-full').textContent='Copied!'; setTimeout(()=>$('copy-full').textContent='Copy HTTP header',1200); } catch {}
+  });
+
+  gen();
+})();
+</script>
