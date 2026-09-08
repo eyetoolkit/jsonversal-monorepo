@@ -4,7 +4,7 @@ import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
   {
-    title: 'YAML ? JSON Converter',
+    title: 'YAML ↔ JSON Converter',
     description: 'Convert YAML to JSON and JSON to YAML. Pretty-print and validate.',
     href: '/tools/yaml-json/',
   },
@@ -34,7 +34,7 @@ const tools = [
 <BaseLayout site="devops" current="/">
   <h1>DevOps tools that run in your browser.</h1>
   <p class="text-muted">
-    No signup, no upload. Every tool on devops.jsonversal runs 100% locally - your configs, secrets, and logs never leave your device.
+    No signup, no upload. Every tool on devops.jsonversal runs 100% locally — your configs, secrets, and logs never leave your device.
   </p>
 
   <h2>Tools</h2>
@@ -42,10 +42,10 @@ const tools = [
     {tools.map(tool => <ToolCard {...tool} />)}
   </div>
 
-  <h2>Related - from the jsonversal brand</h2>
+  <h2>Related — from the jsonversal brand</h2>
   <div class="grid">
-    <ToolCard title="JSON / LLM Tools" description="jsonversal.com - JSON to TypeScript, UUID v7, LLM token calculator." href="https://jsonversal.com/" />
-    <ToolCard title="Code Generators" description="codegen.jsonversal.com - .gitignore, license, CI workflow generator." href="https://codegen.jsonversal.com/" />
-    <ToolCard title="Security Tools" description="sec.jsonversal.com - Hash, AES, password strength, CSP generator." href="https://sec.jsonversal.com/" />
+    <ToolCard title="JSON / LLM Tools" description="jsonversal.com — JSON to TypeScript, UUID v7, LLM token calculator." href="https://jsonversal.com/" />
+    <ToolCard title="Code Generators" description="codegen.jsonversal.com — .gitignore, license, CI workflow generator." href="https://codegen.jsonversal.com/" />
+    <ToolCard title="Security Tools" description="sec.jsonversal.com — Hash, AES, password strength, CSP generator." href="https://sec.jsonversal.com/" />
   </div>
 </BaseLayout>
