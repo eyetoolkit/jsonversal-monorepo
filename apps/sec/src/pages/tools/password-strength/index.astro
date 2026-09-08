@@ -1,0 +1,132 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'Password Strength Analyzer';
+const description = 'Score any password and get actionable hints. Checks length, entropy, common patterns, and leaks detection heuristics.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://sec.jsonversal.com/tools/password-strength/"
+  keywords={['password strength', 'password checker', 'entropy calculator']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Enter a password</h2>
+    <input id="pwd" type="password" placeholder="Type or paste a password" />
+    <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.85rem;color:var(--text-muted);">
+      <input id="show" type="checkbox" /> Show password (risky on shared devices)
+    </label>
+
+    <div class="mt-2">
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-muted);margin-bottom:4px;">
+        <span>Strength</span><span id="score-text">—</span>
+      </div>
+      <div style="background:var(--surface-alt);border-radius:6px;height:10px;overflow:hidden;">
+        <div id="bar" style="height:100%;width:0%;background:var(--danger);transition:all .2s;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Details</strong>
+    <div id="details" class="mt-2">—</div>
+  </section>
+</BaseLayout>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  function score(pwd) {
+    let score = 0;
+    const issues = [];
+    const hints = [];
+    if (!pwd) return { score: 0, label: 'empty', color: '#6b7280', bits: 0, issues: [], hints: ['Enter a password to analyze'] };
+
+    const len = pwd.length;
+    // Length contribution
+    if (len >= 8) score += 10;
+    if (len >= 12) score += 15;
+    if (len >= 16) score += 15;
+    if (len >= 20) score += 10;
+
+    // Character class diversity
+    const hasLower = /[a-z]/.test(pwd);
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasDigit = /[0-9]/.test(pwd);
+    const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+    let classes = 0;
+    if (hasLower) { classes++; score += 8; }
+    if (hasUpper) { classes++; score += 8; }
+    if (hasDigit) { classes++; score += 6; }
+    if (hasSymbol) { classes++; score += 12; }
+    if (classes >= 3) score += 10;
+    if (classes >= 4) score += 5;
+
+    // Penalties: common patterns
+    if (/^[a-z]+$/.test(pwd) || /^[A-Z]+$/.test(pwd)) { score -= 25; issues.push('All letters one case'); }
+    if (/^[0-9]+$/.test(pwd)) { score -= 30; issues.push('Only digits'); }
+    if (/(\w)\1{2,}/.test(pwd)) { score -= 15; issues.push('Repeated characters (aaa, 111)'); }
+    if (/1234|abcd|qwert|password|passw0rd|letmein|admin|welcome/i.test(pwd)) { score -= 40; issues.push('Contains common weak substring'); }
+    if (/^[a-z]+[0-9]+$/.test(pwd) && len < 14) { score -= 10; issues.push('Letter + digit pattern'); }
+
+    // Entropy approximation
+    let chars = 0;
+    if (hasLower) chars += 26;
+    if (hasUpper) chars += 26;
+    if (hasDigit) chars += 10;
+    if (hasSymbol) chars += 33;
+    const bits = chars ? Math.round(len * Math.log2(chars)) : 0;
+
+    if (len < 8) hints.push('Use at least 12 characters (8 is the minimum, 16+ is ideal)');
+    if (!hasSymbol) hints.push('Add symbols like ! @ # $ % ^ & *');
+    if (!hasUpper) hints.push('Mix uppercase letters');
+    if (!hasDigit) hints.push('Include some numbers');
+    if (issues.length) hints.push('Avoid the patterns flagged above');
+
+    score = Math.max(0, Math.min(100, score));
+    let label, color;
+    if (score < 30) { label = 'Very Weak'; color = '#ef4444'; }
+    else if (score < 50) { label = 'Weak'; color = '#f97316'; }
+    else if (score < 70) { label = 'Okay'; color = '#f59e0b'; }
+    else if (score < 90) { label = 'Strong'; color = '#10b981'; }
+    else { label = 'Excellent'; color = '#22c55e'; }
+
+    return { score, label, color, bits, issues, hints };
+  }
+
+  function fmtTime(bits) {
+    // 10b/s guessing offline hashcat
+    const guesses = Math.pow(2, bits);
+    const seconds = guesses / 1e10;
+    if (seconds < 60) return '< 1 minute';
+    if (seconds < 3600) return Math.round(seconds/60) + ' minutes';
+    if (seconds < 86400) return Math.round(seconds/3600) + ' hours';
+    const days = Math.round(seconds/86400);
+    if (days < 365) return days + ' days';
+    const years = Math.round(days/365);
+    if (years < 1000) return years + ' years';
+    return 'centuries';
+  }
+
+  function run() {
+    const r = score($('pwd').value);
+    $('score-text').textContent = r.label + ' — ' + r.score + '/100';
+    $('bar').style.width = r.score + '%';
+    $('bar').style.background = r.color;
+
+    const parts = [
+      `Entropy: <strong>${r.bits} bits</strong>`,
+      `Offline crack estimate (~10T guesses/s): <strong>${fmtTime(r.bits)}</strong>`,
+    ];
+    if (r.issues.length) parts.push('<hr/>⚠️ <strong>Flags</strong><br/>• ' + r.issues.join('<br/>• '));
+    if (r.hints.length) parts.push('<hr/>💡 <strong>Hints</strong><br/>• ' + r.hints.join('<br/>• '));
+    $('details').innerHTML = parts.join('<br/><br/>');
+  }
+
+  $('pwd').addEventListener('input', run);
+  $('show').addEventListener('change', e => { $('pwd').type = e.target.checked ? 'text' : 'password'; });
+  run();
+})();
+</script>
