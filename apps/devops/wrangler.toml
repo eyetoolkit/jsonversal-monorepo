@@ -1,11 +1,6 @@
-# Cloudflare Pages project config (reference only — actual bindings happen in CF Dashboard)
-# After creating this Pages project in the CF dashboard, bind custom domain devops.jsonversal.com
-# via Cloudflare for SaaS.
-
 name = "jsonversal-devops"
 compatibility_date = "2026-09-08"
 
-[pages_build_output_dir]
-# Astro outputs to apps/devops/dist
-# Cloudflare Pages build command: pnpm --filter @versal/site-devops build
-# Cloudflare Pages build output directory: apps/devops/dist
+[pages]
+build_config.build_command = "exit 0"
+build_config.output_dir = "apps/devops/dist"
