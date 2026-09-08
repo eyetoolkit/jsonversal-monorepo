@@ -1,0 +1,123 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'YAML ↔ JSON Converter';
+const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.';
+---
+
+<BaseLayout site="devops" title={title} description={description}
+  canonical="https://devops.jsonversal.com/tools/yaml-json/"
+  keywords={['YAML to JSON', 'JSON to YAML', 'YAML converter', 'Kubernetes manifest']}
+  current="/tools/">
+
+  <nav class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>Input</strong>
+        <select id="input-kind">
+          <option value="yaml">YAML</option>
+          <option value="json">JSON</option>
+        </select>
+      </div>
+      <textarea id="input" placeholder="Paste YAML or JSON here..." style="margin-top:12px;min-height:280px;"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="primary" id="convert">Convert →</button>
+        <button class="ghost" id="clear">Clear</button>
+        <button class="ghost" id="sample">Load sample</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>Output</strong>
+        <span id="output-kind" class="text-muted" style="font-size:.8rem;">—</span>
+      </div>
+      <pre id="output" style="min-height:280px;margin-top:12px;">—</pre>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="ghost" id="copy">Copy</button>
+        <button class="ghost" id="minify">Minify</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <p>All parsing and serialization happens in your browser using the <a href="https://yaml.org/" target="_blank" rel="noopener">yaml</a> library bundled client-side. Nothing is uploaded.</p>
+</BaseLayout>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/yaml@2.5.0/dist/browser/yaml.min.js"></script>
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const input = $('input');
+  const out = $('output');
+
+  function doConvert() {
+    const kind = $('input-kind').value;
+    const text = input.value.trim();
+    if (!text) { out.textContent = '—'; $('output-kind').textContent = '—'; return; }
+    try {
+      let result, label;
+      if (kind === 'yaml') {
+        const doc = YAML.parse(text);
+        result = JSON.stringify(doc, null, 2);
+        label = 'JSON';
+      } else {
+        const doc = JSON.parse(text);
+        result = YAML.stringify(doc, { lineWidth: 120 });
+        label = 'YAML';
+      }
+      out.textContent = result;
+      $('output-kind').textContent = label;
+    } catch (e) {
+      out.textContent = 'Error: ' + e.message;
+    }
+  }
+
+  $('convert').addEventListener('click', doConvert);
+  input.addEventListener('input', () => { /* wait for explicit click */ });
+
+  $('clear').addEventListener('click', () => { input.value = ''; out.textContent = '—'; $('output-kind').textContent = '—'; });
+  $('sample').addEventListener('click', () => {
+    input.value = [
+      'apiVersion: v1',
+      'kind: Pod',
+      'metadata:',
+      '  name: web',
+      '  labels:',
+      '    app: nginx',
+      'spec:',
+      '  containers:',
+      '    - name: nginx',
+      '      image: nginx:1.27',
+      '      ports:',
+      '        - containerPort: 80',
+    ].join('\n');
+    $('input-kind').value = 'yaml';
+    doConvert();
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(out.textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+    catch {}
+  });
+
+  $('minify').addEventListener('click', () => {
+    const t = out.textContent;
+    if (!t || t === '—') return;
+    try {
+      if ($('output-kind').textContent === 'JSON') {
+        out.textContent = JSON.stringify(JSON.parse(t));
+      } else {
+        out.textContent = t.replace(/^\s+/gm, '').replace(/\n+/g, '\n');
+      }
+    } catch {}
+  });
+})();
+</script>
