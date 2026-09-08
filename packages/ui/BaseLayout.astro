@@ -1,0 +1,79 @@
+---
+import '@versal/ui/styles';
+import { tokens, sitesSEO } from '@versal/ui';
+import Header from '@versal/ui/Header.astro';
+import Footer from '@versal/ui/Footer.astro';
+import ConsentBanner from '@versal/ui/ConsentBanner.astro';
+
+export interface Props {
+  site: 'main' | 'devops' | 'codegen' | 'sec';
+  title?: string;
+  description?: string;
+  canonical?: string;
+  current?: string;
+  /** 工具页关键词数组（可选） */
+  keywords?: string[];
+}
+
+const {
+  site,
+  title,
+  description,
+  canonical,
+  current,
+  keywords,
+} = Astro.props as Props;
+
+const seo = sitesSEO[site];
+const t = tokens.sites[site];
+const pageTitle = title ? `${title} | ${t.name}` : seo.title;
+const pageDesc = description || seo.description;
+const pageUrl = canonical || seo.canonical;
+const pageKeywords = keywords?.join(', ') || seo.keywords;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDesc} />
+    <meta name="keywords" content={pageKeywords} />
+    <link rel="canonical" href={pageUrl} />
+
+    {/* Open Graph */}
+    <meta property="og:type" content={seo.og.type} />
+    <meta property="og:site_name" content={seo.og.siteName} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDesc} />
+    <meta property="og:url" content={pageUrl} />
+
+    {/* Twitter */}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDesc} />
+
+    {/* Theme color 按子站差异化 */}
+    <meta name="theme-color" content={t.accent} />
+
+    {/* favicon 占位 */}
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E{t.emoji}%3C/text%3E%3C/svg%3E" />
+
+    {/* Cloudflare Web Analytics —— 占位 id 由子站覆盖 */}
+    <slot name="head" />
+  </head>
+  <body style={`--accent:${t.accent};--accent-dark:${t.accentDark};`}>
+    <Header site={site} current={current} />
+    <main class="container">
+      <slot />
+    </main>
+    <Footer site={site} />
+    <ConsentBanner />
+
+    {/* Cloudflare Insights beacon —— 在子站 base 配置里替换为实际 token */}
+    <script is:inline>
+      // placeholder for Cloudflare beacon
+    </script>
+  </body>
+</html>
