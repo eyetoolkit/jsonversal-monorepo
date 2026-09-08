@@ -15,6 +15,7 @@ permissions:
 
 env:
   CF_ACCOUNT_ID: 00cb5cd6be4881053e57a338ce62de2f
+  TURBO_FORCE: '1'
 
 jobs:
   deploy-main:
@@ -33,16 +34,7 @@ jobs:
       - name: Build main
         run: |
           rm -rf apps/main/dist apps/main/.astro
-          pnpm --filter @versal/site-main build
-      - name: Purge Cloudflare cache
-        uses: nwtgck/actions-http-request@v3
-        with:
-          url: "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache"
-          method: POST
-          headers: |
-            Authorization: Bearer ${{ secrets.CF_PURGE_TOKEN }}
-            Content-Type: application/json
-          body: '{"files":["https://jsonversal.com/*","https://jsonversal-main.pages.dev/*"]}'
+          cd apps/main && pnpm run build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -68,7 +60,7 @@ jobs:
       - name: Build devops
         run: |
           rm -rf apps/devops/dist apps/devops/.astro
-          pnpm --filter @versal/site-devops build
+          cd apps/devops && pnpm run build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -94,7 +86,7 @@ jobs:
       - name: Build codegen
         run: |
           rm -rf apps/codegen/dist apps/codegen/.astro
-          pnpm --filter @versal/site-codegen build
+          cd apps/codegen && pnpm run build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -120,7 +112,7 @@ jobs:
       - name: Build sec
         run: |
           rm -rf apps/sec/dist apps/sec/.astro
-          pnpm --filter @versal/site-sec build
+          cd apps/sec && pnpm run build
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
