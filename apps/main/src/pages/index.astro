@@ -1,0 +1,70 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const tools = [
+  {
+    title: 'UUID v7 Generator & Timestamp Decoder',
+    description: 'Generate RFC 9562 UUID v7 in bulk and decode the embedded timestamp.',
+    href: '/tools/uuid-v7/',
+    status: 'live' as const,
+  },
+  {
+    title: 'JSON to TypeScript Interface',
+    description: 'Generate type-safe TypeScript interfaces from JSON.',
+    href: '/tools/json-to-typescript/',
+    status: 'soon' as const,
+  },
+  {
+    title: 'JSON to Zod Schema',
+    description: 'Infer a Zod validation schema from a JSON sample.',
+    href: '/tools/json-to-zod/',
+    status: 'soon' as const,
+  },
+  {
+    title: 'LLM Token & Pricing Calculator',
+    description: 'Estimate tokens and cost across GPT, Claude, Llama and Gemini.',
+    href: '/tools/llm-token-calculator/',
+    status: 'soon' as const,
+  },
+  {
+    title: 'Structured Output JSON Schema Generator',
+    description: 'Create strict JSON Schema for LLM structured output.',
+    href: '/tools/json-schema-generator/',
+    status: 'soon' as const,
+  },
+];
+---
+
+<BaseLayout site="main" current="/">
+  <h1>Fast, free developer tools that run in your browser.</h1>
+  <p class="text-muted">
+    No signup, no upload, no accounts. Every tool on jsonversal runs 100% on your device — your data never leaves your browser.
+  </p>
+
+  <h2>Tools</h2>
+  <div class="grid">
+    {tools.map(tool => (
+      <ToolCard {...tool} />
+    ))}
+  </div>
+
+  <h2>More from the jsonversal brand matrix</h2>
+  <div class="grid">
+    <ToolCard
+      title="DevOps Tools (devops.jsonversal.com)"
+      description="YAML/JSON converter, Base64, crontab, JWT decoder, regex tester."
+      href="https://devops.jsonversal.com/"
+    />
+    <ToolCard
+      title="Code Generators (codegen.jsonversal.com)"
+      description=".gitignore, license, README, CI workflow, commit message."
+      href="https://codegen.jsonversal.com/"
+    />
+    <ToolCard
+      title="Security Tools (sec.jsonversal.com)"
+      description="Hash, AES encryption, password strength, CSP generator, CSR decoder."
+      href="https://sec.jsonversal.com/"
+    />
+  </div>
+</BaseLayout>
