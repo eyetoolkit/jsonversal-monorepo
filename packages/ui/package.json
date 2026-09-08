@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "index.js",
+  "dependencies": {
+    "@versal/config": "workspace:*"
+  },
   "exports": {
     ".": "./index.js",
     "./BaseLayout": "./BaseLayout.astro",
