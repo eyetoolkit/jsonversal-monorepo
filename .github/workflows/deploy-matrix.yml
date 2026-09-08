@@ -31,7 +31,7 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build main
-        run: pnpm --filter @versal/site-main build
+        run: pnpm --filter @versal/site-main build -- --force
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -55,7 +55,7 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build devops
-        run: pnpm --filter @versal/site-devops build
+        run: pnpm --filter @versal/site-devops build -- --force
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -79,7 +79,7 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build codegen
-        run: pnpm --filter @versal/site-codegen build
+        run: pnpm --filter @versal/site-codegen build -- --force
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -103,7 +103,7 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build sec
-        run: pnpm --filter @versal/site-sec build
+        run: pnpm --filter @versal/site-sec build -- --force
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
