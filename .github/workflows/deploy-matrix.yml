@@ -3,21 +3,10 @@ name: Deploy jsonversal brand matrix
 on:
   push:
     branches: [main]
-    paths:
-      - 'apps/**'
-      - 'packages/**'
-      - '.github/workflows/deploy-matrix.yml'
   workflow_dispatch:
-    inputs:
-      site:
-        description: 部署哪个站点（留空或 all 部署全部）
-        required: false
-        default: all
-        type: choice
-        options: [all, main, devops, codegen, sec]
 
 concurrency:
-  group: deploy-matrix-${{ github.ref }}-${{ inputs.site || 'all' }}
+  group: deploy-matrix-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -28,43 +17,10 @@ env:
   CF_ACCOUNT_ID: 00cb5cd6be4881053e57a338ce62de2f
 
 jobs:
-  # ─────────── 检测变更 ───────────
-  changes:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    outputs:
-      main: ${{ steps.filter.outputs.main }}
-      devops: ${{ steps.filter.outputs.devops }}
-      codegen: ${{ steps.filter.outputs.codegen }}
-      sec: ${{ steps.filter.outputs.sec }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            main:
-              - 'apps/main/**'
-              - 'packages/**'
-            devops:
-              - 'apps/devops/**'
-              - 'packages/**'
-            codegen:
-              - 'apps/codegen/**'
-              - 'packages/**'
-            sec:
-              - 'apps/sec/**'
-              - 'packages/**'
-
-  # ─────────── 构建 + 部署 ───────────
   deploy-main:
     name: 部署 main（jsonversal.com）
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: changes
-    if: |
-      needs.changes.outputs.main == 'true' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'main'))
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -90,10 +46,6 @@ jobs:
     name: 部署 devops.jsonversal.com
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: changes
-    if: |
-      needs.changes.outputs.devops == 'true' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'devops'))
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -119,10 +71,6 @@ jobs:
     name: 部署 codegen.jsonversal.com
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: changes
-    if: |
-      needs.changes.outputs.codegen == 'true' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'codegen'))
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -148,10 +96,6 @@ jobs:
     name: 部署 sec.jsonversal.com
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: changes
-    if: |
-      needs.changes.outputs.sec == 'true' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.site == 'all' || inputs.site == 'sec'))
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
