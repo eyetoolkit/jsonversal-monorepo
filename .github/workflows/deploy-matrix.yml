@@ -31,7 +31,9 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build main
-        run: cd apps/main && pnpm build
+        run: |
+          rm -rf apps/main/dist
+          cd apps/main && npx astro build --root . --logLevel debug
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -55,7 +57,9 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build devops
-        run: cd apps/devops && pnpm build
+        run: |
+          rm -rf apps/devops/dist
+          cd apps/devops && npx astro build --root . --logLevel debug
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -79,7 +83,9 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build codegen
-        run: cd apps/codegen && pnpm build
+        run: |
+          rm -rf apps/codegen/dist
+          cd apps/codegen && npx astro build --root . --logLevel debug
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -103,7 +109,9 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
       - name: Build sec
-        run: cd apps/sec && pnpm build
+        run: |
+          rm -rf apps/sec/dist
+          cd apps/sec && npx astro build --root . --logLevel debug
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
