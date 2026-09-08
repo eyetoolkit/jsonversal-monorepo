@@ -1,0 +1,40 @@
+---
+import { tokens } from '@versal/config/tokens';
+
+export interface Props {
+  site: string;
+}
+
+const { site } = Astro.props as Props;
+const t = tokens.sites[site];
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container row">
+    <span>© {year} {t.host}</span>
+    <nav>
+      <a href="/privacy/">Privacy</a>
+      <a href="/terms/">Terms</a>
+      <a href="/privacy/">Do Not Sell/Share My Info</a>
+      <a href="mailto:hello@jsonversal.com">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    margin-top: 64px;
+    padding: 24px 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+  .row {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  nav a { color: var(--text-muted); margin-left: 16px; }
+  nav a:first-child { margin-left: 0; }
+  nav a:hover { color: var(--text); text-decoration: none; }
+</style>
