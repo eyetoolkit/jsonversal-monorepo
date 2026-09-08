@@ -33,9 +33,7 @@ jobs:
       - name: Build main
         run: |
           rm -rf apps/main/dist apps/main/.astro
-          pnpm turbo run build --filter=apps/main
-          echo "=== DIST CONTENTS ===" && find apps/main/dist -name "*.html" | head -5
-          echo "=== CHECK RAW TITLE ===" && grep -c "{title}" apps/main/dist/tools/json-to-typescript/index.html || echo "0 matches"
+          pnpm run build:main
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -44,7 +42,6 @@ jobs:
           projectName: jsonversal-main
           directory: apps/main/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
   deploy-devops:
     name: Deploy devops
     runs-on: ubuntu-latest
@@ -61,7 +58,7 @@ jobs:
       - name: Build devops
         run: |
           rm -rf apps/devops/dist apps/devops/.astro
-          pnpm turbo run build --filter=apps/devops
+          pnpm run build:devops
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -70,7 +67,6 @@ jobs:
           projectName: jsonversal-devops
           directory: apps/devops/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
   deploy-codegen:
     name: Deploy codegen
     runs-on: ubuntu-latest
@@ -87,7 +83,7 @@ jobs:
       - name: Build codegen
         run: |
           rm -rf apps/codegen/dist apps/codegen/.astro
-          pnpm turbo run build --filter=apps/codegen
+          pnpm run build:codegen
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -96,7 +92,6 @@ jobs:
           projectName: jsonversal-codegen
           directory: apps/codegen/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
   deploy-sec:
     name: Deploy sec
     runs-on: ubuntu-latest
@@ -113,7 +108,7 @@ jobs:
       - name: Build sec
         run: |
           rm -rf apps/sec/dist apps/sec/.astro
-          pnpm turbo run build --filter=apps/sec
+          pnpm run build:sec
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
