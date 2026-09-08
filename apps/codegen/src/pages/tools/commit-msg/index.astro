@@ -1,0 +1,99 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'Conventional Commit Formatter';
+const description = 'Format commit messages following the Conventional Commits spec (feat/fix/chore/docs/refactor/...) with optional scope and breaking-change marker.';
+---
+<BaseLayout site="codegen" title={title} description={description}
+  canonical="https://codegen.jsonversal.com/tools/commit-msg/"
+  keywords={['conventional commit', 'commit message', 'git commit format']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Build your commit</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label class="text-muted">Type</label>
+        <select id="type">
+          <option>feat</option><option>fix</option><option>docs</option><option>style</option>
+          <option>refactor</option><option>perf</option><option>test</option><option>build</option>
+          <option>ci</option><option>chore</option><option>revert</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-muted">Scope (optional)</label>
+        <input id="scope" type="text" placeholder="api / ui / db ..." />
+      </div>
+    </div>
+    <label class="text-muted" style="margin-top:12px;">Short description (required)</label>
+    <input id="subject" type="text" placeholder="add user login page" />
+    <label class="text-muted" style="margin-top:12px;">Long body (optional, separate paragraphs with blank line)</label>
+    <textarea id="body" placeholder="Explain the why, not the what..."></textarea>
+    <label class="text-muted" style="margin-top:12px;">Breaking change note (optional)</label>
+    <input id="breaking" type="text" placeholder="BREAKING CHANGE: ..." />
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+      <input id="breaking-flag" type="checkbox" /> Mark as breaking change (!)
+    </label>
+    <button class="primary mt-2" id="gen">Preview</button>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Formatted commit message</strong>
+    <pre id="out" class="mt-2" style="white-space:pre-wrap;"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <h2>Conventional Commits reference</h2>
+  <ul>
+    <li><code>feat</code> — new feature</li>
+    <li><code>fix</code> — bug fix</li>
+    <li><code>docs</code> — documentation only</li>
+    <li><code>style</code> — formatting, whitespace (no code change)</li>
+    <li><code>refactor</code> — neither feat nor fix</li>
+    <li><code>perf</code> — performance improvement</li>
+    <li><code>test</code> — adding or fixing tests</li>
+    <li><code>build</code> — build system or external deps</li>
+    <li><code>ci</code> — CI config files</li>
+    <li><code>chore</code> — misc maintenance</li>
+    <li><code>revert</code> — revert a commit</li>
+  </ul>
+</BaseLayout>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+  function gen() {
+    const t = $('type').value;
+    const s = $('scope').value.trim();
+    const subject = $('subject').value.trim() || 'your commit subject';
+    const breakingFlag = $('breaking-flag').checked;
+    const body = $('body').value.trim();
+    const breaking = $('breaking').value.trim();
+
+    let header = t;
+    if (s) header += `(${s})`;
+    if (breakingFlag) header += '!';
+    header += ': ' + subject;
+
+    let out = header;
+    if (body) out += '\n\n' + body;
+    if (breaking) out += '\n\nBREAKING CHANGE: ' + breaking;
+
+    $('out').textContent = out;
+  }
+
+  $('gen').addEventListener('click', gen);
+  ['type','scope','subject','body','breaking','breaking-flag'].forEach(id => $(id).addEventListener('input', gen));
+  $('breaking-flag').addEventListener('change', gen);
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent='Copied!'; setTimeout(()=>$('copy').textContent='Copy',1200); } catch {}
+  });
+
+  gen();
+})();
+</script>
