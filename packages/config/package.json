@@ -1,0 +1,12 @@
+{
+  "name": "@versal/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "tokens.js",
+  "exports": {
+    ".": "./tokens.js",
+    "./tokens": "./tokens.js",
+    "./sites": "./sites.js"
+  }
+}
