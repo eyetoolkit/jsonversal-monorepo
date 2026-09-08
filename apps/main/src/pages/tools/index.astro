@@ -1,0 +1,43 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const tools = [
+  {
+    title: 'UUID v7 Generator & Timestamp Decoder',
+    description: 'Generate RFC 9562 UUID v7 and decode its timestamp.',
+    href: '/tools/uuid-v7/',
+  },
+  {
+    title: 'LLM Token & Pricing Calculator',
+    description: 'Estimate tokens and cost across GPT, Claude, Llama and Gemini.',
+    href: '/tools/llm-token-calculator/',
+  },
+  {
+    title: 'JSON to Zod Schema',
+    description: 'Infer a Zod validation schema from a JSON sample.',
+    href: '/tools/json-to-zod/',
+  },
+  {
+    title: 'Structured Output JSON Schema Generator',
+    description: 'Create strict JSON Schema for LLM structured output.',
+    href: '/tools/json-schema-generator/',
+  },
+  {
+    title: 'JSON to TypeScript Interface',
+    description: 'Generate type-safe TypeScript interfaces from JSON.',
+    href: '/tools/json-to-typescript/',
+  },
+];
+---
+
+<BaseLayout site="main" current="/tools/" title="All Tools" current="/tools/">
+  <h1>Online Developer Tools</h1>
+  <p class="text-muted">Every tool runs 100% in your browser. No signup, no upload, unlimited and free.</p>
+
+  <div class="grid">
+    {tools.map(tool => (
+      <ToolCard {...tool} />
+    ))}
+  </div>
+</BaseLayout>
