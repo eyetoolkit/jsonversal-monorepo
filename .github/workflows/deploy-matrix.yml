@@ -34,6 +34,7 @@ jobs:
         run: |
           rm -rf apps/main/dist apps/main/.astro
           pnpm run build:main
+          echo "=== VERIFY ===" && grep -c "{title}" apps/main/dist/tools/json-to-typescript/index.html 2>/dev/null || echo "file not found"
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -42,6 +43,7 @@ jobs:
           projectName: jsonversal-main
           directory: apps/main/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          skipTrailingSlashRedirect: true
   deploy-devops:
     name: Deploy devops
     runs-on: ubuntu-latest
@@ -67,6 +69,7 @@ jobs:
           projectName: jsonversal-devops
           directory: apps/devops/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          skipTrailingSlashRedirect: true
   deploy-codegen:
     name: Deploy codegen
     runs-on: ubuntu-latest
@@ -92,6 +95,7 @@ jobs:
           projectName: jsonversal-codegen
           directory: apps/codegen/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          skipTrailingSlashRedirect: true
   deploy-sec:
     name: Deploy sec
     runs-on: ubuntu-latest
@@ -117,3 +121,4 @@ jobs:
           projectName: jsonversal-sec
           directory: apps/sec/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          skipTrailingSlashRedirect: true
