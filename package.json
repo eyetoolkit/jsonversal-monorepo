@@ -9,22 +9,16 @@
       "sharp"
     ]
   },
-  "description": "jsonversal brand matrix monorepo — jsonversal + devops + codegen + sec subdomains",
+  "description": "jsonversal monorepo — one site, four sections (/tools /sec /devops /codegen)",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev:main":     "pnpm astro dev --root apps/main",
-    "dev:devops":   "pnpm astro dev --root apps/devops --port 4321",
-    "dev:codegen":  "pnpm astro dev --root apps/codegen --port 4322",
-    "dev:sec":     "pnpm astro dev --root apps/sec --port 4323",
-    "build":        "turbo run build",
-    "build:main":   "pnpm astro build --root apps/main",
-    "build:devops": "pnpm astro build --root apps/devops",
-    "build:codegen":"pnpm astro build --root apps/codegen",
-    "build:sec":   "pnpm astro build --root apps/sec",
-    "preview":      "pnpm astro preview --root apps/main"
+    "dev": "pnpm astro dev --root apps/main",
+    "build": "turbo run build",
+    "build:main": "pnpm astro build --root apps/main",
+    "preview": "pnpm astro preview --root apps/main"
   },
   "devDependencies": {
     "astro": "^4.16.18",

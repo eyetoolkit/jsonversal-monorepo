@@ -1,0 +1,230 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Number Base Converter';
+const description = 'Convert between binary, octal, decimal, hex, and ASCII text with exact 64-bit BigInt math. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/number-base/"
+  keywords={['number base converter', 'binary hex octal', 'bigint converter', 'ascii to hex', '2 complement']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input</h2>
+    <div class="row">
+      <label class="text-muted" for="interpret">Interpret as</label>
+      <select id="interpret" style="max-width:180px;">
+        <option value="int">Integer</option>
+        <option value="ascii">ASCII text</option>
+      </select>
+    </div>
+    <div id="int-fields" class="row mt-2">
+      <label class="text-muted" for="value">Value</label>
+      <input id="value" type="text" value="255" style="max-width:240px;" placeholder="e.g. 255, 0x1F, 0b11111111, 0o377" />
+      <label class="text-muted" for="base">Source base</label>
+      <select id="base" style="max-width:140px;">
+        <option value="2">Bin (2)</option>
+        <option value="8">Oct (8)</option>
+        <option value="10" selected>Dec (10)</option>
+        <option value="16">Hex (16)</option>
+      </select>
+    </div>
+    <div id="ascii-fields" class="row mt-2" style="display:none;">
+      <label class="text-muted" for="ascii">Text</label>
+      <input id="ascii" type="text" value="Hi" style="max-width:240px;" />
+    </div>
+    <div class="row mt-2">
+      <label class="toggle"><input id="prefixes" type="checkbox" checked /> Show 0b / 0o / 0x prefixes</label>
+    </div>
+    <div class="row mt-2">
+      <button class="primary" id="convert">Convert</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 style="margin-top:0;">Results</h2>
+    <div id="results" class="mt-1"></div>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin-top:0;">Error</h2>
+    <pre id="err-out" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Enter a value and pick its base — or switch to <strong>ASCII text</strong> to pack up to 8 characters into a 64-bit integer (big-endian byte order).</li>
+    <li>Binary is grouped in nibbles, octal gets the <code>0o</code> prefix, hex the <code>0x</code> prefix, and all arithmetic is exact BigInt — no float rounding up to 64 bits.</li>
+    <li>If the value fits a Unicode code point, the character is shown; values with the high bit set also get their signed 8/16/32/64-bit interpretations.</li>
+    <li>Invalid digits for the selected base (for example <code>2</code> in binary) produce a clear error instead of a wrong answer.</li>
+  </ul>
+
+  <h2>About Number Base Converter</h2>
+  <p class="text-muted">Binary, octal, decimal, and hex are the same number in different uniforms — bit flags, color channels, and network masks are far easier to read in the right base. This converter shows every base at once, so you can flip between them without re-entering anything, and it accepts 0x / 0b / 0o prefixes so you can paste a value exactly as it appears in code.</p>
+  <p class="text-muted">Because browsers compute integers losslessly only up to 2^53, this tool uses BigInt throughout: values up to 64 bits convert exactly. The signed interpretation rows are the usual two&rsquo;s-complement reading for 8/16/32/64-bit widths, which is what debuggers and CPU registers show when the high bit is set.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  input[type=text], select { max-width: 100%; }
+  .mt-2 { margin-top: 16px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+  .toggle input[type=checkbox] { width: auto; accent-color: var(--accent); }
+  .result-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { min-width: 170px; font-size: .9rem; }
+  .result-row code { flex: 1; word-break: break-all; }
+  .result-row button { white-space: nowrap; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+  const MAX64 = (1n << 64n) - 1n;
+
+  function toggleFields() {
+    const ascii = $('interpret').value === 'ascii';
+    $('int-fields').style.display = ascii ? 'none' : 'flex';
+    $('ascii-fields').style.display = ascii ? 'flex' : 'none';
+  }
+  $('interpret').addEventListener('change', toggleFields);
+  toggleFields();
+
+  function parseBigInt(str, base) {
+    let s = str.trim();
+    if (!s) throw new Error('Enter a value first.');
+    const neg = s.startsWith('-');
+    if (neg) s = s.slice(1);
+    let b = base;
+    const lower = s.toLowerCase();
+    if (lower.startsWith('0x')) { b = 16; s = s.slice(2); }
+    else if (lower.startsWith('0b')) { b = 2; s = s.slice(2); }
+    else if (lower.startsWith('0o')) { b = 8; s = s.slice(2); }
+    if (!s) throw new Error('No digits after the base prefix.');
+    const digits = '0123456789abcdef'.slice(0, b);
+    let v = 0n;
+    for (const ch of s.toLowerCase()) {
+      const d = digits.indexOf(ch);
+      if (d < 0) throw new Error("Invalid digit '" + ch + "' for base " + b + ".");
+      v = v * BigInt(b) + BigInt(d);
+    }
+    if (v > MAX64) throw new Error('Value exceeds 64 bits (max ' + MAX64 + ').');
+    return neg ? -v : v;
+  }
+
+  function groupBin(bin) {
+    const pad = bin.length % 4 ? '0'.repeat(4 - (bin.length % 4)) : '';
+    return (pad + bin).match(/.{1,4}/g).join(' ');
+  }
+
+  function renderResults(rows) {
+    const wrap = $('results');
+    wrap.innerHTML = '';
+    for (const r of rows) {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      const label = document.createElement('span');
+      label.className = 'text-muted result-label';
+      label.textContent = r.label;
+      const code = document.createElement('code');
+      code.textContent = r.value;
+      const btn = document.createElement('button');
+      btn.className = 'ghost';
+      btn.textContent = 'Copy';
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(r.value);
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1200);
+        } catch {}
+      });
+      row.append(label, code, btn);
+      wrap.appendChild(row);
+    }
+  }
+
+  function convert() {
+    try {
+      let value = null;
+      let asciiNote = '';
+      if ($('interpret').value === 'ascii') {
+        const text = $('ascii').value;
+        if (!text) throw new Error('Enter some text first.');
+        if (text.length <= 8) {
+          let v = 0n;
+          for (const ch of text) v = (v << 8n) | BigInt(ch.charCodeAt(0));
+          value = v;
+        } else {
+          asciiNote = 'Text is ' + text.length + ' chars (> 8) — cannot fit in 64 bits; showing per-char codes instead.';
+        }
+      } else {
+        value = parseBigInt($('value').value, parseInt($('base').value, 10));
+      }
+
+      const rows = [];
+      const prefixes = $('prefixes').checked;
+
+      if (value !== null) {
+        const neg = value < 0n;
+        const abs = neg ? -value : value;
+        const bin = abs.toString(2);
+        const bitLen = bin.length || 1;
+        const sign = neg ? '-' : '';
+        rows.push({ label: 'Binary', value: (prefixes ? '0b' : '') + sign + groupBin(bin) });
+        rows.push({ label: 'Octal', value: (prefixes ? '0o' : '') + sign + abs.toString(8) });
+        rows.push({ label: 'Decimal', value: value.toString(10) });
+        rows.push({ label: 'Hex', value: (prefixes ? '0x' : '') + sign + abs.toString(16).toUpperCase() });
+        rows.push({ label: 'Bit length', value: bitLen + ' bit' + (bitLen > 1 ? 's' : '') });
+        rows.push({ label: 'Unsigned 64-bit max', value: MAX64.toString(10) });
+        if (!neg && value <= 0x10FFFFn) {
+          rows.push({
+            label: 'Character',
+            value: String.fromCodePoint(Number(value)) + '  (U+' + value.toString(16).toUpperCase().padStart(4, '0') + ')',
+          });
+        }
+        if (!neg) {
+          const signed = [];
+          for (const w of [8, 16, 32, 64]) {
+            if (value < (1n << BigInt(w))) {
+              const sv = value >= (1n << BigInt(w - 1)) ? value - (1n << BigInt(w)) : value;
+              signed.push(w + '-bit: ' + sv);
+            }
+          }
+          if (signed.length) rows.push({ label: "Signed (2's complement)", value: signed.join('   ') });
+        }
+        if (asciiNote) rows.push({ label: 'Note', value: asciiNote });
+      } else {
+        const text = $('ascii').value;
+        const parts = [];
+        for (const ch of text) {
+          parts.push(ch + ' = U+' + ch.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0') + ' (' + ch.charCodeAt(0) + ')');
+        }
+        rows.push({ label: 'Char codes', value: parts.join('   ') });
+        rows.push({ label: 'Note', value: asciiNote });
+      }
+
+      renderResults(rows);
+      $('err-section').style.display = 'none';
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  }
+
+  $('convert').addEventListener('click', convert);
+  $('value').addEventListener('keydown', e => { if (e.key === 'Enter') convert(); });
+  $('ascii').addEventListener('keydown', e => { if (e.key === 'Enter') convert(); });
+})();
+</script>

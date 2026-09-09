@@ -1,0 +1,273 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'Secret & API Key Scanner';
+const description = 'Paste logs, config files, or env dumps and detect leaked credentials — AWS keys, GitHub/GitLab PATs, Stripe, Slack, OpenAI, Google, JWTs, and private keys. All scanning runs locally in your browser.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://jsonversal.com/sec/tools/secret-scanner/"
+  keywords={['secret scanner', 'api key detection', 'credential leak', 'leaked secrets', 'secret redaction']}
+  current="/sec/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Scan text</h2>
+    <textarea id="input" placeholder="Paste logs, config files, .env dumps, or any text to scan for secrets…"></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="scan">Scan for secrets</button>
+      <button class="ghost" id="redact">Redact secrets</button>
+    </div>
+    <div class="row mt-1">
+      <label style="display:flex;align-items:center;gap:6px;"><input id="mask" type="checkbox" /> Mask matches (show only first 4 + last 4 chars)</label>
+    </div>
+    <div class="row mt-1">
+      <label style="display:flex;align-items:center;gap:6px;"><input id="entropy" type="checkbox" /> Flag generic high-entropy strings (32+ chars)</label>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:10px;">
+      <h2 style="margin:0;">Findings</h2>
+      <button class="ghost" id="copy-out">Copy redacted text</button>
+    </div>
+    <p id="summary" class="text-dim" style="font-size:.85rem;"></p>
+    <div id="matches" class="mt-1"></div>
+    <label class="text-muted mt-2">Redacted output</label>
+    <pre id="output">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <strong>Error</strong>
+    <pre id="err-out" style="color:var(--danger);"></pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Every line is scanned against a library of known credential patterns: <code>AKIA…</code> for AWS access keys, <code>ghp_…</code> / <code>github_pat_…</code> for GitHub, <code>glpat-…</code> for GitLab, <code>sk_live_…</code> / <code>sk_test_…</code> for Stripe, <code>sk-…</code> for OpenAI, <code>AIza…</code> for Google, <code>xox*</code> for Slack, PEM private-key blocks, and <code>eyJ…</code> JWTs.</li>
+    <li>Secrets without a fixed prefix — like AWS secret access keys — are caught with a context heuristic: a long base64 token near the words <em>aws</em> or <em>secret</em>.</li>
+    <li>Optionally, generic high-entropy tokens are flagged with Shannon entropy: random-looking strings score high, while words and sentences score low and are ignored.</li>
+    <li>Everything runs in your browser as a plain regex scan. Nothing is uploaded, logged, or stored.</li>
+  </ul>
+
+  <h2>About Secret &amp; API Key Scanner</h2>
+  <p class="text-muted">Leaked credentials are one of the most common ways accounts get compromised: a developer pastes a config file into a chat, a build log prints an environment variable, or a support ticket includes an API key. This scanner helps you find those patterns before you share them — the redact feature rewrites every detected secret as <code>[REDACTED:Label]</code> so you can share sanitized logs safely.</p>
+  <p class="text-muted">Pattern matching is a strong first pass but not proof: a 40-character base64 string near the word <em>aws</em> is usually a secret access key but can be a false positive, and a real credential with an unknown format will not be flagged at all. Treat every finding as a potential leak, rotate any key you are not 100% sure about, and scan your repositories and chat history with a dedicated tool as part of your incident-response workflow.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 160px; }
+  pre { min-height: 90px; max-height: 240px; overflow: auto; font-size: .78rem; white-space: pre-wrap; word-break: break-all; }
+  .mt-2 { margin-top: 16px; }
+  .mt-1 { margin-top: 8px; }
+  .match-row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-bottom: 1px solid var(--border); cursor: pointer; border-radius: 4px; font-size: .85rem; }
+  .match-row:hover { background: var(--surface-alt); }
+  .match-row:last-child { border-bottom: none; }
+  .match-pos { color: var(--text-muted); font-family: var(--font-mono); font-size: .78rem; white-space: nowrap; }
+  .match-label { background: var(--danger); color: #fff; font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+  .match-snip { flex: 1; font-family: var(--font-mono); word-break: break-all; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+  let text = '';
+  let kept = [];
+
+  const PATTERNS = [
+    { label: 'AWS Access Key ID', re: /AKIA[0-9A-Z]{16}/g },
+    { label: 'GitHub PAT', re: /ghp_[0-9A-Za-z]{36}|github_pat_[0-9A-Za-z_]{82}/g },
+    { label: 'GitLab PAT', re: /glpat-[0-9A-Za-z\-_]{20}/g },
+    { label: 'Stripe API Key', re: /sk_(?:live|test)_[0-9A-Za-z]{24}/g },
+    { label: 'Slack Token', re: /xox[baprs]-[0-9A-Za-z-]{10,}/g },
+    { label: 'OpenAI API Key', re: /sk-[0-9A-Za-z]{20,}/g },
+    { label: 'Google API Key', re: /AIza[0-9A-Za-z_\-]{35}/g },
+    { label: 'Private Key', re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----[\s\S]{0,4000}?-----END (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/g },
+    { label: 'JWT', re: /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g }
+  ];
+
+  function findAll(re, source) {
+    const r = new RegExp(re.source, re.flags.indexOf('g') === -1 ? re.flags + 'g' : re.flags);
+    const out = [];
+    let m;
+    while ((m = r.exec(source)) !== null) {
+      if (m[0].length === 0) { r.lastIndex++; continue; }
+      out.push({ start: m.index, end: m.index + m[0].length, text: m[0] });
+    }
+    return out;
+  }
+
+  function shannon(s) {
+    const counts = {};
+    for (const ch of s) counts[ch] = (counts[ch] || 0) + 1;
+    let e = 0;
+    for (const c in counts) {
+      const p = counts[c] / s.length;
+      e -= p * Math.log2(p);
+    }
+    return e;
+  }
+
+  function isCovered(start, end) {
+    for (const k of kept) if (start < k.end && end > k.start) return true;
+    return false;
+  }
+
+  function lineCol(index) {
+    let line = 1, lastNL = -1;
+    for (let i = 0; i < index && i < text.length; i++) {
+      if (text[i] === '\n') { line++; lastNL = i; }
+    }
+    return { line: line, col: index - lastNL };
+  }
+
+  function doScan() {
+    text = $('input').value;
+    if (!text.trim()) { showErr('Paste some text to scan first.'); return null; }
+    hideErr();
+
+    const findings = [];
+    for (const p of PATTERNS) {
+      for (const f of findAll(p.re, text)) findings.push({ label: p.label, start: f.start, end: f.end, text: f.text });
+    }
+
+    // AWS secret access key: 40-char base64-ish token near "aws" / "secret"
+    for (const f of findAll(/[A-Za-z0-9+/]{40}=?/g, text)) {
+      const before = f.start > 0 ? text[f.start - 1] : '';
+      const after = f.end < text.length ? text[f.end] : '';
+      if (/[A-Za-z0-9+/]/.test(before)) continue;
+      if (/[A-Za-z0-9+/=]/.test(after)) continue;
+      const ctx = text.slice(Math.max(0, f.start - 160), Math.min(text.length, f.end + 160));
+      if (/aws|secret access|access key/i.test(ctx)) {
+        findings.push({ label: 'AWS Secret Access Key', start: f.start, end: f.end, text: f.text });
+      }
+    }
+
+    // de-duplicate overlapping ranges, most specific (longer) first
+    findings.sort((a, b) => a.start - b.start || b.end - a.end);
+    kept = [];
+    for (const f of findings) {
+      if (kept.length && f.start < kept[kept.length - 1].end) continue;
+      kept.push(f);
+    }
+
+    // optional generic high-entropy pass
+    if ($('entropy').checked) {
+      const candidates = [];
+      for (const f of findAll(/[0-9a-fA-F]{32,}/g, text)) {
+        const before = f.start > 0 ? text[f.start - 1] : '';
+        const after = f.end < text.length ? text[f.end] : '';
+        if (/[0-9a-fA-F]/.test(before) || /[0-9a-fA-F]/.test(after)) continue;
+        if (shannon(f.text) >= 3.5) candidates.push({ label: 'High-entropy hex (32+ chars)', start: f.start, end: f.end, text: f.text });
+      }
+      for (const f of findAll(/[A-Za-z0-9+/]{32,}={0,2}/g, text)) {
+        const before = f.start > 0 ? text[f.start - 1] : '';
+        const after = f.end < text.length ? text[f.end] : '';
+        if (/[A-Za-z0-9+/=]/.test(before) || /[A-Za-z0-9+/=]/.test(after)) continue;
+        if (/^[0-9a-fA-F]+$/.test(f.text)) continue;
+        if (shannon(f.text) >= 4.0) candidates.push({ label: 'High-entropy string (32+ chars)', start: f.start, end: f.end, text: f.text });
+      }
+      candidates.sort((a, b) => a.start - b.start || b.end - a.end);
+      for (const c of candidates) {
+        if (isCovered(c.start, c.end)) continue;
+        kept.push(c);
+      }
+      kept.sort((a, b) => a.start - b.start);
+    }
+    return kept;
+  }
+
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function displaySnippet(full, mask) {
+    if (mask) {
+      if (full.length <= 12) return full;
+      return full.slice(0, 4) + '****' + full.slice(-4);
+    }
+    if (full.length <= 40) return full;
+    return full.slice(0, 18) + '…' + full.slice(-18);
+  }
+
+  function renderMatches() {
+    const mask = $('mask').checked;
+    const lineCount = text ? text.split('\n').length : 0;
+    $('summary').textContent = 'Scanned ' + lineCount + ' lines: found ' + kept.length + ' potential secret' + (kept.length === 1 ? '' : 's') + '. Click a row to copy the full secret.';
+    const rows = [];
+    for (let i = 0; i < kept.length; i++) {
+      const m = kept[i];
+      const pos = lineCol(m.start);
+      rows.push(
+        '<div class="match-row" data-i="' + i + '" title="Click to copy the full secret">' +
+        '<span class="match-pos">' + pos.line + ':' + pos.col + '</span>' +
+        '<span class="match-label">' + esc(m.label) + '</span>' +
+        '<code class="match-snip">' + esc(displaySnippet(m.text, mask)) + '</code>' +
+        '</div>'
+      );
+    }
+    $('matches').innerHTML = rows.join('') || '<div class="text-dim" style="padding:6px 0;">No secrets found — this looks clean.</div>';
+    $('out-section').style.display = 'block';
+  }
+
+  function showOut() {
+    $('out-section').style.display = 'block';
+  }
+  function showErr(msg) {
+    $('err-out').textContent = msg;
+    $('err-section').style.display = 'block';
+  }
+  function hideErr() {
+    $('err-section').style.display = 'none';
+  }
+
+  $('scan').addEventListener('click', () => {
+    if (!doScan()) return;
+    renderMatches();
+  });
+
+  $('redact').addEventListener('click', () => {
+    if (!doScan()) return;
+    renderMatches();
+    let out = text;
+    for (let i = kept.length - 1; i >= 0; i--) {
+      const m = kept[i];
+      out = out.slice(0, m.start) + '[REDACTED:' + m.label + ']' + out.slice(m.end);
+    }
+    $('output').textContent = out || '—';
+    showOut();
+  });
+
+  $('mask').addEventListener('change', () => {
+    if ($('out-section').style.display !== 'none') renderMatches();
+  });
+
+  $('entropy').addEventListener('change', () => {
+    if ($('out-section').style.display !== 'none' && $('input').value.trim()) {
+      if (!doScan()) return;
+      renderMatches();
+    }
+  });
+
+  $('copy-out').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy-out').textContent = 'Copied!';
+      setTimeout(() => { $('copy-out').textContent = 'Copy redacted text'; }, 1200);
+    } catch {}
+  });
+
+  $('matches').addEventListener('click', e => {
+    const row = e.target.closest('.match-row');
+    if (!row) return;
+    const m = kept[parseInt(row.dataset.i, 10)];
+    if (!m) return;
+    navigator.clipboard.writeText(m.text).then(() => {
+      const snip = row.querySelector('.match-snip');
+      snip.textContent = 'Copied!';
+      setTimeout(() => { snip.textContent = displaySnippet(m.text, $('mask').checked); }, 900);
+    }).catch(() => {});
+  });
+})();
+</script>

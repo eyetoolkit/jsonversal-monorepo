@@ -1,0 +1,130 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Unix Timestamp Converter';
+const description = 'Convert between Unix timestamps and human-readable dates in both directions, with automatic seconds/milliseconds detection.';
+---
+
+<BaseLayout site="devops" title={title} description={description}
+  canonical="https://jsonversal.com/devops/tools/timestamp/"
+  keywords={['Unix timestamp', 'timestamp converter', 'epoch converter', 'UTC time', 'milliseconds']}
+  current="/devops/tools/">
+
+  <nav class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+      <strong>Timestamp → Date</strong>
+      <input id="timestamp" type="number" placeholder="e.g. 1700000000 or 1700000000000" style="margin-top:12px;" />
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="primary" id="to-date">Convert</button>
+      </div>
+      <div id="ts-result" style="display:none;margin-top:12px;">
+        <div class="text-dim" id="ts-detected" style="font-size:.8rem;margin-bottom:4px;">—</div>
+        <div class="ts-row"><span>Local</span><input id="ts-local" type="text" readonly /></div>
+        <div class="ts-row"><span>UTC (ISO)</span><input id="ts-utc" type="text" readonly /></div>
+        <button class="ghost" id="copy-iso" style="margin-top:10px;">Copy ISO</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <strong>Date/Time → Timestamp</strong>
+      <input id="datetime" type="datetime-local" style="margin-top:12px;" />
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="primary" id="to-ts">Convert</button>
+        <button class="ghost" id="now">Now</button>
+      </div>
+      <div id="dt-result" style="display:none;margin-top:12px;">
+        <div class="ts-row"><span>Seconds</span><input id="dt-seconds" type="text" readonly /></div>
+        <div class="ts-row"><span>Milliseconds</span><input id="dt-ms" type="text" readonly /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="error-section" style="display:none;">
+    <strong style="color:var(--danger);">Error</strong>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>10-digit numbers are treated as seconds, 13-digit numbers as milliseconds; ambiguous lengths fall back to a magnitude heuristic.</li>
+    <li>Local time uses your browser's timezone; the UTC row always uses ISO 8601 with the <code>Z</code> suffix.</li>
+    <li>The date/time input is interpreted as local time in your browser, then converted to seconds and milliseconds.</li>
+  </ul>
+
+  <h2>About Unix Timestamp Converter</h2>
+  <p class="text-muted">The Unix timestamp counts the number of seconds that have elapsed since 1970-01-01 00:00:00 UTC, ignoring leap seconds. It is a timezone-independent instant in time: 1700000000 is the same moment everywhere on Earth, even though it renders as different wall-clock times in different timezones. Because it is just a number, it is trivial to store, compare, and sort in logs, APIs, and databases.</p>
+  <p class="text-muted">The most common mistake is mixing seconds and milliseconds: JavaScript's <code>Date.now()</code> and many APIs return milliseconds (13 digits), while most databases and Unix tools use seconds (10 digits). Feeding a millisecond value into a seconds-based API yields a date in 1970, and vice versa. Also keep in mind that a timestamp is only a point in time — render it in the timezone your users expect — and beware the 2038 problem if anything still stores timestamps in a signed 32-bit integer, which overflows on 2038-01-19.</p>
+</BaseLayout>
+
+<style>
+  .ts-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .ts-row span { flex: 0 0 auto; width: 92px; font-size: .8rem; color: var(--text-muted); }
+  .ts-row input { flex: 1; font-size: .85rem; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function showError(msg) {
+    $('error-out').textContent = msg;
+    $('error-section').style.display = '';
+  }
+  function hideError() { $('error-section').style.display = 'none'; }
+
+  function toDate() {
+    hideError();
+    $('ts-result').style.display = 'none';
+    const raw = $('timestamp').value.trim();
+    if (!raw) { showError('Please enter a numeric Unix timestamp.'); return; }
+    if (!/^\d+$/.test(raw)) { showError('Timestamps must be a plain number — no commas, spaces, signs, or decimal points.'); return; }
+    const num = Number(raw);
+    const digits = raw.replace(/^0+/, '').length || 1;
+    let isMs;
+    if (digits >= 13) isMs = true;
+    else if (digits <= 10) isMs = false;
+    else isMs = num > 1e11;
+    const ms = isMs ? num : num * 1000;
+    const d = new Date(ms);
+    if (isNaN(d.getTime())) { showError('That timestamp is outside the representable date range.'); return; }
+    $('ts-detected').textContent = 'Detected: ' + (isMs ? 'milliseconds' : 'seconds') + ' (' + digits + ' digits)';
+    $('ts-local').value = d.toString();
+    $('ts-utc').value = d.toISOString();
+    $('ts-result').style.display = '';
+  }
+
+  function toTs() {
+    hideError();
+    $('dt-result').style.display = 'none';
+    const v = $('datetime').value;
+    if (!v) { showError('Please pick a date and time first (or press “Now”).'); return; }
+    const ms = new Date(v).getTime();
+    if (isNaN(ms)) { showError('That date/time could not be parsed.'); return; }
+    $('dt-seconds').value = String(Math.floor(ms / 1000));
+    $('dt-ms').value = String(ms);
+    $('dt-result').style.display = '';
+  }
+
+  $('to-date').addEventListener('click', toDate);
+  $('to-ts').addEventListener('click', toTs);
+  $('now').addEventListener('click', () => {
+    const d = new Date();
+    $('datetime').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    toTs();
+  });
+  $('copy-iso').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('ts-utc').value);
+      $('copy-iso').textContent = 'Copied!';
+      setTimeout(() => $('copy-iso').textContent = 'Copy ISO', 1200);
+    } catch {}
+  });
+})();
+</script>

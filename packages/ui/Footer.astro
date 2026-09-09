@@ -6,13 +6,12 @@ export interface Props {
 }
 
 const { site } = Astro.props as Props;
-const t = tokens.sites[site];
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
   <div class="container row">
-    <span>© {year} {t.host}</span>
+    <span>© {year} jsonversal.com</span>
     <nav>
       <a href="/privacy/">Privacy</a>
       <a href="/terms/">Terms</a>

@@ -1,0 +1,142 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'CIDR / Subnet Calculator';
+const description = 'Calculate network address, broadcast, host ranges, masks, and address counts for any CIDR block. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/cidr-calculator/"
+  keywords={['CIDR calculator', 'subnet calculator', 'subnet mask', 'network address', 'broadcast address', 'ipv4']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Network</h2>
+    <div class="row">
+      <input id="cidr" type="text" placeholder="192.168.1.0/24" style="max-width:260px;" spellcheck="false" />
+      <button class="primary" id="calc">Calculate</button>
+      <button class="ghost" id="sample">Load sample</button>
+    </div>
+    <div class="text-dim mt-1" style="font-size:.85rem;">Accepts <code>IP/prefix</code> (e.g. <code>10.0.0.5/16</code>) or just an IP (defaults to /32).</div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 style="margin-top:0;">Result</h2>
+    <div id="out" class="mt-1"></div>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <div id="err" class="mt-1" style="color:var(--danger);">—</div>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The address is converted to a 32-bit integer; the prefix length selects how many leading bits form the network part.</li>
+    <li><strong>Network address</strong> zeroes the host bits; <strong>broadcast</strong> sets them all to 1.</li>
+    <li><strong>Usable hosts</strong> is total addresses minus network and broadcast (unless the block is <code>/31</code> or <code>/32</code>, which have no broadcast).</li>
+    <li>The wildcard mask is the bitwise inverse of the subnet mask.</li>
+  </ul>
+
+  <h2>About CIDR / Subnet Calculator</h2>
+  <p class="text-muted">CIDR (Classless Inter-Domain Routing) describes networks as <code>IP/prefix</code>, where the prefix is the number of leading 1-bits in the subnet mask. <code>/24</code> means 24 network bits and 8 host bits — 256 addresses. Knowing the network address, broadcast address, and usable host range is the first step in any IP planning task: assigning static addresses, sizing VPC/VNet subnets in AWS, Azure, or GCP, writing firewall rules, or debugging why two services cannot reach each other.</p>
+  <p class="text-muted">Remember that network and broadcast addresses are reserved in normal subnets, so a <code>/24</code> has 254 usable hosts, not 256. Point-to-point links often use <code>/31</code> (2 addresses, no broadcast) or <code>/30</code> (4 addresses, 2 usable). RFC 1918 private ranges (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>) are what most internal networks use — this tool helps you carve them correctly.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  input { font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .kv { display: grid; grid-template-columns: 200px 1fr; gap: 4px 16px; font-size: .95rem; }
+  .kv dt { color: var(--text-muted); }
+  .kv dd { margin: 0; font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .mt-1 { margin-top: 8px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function ipToInt(ip) {
+    const parts = ip.split('.');
+    if (parts.length !== 4) throw new Error('Invalid IPv4 address.');
+    let v = 0;
+    for (const p of parts) {
+      const n = parseInt(p, 10);
+      if (isNaN(n) || n < 0 || n > 255) throw new Error(`Invalid octet "${p}".`);
+      v = (v << 8) | n;
+    }
+    return v >>> 0;
+  }
+  function intToIp(n) {
+    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
+  }
+  function maskInt(prefix) {
+    if (prefix === 0) return 0;
+    return (~0 << (32 - prefix)) >>> 0;
+  }
+  function bin(n) {
+    return n.toString(2).padStart(32, '0').replace(/(.{8})/g, '$1 ').trim();
+  }
+
+  $('calc').addEventListener('click', () => {
+    const raw = $('cidr').value.trim();
+    $('err-section').style.display = 'none';
+    if (!raw) { alert('Enter an IP or CIDR first.'); return; }
+    try {
+      const parts = raw.split('/');
+      const ip = ipToInt(parts[0]);
+      let prefix = 32;
+      if (parts.length === 2) {
+        prefix = parseInt(parts[1], 10);
+        if (isNaN(prefix) || prefix < 0 || prefix > 32) throw new Error('Prefix must be between 0 and 32.');
+      } else if (parts.length > 2) {
+        throw new Error('Use IP/prefix format, e.g. 192.168.1.0/24');
+      }
+      const mask = maskInt(prefix);
+      const wildcard = (~mask) >>> 0;
+      const network = (ip & mask) >>> 0;
+      const broadcast = (network | wildcard) >>> 0;
+      const total = Math.pow(2, 32 - prefix);
+      const usable = prefix >= 31 ? total : Math.max(0, total - 2);
+      const first = prefix >= 31 ? network : (network + 1) >>> 0;
+      const last = prefix >= 31 ? broadcast : (broadcast - 1) >>> 0;
+
+      const rows = [
+        ['Address', intToIp(ip)],
+        ['CIDR', `${intToIp(ip)}/${prefix}`],
+        ['Subnet mask', intToIp(mask)],
+        ['Wildcard mask', intToIp(wildcard)],
+        ['Network address', intToIp(network)],
+        ['Broadcast address', intToIp(broadcast)],
+        ['First usable host', intToIp(first)],
+        ['Last usable host', intToIp(last)],
+        ['Usable hosts', String(usable)],
+        ['Total addresses', String(total)],
+        ['Binary (network)', bin(network)]
+      ];
+      $('out').innerHTML =
+        '<dl class="kv">' +
+        rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('') +
+        '</dl>';
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      $('err').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', () => { $('cidr').value = '192.168.1.0/24'; });
+
+  $('cidr').addEventListener('keydown', e => { if (e.key === 'Enter') $('calc').click(); });
+})();
+</script>

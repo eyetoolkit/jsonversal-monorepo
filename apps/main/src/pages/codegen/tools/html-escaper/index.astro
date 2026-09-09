@@ -1,0 +1,104 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'HTML Entity Escaper';
+const description = 'Escape text or code into HTML entities (&amp;, &lt;, &gt;, &quot;, &#39;) or unescape entities back into plain text — useful before pasting code into &lt;pre&gt;/&lt;code&gt; blocks.';
+---
+<BaseLayout site="codegen" title={title} description={description}
+  canonical="https://jsonversal.com/codegen/tools/html-escaper/"
+  keywords={['html entity', 'escape html', 'unescape html', 'html special characters']}
+  current="/codegen/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Input</h2>
+    <label class="text-muted">Direction</label>
+    <div style="display:flex;gap:16px;margin:8px 0 12px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="radio" name="dir" value="escape" checked /> Escape to HTML entities
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="radio" name="dir" value="unescape" /> Unescape to text
+      </label>
+    </div>
+    <textarea id="input" placeholder='&lt;script&gt;alert("hi")&lt;/script&gt; &amp; &lt;b&gt;bold&lt;/b&gt;'></textarea>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="primary" id="gen">Convert</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="result" style="display:none;">
+    <strong id="resultTitle">Output</strong>
+    <p class="text-muted" id="stats" style="margin:4px 0 0;"></p>
+    <pre id="out" class="mt-2"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="error" style="display:none;"></section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Escape mode replaces <code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>"</code> and <code>'</code> with <code>&amp;amp;</code>, <code>&amp;lt;</code>, <code>&amp;gt;</code>, <code>&amp;quot;</code> and <code>&amp;#39;</code> in a single pass, so the ampersand is never double-escaped</li>
+    <li>Unescape mode maps those five entities back to their plain characters</li>
+    <li>The result is rendered inside a <code>&lt;pre&gt;</code> block so entities stay readable without the browser decoding them</li>
+    <li>Character counts are reported before and after conversion</li>
+  </ul>
+
+  <h2>About HTML Entity Escaper</h2>
+  <p class="text-muted">An HTML entity is a sequence that starts with an ampersand and ends with a semicolon — for example, <code>&amp;lt;</code> renders the <code>&lt;</code> character. Browsers treat entities as literal characters instead of markup, which makes them the safe way to include reserved characters such as <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> and quotes in HTML text.</p>
+  <p class="text-muted">Escape code samples before pasting them into <code>&lt;pre&gt;</code> or <code>&lt;code&gt;</code> blocks so the tags inside your sample display as text instead of being parsed by the browser. Escaping also helps prevent XSS when user-generated content is inserted into a page, and it is a regular part of writing blog posts about code. Always escape the ampersand first, because every entity starts with one — escaping <code>&amp;</code> last would turn the ampersand of an already-escaped <code>&amp;lt;</code> into <code>&amp;amp;lt;</code>. And beware of double escaping: escaping the same text twice produces entities such as <code>&amp;amp;lt;</code>, which browsers display literally instead of decoding.</p>
+</BaseLayout>
+
+<style>
+  #error { color: var(--danger); border-color: var(--danger); }
+  input[type="radio"] { accent-color: var(--accent); width: auto; }
+</style>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  const UNESC_MAP = { '&#39;': "'", '&quot;': '"', '&gt;': '>', '&lt;': '<', '&amp;': '&' };
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ESC_MAP[c]);
+  }
+
+  function unescapeHtml(s) {
+    return s.replace(/&#39;|&quot;|&gt;|&lt;|&amp;/g, m => UNESC_MAP[m]);
+  }
+
+  function showError(msg) {
+    const e = $('error');
+    e.textContent = msg;
+    e.style.display = 'block';
+    $('result').style.display = 'none';
+  }
+
+  $('gen').addEventListener('click', () => {
+    $('error').style.display = 'none';
+    const raw = $('input').value;
+    if (!raw.trim()) { showError('Please enter some text first.'); return; }
+    const dir = document.querySelector('input[name="dir"]:checked').value;
+    const out = dir === 'escape' ? escapeHtml(raw) : unescapeHtml(raw);
+    $('resultTitle').textContent = dir === 'escape' ? 'Output — escaped HTML entities' : 'Output — plain text';
+    $('stats').textContent = raw.length + ' characters → ' + out.length + ' characters';
+    $('out').textContent = out;
+    $('result').style.display = 'block';
+  });
+
+  document.querySelectorAll('input[name="dir"]').forEach(r => r.addEventListener('change', () => {
+    $('error').style.display = 'none';
+    $('result').style.display = 'none';
+  }));
+  $('input').addEventListener('input', () => { $('error').style.display = 'none'; });
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); } catch {}
+  });
+})();
+</script>

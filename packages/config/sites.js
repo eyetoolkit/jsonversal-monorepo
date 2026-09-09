@@ -15,23 +15,23 @@ export const sitesSEO = {
   devops: {
     title: tokens.sites.devops.title,
     description: 'Free browser-based DevOps tools. YAML/JSON converter, Base64, crontab, JWT decoder, regex tester — all running in your browser.',
-    og: { type: 'website', siteName: tokens.sites.devops.name },
+    og: { type: 'website', siteName: 'jsonversal' },
     keywords: 'YAML to JSON, Base64 encoder, JWT decoder, crontab, regex tester, DevOps tools',
-    canonical: `https://${tokens.sites.devops.host}/`,
+    canonical: 'https://jsonversal.com/devops/',
   },
   codegen: {
     title: tokens.sites.codegen.title,
     description: 'Free browser-based code generators. .gitignore, license, README, CI workflow, commit message — generate in your browser.',
-    og: { type: 'website', siteName: tokens.sites.codegen.name },
+    og: { type: 'website', siteName: 'jsonversal' },
     keywords: '.gitignore generator, license generator, README generator, CI workflow, commit message',
-    canonical: `https://${tokens.sites.codegen.host}/`,
+    canonical: 'https://jsonversal.com/codegen/',
   },
   sec: {
     title: tokens.sites.sec.title,
     description: 'Free browser-based security tools. Hash, AES encryption, password strength, CSP generator, CSR decoder — all running in your browser.',
-    og: { type: 'website', siteName: tokens.sites.sec.name },
+    og: { type: 'website', siteName: 'jsonversal' },
     keywords: 'hash generator, AES encryption, password strength, CSP generator, CSR decoder, security tools',
-    canonical: `https://${tokens.sites.sec.host}/`,
+    canonical: 'https://jsonversal.com/sec/',
   },
 };
 

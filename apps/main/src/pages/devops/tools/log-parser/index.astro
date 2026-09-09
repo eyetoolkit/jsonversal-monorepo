@@ -1,0 +1,384 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Log Line Parser';
+const description = 'Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/log-parser/"
+  keywords={['log parser', 'nginx log', 'apache log', 'log analysis', 'json lines']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input</h2>
+    <div class="row">
+      <label class="text-muted" for="format">Format</label>
+      <select id="format" style="max-width:220px;">
+        <option value="nginx">Nginx combined</option>
+        <option value="apache">Apache combined</option>
+        <option value="json">JSON lines</option>
+        <option value="custom">Custom regex</option>
+      </select>
+    </div>
+    <div id="custom-fields" class="mt-2" style="display:none;">
+      <label class="text-muted" for="custom-regex">Regex with named groups</label>
+      <textarea id="custom-regex" rows="2" class="mt-1" placeholder="Custom regex with named groups, e.g. (?&lt;ip&gt;...)(?&lt;status&gt;...)"></textarea>
+    </div>
+    <textarea id="log-lines" rows="10" class="mt-2" placeholder="Paste one log line per line..."></textarea>
+    <div class="row mt-2">
+      <button class="primary" id="parse">Parse</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="copy-json">Copy JSON</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 style="margin-top:0;">Results</h2>
+    <div id="stats" class="mt-1"></div>
+    <div id="warnings" class="mt-1"></div>
+    <div id="table-wrap" class="table-wrap mt-1"></div>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin-top:0;">Error</h2>
+    <pre id="err-out" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Pick a format and paste your log lines — one per line. <strong>Parse</strong> runs each line through the matching parser.</li>
+    <li><strong>Nginx / Apache combined</strong> extract time, remote address, method + path from the request, status, bytes, referer, and user agent; status codes are color-coded (2xx green, 3xx blue, 4xx amber, 5xx red).</li>
+    <li><strong>JSON lines</strong> flatten each object&rsquo;s top-level keys into table columns; <strong>Custom</strong> lets you supply your own regex with named groups.</li>
+    <li>Below the table you get a summary: total lines, parsed, failed lines, and a status-code histogram. Copy JSON exports the parsed objects.</li>
+  </ul>
+
+  <h2>About Log Line Parser</h2>
+  <p class="text-muted">Access logs are the first place to look when something feels off — slow requests, 404 crawls, or a burst of 5xx. This parser turns raw combined-format lines into a readable table plus a histogram, so you can spot the pattern without firing up a full log-analysis stack.</p>
+  <p class="text-muted">Everything runs locally: your log lines never leave the browser. The table caps at 200 displayed rows for performance, but the stats cover every line you paste. The custom mode uses JavaScript regular expressions with named groups, so any log format you can describe with a regex becomes a table.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  select, textarea { max-width: 100%; }
+  .mt-2 { margin-top: 16px; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-family: var(--font-mono); font-size: .78rem; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; white-space: nowrap; }
+  th { background: var(--surface-alt); }
+  tr:nth-child(even) td { background: var(--surface-alt); }
+  .hist { font-family: var(--font-mono); font-size: .85rem; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const NGINX_RE = /^(\S+) (\S+) (\S+) \[([^\]]+)\] "([^"]*)" (\d{3}) (\d+|-) "([^"]*)" "([^"]*)"(?: "([^"]*)")?$/;
+  const APACHE_RE = /^(\S+) (\S+) (\S+) \[([^\]]+)\] "([^"]*)" (\d{3}) (\d+|-) "([^"]*)" "([^"]*)"$/;
+  const CUSTOM_DEFAULT = '^(?<ip>\\S+) (?<ident>\\S+) (?<user>\\S+) \\[(?<time>[^\\]]+)\\] "(?<method>\\w+) (?<path>\\S+)[^"]*" (?<status>\\d{3}) (?<bytes>\\d+|-).*$';
+
+  const SAMPLES = {
+    nginx: [
+      '66.249.65.10 - - [08/Sep/2026:14:23:11 +0000] "GET /api/health HTTP/1.1" 200 42 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" "-"',
+      '203.0.113.7 - frank [08/Sep/2026:14:24:02 +0000] "POST /login HTTP/1.1" 401 189 "https://example.com/login" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36" "-"',
+      '198.51.100.23 - - [08/Sep/2026:14:25:47 +0000] "GET /assets/app.js HTTP/1.1" 200 5120 "https://example.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Gecko/20100101 Firefox/129.0" "-"',
+      '192.0.2.99 - - [08/Sep/2026:14:26:33 +0000] "GET /missing-page HTTP/1.1" 404 0 "https://example.com/" "curl/8.5.0" "-"',
+    ],
+    apache: [
+      'example.com 203.0.113.7 - [08/Sep/2026:14:24:02 +0000] "GET /index.html HTTP/1.1" 200 5120 "https://example.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Gecko/20100101 Firefox/129.0"',
+      'example.com 198.51.100.23 - [08/Sep/2026:14:25:47 +0000] "GET /css/site.css HTTP/1.1" 200 18432 "https://example.com/index.html" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36"',
+      'example.com 192.0.2.99 - [08/Sep/2026:14:26:33 +0000] "GET /favicon.ico HTTP/1.1" 404 0 "-" "curl/8.5.0"',
+    ],
+    json: [
+      '{"ts":"2026-09-08T14:20:01Z","level":"INFO","logger":"api","method":"GET","path":"/v1/users","status":200,"latency_ms":12}',
+      '{"ts":"2026-09-08T14:20:02Z","level":"ERROR","logger":"api","method":"POST","path":"/v1/payments","status":502,"latency_ms":310,"upstream":"10.0.0.5:8080"}',
+      '{"ts":"2026-09-08T14:20:05Z","level":"INFO","logger":"db","method":"GET","path":"/v1/orders","status":404,"latency_ms":4}',
+    ],
+    custom: [
+      '66.249.65.10 - - [08/Sep/2026:14:23:11 +0000] "GET /api/health HTTP/1.1" 200 42 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"',
+      '192.0.2.99 - - [08/Sep/2026:14:26:33 +0000] "GET /missing-page HTTP/1.1" 404 0 "-" "curl/8.5.0"',
+    ],
+  };
+
+  const NCOLS = [
+    { key: 'time_local', label: 'Time' },
+    { key: 'remote_addr', label: 'Remote' },
+    { key: 'method', label: 'Method' },
+    { key: 'path', label: 'Path' },
+    { key: 'status', label: 'Status' },
+    { key: 'body_bytes_sent', label: 'Bytes' },
+    { key: 'referer', label: 'Referer' },
+    { key: 'user_agent', label: 'User agent' },
+  ];
+
+  let lastParsed = [];
+
+  function splitRequest(req) {
+    const p = (req || '').split(' ');
+    return { method: p[0] && p[0] !== '-' ? p[0] : '', path: p[1] || '' };
+  }
+
+  function nginxObject(m) {
+    const r = splitRequest(m[5]);
+    return {
+      remote_addr: m[1],
+      identity: m[2],
+      user: m[3],
+      time_local: m[4],
+      request: m[5],
+      method: r.method,
+      path: r.path,
+      status: m[6],
+      body_bytes_sent: m[7],
+      referer: m[8],
+      user_agent: m[9],
+      x_forwarded_for: m[10] !== undefined ? m[10] : '-',
+    };
+  }
+
+  function flatten(obj) {
+    const out = {};
+    for (const k of Object.keys(obj)) {
+      const v = obj[k];
+      out[k] = (typeof v === 'object' && v !== null) ? JSON.stringify(v) : String(v);
+    }
+    return out;
+  }
+
+  function parseLine(format, line, customRe) {
+    if (format === 'nginx') {
+      const m = NGINX_RE.exec(line);
+      return m ? nginxObject(m) : null;
+    }
+    if (format === 'apache') {
+      const m = APACHE_RE.exec(line);
+      return m ? nginxObject(m) : null;
+    }
+    if (format === 'json') {
+      try {
+        const obj = JSON.parse(line);
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return null;
+        return flatten(obj);
+      } catch {
+        return null;
+      }
+    }
+    const m = customRe.exec(line);
+    if (!m || !m.groups) return null;
+    return Object.assign({}, m.groups);
+  }
+
+  function statusColor(code) {
+    const c = Number(code);
+    if (isNaN(c)) return '';
+    if (c >= 500) return 'var(--danger)';
+    if (c >= 400) return 'var(--warning)';
+    if (c >= 300) return 'var(--accent)';
+    if (c >= 200) return 'var(--success)';
+    return '';
+  }
+
+  function td(text, color) {
+    const el = document.createElement('td');
+    el.textContent = text === null || text === undefined ? '' : String(text);
+    if (color) el.style.color = color;
+    return el;
+  }
+
+  function renderTable(rows, cols, displayCap) {
+    const wrap = $('table-wrap');
+    wrap.innerHTML = '';
+    if (!cols.length || !rows.length) return;
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    const idxTh = document.createElement('th');
+    idxTh.textContent = '#';
+    hr.appendChild(idxTh);
+    for (const c of cols) {
+      const th = document.createElement('th');
+      th.textContent = c.label;
+      hr.appendChild(th);
+    }
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const shown = rows.slice(0, displayCap);
+    shown.forEach((row, i) => {
+      const tr = document.createElement('tr');
+      const idxTd = document.createElement('td');
+      idxTd.textContent = String(i + 1);
+      idxTd.style.color = 'var(--text-dim)';
+      tr.appendChild(idxTd);
+      for (const c of cols) {
+        let val = row[c.key];
+        if (c.key === 'method' || c.key === 'path') {
+          const r = splitRequest(row.request || '');
+          val = c.key === 'method' ? r.method : r.path;
+        }
+        tr.appendChild(td(val, c.key === 'status' ? statusColor(val) : ''));
+      }
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+
+    if (rows.length > displayCap) {
+      const note = document.createElement('p');
+      note.className = 'text-muted mt-1';
+      note.textContent = 'Showing first ' + displayCap + ' of ' + rows.length + ' parsed lines.';
+      wrap.appendChild(note);
+    }
+  }
+
+  function renderStats(results, total, failed) {
+    const stats = $('stats');
+    stats.innerHTML = '';
+
+    const hist = {};
+    for (const r of results) {
+      const s = String(r.status || '');
+      if (/^\d{3}$/.test(s)) hist[s] = (hist[s] || 0) + 1;
+    }
+    const histEntries = Object.entries(hist).sort((a, b) => b[1] - a[1]);
+
+    const line = document.createElement('p');
+    line.className = 'text-muted';
+    line.textContent = 'Total lines: ' + total + ' · Parsed: ' + results.length + ' · Failed: ' + failed.length;
+    stats.appendChild(line);
+
+    if (histEntries.length) {
+      const h = document.createElement('p');
+      h.className = 'hist';
+      h.textContent = 'Status histogram: ' + histEntries.map(([k, v]) => k + ': ' + v).join(', ');
+      stats.appendChild(h);
+    }
+
+    const warnings = $('warnings');
+    warnings.innerHTML = '';
+    if (failed.length) {
+      const ul = document.createElement('ul');
+      ul.style.color = 'var(--warning)';
+      failed.slice(0, 20).forEach(f => {
+        const li = document.createElement('li');
+        li.textContent = 'Line ' + f.index + ': ' + f.line;
+        li.style.fontFamily = 'var(--font-mono)';
+        li.style.fontSize = '.8rem';
+        ul.appendChild(li);
+      });
+      if (failed.length > 20) {
+        const li = document.createElement('li');
+        li.textContent = '… and ' + (failed.length - 20) + ' more';
+        ul.appendChild(li);
+      }
+      warnings.appendChild(ul);
+    }
+  }
+
+  function run() {
+    try {
+      const format = $('format').value;
+      const raw = $('log-lines').value;
+      const lines = raw.split('\n');
+      if (!raw.trim()) throw new Error('Paste some log lines first.');
+
+      let customRe = null;
+      if (format === 'custom') {
+        const src = $('custom-regex').value.trim();
+        if (!src) throw new Error('Enter a custom regex first.');
+        try {
+          customRe = new RegExp(src);
+        } catch (e) {
+          throw new Error('Invalid regex: ' + e.message);
+        }
+        if (!/\(\?<[a-zA-Z]\w*>/.test(src)) {
+          throw new Error('Custom regex must use named groups like (?<name>...).');
+        }
+      }
+
+      const results = [];
+      const failed = [];
+      lines.forEach((line, i) => {
+        if (!line.trim()) return;
+        const parsed = parseLine(format, line, customRe);
+        if (parsed === null) failed.push({ index: i + 1, line: line.trim() });
+        else results.push(parsed);
+      });
+      lastParsed = results;
+
+      let cols = NCOLS;
+      if (format === 'json') {
+        const keys = [];
+        for (const r of results) {
+          for (const k of Object.keys(r)) {
+            if (!keys.includes(k)) keys.push(k);
+          }
+        }
+        cols = keys.map(k => ({ key: k, label: k }));
+      } else if (format === 'custom') {
+        const keys = [];
+        for (const r of results) {
+          for (const k of Object.keys(r)) {
+            if (!keys.includes(k)) keys.push(k);
+          }
+        }
+        cols = keys.map(k => ({ key: k, label: k }));
+      }
+
+      renderStats(results, lines.filter(l => l.trim()).length, failed);
+      renderTable(results, cols, 200);
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  }
+
+  $('format').addEventListener('change', () => {
+    const custom = $('format').value === 'custom';
+    $('custom-fields').style.display = custom ? 'block' : 'none';
+    if (custom && !$('custom-regex').value.trim()) {
+      $('custom-regex').value = CUSTOM_DEFAULT;
+    }
+  });
+
+  $('parse').addEventListener('click', run);
+
+  $('sample').addEventListener('click', () => {
+    const format = $('format').value;
+    $('log-lines').value = SAMPLES[format].join('\n');
+    run();
+  });
+
+  $('copy-json').addEventListener('click', async () => {
+    if (!lastParsed.length) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(lastParsed, null, 2));
+      $('copy-json').textContent = 'Copied!';
+      setTimeout(() => { $('copy-json').textContent = 'Copy JSON'; }, 1200);
+    } catch {}
+  });
+
+  $('clear').addEventListener('click', () => {
+    $('log-lines').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+    lastParsed = [];
+  });
+})();
+</script>

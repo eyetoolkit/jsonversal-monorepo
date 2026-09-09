@@ -1,0 +1,453 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'SQL Formatter';
+const description = 'Format messy SQL into readable, indented statements — or minify it back into a compact single-line form. Handles strings, comments, identifiers and subqueries correctly. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="codegen"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/codegen/tools/sql-formatter/"
+  keywords={['sql formatter', 'sql beautify', 'sql minify', 'pretty sql', 'sql indentation']}
+  current="/codegen/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">SQL</h2>
+    <textarea id="input" spellcheck="false">SELECT u.id, u.name, COUNT(o.id) AS order_count, u.email
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE u.active = TRUE AND (u.created_at &gt; '2024-01-01' OR u.email LIKE '%@example.com')
+GROUP BY u.id, u.name, u.email
+ORDER BY order_count DESC
+LIMIT 10;</textarea>
+    <div class="row mt-1">
+      <label class="text-muted" for="upper" style="gap:4px;display:inline-flex;align-items:center;"><input id="upper" type="checkbox" checked /> Uppercase keywords</label>
+      <label class="text-muted" for="indent">Indent</label>
+      <select id="indent">
+        <option value="2">2 spaces</option>
+        <option value="4">4 spaces</option>
+      </select>
+      <button class="primary" id="fmt">Format</button>
+      <button class="ghost" id="minify">Minify</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Formatted SQL</h2>
+      <div class="row" style="gap:8px;">
+        <span class="text-dim" id="meta" style="font-size:.85rem;"></span>
+        <button class="ghost" id="copy">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>A real tokenizer walks the SQL character by character, respecting single-quoted strings (with <code>''</code> escapes), double-quoted identifiers, backtick and <code>[bracketed]</code> identifiers, <code>--</code> line comments, <code>/* block */</code> comments, numbers and punctuation.</li>
+    <li>Main clauses (<code>SELECT</code>, <code>FROM</code>, <code>WHERE</code>, <code>JOIN</code>, <code>GROUP BY</code>, <code>ORDER BY</code>, <code>HAVING</code>, <code>LIMIT</code>, <code>UNION</code>, <code>INSERT INTO</code>, <code>VALUES</code>, <code>UPDATE</code>, <code>SET</code>, <code>DELETE FROM</code>, <code>ON</code>…) start a new line; <code>AND</code>/<code>OR</code> inside <code>WHERE</code>/<code>ON</code> are indented one extra level and aligned.</li>
+    <li>Commas stay at the end of the line, subqueries are indented by parenthesis depth, and strings, comments and identifiers keep their original case.</li>
+    <li>Minify strips whitespace and newlines outside strings and comments, keeping just enough spacing between tokens — the statement stays executable, just compact.</li>
+  </ul>
+
+  <h2>About SQL Formatter</h2>
+  <p class="text-muted">SQL written by hand, dumped by ORMs, or pasted out of logs is almost always a single cramped line or an inconsistent jumble of casing and indentation. Formatting it safely is harder than it looks — a naive regex that adds newlines before keywords will happily split string literals that happen to contain those words. This tool tokenizes first, so quoted strings, comments and identifiers are treated as opaque units and never broken apart.</p>
+  <p class="text-muted">The same token stream powers the minifier, which collapses whitespace while keeping keyword/identifier boundaries distinct, so the minified statement parses identically. Use Format to review and edit your query, then Minify to shrink it for embedding in code, configuration files or logs. Both directions preserve comments, string content and identifier casing exactly as written.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .875rem; }
+  pre { min-height: 80px; max-height: 560px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const SAMPLE = `SELECT p.id, p.title, p.price, c.name AS category
+FROM products p
+INNER JOIN categories c ON c.id = p.category_id
+WHERE p.active = TRUE
+  AND p.price > 10
+  OR p.featured = TRUE
+ORDER BY p.created_at DESC
+LIMIT 20 OFFSET 0;
+
+-- second statement: subquery + aggregation
+SELECT u.id, u.name,
+       (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) AS order_count
+FROM users u
+WHERE u.id IN (
+  SELECT user_id
+  FROM orders
+  GROUP BY user_id
+  HAVING COUNT(*) > 3
+)
+ORDER BY order_count DESC;`;
+
+  const KEYWORDS = new Set([
+    'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'NOT', 'NULL', 'IS', 'IN', 'LIKE', 'BETWEEN', 'EXISTS',
+    'JOIN', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS', 'OUTER', 'NATURAL', 'ON', 'UNION', 'ALL',
+    'INSERT', 'INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE', 'ALTER', 'DROP', 'TRUNCATE',
+    'GROUP', 'BY', 'ORDER', 'HAVING', 'LIMIT', 'OFFSET', 'AS', 'DISTINCT', 'ASC', 'DESC',
+    'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'PRIMARY', 'KEY', 'FOREIGN', 'REFERENCES',
+    'DEFAULT', 'UNIQUE', 'CHECK', 'CONSTRAINT', 'INDEX', 'VIEW', 'RETURNING', 'USING', 'WITH',
+    'WINDOW', 'OVER', 'PARTITION', 'ROWS', 'CURRENT', 'DATE', 'TIME', 'TIMESTAMP', 'CAST', 'COALESCE',
+    'IF', 'IFNULL', 'NULLIF', 'BEGIN', 'COMMIT', 'ROLLBACK', 'TRUE', 'FALSE', 'MATERIALIZED'
+  ]);
+
+  const CLAUSES = [
+    'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'HAVING', 'LIMIT', 'OFFSET',
+    'JOIN', 'INNER JOIN', 'LEFT JOIN', 'LEFT OUTER JOIN', 'RIGHT JOIN', 'RIGHT OUTER JOIN',
+    'FULL JOIN', 'FULL OUTER JOIN', 'CROSS JOIN', 'NATURAL JOIN',
+    'UNION', 'UNION ALL', 'INSERT INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE FROM',
+    'CREATE TABLE', 'ALTER TABLE', 'DROP TABLE', 'TRUNCATE TABLE',
+    'ON', 'AND', 'OR', 'RETURNING', 'USING'
+  ];
+
+  function tokenize(sql) {
+    const tokens = [];
+    let i = 0;
+    const s = sql;
+    while (i < s.length) {
+      const c = s[i];
+      if (/\s/.test(c)) {
+        let j = i;
+        while (j < s.length && /\s/.test(s[j])) j++;
+        tokens.push({ type: 'ws', value: s.slice(i, j) });
+        i = j; continue;
+      }
+      if (c === "'") {
+        let j = i + 1, val = "'";
+        while (j < s.length) {
+          if (s[j] === "'") {
+            if (s[j + 1] === "'") { val += "''"; j += 2; continue; }
+            val += "'"; j++; break;
+          }
+          val += s[j]; j++;
+        }
+        tokens.push({ type: 'string', value: val });
+        i = j; continue;
+      }
+      if (c === '"') {
+        let j = i + 1, val = '"';
+        while (j < s.length) {
+          if (s[j] === '"') {
+            if (s[j + 1] === '"') { val += '""'; j += 2; continue; }
+            val += '"'; j++; break;
+          }
+          val += s[j]; j++;
+        }
+        tokens.push({ type: 'ident', value: val });
+        i = j; continue;
+      }
+      if (c === '`') {
+        let j = i + 1;
+        while (j < s.length && s[j] !== '`') j++;
+        const val = s.slice(i, Math.min(j + 1, s.length));
+        tokens.push({ type: 'ident', value: val });
+        i = j + 1; continue;
+      }
+      if (c === '[') {
+        let j = i + 1;
+        while (j < s.length && s[j] !== ']') j++;
+        const val = s.slice(i, Math.min(j + 1, s.length));
+        tokens.push({ type: 'ident', value: val });
+        i = j + 1; continue;
+      }
+      if (c === '-' && s[i + 1] === '-') {
+        let j = i + 2;
+        while (j < s.length && s[j] !== '\n') j++;
+        tokens.push({ type: 'comment', value: s.slice(i, j) });
+        i = j; continue;
+      }
+      if (c === '/' && s[i + 1] === '*') {
+        let j = i + 2;
+        while (j < s.length && !(s[j] === '*' && s[j + 1] === '/')) j++;
+        j = Math.min(j + 2, s.length);
+        tokens.push({ type: 'comment', value: s.slice(i, j) });
+        i = j; continue;
+      }
+      if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(s[i + 1]))) {
+        let j = i;
+        if (s[j] === '.') j++;
+        while (j < s.length && /[0-9]/.test(s[j])) j++;
+        if (s[j] === '.') { j++; while (j < s.length && /[0-9]/.test(s[j])) j++; }
+        if (s[j] === 'e' || s[j] === 'E') {
+          let k = j + 1;
+          if (s[k] === '+' || s[k] === '-') k++;
+          if (/[0-9]/.test(s[k] || '')) {
+            j = k;
+            while (j < s.length && /[0-9]/.test(s[j])) j++;
+          }
+        }
+        tokens.push({ type: 'number', value: s.slice(i, j) });
+        i = j; continue;
+      }
+      if (/[A-Za-z_$#]/.test(c)) {
+        let j = i;
+        while (j < s.length && /[A-Za-z0-9_$#]/.test(s[j])) j++;
+        const word = s.slice(i, j);
+        tokens.push({ type: KEYWORDS.has(word.toUpperCase()) ? 'keyword' : 'ident', value: word });
+        i = j; continue;
+      }
+      tokens.push({ type: 'punct', value: c });
+      i++;
+    }
+    return tokens;
+  }
+
+  function clauseAt(toks, i) {
+    const words = [];
+    let k = i;
+    while (k < toks.length && words.length < 3) {
+      const t = toks[k];
+      if (t.type === 'ws') { k++; continue; }
+      if (t.type !== 'keyword' && t.type !== 'ident') break;
+      words.push(t.value.toUpperCase());
+      k++;
+    }
+    for (let len = Math.min(words.length, 3); len >= 1; len--) {
+      const phrase = words.slice(0, len).join(' ');
+      if (CLAUSES.indexOf(phrase) !== -1) return { phrase, words: len };
+    }
+    return null;
+  }
+
+  function parenStartsSubquery(toks, i) {
+    let k = i + 1;
+    while (k < toks.length && toks[k].type === 'ws') k++;
+    const t = toks[k];
+    if (!t || (t.type !== 'keyword' && t.type !== 'ident')) return false;
+    const w = t.value.toUpperCase();
+    return w === 'SELECT' || w === 'INSERT' || w === 'UPDATE' || w === 'DELETE' || w === 'WITH' || w === 'VALUES';
+  }
+
+  function format(sql, opts) {
+    const toks = tokenize(sql);
+    const unit = opts.indent;
+    const lines = []; // { indent, text }
+    let cur = '';
+    let lineIndent = 0;
+    let paren = 0;
+    const parenStack = []; // true = subquery paren
+    let logic = false;
+    let selectList = false;
+    let prevTok = null;
+
+    function flush() {
+      const t = cur.trim();
+      if (t) lines.push({ indent: lineIndent, text: t });
+      cur = '';
+    }
+    function curIndent() {
+      return paren * unit + (selectList && paren === 0 ? unit : 0);
+    }
+    function appendWord(w) {
+      const needSpace = cur !== '' && prevTok &&
+        (prevTok.type === 'ident' || prevTok.type === 'keyword' || prevTok.type === 'string' || prevTok.type === 'number' ||
+         (prevTok.type === 'punct' && prevTok.value === ')'));
+      if (needSpace) cur += ' ';
+      cur += w;
+    }
+
+    for (let i = 0; i < toks.length; i++) {
+      const tok = toks[i];
+      if (tok.type === 'ws') continue;
+      if (tok.type === 'comment') {
+        flush();
+        lines.push({ indent: lineIndent, text: tok.value.trim() });
+        prevTok = tok;
+        continue;
+      }
+
+      const cl = clauseAt(toks, i);
+      if (cl && (cl.phrase !== 'AND' && cl.phrase !== 'OR')) {
+        flush();
+        logic = cl.phrase === 'WHERE' || cl.phrase === 'ON' || cl.phrase === 'HAVING';
+        selectList = cl.phrase === 'SELECT';
+        lineIndent = paren * unit;
+        const words = cl.phrase.split(' ');
+        for (let w = 0; w < words.length; w++) {
+          const wt = toks[i + w];
+          appendWord(opts.upper ? words[w] : wt.value);
+          prevTok = { type: 'keyword', value: words[w] };
+        }
+        i += cl.words - 1;
+        continue;
+      }
+      if (cl && logic) {
+        // AND / OR inside WHERE/ON/HAVING → aligned new line, indented +1
+        flush();
+        lineIndent = paren * unit + unit;
+        appendWord(opts.upper ? cl.phrase : toks[i].value);
+        prevTok = { type: 'keyword', value: cl.phrase };
+        i += cl.words - 1;
+        continue;
+      }
+
+      if (tok.type === 'keyword' || tok.type === 'ident') {
+        appendWord(opts.upper && tok.type === 'keyword' ? tok.value.toUpperCase() : tok.value);
+        prevTok = tok;
+        continue;
+      }
+      if (tok.type === 'string' || tok.type === 'number') {
+        appendWord(tok.value);
+        prevTok = tok;
+        continue;
+      }
+
+      const p = tok.value;
+      if (p === '(') {
+        const isSub = parenStartsSubquery(toks, i);
+        parenStack.push(isSub);
+        if (isSub) {
+          cur = cur.trimEnd();
+          if (cur) cur += ' (';
+          else cur = '(';
+          flush();
+          paren++;
+          lineIndent = curIndent();
+        } else {
+          cur = cur.trimEnd() + '(';
+        }
+        prevTok = tok;
+        continue;
+      }
+      if (p === ')') {
+        const wasSub = parenStack.pop() || false;
+        if (wasSub) {
+          flush();
+          paren = Math.max(0, paren - 1);
+          lineIndent = curIndent();
+          cur = ')';
+        } else {
+          cur = cur.trimEnd() + ')';
+        }
+        prevTok = tok;
+        continue;
+      }
+      if (p === ',') {
+        cur = cur.trimEnd() + ',';
+        flush();
+        lineIndent = curIndent();
+        prevTok = tok;
+        continue;
+      }
+      if (p === ';') {
+        cur = cur.trimEnd() + ';';
+        prevTok = tok;
+        continue;
+      }
+      if (p === '.') {
+        cur = cur.trimEnd() + '.';
+        prevTok = tok;
+        continue;
+      }
+      if (p === '*') {
+        if (cur && prevTok && prevTok.type !== 'punct') cur = cur.trimEnd() + ' ';
+        cur += '*';
+        prevTok = tok;
+        continue;
+      }
+      // operators and other punctuation → spaced
+      cur = cur.trimEnd();
+      if (cur && !cur.endsWith('(')) cur += ' ';
+      cur += p + ' ';
+      prevTok = tok;
+    }
+    flush();
+
+    const out = lines.map(l => ' '.repeat(l.indent) + l.text).join('\n');
+    return { text: out, lines: lines.length };
+  }
+
+  function minify(sql) {
+    const toks = tokenize(sql);
+    const wordLike = t => t.type === 'ident' || t.type === 'keyword' || t.type === 'string' || t.type === 'number';
+    let out = '';
+    let prev = null;
+    for (const t of toks) {
+      if (t.type === 'ws') continue;
+      if (t.type === 'comment') {
+        if (prev) out = out.trimEnd() + ' ';
+        out += t.value;
+        if (t.value.indexOf('--') === 0) out += '\n';
+        else out += ' ';
+        prev = t;
+        continue;
+      }
+      if (prev) {
+        const p = prev, n = t;
+        if (wordLike(p) && wordLike(n)) out += ' ';
+        else if (p.type === 'punct' && p.value === ')' && wordLike(n)) out += ' ';
+        else if (wordLike(p) && n.type === 'punct' && n.value === '*') out += ' ';
+        else if (p.type === 'punct' && (p.value === ',' || p.value === '=' || p.value === '<' || p.value === '>') && wordLike(n)) out += ' ';
+        else if (p.type === 'punct' && n.type === 'punct' && n.value === ',') out = out.trimEnd();
+      }
+      out += t.value;
+      prev = t;
+    }
+    return { text: out.trim(), lines: out.trim().split('\n').length };
+  }
+
+  function countLines(s) {
+    const t = s.trim();
+    if (!t) return 0;
+    return t.split('\n').filter(l => l.trim()).length;
+  }
+
+  function run(mode) {
+    const raw = $('input').value;
+    $('err-section').style.display = 'none';
+    if (!raw.trim()) { alert('Paste some SQL first.'); return; }
+    try {
+      const opts = { upper: $('upper').checked, indent: parseInt($('indent').value, 10) || 2 };
+      const res = mode === 'minify' ? minify(raw) : format(raw, opts);
+      $('output').textContent = res.text;
+      $('meta').textContent = countLines(raw) + ' lines → ' + res.lines + ' line' + (res.lines === 1 ? '' : 's');
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  }
+
+  $('fmt').addEventListener('click', () => run('format'));
+  $('minify').addEventListener('click', () => run('minify'));
+
+  $('sample').addEventListener('click', () => { $('input').value = SAMPLE; });
+
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

@@ -1,0 +1,156 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'README Skeleton';
+const description = 'Generate a professional README.md for your project with badges, features, install, usage, and FAQ sections.';
+---
+<BaseLayout site="codegen" title={title} description={description}
+  canonical="https://jsonversal.com/codegen/tools/readme/"
+  keywords={['readme generator', 'readme skeleton', 'github readme']}
+  current="/codegen/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Project info</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label class="text-muted">Project name</label>
+        <input id="name" type="text" placeholder="my-awesome-tool" />
+      </div>
+      <div>
+        <label class="text-muted">One-liner description</label>
+        <input id="desc" type="text" placeholder="A tool that does X" />
+      </div>
+      <div>
+        <label class="text-muted">GitHub owner</label>
+        <input id="owner" type="text" placeholder="your-user" />
+      </div>
+      <div>
+        <label class="text-muted">License (spdx)</label>
+        <input id="license" type="text" value="MIT" />
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px;">
+      <label style="display:flex;align-items:center;gap:6px;"><input id="ci" type="checkbox" checked /> CI badge</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="npm" type="checkbox" /> npm badge</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="dl" type="checkbox" /> Downloads badge</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="cov" type="checkbox" /> Coverage badge</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="issue" type="checkbox" /> Issues badge</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="discord" type="checkbox" /> Discord badge</label>
+    </div>
+    <button class="primary mt-2" id="gen">Generate README</button>
+  </section>
+
+  <section class="card mt-2">
+    <strong>README.md</strong>
+    <pre id="out" class="mt-2" style="white-space:pre-wrap;"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="download">Download README.md</button>
+    </div>
+  </section>
+
+  <h2>About README Skeleton</h2>
+  <p class="text-muted">The README is the front page of a repository — it is usually the first thing visitors and potential contributors see, and it decides whether someone can get your project running in minutes. A clear README with badges, features, install, and usage steps lowers the barrier to adoption significantly.</p>
+  <p class="text-muted">Write one whenever you publish a project, open-source a tool, or hand code to new teammates. Structure it as intro, installation, usage, contributing, and license, and keep install and usage commands copy-paste ready so readers can verify your tool works immediately.</p>
+</BaseLayout>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+  function gen() {
+    const name = ($('name').value || 'my-project').trim();
+    const desc = ($('desc').value || 'Awesome project').trim();
+    const owner = ($('owner').value || 'your-user').trim();
+    const lic = ($('license').value || 'MIT').trim();
+
+    const badges = [];
+    const repo = `${owner}/${name}`;
+    if ($('ci').checked)      badges.push(`[![CI](https://github.com/${repo}/actions/workflows/ci.yml/badge.svg)](https://github.com/${repo}/actions)`);
+    if ($('npm').checked)     badges.push(`[![npm version](https://img.shields.io/npm/v/${name}.svg)](https://www.npmjs.com/package/${name})`);
+    if ($('dl').checked)      badges.push(`[![downloads](https://img.shields.io/npm/dm/${name}.svg)](https://www.npmjs.com/package/${name})`);
+    if ($('cov').checked)     badges.push(`[![coverage](https://codecov.io/gh/${repo}/branch/main/graph/badge.svg)](https://codecov.io/gh/${repo})`);
+    if ($('issue').checked)   badges.push(`[![issues](https://img.shields.io/github/issues/${repo}.svg)](https://github.com/${repo}/issues)`);
+    if ($('discord').checked) badges.push(`[![discord](https://img.shields.io/discord/000000000000000000.svg)](https://discord.gg/your-invite)`);
+
+    const readme = `# ${name}
+
+> ${desc}
+
+${badges.length ? badges.join('  ') : ''}
+
+## ✨ Features
+
+- Feature one
+- Feature two
+- Feature three
+
+## 📦 Installation
+
+\`\`\`bash
+npm install ${name}
+# or
+pnpm add ${name}
+# or
+yarn add ${name}
+\`\`\`
+
+## 🚀 Usage
+
+\`\`\`js
+import { example } from '${name}';
+
+example();
+\`\`\`
+
+See [examples/](./examples) for more.
+
+## 🗺️ Roadmap
+
+- [ ] Feature X
+- [ ] Feature Y
+- [ ] v2.0 release
+
+## 🤝 Contributing
+
+PRs welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+1. Fork it
+2. Create your feature branch (\`git checkout -b feature/fooBar\`)
+3. Commit your changes (\`git commit -m 'feat: add fooBar'\`)
+4. Push to the branch (\`git push origin feature/fooBar\`)
+5. Create a Pull Request
+
+## 📝 Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md).
+
+## 🙏 Acknowledgements
+
+- [inspiration-source](https://github.com/)
+
+## 📄 License
+
+[${lic}](./LICENSE) © ${owner}
+`;
+    $('out').textContent = readme;
+  }
+
+  $('gen').addEventListener('click', gen);
+  ['name','desc','owner','license'].forEach(id => $(id).addEventListener('input', gen));
+  ['ci','npm','dl','cov','issue','discord'].forEach(id => $(id).addEventListener('change', gen));
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent='Copied!'; setTimeout(()=>$('copy').textContent='Copy',1200); } catch {}
+  });
+  $('download').addEventListener('click', () => {
+    const blob = new Blob([$('out').textContent], {type:'text/markdown'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download='README.md'; a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  gen();
+})();
+</script>

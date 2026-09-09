@@ -1,0 +1,334 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Schema to TypeScript';
+const description = 'Convert a JSON Schema (draft-07) into TypeScript interfaces and type aliases — properties, required, enums, unions, $refs and nested objects included. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="codegen"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/codegen/tools/schema-to-typescript/"
+  keywords={['JSON Schema', 'TypeScript', 'interface generator', 'schema to typescript', 'types']}
+  current="/codegen/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">JSON Schema</h2>
+    <textarea id="input" spellcheck="false">&#123;
+  "title": "Product",
+  "type": "object",
+  "properties": &#123;
+    "id": &#123; "type": "integer" &#125;,
+    "name": &#123; "type": "string" &#125;,
+    "price": &#123; "type": "number", "minimum": 0 &#125;,
+    "inStock": &#123; "type": "boolean", "default": true &#125;,
+    "tags": &#123; "type": "array", "items": &#123; "type": "string" &#125; &#125;
+  &#125;,
+  "required": ["id", "name"]
+&#125;</textarea>
+    <div class="row mt-1">
+      <label class="text-muted" for="prefix">Prefix</label>
+      <input id="prefix" type="text" value="I" style="max-width:70px;" spellcheck="false" />
+      <label class="text-muted" for="strict" style="gap:4px;display:inline-flex;align-items:center;"><input id="strict" type="checkbox" /> Strict mode</label>
+      <label class="text-muted" for="export" style="gap:4px;display:inline-flex;align-items:center;"><input id="export" type="checkbox" /> export keyword</label>
+      <button class="primary" id="gen">Generate</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">TypeScript</h2>
+      <div class="row" style="gap:8px;">
+        <span class="text-dim" id="meta" style="font-size:.85rem;"></span>
+        <button class="ghost" id="copy">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Supports <code>type</code>, <code>properties</code> + <code>required</code>, <code>additionalProperties</code>, <code>items</code> (single schema or tuple array), <code>enum</code> → union literals, and <code>anyOf</code>/<code>oneOf</code> → unions.</li>
+    <li>Local <code>$ref</code>s into <code>#/$defs</code> or <code>#/definitions</code> are resolved — referenced definitions become named interfaces/aliases too.</li>
+    <li><code>"null"</code> in the <code>type</code> list or <code>x-nullable: true</code> produces <code>T | null</code>.</li>
+    <li>Strict mode keeps <code>required</code> properties as non-optional (<code>: T</code>); otherwise every property becomes <code>?: T</code>.</li>
+    <li><code>format</code> and <code>pattern</code> are ignored — they don&rsquo;t affect the emitted type.</li>
+  </ul>
+
+  <h2>About JSON Schema to TypeScript</h2>
+  <p class="text-muted">API contracts, config files and data fixtures are increasingly described with JSON Schema — but consuming that schema in TypeScript usually means either hand-writing the interfaces or pulling in a heavy build-time plugin. This tool does the translation in one pass: object schemas become interfaces, everything else collapses to primitive or union types, and local <code>$defs</code>/<code>definitions</code> are emitted as their own named declarations so the output stays readable.</p>
+  <p class="text-muted">The generated code is plain TypeScript — no dependencies, no generics machinery — so you can paste it into a <code>.d.ts</code> file or an existing source file and start using it immediately. The strict-mode toggle matches the two common conventions (all-optional by default vs. required-only-non-optional), and the prefix control avoids name collisions when you generate types for several schemas into the same file.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .875rem; }
+  pre { min-height: 80px; max-height: 560px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const SAMPLE = `{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "User",
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "email": { "type": "string", "format": "email" },
+    "age": { "type": "integer", "minimum": 0 },
+    "isActive": { "type": "boolean", "default": true },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "role": { "enum": ["admin", "editor", "viewer"] },
+    "score": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+    "address": { "$ref": "#/$defs/Address" },
+    "contacts": { "type": "array", "items": { "$ref": "#/$defs/Contact" } },
+    "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
+  },
+  "required": ["id", "name", "email", "role"],
+  "$defs": {
+    "Address": {
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "zip": { "type": "string", "x-nullable": true }
+      },
+      "required": ["street", "city"]
+    },
+    "Contact": {
+      "type": "object",
+      "properties": {
+        "type": { "enum": ["email", "phone"] },
+        "value": { "type": "string" }
+      },
+      "required": ["type", "value"]
+    }
+  }
+}`;
+
+  function capitalize(s) {
+    return s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : 'Schema';
+  }
+
+  function generate(schemaStr, opts) {
+    const schema = JSON.parse(schemaStr);
+    if (schema === null || typeof schema !== 'object' || Array.isArray(schema)) {
+      throw new Error('The schema must be a JSON object.');
+    }
+
+    const interfaces = [];   // { name, lines }
+    const aliases = [];      // { name, type }
+    const usedNames = new Set();
+    const interfaceCache = new Map();  // schema obj -> interface name
+    const aliasCache = new Map();      // ref string -> alias name
+    const IND = '  ';
+
+    function unique(name) {
+      let base = String(name).replace(/[^A-Za-z0-9_$]/g, '');
+      if (!base) base = 'Schema';
+      if (/^[0-9]/.test(base)) base = 'S' + base;
+      base = base.charAt(0).toUpperCase() + base.slice(1);
+      let out = base, n = 2;
+      while (usedNames.has(out)) out = base + n++;
+      usedNames.add(out);
+      return out;
+    }
+
+    function resolveRef(ref) {
+      if (typeof ref !== 'string' || !ref.startsWith('#/')) return null;
+      let node = schema;
+      for (const part of ref.slice(2).split('/')) {
+        let key = part;
+        try { key = decodeURIComponent(part); } catch (e) {}
+        if (node && typeof node === 'object') node = node[key];
+        else return null;
+      }
+      return (node && typeof node === 'object') ? node : null;
+    }
+
+    function looksObject(s) {
+      return !!s && typeof s === 'object' &&
+        (s.type === 'object' || s.properties || s.additionalProperties !== undefined);
+    }
+
+    function buildObject(s, name) {
+      if (interfaceCache.has(s)) return interfaceCache.get(s);
+      const n = unique(name);
+      interfaceCache.set(s, n);
+      const lines = [];
+      const required = new Set(Array.isArray(s.required) ? s.required : []);
+      const props = s.properties || {};
+      for (const key of Object.keys(props)) {
+        const ps = props[key];
+        const propName = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : JSON.stringify(key);
+        const opt = opts.strict ? (required.has(key) ? '' : '?') : '?';
+        const t = typeOf(ps, n + capitalize(key), 0);
+        lines.push(IND + propName + opt + ': ' + t + ';');
+      }
+      if (s.additionalProperties && typeof s.additionalProperties === 'object') {
+        const t = typeOf(s.additionalProperties, n + 'AdditionalProperty', 0);
+        lines.push(IND + '[key: string]: ' + t + ';');
+      }
+      interfaces.push({ name: n, lines });
+      return n;
+    }
+
+    function enumType(values) {
+      const parts = values.map(v => {
+        if (v === null) return 'null';
+        const t = typeof v;
+        if (t === 'string') return JSON.stringify(v);
+        if (t === 'number' || t === 'boolean') return String(v);
+        return 'unknown';
+      });
+      return parts.length ? parts.join(' | ') : 'any';
+    }
+
+    function addNullable(s, base) {
+      const nullable = s.nullable === true || (Array.isArray(s.type) && s.type.indexOf('null') !== -1);
+      return nullable && base !== 'any' && base !== 'never' && base !== 'null' ? base + ' | null' : base;
+    }
+
+    function typeOf(s, fallbackName, depth) {
+      if (depth > 60) return 'any';
+      if (s === true) return 'any';
+      if (s === false) return 'never';
+      if (typeof s !== 'object' || s === null) return 'any';
+
+      if (s.$ref) {
+        const target = resolveRef(s.$ref);
+        const seg = String(s.$ref).split('/').pop();
+        const baseName = opts.prefix + capitalize(seg.replace(/[^A-Za-z0-9_$]/g, ''));
+        let name;
+        if (target && looksObject(target) && !target.$ref) {
+          name = buildObject(target, baseName);
+        } else if (target && !aliasCache.has(s.$ref)) {
+          name = unique(baseName);
+          aliasCache.set(s.$ref, name);
+          const t = typeOf(target, name, depth + 1);
+          if (t !== name) aliases.push({ name, type: t });
+        } else if (aliasCache.has(s.$ref)) {
+          name = aliasCache.get(s.$ref);
+        } else {
+          name = unique(baseName);
+        }
+        return addNullable(s, name);
+      }
+
+      let base;
+      if (s.enum) {
+        base = enumType(s.enum);
+      } else if (Array.isArray(s.type)) {
+        const types = s.type.filter(t => t !== 'null');
+        base = types.length
+          ? types.map(t => typeOf(Object.assign({}, s, { type: t }), fallbackName + capitalize(t), depth + 1)).join(' | ')
+          : 'any';
+      } else if (s.anyOf || s.oneOf) {
+        const list = s.anyOf || s.oneOf;
+        base = list.map((x, i) => typeOf(x, fallbackName + 'Option' + i, depth + 1)).join(' | ') || 'any';
+      } else {
+        const t = s.type || 'any';
+        if (t === 'string') base = 'string';
+        else if (t === 'number' || t === 'integer') base = 'number';
+        else if (t === 'boolean') base = 'boolean';
+        else if (t === 'null') base = 'null';
+        else if (t === 'array') {
+          if (Array.isArray(s.items)) {
+            base = '[' + s.items.map((x, i) => typeOf(x, fallbackName + 'Item' + i, depth + 1)).join(', ') + ']';
+          } else if (s.items && typeof s.items === 'object') {
+            const it = typeOf(s.items, fallbackName + 'Item', depth + 1);
+            base = it === 'any' ? 'any[]' : it + '[]';
+          } else {
+            base = 'any[]';
+          }
+        } else if (t === 'object') {
+          base = buildObject(s, fallbackName);
+        } else {
+          base = 'any';
+        }
+      }
+      return addNullable(s, base);
+    }
+
+    const rootName = opts.prefix + (schema.title ? capitalize(String(schema.title)) : 'Root');
+    if (looksObject(schema) && !schema.$ref) {
+      typeOf(schema, rootName, 0);
+    } else {
+      const n = unique(rootName);
+      aliases.push({ name: n, type: typeOf(schema, n, 0) });
+    }
+
+    const out = [];
+    for (const itf of interfaces) {
+      const head = (opts.export ? 'export ' : '') + 'interface ' + itf.name + ' {';
+      if (itf.lines.length) {
+        out.push(head, ...itf.lines, '}');
+      } else {
+        out.push(head + ' }');
+      }
+      out.push('');
+    }
+    for (const al of aliases) {
+      out.push((opts.export ? 'export ' : '') + 'type ' + al.name + ' = ' + al.type + ';');
+      out.push('');
+    }
+    const text = out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return { text, interfaces: interfaces.length, aliases: aliases.length };
+  }
+
+  $('gen').addEventListener('click', () => {
+    const raw = $('input').value.trim();
+    $('err-section').style.display = 'none';
+    if (!raw) { alert('Paste a JSON Schema first.'); return; }
+    try {
+      const opts = {
+        strict: $('strict').checked,
+        export: $('export').checked,
+        prefix: $('prefix').value.trim() || '',
+      };
+      const res = generate(raw, opts);
+      $('output').textContent = res.text;
+      $('meta').textContent = res.interfaces + ' interface' + (res.interfaces === 1 ? '' : 's') +
+        (res.aliases ? ' · ' + res.aliases + ' type alias' + (res.aliases === 1 ? '' : 'es') : '');
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', () => { $('input').value = SAMPLE; });
+
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

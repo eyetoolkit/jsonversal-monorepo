@@ -1,0 +1,182 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Docker Compose Generator';
+const description = 'Scaffold a docker-compose.yml with services, ports, volumes, and environment variables from a simple form. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="codegen"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/codegen/tools/docker-compose/"
+  keywords={['docker compose generator', 'docker-compose.yml', 'compose file', 'docker services', 'yaml generator']}
+  current="/codegen/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Project</h2>
+    <div class="row">
+      <label class="text-muted" for="project">Project name</label>
+      <input id="project" type="text" value="myapp" style="max-width:180px;" spellcheck="false" />
+      <label class="text-muted" for="version">Compose version</label>
+      <select id="version">
+        <option value="3.9">3.9</option>
+        <option value="3.8">3.8</option>
+        <option value="2.24">2.24</option>
+      </select>
+    </div>
+
+    <h2 class="mt-2">Services</h2>
+    <div id="services"></div>
+    <button class="ghost mt-2" id="add">+ Add service</button>
+    <div class="row mt-2">
+      <button class="primary" id="gen">Generate compose file</button>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 style="margin-top:0;">docker-compose.yml</h2>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Add as many services as you need; each one has a name, image, host/container port pair, and optional volume and environment entries.</li>
+    <li>The tool emits a <code>docker-compose.yml</code> with proper YAML quoting — run it with <code>docker compose up -d</code>.</li>
+    <li>Volumes are listed as named mounts, and environment entries are written as a map.</li>
+  </ul>
+
+  <h2>About Docker Compose Generator</h2>
+  <p class="text-muted">Docker Compose describes multi-container applications in a single YAML file: each service maps to an image plus its ports, volumes, and environment. Writing that file from scratch means remembering the exact indentation and key names. This generator produces a valid compose file from a form so you can focus on the parts that matter — which images, which ports, which config — instead of YAML syntax.</p>
+  <p class="text-muted">Start services with <code>docker compose up -d</code>, view logs with <code>docker compose logs -f</code>, and tear everything down with <code>docker compose down</code>. The generated file uses the classic <code>version</code> key for compatibility with older tooling, but the format is largely optional in modern Compose — the file works either way. Add healthchecks, networks, and build contexts for production stacks; this tool covers the common local-development shape.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .svc { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+  .svc input, .svc select { max-width: 100%; }
+  pre { min-height: 120px; max-height: 520px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-size: .8rem; }
+  .mt-2 { margin-top: 16px; }
+  .svc-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 8px; }
+  .svc-row label { display: block; font-size: .8rem; color: var(--text-muted); margin-bottom: 2px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function yamlStr(s) {
+    if (/[:#\{\}\[\],&*!|>'"%@`\n]|^\s|\s$/.test(s)) {
+      return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    }
+    return s;
+  }
+
+  let svcCount = 0;
+
+  function addService(name, image, hport, cport, volume, env) {
+    const div = document.createElement('div');
+    div.className = 'svc';
+    div.dataset.index = svcCount;
+    div.innerHTML = `
+      <div class="row" style="justify-content:space-between;">
+        <strong>Service ${svcCount + 1}</strong>
+        <button class="ghost" type="button" data-remove="${svcCount}">Remove</button>
+      </div>
+      <div class="svc-row">
+        <div><label>Name</label><input data-f="name" type="text" value="${name}" /></div>
+        <div><label>Image</label><input data-f="image" type="text" value="${image}" placeholder="nginx:1.27" /></div>
+        <div><label>Host port</label><input data-f="hport" type="number" min="0" max="65535" value="${hport}" /></div>
+        <div><label>Container port</label><input data-f="cport" type="number" min="1" max="65535" value="${cport}" /></div>
+      </div>
+      <div class="svc-row">
+        <div><label>Volume (name:path)</label><input data-f="volume" type="text" value="${volume}" placeholder="data:/var/lib/example" /></div>
+        <div><label>Env (KEY=value, comma separated)</label><input data-f="env" type="text" value="${env}" placeholder="NODE_ENV=production" /></div>
+      </div>`;
+    $('services').appendChild(div);
+    svcCount++;
+    div.querySelector('[data-remove]').addEventListener('click', () => div.remove());
+  }
+
+  function readServices() {
+    const list = [];
+    document.querySelectorAll('#services .svc').forEach(div => {
+      const f = {};
+      div.querySelectorAll('[data-f]').forEach(inp => { f[inp.dataset.f] = inp.value.trim(); });
+      list.push(f);
+    });
+    return list;
+  }
+
+  $('add').addEventListener('click', () => addService('web', 'nginx:1.27', '8080', '80', '', ''));
+  addService('web', 'nginx:1.27', '8080', '80', '', '');
+
+  $('gen').addEventListener('click', () => {
+    $('err-section').style.display = 'none';
+    $('out-section').style.display = 'none';
+    try {
+      const project = $('project').value.trim() || 'myapp';
+      const version = $('version').value;
+      const services = readServices();
+      if (!services.length) throw new Error('Add at least one service.');
+
+      const out = [];
+      out.push(`version: "${version}"`);
+      out.push('');
+      out.push('services:');
+      for (const s of services) {
+        if (!s.name) throw new Error('Every service needs a name.');
+        if (!s.image) throw new Error(`Service "${s.name}" needs an image.`);
+        out.push(`  ${yamlStr(s.name)}:`);
+        out.push(`    image: ${yamlStr(s.image)}`);
+        const hport = parseInt(s.hport, 10);
+        const cport = parseInt(s.cport, 10);
+        if (s.hport && s.cport) {
+          if (isNaN(cport) || cport < 1 || cport > 65535) throw new Error(`Service "${s.name}" has an invalid container port.`);
+          out.push(`    ports:`);
+          out.push(`      - "${hport}:${cport}"`);
+        }
+        if (s.volume) {
+          out.push(`    volumes:`);
+          out.push(`      - ${yamlStr(s.volume)}`);
+        }
+        if (s.env) {
+          out.push(`    environment:`);
+          for (const pair of s.env.split(',')) {
+            const p = pair.trim();
+            if (!p) continue;
+            const eq = p.indexOf('=');
+            if (eq < 1) throw new Error(`Bad env entry "${p}" in "${s.name}" — use KEY=value.`);
+            out.push(`      ${yamlStr(p.slice(0, eq))}: ${yamlStr(p.slice(eq + 1))}`);
+          }
+        }
+      }
+      $('output').textContent = out.join('\n');
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+    }
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

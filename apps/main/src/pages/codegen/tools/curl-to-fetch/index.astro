@@ -1,0 +1,221 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'cURL to Fetch Converter';
+const description = 'Parse a common curl command and generate equivalent browser / Node fetch() code using async/await — methods, headers, JSON bodies, cookies and basic auth included.';
+---
+<BaseLayout site="codegen" title={title} description={description}
+  canonical="https://jsonversal.com/codegen/tools/curl-to-fetch/"
+  keywords={['curl to fetch', 'curl converter', 'fetch api']}
+  current="/codegen/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Paste your curl command</h2>
+    <textarea id="input" placeholder='curl -X POST https://api.example.com/v1/users -H "Authorization: Bearer sk-123" -d {"name": "Alice"}'></textarea>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="primary" id="gen">Convert</button>
+      <button class="ghost" id="sample">Load sample</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="result" style="display:none;">
+    <strong>Output — fetch() code</strong>
+    <pre id="out" class="mt-2"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="error" style="display:none;"></section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Tokenizes the command, respecting single and double quotes</li>
+    <li>Extracts the URL, method, headers, data payload, cookies and basic-auth user</li>
+    <li>Skips silent and common flags such as <code>-s</code>, <code>-S</code>, <code>-L</code>, <code>--compressed</code> and <code>-k</code></li>
+    <li>Emits an <code>async/await</code> <code>fetch()</code> call with headers and an optional JSON body</li>
+  </ul>
+
+  <h2>About cURL to Fetch Converter</h2>
+  <p class="text-muted">A browser tab cannot execute curl — it is a command-line tool — and hand-writing the equivalent fetch() call is easy to get wrong. This converter turns a curl command copied from docs or shell history into modern async/await fetch code you can paste straight into a script, a test, or the DevTools console.</p>
+  <p class="text-muted">The two differ in defaults: curl sends Content-Type: application/x-www-form-urlencoded for -d payloads, while fetch() sets no content type unless you add one; HTTP headers are case-insensitive, so the converter preserves the exact casing you typed. The mapping is not complete — options like --cookie-jar, TLS certificates (-k, --cacert) and retries have no fetch equivalent and are skipped.</p>
+</BaseLayout>
+
+<style>
+  #error { color: var(--danger); border-color: var(--danger); }
+</style>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  const SAMPLE = `curl -X POST https://api.example.com/v1/users \\
+  -H "Authorization: Bearer sk-123" \\
+  -H "Accept: application/json" \\
+  -d '{"name": "Alice", "email": "alice@example.com", "role": "admin"}'`;
+
+  function tokenize(cmd) {
+    const tokens = [];
+    let i = 0;
+    const s = cmd.trim();
+    while (i < s.length) {
+      while (i < s.length && /\s/.test(s[i])) i++;
+      if (i >= s.length) break;
+      let tok = '';
+      const c = s[i];
+      if (c === '"' || c === "'") {
+        const q = c; i++;
+        while (i < s.length && s[i] !== q) {
+          if (q === '"' && s[i] === '\\' && i + 1 < s.length) { tok += s[i + 1]; i += 2; continue; }
+          tok += s[i]; i++;
+        }
+        i++; // skip closing quote
+      } else {
+        while (i < s.length && !/\s/.test(s[i])) {
+          if (s[i] === '"' || s[i] === "'") {
+            const q = s[i]; i++;
+            while (i < s.length && s[i] !== q) { tok += s[i]; i++; }
+            i++;
+          } else { tok += s[i]; i++; }
+        }
+      }
+      if (tok !== '' && tok !== '\\') tokens.push(tok);
+    }
+    return tokens;
+  }
+
+  function b64(s) {
+    const bytes = new TextEncoder().encode(s);
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+
+  function parseCurl(tokens) {
+    const headers = [];
+    let url = null, method = null, data = null, cookie = null, user = null;
+    let i = 0;
+    while (i < tokens.length) {
+      const t = tokens[i];
+      if (t === 'curl') { i++; continue; }
+      if (t === '-X' || t === '--request') { method = tokens[i + 1] || null; i += 2; continue; }
+      if (t === '-H' || t === '--header') {
+        const h = tokens[i + 1] || '';
+        const idx = h.indexOf(':');
+        if (idx > 0) headers.push([h.slice(0, idx).trim(), h.slice(idx + 1).trim()]);
+        i += 2; continue;
+      }
+      if (t === '-d' || t === '--data' || t === '--data-raw' || t === '--data-ascii' || t === '--data-binary' || t === '--data-urlencode') {
+        data = tokens[i + 1] || '';
+        i += 2; continue;
+      }
+      if (t === '-b' || t === '--cookie') { cookie = tokens[i + 1] || ''; i += 2; continue; }
+      if (t === '-u' || t === '--user') { user = tokens[i + 1] || ''; i += 2; continue; }
+      if (t.startsWith('-')) { i++; continue; }
+      if (!url) { url = t; }
+      i++;
+    }
+    return { url, method, data, cookie, user, headers };
+  }
+
+  function convert(cmd) {
+    const tokens = tokenize(cmd);
+    if (!tokens.length) throw new Error('The command is empty. Paste a curl command like: curl https://api.example.com/');
+    const p = parseCurl(tokens);
+    if (!p.url) throw new Error('Could not find a URL in the curl command. Make sure the command contains a quoted or bare URL.');
+    if (p.url.includes('{')) throw new Error('The URL contains a shell brace template such as {id}. Replace it with a concrete value first, then convert again.');
+    if (p.data !== null && p.data.startsWith('@')) throw new Error('The data payload is read from a file (@file), which fetch() cannot do. Inline the content instead.');
+
+    const headers = p.headers.map(([k, v]) => [k, v]);
+    const lower = new Set(headers.map(([k]) => k.toLowerCase()));
+
+    if (p.cookie !== null && p.cookie !== '') {
+      const idx = headers.findIndex(([k]) => k.toLowerCase() === 'cookie');
+      if (idx >= 0) headers[idx][1] = headers[idx][1] + '; ' + p.cookie;
+      else headers.push(['Cookie', p.cookie]);
+    }
+    if (p.user !== null && p.user !== '') {
+      if (!lower.has('authorization')) {
+        headers.push(['Authorization', 'Basic ' + b64(p.user)]);
+        lower.add('authorization');
+      }
+    }
+
+    let body = null;
+    let addedJsonType = false;
+    if (p.data !== null) {
+      const trimmed = p.data.trim();
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        let parsed = null;
+        try { parsed = JSON.parse(trimmed); } catch (e) {}
+        if (parsed !== null) {
+          body = 'JSON.stringify(' + JSON.stringify(parsed) + ')';
+          if (!lower.has('content-type')) {
+            headers.push(['Content-Type', 'application/json']);
+            addedJsonType = true;
+          }
+        } else {
+          body = JSON.stringify(p.data);
+        }
+      } else {
+        body = JSON.stringify(p.data);
+      }
+    }
+
+    const method = p.method || 'GET';
+    const hasOptions = method !== 'GET' || headers.length > 0 || body !== null;
+    let out = '';
+    if (!hasOptions) {
+      out += 'const response = await fetch(' + JSON.stringify(p.url) + ');\n';
+    } else {
+      out += 'const response = await fetch(' + JSON.stringify(p.url) + ', {\n';
+      if (method !== 'GET') out += '  method: ' + JSON.stringify(method) + ',\n';
+      if (headers.length > 0) {
+        out += '  headers: {\n';
+        for (const [k, v] of headers) out += '    ' + JSON.stringify(k) + ': ' + JSON.stringify(v) + ',\n';
+        out += '  },\n';
+      }
+      if (body !== null) {
+        if (addedJsonType) out += '  // payload starts with { — serialized as JSON, Content-Type added\n';
+        out += '  body: ' + body + ',\n';
+      }
+      out += '});\n';
+    }
+    out += 'const data = await response.json();\n';
+    out += 'console.log(data);\n';
+    return out;
+  }
+
+  function showError(msg) {
+    const e = $('error');
+    e.textContent = msg;
+    e.style.display = 'block';
+    $('result').style.display = 'none';
+  }
+
+  $('gen').addEventListener('click', () => {
+    $('error').style.display = 'none';
+    const raw = $('input').value.trim();
+    if (!raw) { showError('Please paste a curl command first.'); return; }
+    try {
+      $('out').textContent = convert(raw);
+      $('result').style.display = 'block';
+    } catch (err) {
+      showError(err.message);
+    }
+  });
+
+  $('sample').addEventListener('click', () => {
+    $('input').value = SAMPLE;
+    $('gen').click();
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); } catch {}
+  });
+
+  $('input').addEventListener('input', () => { $('error').style.display = 'none'; });
+})();
+</script>

@@ -6,8 +6,9 @@ export interface Props {
   current?: string;
 }
 
-const { site, current = '/' } = Astro.props as Props;
+const { site, current = '' } = Astro.props as Props;
 const t = tokens.sites[site];
+const cur = current || '';
 ---
 
 <header class="site-header">
@@ -17,9 +18,11 @@ const t = tokens.sites[site];
       <span class="brand-emoji">{t.emoji}</span>
     </a>
     <nav>
-      <a href="/" class={current === '/' ? 'active' : ''}>Home</a>
-      <a href="/tools/" class={current === '/tools/' ? 'active' : ''}>Tools</a>
-      <a href="https://jsonversal.com/" class="muted">↗ main</a>
+      <a href="/" class={cur === '/' ? 'active' : ''}>Home</a>
+      <a href="/tools/" class={cur.startsWith('/tools/') ? 'active' : ''}>Tools</a>
+      <a href="/sec/" class={cur.startsWith('/sec/') ? 'active' : ''}>Security</a>
+      <a href="/devops/" class={cur.startsWith('/devops/') ? 'active' : ''}>DevOps</a>
+      <a href="/codegen/" class={cur.startsWith('/codegen/') ? 'active' : ''}>Codegen</a>
     </nav>
   </div>
 </header>

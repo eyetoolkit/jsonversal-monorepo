@@ -1,0 +1,32 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const tools = [
+  { title: '.gitignore Generator', description: 'Pick languages and frameworks, download a templated .gitignore.', href: '/codegen/tools/gitignore/' },
+  { title: 'License Generator', description: 'MIT, Apache, GPL, BSD, MPL, Unlicense — pick one, fill year/name.', href: '/codegen/tools/license/' },
+  { title: 'README Skeleton', description: 'Build a professional README with badges, sections, CI info.', href: '/codegen/tools/readme/' },
+  { title: 'GitHub Actions Workflow', description: 'Scaffold CI workflows for Node / Python / Go / Rust / Docker.', href: '/codegen/tools/ci-workflow/' },
+  { title: 'JSON to Python', description: 'Turn a JSON sample into a Python dict literal.', href: '/codegen/tools/json-to-python/' },
+  { title: 'cURL to Fetch', description: 'Convert curl commands into modern fetch() code.', href: '/codegen/tools/curl-to-fetch/' },
+  { title: '.env Template Generator', description: 'Generate an .env template from JSON or key: value pairs.', href: '/codegen/tools/env-generator/' },
+  { title: 'Conventional Commit', description: 'Format commit messages as feat/fix/chore with scope and body.', href: '/codegen/tools/commit-msg/' },
+  { title: 'HTML Entity Escaper', description: 'Escape or unescape HTML entities in any text.', href: '/codegen/tools/html-escaper/' },
+  { title: 'JSON to CSV', description: 'Convert a JSON array into CSV with proper quoting.', href: '/codegen/tools/json-to-csv/' },
+  { title: 'CSV to JSON', description: 'Parse CSV/TSV into JSON with type inference.', href: '/codegen/tools/csv-to-json/' },
+  { title: 'JSON ↔ XML Converter', description: 'Convert between JSON and XML both directions.', href: '/codegen/tools/json-xml/' },
+  { title: 'JSON to SQL Generator', description: 'CREATE TABLE + INSERT statements from a JSON array.', href: '/codegen/tools/sql-generator/' },
+  { title: 'Docker Compose Generator', description: 'Scaffold docker-compose.yml with services, ports, volumes.', href: '/codegen/tools/docker-compose/' },
+  { title: 'JSON Schema to TypeScript', description: 'Convert a JSON Schema (draft-07) into TypeScript interfaces.', href: '/codegen/tools/schema-to-typescript/' },
+  { title: 'cURL to Python', description: 'Turn curl commands into runnable Python requests/httpx code.', href: '/codegen/tools/curl-to-python/' },
+  { title: 'Base64 Image Viewer', description: 'Decode base64 images for preview/download, or encode files.', href: '/codegen/tools/base64-image/' },
+  { title: 'SQL Formatter', description: 'Pretty-print or minify SQL with a real tokenizer.', href: '/codegen/tools/sql-formatter/' },
+];
+---
+<BaseLayout site="codegen" title="All Code Generators" current="/codegen/tools/">
+  <h1>Code Generators</h1>
+  <p class="text-muted">Every generator runs in your browser. Templates bundled locally — nothing uploaded.</p>
+  <div class="grid">
+    {tools.map(tool => <ToolCard {...tool} />)}
+  </div>
+</BaseLayout>

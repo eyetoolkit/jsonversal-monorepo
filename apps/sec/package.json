@@ -1,17 +1,6 @@
 {
-  "name": "@versal/site-sec",
+  "name": "@versal/redirect-sec",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "astro dev --port 4323",
-    "build": "astro build --root .",
-    "preview": "astro preview"
-  },
-  "dependencies": {
-    "@versal/config": "workspace:*",
-    "@versal/ui": "workspace:*",
-    "astro": "^4.16.18",
-    "bcryptjs": "^3.0.3"
-  }
+  "type": "module"
 }

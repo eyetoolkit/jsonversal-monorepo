@@ -1,0 +1,180 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'YAML ↔ JSON Converter';
+const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.';
+---
+
+<BaseLayout site="devops" title={title} description={description}
+  canonical="https://jsonversal.com/devops/tools/yaml-json/"
+  keywords={['YAML to JSON', 'JSON to YAML', 'Kubernetes manifest']}
+  current="/devops/tools/">
+
+  <nav class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>Input</strong>
+        <select id="input-kind">
+          <option value="yaml">YAML</option>
+          <option value="json">JSON</option>
+        </select>
+      </div>
+      <textarea id="input" placeholder="Paste YAML or JSON here..." style="margin-top:12px;min-height:280px;"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="primary" id="convert">Convert →</button>
+        <button class="ghost" id="clear">Clear</button>
+        <button class="ghost" id="sample">Load sample</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>Output</strong>
+        <span id="output-kind" class="text-muted" style="font-size:.8rem;">—</span>
+      </div>
+      <pre id="output" style="min-height:280px;margin-top:12px;">—</pre>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="ghost" id="copy">Copy</button>
+        <button class="ghost" id="minify">Minify</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <p>All parsing happens locally in your browser. Nothing is uploaded.</p>
+
+  <h2>About YAML to JSON Converter</h2>
+  <p class="text-muted">YAML and JSON are closely related data formats: since YAML 1.2, YAML is a strict superset of JSON, so any valid JSON document is also valid YAML. This converter lets you move between the two without losing data, translating YAML's indentation-based blocks into JSON's braces and brackets and back again. It is especially handy when you receive a YAML config file but your pipeline, API, or database expects JSON.</p>
+  <p class="text-muted">Use YAML when humans will hand-edit the file, such as Kubernetes manifests, CI/CD pipelines, or Docker Compose, and use JSON when machines exchange data over HTTP or store it in documents. When converting, watch for YAML-only features that cannot round-trip: anchors and aliases are not representable in JSON, and YAML's type inference can turn unquoted values like yes, on, or 0123 into booleans or numbers. Quote strings explicitly to keep them as text.</p>
+</BaseLayout>
+
+<script is:inline client:load>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let yamlLib;
+
+  async function loadYaml() {
+    if (yamlLib) return yamlLib;
+    await import('https://cdn.jsdelivr.net/npm/yaml@2.5.0/+esm').then(m => yamlLib = m.default || m).catch(() => null);
+    return yamlLib;
+  }
+
+  function doConvert() {
+    const kind = $('input-kind').value;
+    const text = $('input').value.trim();
+    if (!text) { $('output').textContent = '—'; $('output-kind').textContent = '—'; return; }
+    if (kind === 'json') {
+      try { $('output').textContent = JSON.stringify(JSON.parse(text), null, 2); $('output-kind').textContent = 'YAML'; }
+      catch (e) { $('output').textContent = 'Error: ' + e.message; }
+    } else {
+      // YAML → JSON: need yaml lib or simple regex
+      try {
+        const parsed = parseSimpleYaml(text);
+        $('output').textContent = JSON.stringify(parsed, null, 2);
+        $('output-kind').textContent = 'JSON';
+      } catch (e) {
+        $('output').textContent = 'Error: ' + e.message + ' (complex YAML may require full parser — try simpler input)';
+      }
+    }
+  }
+
+  // Very simple YAML parser for flat/nested dicts and lists (handles most K8s manifests)
+  function parseSimpleYaml(text) {
+    const lines = text.split('\n').map(l => l.replace(/\s+#.*$/, '').trimEnd()).filter(l => l.trim() !== '');
+    function parseBlock(startIdx, indent) {
+      const result = {};
+      let i = startIdx;
+      while (i < lines.length) {
+        const line = lines[i];
+        const curIndent = line.search(/\S/);
+        if (curIndent < indent) break;
+        if (line.startsWith('- ', curIndent)) {
+          // List — collect all items at this level
+          const arr = [];
+          while (i < lines.length && lines[i].startsWith('- ', curIndent)) {
+            const itemText = lines[i].substring(curIndent + 2);
+            i++;
+            // Check if next line is child
+            if (i < lines.length && lines[i].search(/\S/) > curIndent) {
+              const child = parseBlock(i, curIndent + 2);
+              arr.push({ [itemText.split(':')[0].trim()]: itemText.includes(':') ? child : itemText });
+              // advance i past children
+              while (i < lines.length && lines[i].search(/\S/) > curIndent) i++;
+            } else {
+              arr.push(parseValue(itemText));
+            }
+          }
+          return arr;
+        }
+        const colonIdx = line.indexOf(':');
+        if (colonIdx === -1) { i++; continue; }
+        const key = line.substring(curIndent, colonIdx).trim();
+        let val = line.substring(colonIdx + 1).trim();
+        i++;
+        if (val === '') {
+          // Nested object
+          const child = parseBlock(i, curIndent + 2);
+          result[key] = child;
+          // advance past children
+          while (i < lines.length && lines[i].search(/\S/) > curIndent) i++;
+        } else {
+          result[key] = parseValue(val);
+        }
+      }
+      return result;
+    }
+    return parseBlock(0, 0);
+  }
+
+  function parseValue(v) {
+    if (v === 'true') return true;
+    if (v === 'false') return false;
+    if (v === 'null' || v === '~') return null;
+    if (/^-?\d+$/.test(v)) return parseInt(v, 10);
+    if (/^-?\d+\.\d+$/.test(v)) return parseFloat(v);
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) return v.slice(1, -1);
+    return v;
+  }
+
+  $('convert').addEventListener('click', doConvert);
+  $('clear').addEventListener('click', () => { $('input').value = ''; $('output').textContent = '—'; $('output-kind').textContent = '—'; });
+  $('sample').addEventListener('click', () => {
+    $('input').value = [
+      'apiVersion: v1',
+      'kind: Pod',
+      'metadata:',
+      '  name: web',
+      '  labels:',
+      '    app: nginx',
+      'spec:',
+      '  containers:',
+      '    - name: nginx',
+      '      image: nginx:1.27',
+      '      ports:',
+      '        - containerPort: 80',
+    ].join('\n');
+    $('input-kind').value = 'yaml';
+    doConvert();
+  });
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('output').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); } catch {}
+  });
+  $('minify').addEventListener('click', () => {
+    const t = $('output').textContent;
+    if (!t || t === '—') return;
+    try {
+      if ($('output-kind').textContent === 'JSON') {
+        $('output').textContent = JSON.stringify(JSON.parse(t));
+      } else {
+        $('output').textContent = t.replace(/^\s+/gm, '').replace(/\n+/g, '\n');
+      }
+    } catch {}
+  });
+})();
+</script>

@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://codegen.jsonversal.com/sitemap.xml

@@ -1,0 +1,292 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Nginx Config Generator';
+const description = 'Generate a ready-to-paste nginx server block — static site or reverse proxy — with HTTPS, gzip, caching, and security headers. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/nginx-config/"
+  keywords={['nginx config generator', 'server block', 'reverse proxy', 'ssl config', 'nginx conf']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Site</h2>
+    <div class="row">
+      <label class="text-muted" for="server-name">server_name</label>
+      <input id="server-name" type="text" value="example.com" style="max-width:220px;" />
+      <label class="text-muted" for="listen-port">Listen port</label>
+      <input id="listen-port" type="number" min="1" max="65535" value="80" style="max-width:90px;" />
+    </div>
+    <div class="row mt-2">
+      <label class="toggle"><input id="https" type="checkbox" /> HTTPS (port 443 + SSL)</label>
+      <label class="toggle"><input id="www-redirect" type="checkbox" /> Redirect www → non-www</label>
+    </div>
+
+    <div id="https-fields" class="mt-2" style="display:none;">
+      <div class="row">
+        <label class="text-muted" for="ssl-cert">ssl_certificate</label>
+        <input id="ssl-cert" type="text" value="/etc/letsencrypt/live/example.com/fullchain.pem" style="max-width:400px;" />
+      </div>
+      <div class="row mt-2">
+        <label class="text-muted" for="ssl-key">ssl_certificate_key</label>
+        <input id="ssl-key" type="text" value="/etc/letsencrypt/live/example.com/privkey.pem" style="max-width:400px;" />
+      </div>
+      <div class="row mt-2">
+        <label class="toggle"><input id="ssl-redirect" type="checkbox" checked /> Redirect HTTP → HTTPS (port 80)</label>
+      </div>
+    </div>
+
+    <div class="row mt-2">
+      <label class="text-muted" for="mode">Mode</label>
+      <select id="mode" style="max-width:200px;">
+        <option value="static">Static root</option>
+        <option value="proxy">Reverse proxy</option>
+      </select>
+    </div>
+
+    <div id="static-fields" class="row mt-2">
+      <label class="text-muted" for="root">root</label>
+      <input id="root" type="text" value="/var/www/example.com" style="max-width:240px;" />
+      <label class="text-muted" for="index">index</label>
+      <input id="index" type="text" value="index.html" style="max-width:140px;" />
+    </div>
+
+    <div id="proxy-fields" class="mt-2" style="display:none;">
+      <div class="row">
+        <label class="text-muted" for="proxy-pass">proxy_pass</label>
+        <input id="proxy-pass" type="text" value="http://127.0.0.1:3000" style="max-width:260px;" />
+      </div>
+      <div class="row mt-2">
+        <label class="toggle"><input id="ws" type="checkbox" checked /> WebSocket upgrade headers</label>
+        <label class="toggle"><input id="proxy-headers" type="checkbox" checked /> X-Forwarded-* headers</label>
+      </div>
+    </div>
+
+    <div class="row mt-2">
+      <label class="toggle"><input id="gzip" type="checkbox" checked /> gzip on</label>
+      <label class="toggle"><input id="cache" type="checkbox" checked /> Cache static assets (expires 7d)</label>
+      <label class="toggle"><input id="security" type="checkbox" checked /> Security headers</label>
+    </div>
+
+    <div class="row mt-2">
+      <button class="primary" id="gen">Generate Config</button>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 style="margin-top:0;">nginx.conf</h2>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin-top:0;">Error</h2>
+    <pre id="err-out" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Fill in your domain, pick a mode — <strong>Static root</strong> or <strong>Reverse proxy</strong> — and toggle the features you want.</li>
+    <li>HTTPS switches the main block to <code>listen 443 ssl</code> with your certificate paths and a hardened TLS snippet, plus an optional port-80 redirect block.</li>
+    <li>gzip, cache headers for static assets, and the security header trio are emitted as ready-to-use directives.</li>
+    <li>Paste the output into <code>/etc/nginx/sites-available/</code>, symlink it into <code>sites-enabled</code>, then run <code>nginx -t</code> before reloading.</li>
+  </ul>
+
+  <h2>About Nginx Config Generator</h2>
+  <p class="text-muted">Writing nginx server blocks by hand is repetitive: listen directives, server_name, SSL paths, and the handful of proxy and security headers everyone expects. This generator assembles a complete, valid block from a small form so you start from working boilerplate instead of a stale blog snippet.</p>
+  <p class="text-muted">The output targets current nginx conventions — <code>listen 443 ssl</code> with TLSv1.2/1.3 only, no legacy cipher preferences, gzip and cache-control tuned for typical static sites, and the common security header trio. Treat it as a solid starting point: add rate limiting, access rules, or upstream health checks for production, and always validate with <code>nginx -t</code> after pasting.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  input[type=text], input[type=number], select { max-width: 100%; }
+  pre { min-height: 120px; max-height: 520px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-size: .8rem; }
+  .mt-2 { margin-top: 16px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+  .toggle input[type=checkbox] { width: auto; accent-color: var(--accent); }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function toggleDisplay(id, show) {
+    $(id).style.display = show ? 'block' : 'none';
+  }
+
+  $('https').addEventListener('change', () => toggleDisplay('https-fields', $('https').checked));
+  $('mode').addEventListener('change', () => {
+    const proxy = $('mode').value === 'proxy';
+    toggleDisplay('proxy-fields', proxy);
+    toggleDisplay('static-fields', !proxy);
+  });
+
+  $('gen').addEventListener('click', () => {
+    try {
+      const serverName = $('server-name').value.trim();
+      if (!serverName) throw new Error('server_name is required.');
+      const listenPort = parseInt($('listen-port').value, 10);
+      if (isNaN(listenPort) || listenPort < 1 || listenPort > 65535) throw new Error('Invalid listen port.');
+      const https = $('https').checked;
+      const wwwRedirect = $('www-redirect').checked;
+      const proxy = $('mode').value === 'proxy';
+      const gzip = $('gzip').checked;
+      const cache = $('cache').checked;
+      const security = $('security').checked;
+
+      const main = serverName.replace(/^www\./, '');
+      const www = 'www.' + main;
+      const scheme = https ? 'https' : 'http';
+
+      let cert = '', key = '';
+      if (https) {
+        cert = $('ssl-cert').value.trim();
+        key = $('ssl-key').value.trim();
+        if (!cert || !key) throw new Error('SSL certificate and key paths are required when HTTPS is enabled.');
+      }
+
+      let proxyPass = '';
+      if (proxy) {
+        proxyPass = $('proxy-pass').value.trim();
+        if (!proxyPass) throw new Error('proxy_pass URL is required.');
+      }
+
+      const L = [];
+      const pushServer = lines => {
+        L.push('server {');
+        for (const line of lines) L.push('    ' + line);
+        L.push('}');
+        L.push('');
+      };
+
+      // www → non-www redirect block
+      if (wwwRedirect && serverName !== main) {
+        const lines = ['server_name ' + www + ';'];
+        if (https) {
+          lines.unshift('listen 443 ssl;', 'listen [::]:443 ssl;', 'http2 on;');
+          lines.push('ssl_certificate ' + cert + ';', 'ssl_certificate_key ' + key + ';');
+        } else {
+          lines.unshift('listen 80;', 'listen [::]:80;');
+        }
+        lines.push('', 'return 301 ' + scheme + '://' + main + '$request_uri;');
+        pushServer(lines);
+      }
+
+      // HTTP → HTTPS redirect block
+      if (https && $('ssl-redirect').checked) {
+        const names = main + (serverName !== main ? ' ' + www : '');
+        pushServer([
+          'listen 80;',
+          'listen [::]:80;',
+          'server_name ' + names + ';',
+          '',
+          'return 301 https://$host$request_uri;',
+        ]);
+      }
+
+      // main server block
+      const M = [];
+      if (https) {
+        M.push('listen 443 ssl;', 'listen [::]:443 ssl;', 'http2 on;');
+      } else {
+        M.push('listen ' + listenPort + ';', 'listen [::]:' + listenPort + ';');
+      }
+      M.push('server_name ' + main + ';');
+
+      if (https) {
+        M.push('');
+        M.push('ssl_certificate ' + cert + ';');
+        M.push('ssl_certificate_key ' + key + ';');
+        M.push('');
+        M.push('ssl_protocols TLSv1.2 TLSv1.3;');
+        M.push('ssl_prefer_server_ciphers off;');
+        M.push('ssl_session_cache shared:SSL:10m;');
+        M.push('ssl_session_timeout 1d;');
+        M.push('ssl_session_tickets off;');
+      }
+
+      if (!proxy) {
+        const root = $('root').value.trim() || '/var/www/html';
+        const index = $('index').value.trim() || 'index.html';
+        M.push('');
+        M.push('root ' + root + ';');
+        M.push('index ' + index + ';');
+        M.push('');
+        M.push('location / {');
+        M.push('    try_files $uri $uri/ =404;');
+        M.push('}');
+      } else {
+        M.push('');
+        M.push('location / {');
+        M.push('    proxy_pass ' + proxyPass + ';');
+        M.push('    proxy_http_version 1.1;');
+        if ($('ws').checked) {
+          M.push('    proxy_set_header Upgrade $http_upgrade;');
+          M.push('    proxy_set_header Connection "upgrade";');
+        }
+        M.push('    proxy_set_header Host $host;');
+        if ($('proxy-headers').checked) {
+          M.push('    proxy_set_header X-Real-IP $remote_addr;');
+          M.push('    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;');
+          M.push('    proxy_set_header X-Forwarded-Proto $scheme;');
+        }
+        M.push('}');
+      }
+
+      if (cache) {
+        const exts = 'css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|avif|woff|woff2|eot|ttf|otf';
+        M.push('');
+        M.push('location ~* \\.(?:' + exts + ')$ {');
+        M.push('    expires 7d;');
+        M.push('    access_log off;');
+        M.push('    add_header Cache-Control "public, max-age=604800";');
+        if (proxy) M.push('    proxy_pass ' + proxyPass + ';');
+        M.push('}');
+      }
+
+      if (gzip) {
+        M.push('');
+        M.push('gzip on;');
+        M.push('gzip_comp_level 5;');
+        M.push('gzip_min_length 256;');
+        M.push('gzip_types text/plain text/css application/json application/javascript application/xml image/svg+xml;');
+      }
+
+      if (security) {
+        M.push('');
+        M.push('add_header X-Content-Type-Options nosniff;');
+        M.push('add_header X-Frame-Options SAMEORIGIN;');
+        M.push('add_header Referrer-Policy strict-origin-when-cross-origin;');
+      }
+
+      pushServer(M);
+
+      $('output').textContent = L.join('\n').replace(/\n+$/, '\n');
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

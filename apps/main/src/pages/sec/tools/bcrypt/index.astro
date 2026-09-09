@@ -1,0 +1,141 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'BCrypt Hash & Verify';
+const description = 'Generate bcrypt password hashes with a configurable cost factor, and verify a plaintext password against a bcrypt hash. Everything runs in your browser.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://jsonversal.com/sec/tools/bcrypt/"
+  keywords={['bcrypt', 'bcrypt hash', 'bcrypt verify', 'password hashing', 'password hash']}
+  current="/sec/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Generate a hash</h2>
+    <label class="text-muted">Password</label>
+    <input id="pw" type="text" placeholder="Enter the password to hash" />
+    <label class="text-muted" style="margin-top:12px;">Cost factor (4–15, default 10)</label>
+    <input id="cost" type="number" min="4" max="15" value="10" />
+    <div class="row mt-2">
+      <button class="primary" id="gen">Generate hash</button>
+      <button class="ghost" id="copy-hash" disabled>Copy</button>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Hash</strong>
+    <pre id="hash-out" class="mt-2" style="display:none;white-space:pre-wrap;word-break:break-all;"></pre>
+  </section>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Verify a password</h2>
+    <label class="text-muted">Password</label>
+    <input id="v-pw" type="text" placeholder="Plaintext password" />
+    <label class="text-muted" style="margin-top:12px;">bcrypt hash</label>
+    <input id="v-hash" type="text" placeholder="$2b$10$... (paste a bcrypt hash)" />
+    <div class="row mt-2">
+      <button class="primary" id="verify">Verify</button>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Verification result</strong>
+    <div id="v-result" class="mt-2" style="display:none;"></div>
+    <div id="v-error" class="mt-2" style="display:none;"></div>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>bcrypt embeds a random 16-byte salt and the cost factor directly in the hash string, which starts with <code>$2a$</code>, <code>$2b$</code>, or <code>$2y$</code>.</li>
+    <li>Hashing repeats its key schedule and Blowfish cipher <strong>2<sup>cost</sup></strong> times — cost 10 means 1,024 rounds, cost 12 means 4,096.</li>
+    <li>Verification re-derives the hash using the salt stored inside the given hash, then compares the result.</li>
+    <li>All computation happens locally via the bundled <code>bcryptjs</code> library — no password or hash ever leaves your browser.</li>
+  </ul>
+
+  <h2>About BCrypt</h2>
+  <p class="text-muted">bcrypt is a password hashing function designed to resist GPU and ASIC cracking. Unlike fast digests such as MD5 or SHA-1, it is deliberately slow and adaptive: every hash embeds a random salt, and a configurable <em>cost factor</em> scales the work so you can keep it slow enough as hardware improves. That combination — unique salt per password plus tunable cost — is why bcrypt (or argon2/scrypt) is the standard choice for storing passwords.</p>
+  <p class="text-muted">Use bcrypt whenever you store user passwords: hash them before saving and never store plaintext, and never use MD5, SHA-1, or plain SHA-256 for passwords, since those are fast enough to brute-force by the billions. The cost factor is a trade-off — higher cost means stronger hashes but slower logins and higher CPU load on your server (cost 10–12 is a common range in 2026). Finally, remember bcrypt is one-way: there is no decryption, so resetting a forgotten password means generating a new hash, not recovering the old one.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  :global(.token-badge) {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+  }
+  :global(.token-badge.ok) {
+    background: rgba(34, 197, 94, .15);
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+  :global(.token-badge.fail) {
+    background: rgba(239, 68, 68, .15);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+  #v-error { color: var(--danger); }
+</style>
+
+<script>
+  import bcrypt from 'bcryptjs';
+  (function () {
+    const $ = id => document.getElementById(id);
+
+    $('gen').addEventListener('click', async () => {
+      const pw = $('pw').value;
+      const cost = parseInt($('cost').value, 10);
+      if (!pw) { alert('Please enter a password first.'); return; }
+      if (isNaN(cost) || cost < 4 || cost > 15) { alert('Cost factor must be a number between 4 and 15.'); return; }
+
+      const btn = $('gen');
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Hashing…';
+      try {
+        const hash = await bcrypt.hash(pw, cost);
+        $('hash-out').textContent = hash;
+        $('hash-out').style.display = 'block';
+        $('copy-hash').disabled = false;
+      } catch (e) {
+        $('hash-out').textContent = 'Error: ' + e.message;
+        $('hash-out').style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    });
+
+    $('copy-hash').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText($('hash-out').textContent);
+        $('copy-hash').textContent = 'Copied!';
+        setTimeout(() => { $('copy-hash').textContent = 'Copy'; }, 1200);
+      } catch {}
+    });
+
+    $('verify').addEventListener('click', async () => {
+      const pw = $('v-pw').value;
+      const hash = $('v-hash').value.trim();
+      const out = $('v-result');
+      const err = $('v-error');
+      err.style.display = 'none';
+      if (!pw) { alert('Please enter the password to verify.'); return; }
+      if (!hash) { alert('Please paste a bcrypt hash.'); return; }
+
+      try {
+        const match = await bcrypt.compare(pw, hash);
+        out.innerHTML = match
+          ? '<span class="token-badge ok">✓ Match — the password matches the hash</span>'
+          : '<span class="token-badge fail">✗ No match — wrong password or hash</span>';
+        out.style.display = 'block';
+      } catch (e) {
+        out.style.display = 'none';
+        err.textContent = 'Error: ' + e.message + ' — check that the hash is a valid bcrypt string starting with $2a$, $2b$ or $2y$.';
+        err.style.display = 'block';
+      }
+    });
+  })();
+</script>

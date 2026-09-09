@@ -1,0 +1,436 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'X.509 Certificate Decoder';
+const description = 'Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs, key usage, and extensions. Uses a compact DER/ASN.1 parser, nothing is uploaded.';
+---
+
+<BaseLayout
+  site="sec"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/sec/tools/x509-decoder/"
+  keywords={['X.509 decoder', 'certificate decoder', 'PEM parser', 'DER ASN.1', 'subject alternative name', 'ssl certificate']}
+  current="/sec/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">PEM certificate</h2>
+    <textarea id="input" spellcheck="false" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="decode">Decode</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 style="margin-top:0;">Decoded certificate</h2>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste a PEM certificate (the <code>-----BEGIN CERTIFICATE-----</code> block from a <code>.crt</code>, <code>.pem</code>, or TLS handshake).</li>
+    <li>The tool base64-decodes the body into DER and walks the ASN.1 structure: version, serial, signature, issuer, validity, subject, public key, and extensions.</li>
+    <li>Subject Alternative Names (DNS / IP / email / URI) and key usage flags are decoded from the standard X.509 extension OIDs.</li>
+    <li>Everything is parsed on your device — certificates are public by design, but your data still never leaves the browser.</li>
+  </ul>
+
+  <h2>About X.509 Certificate Decoder</h2>
+  <p class="text-muted">X.509 certificates are the public keys of TLS and PKI. A certificate is an ASN.1 DER structure base64-encoded into PEM: who issued it (issuer), who it belongs to (subject), the validity window, the public key and algorithm, and extensions such as Subject Alternative Names (the hostnames the certificate is valid for) and key usage. Reading these fields by hand means decoding DER byte by byte — this tool does that for you so you can quickly answer questions like &ldquo;when does this cert expire?&rdquo;, &ldquo;which domains is it valid for?&rdquo;, or &ldquo;is it CA-signed?&rdquo;.</p>
+  <p class="text-muted">This decoder is for inspection only — it does not verify the trust chain or the signature (that requires the issuer&rsquo;s public key and a CA store). For trust validation use a proper TLS stack. Note that certificates are public information; still, this tool runs locally so you can inspect internal-PKI certs, customer certs, or key-material-adjacent data without third-party servers seeing them.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 200px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; }
+  pre { min-height: 80px; max-height: 560px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const SAMPLE = `-----BEGIN CERTIFICATE-----
+MIIEHTCCAwWgAwIBAgIUDvv9XO6PlTmo7DskyfYeLz7RTs4wDQYJKoZIhvcNAQEL
+BQAwfjELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcM
+DVNhbiBGcmFuY2lzY28xFTATBgNVBAoMDEV4YW1wbGUgQ29ycDEUMBIGA1UECwwL
+RW5naW5lZXJpbmcxFTATBgNVBAMMDGV4YW1wbGUudGVzdDAeFw0yNjA5MDkxNDIy
+NDFaFw0zNjA5MDYxNDIyNDFaMH4xCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxp
+Zm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMRUwEwYDVQQKDAxFeGFtcGxl
+IENvcnAxFDASBgNVBAsMC0VuZ2luZWVyaW5nMRUwEwYDVQQDDAxleGFtcGxlLnRl
+c3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvhLvV3hzhNZBkQ0lQ
+InLgb85SZgVrqGjbgJn6DJpg3cHvMOtYIDtwQEU+XrEb6Cz20k4JTE3FNQiMD5I/
+7HGd0tJSMrZgAmEC+guAjdkBng4i63+zsrrpLNF8B2CJeVCaiWuFJkAijv/SiG3X
+fQfVy93zdnzpUpCuQxhOpu1HgoQEF0glBOs4VX4wPcUQbaFkdrKT/CZftUNEHD7m
+5w/WNMe1vc4eRquShVwII9wx56Ctxe8SyTjF934wTn5hB15N9qi0B+QXK3fnnNN9
+aYArnh1FWC1geFPWPACOP75rPcrvj9auO4niNwTwS1TfngWdhTo7tNhCOVVhdswq
+gd2pAgMBAAGjgZIwgY8wHQYDVR0OBBYEFBcgzIuzT6B9wVY5awXBAZGC/KjgMB8G
+A1UdIwQYMBaAFBcgzIuzT6B9wVY5awXBAZGC/KjgMC8GA1UdEQQoMCaCDGV4YW1w
+bGUudGVzdIIQd3d3LmV4YW1wbGUudGVzdIcEfwAAATAMBgNVHRMBAf8EAjAAMA4G
+A1UdDwEB/wQEAwIFoDANBgkqhkiG9w0BAQsFAAOCAQEAIrUmzctrZXt4BFOhrb6o
+PH4pTyROEO/MRKLNsRjNnMSNMdvXXfPZ8f10TluLTgsL7QqjXvxP96/uY9RmWKAx
+FpDXWeLcBXgM0utUOcpYvNTJxta4rG+jBd2hzUGfyb8LzYaljHNWDTgcVcrLMA2R
+RaEG4rXNPRjVjqVRbfBw79q3RS2de/Buo2HOwZH/oXxpUw8zRjkQGInpAtHfr1EE
+duSkiAtsWzciffiOqqgOOfv6WqG5aITh5P/cxiAT4n9thXtg8OEjMWd6mPQU6GVC
+PKB8ewvNrI05iIwzwtSA88/ZnD2k1RR/ZlMAu0WPSIH2it34WH8sjuzI0CKCF4Uu
+hg==
+-----END CERTIFICATE-----`;
+
+  // ---------- ASN.1 / DER helpers ----------
+  // All readers work on the full DER buffer with explicit start/end bounds,
+  // so every returned TLV offset is absolute within that buffer.
+  function derReader(sub, start, end) {
+    let pos = start || 0;
+    const limit = end === undefined ? sub.length : end;
+    function readTlv() {
+      if (pos >= limit) throw new Error('Truncated DER');
+      const tag = sub[pos++];
+      let len = sub[pos++];
+      if (len & 0x80) {
+        const n = len & 0x7f;
+        if (n === 0 || n > 4) throw new Error('Unsupported DER length');
+        len = 0;
+        for (let i = 0; i < n; i++) len = (len << 8) | sub[pos++];
+      }
+      const valueStart = pos;
+      const valueEnd = pos + len;
+      if (valueEnd > limit) throw new Error('DER length overruns buffer');
+      pos = valueEnd;
+      return { tag, valueStart, valueEnd };
+    }
+    return { readTlv, get pos() { return pos; } };
+  }
+
+  const OID_LABELS = {
+    '2.5.4.3': 'CN (commonName)', '2.5.4.6': 'C (countryName)', '2.5.4.7': 'L (localityName)',
+    '2.5.4.8': 'ST (stateOrProvinceName)', '2.5.4.10': 'O (organizationName)', '2.5.4.11': 'OU (organizationalUnitName)',
+    '2.5.4.5': 'serialNumber', '2.5.4.4': 'SN (surname)', '2.5.4.42': 'GN (givenName)',
+    '2.5.4.12': 'title', '0.9.2342.19200300.100.1.25': 'DC (domainComponent)', '1.2.840.113549.1.9.1': 'emailAddress',
+    '1.2.840.113549.1.1.1': 'RSA encryption', '1.2.840.113549.1.1.5': 'sha1WithRSA',
+    '1.2.840.113549.1.1.11': 'sha256WithRSA', '1.2.840.113549.1.1.12': 'sha384WithRSA', '1.2.840.113549.1.1.13': 'sha512WithRSA',
+    '1.2.840.10045.2.1': 'Elliptic curve (EC) public key', '1.3.101.112': 'Ed25519', '1.3.101.110': 'Ed448',
+    '1.2.840.10045.3.1.7': 'NIST P-256', '1.3.132.0.34': 'NIST P-384', '1.3.132.0.35': 'NIST P-521',
+    '1.2.840.10045.4.3.2': 'ecdsa-with-SHA256', '1.2.840.10045.4.3.3': 'ecdsa-with-SHA384', '1.2.840.10045.4.3.4': 'ecdsa-with-SHA512',
+    '2.5.29.14': 'subjectKeyIdentifier', '2.5.29.15': 'keyUsage', '2.5.29.17': 'subjectAltName',
+    '2.5.29.19': 'basicConstraints', '2.5.29.31': 'cRLDistributionPoints', '2.5.29.32': 'certificatePolicies',
+    '2.5.29.35': 'authorityKeyIdentifier', '2.5.29.37': 'extendedKeyUsage',
+    '1.3.6.1.5.5.7.3.1': 'serverAuth', '1.3.6.1.5.5.7.3.2': 'clientAuth', '1.3.6.1.5.5.7.3.3': 'codeSigning',
+    '1.3.6.1.5.5.7.3.4': 'emailProtection', '1.3.6.1.5.5.7.3.8': 'timeStamping', '1.3.6.1.5.5.7.3.9': 'OCSP signing'
+  };
+
+  function oidToString(sub, tlv) {
+    let parts = [];
+    const first = sub[tlv.valueStart];
+    parts.push(Math.floor(first / 40), first % 40);
+    let v = 0;
+    for (let i = tlv.valueStart + 1; i < tlv.valueEnd; i++) {
+      v = (v << 7) | (sub[i] & 0x7f);
+      if (!(sub[i] & 0x80)) { parts.push(v); v = 0; }
+    }
+    return parts.join('.');
+  }
+
+  function bytesToHex(sub) {
+    let s = '';
+    for (let i = 0; i < sub.length; i++) s += sub[i].toString(16).padStart(2, '0');
+    return s;
+  }
+
+  function bytesToInt(sub) {
+    let v = 0;
+    for (let i = 0; i < sub.length; i++) v = v * 256 + sub[i];
+    return v;
+  }
+
+  function text(sub) {
+    try { return new TextDecoder('utf-8').decode(sub); } catch { return bytesToHex(sub); }
+  }
+
+  function stringValue(sub, tlv) {
+    switch (tlv.tag) {
+      case 0x01: return sub[tlv.valueStart] ? 'true' : 'false';
+      case 0x02: return bytesToInt(sub.subarray(tlv.valueStart, tlv.valueEnd)).toString();
+      case 0x1e: { // BMPString (UTF-16BE)
+        const u16 = new Uint16Array((tlv.valueEnd - tlv.valueStart) / 2);
+        for (let i = 0; i < u16.length; i++) u16[i] = (sub[tlv.valueStart + i * 2] << 8) | sub[tlv.valueStart + i * 2 + 1];
+        return String.fromCharCode(...u16);
+      }
+      case 0x12: case 0x13: case 0x14: case 0x16: case 0x17: case 0x1c:
+      case 0x0c: default:
+        return text(sub.subarray(tlv.valueStart, tlv.valueEnd));
+    }
+  }
+
+  function parseTime(sub, tlv) {
+    const s = text(sub.subarray(tlv.valueStart, tlv.valueEnd));
+    const nums = s.replace('Z', '').split(/[.-]/)[0];
+    if (tlv.tag === 0x17) { // UTCTime YYMMDDHHMMSS
+      const yy = parseInt(nums.slice(0, 2), 10);
+      const year = yy >= 50 ? 1900 + yy : 2000 + yy;
+      const mm = nums.slice(2, 4), dd = nums.slice(4, 6), hh = nums.slice(6, 8), mi = nums.slice(8, 10), ss = nums.slice(10, 12);
+      return `${year}-${mm}-${dd} ${hh}:${mi}:${ss} UTC`;
+    }
+    // GeneralizedTime YYYYMMDDHHMMSS
+    return `${nums.slice(0, 4)}-${nums.slice(4, 6)}-${nums.slice(6, 8)} ${nums.slice(8, 10)}:${nums.slice(10, 12)}:${nums.slice(12, 14)} UTC`;
+  }
+
+  function parseAlgorithm(sub, tlv) {
+    const r = derReader(sub, tlv.valueStart, tlv.valueEnd);
+    const oidTlv = r.readTlv();
+    const oid = oidToString(sub, oidTlv);
+    return OID_LABELS[oid] || oid;
+  }
+
+  function parseName(sub, tlv) {
+    const r = derReader(sub, tlv.valueStart, tlv.valueEnd);
+    const rdns = [];
+    while (r.pos < tlv.valueEnd) {
+      const set = r.readTlv();
+      const sr = derReader(sub, set.valueStart, set.valueEnd);
+      while (sr.pos < set.valueEnd) {
+        const av = sr.readTlv();
+        const ar = derReader(sub, av.valueStart, av.valueEnd);
+        const oidTlv = ar.readTlv();
+        const valTlv = ar.readTlv();
+        const oid = oidToString(sub, oidTlv);
+        rdns.push({ oid: OID_LABELS[oid] || oid, value: stringValue(sub, valTlv) });
+      }
+    }
+    return rdns;
+  }
+
+  function parseValidity(sub, tlv) {
+    const r = derReader(sub, tlv.valueStart, tlv.valueEnd);
+    const notBefore = r.readTlv();
+    const notAfter = r.readTlv();
+    return { notBefore: parseTime(sub, notBefore), notAfter: parseTime(sub, notAfter) };
+  }
+
+  function parseSpki(sub, tlv) {
+    const r = derReader(sub, tlv.valueStart, tlv.valueEnd);
+    const algTlv = r.readTlv();
+    const alg = parseAlgorithm(sub, algTlv);
+    const bitStr = r.readTlv();
+    let details = '';
+    if (alg.startsWith('RSA')) {
+      const inner = sub.subarray(bitStr.valueStart + 1, bitStr.valueEnd);
+      const pr = derReader(inner);
+      const seq = pr.readTlv();
+      const sr = derReader(inner, seq.valueStart, seq.valueEnd);
+      const modTlv = sr.readTlv();
+      const expTlv = sr.readTlv();
+      details = `modulus ${modTlv.valueEnd - modTlv.valueStart} bytes · exponent ${bytesToInt(inner.subarray(expTlv.valueStart, expTlv.valueEnd))}`;
+    } else if (alg.startsWith('Elliptic curve')) {
+      try {
+        const pr = derReader(sub, algTlv.valueStart, algTlv.valueEnd);
+        pr.readTlv(); // ecPublicKey OID
+        const curveTlv = pr.readTlv();
+        details = 'curve ' + (OID_LABELS[oidToString(sub, curveTlv)] || oidToString(sub, curveTlv));
+      } catch { details = 'curve OID not decoded'; }
+    }
+    return { alg, details };
+  }
+
+  const KEY_USAGE = ['digitalSignature', 'nonRepudiation', 'keyEncipherment', 'dataEncipherment', 'keyAgreement', 'keyCertSign', 'cRLSign', 'encipherOnly', 'decipherOnly'];
+
+  function parseExtensions(sub, tlv) {
+    const r = derReader(sub, tlv.valueStart, tlv.valueEnd);
+    const out = [];
+    while (r.pos < tlv.valueEnd) {
+      const seq = r.readTlv();
+      const sr = derReader(sub, seq.valueStart, seq.valueEnd);
+      const oidTlv = sr.readTlv();
+      const oid = oidToString(sub, oidTlv);
+      let critical = false;
+      let valTlv;
+      const first = sr.readTlv();
+      if (first.tag === 0x01) {
+        critical = sub[first.valueStart] !== 0;
+        valTlv = sr.readTlv();
+      } else {
+        valTlv = first;
+      }
+      const inner = sub.subarray(valTlv.valueStart, valTlv.valueEnd);
+      out.push({ oid, critical, value: renderExtension(sub, oid, inner) });
+    }
+    return out;
+  }
+
+  function renderExtension(sub, oid, inner) {
+    switch (oid) {
+      case '2.5.29.14': // subjectKeyIdentifier
+        return 'keyid: ' + bytesToHex(inner);
+      case '2.5.29.15': { // keyUsage (BIT STRING)
+        const bits = [];
+        const unused = inner[0] || 0;
+        const total = Math.min((inner.length - 1) * 8 - unused, KEY_USAGE.length);
+        for (let i = 0; i < total; i++) {
+          if ((inner[1 + Math.floor(i / 8)] & (0x80 >> (i % 8))) !== 0) bits.push(KEY_USAGE[i]);
+        }
+        return bits.length ? bits.join(', ') : '(none)';
+      }
+      case '2.5.29.17': { // subjectAltName
+        const r = derReader(inner);
+        const names = [];
+        while (r.pos < inner.length) {
+          const gn = r.readTlv();
+          const v = text(inner.subarray(gn.valueStart, gn.valueEnd));
+          switch (gn.tag) {
+            case 0x82: names.push(`DNS: ${v}`); break;
+            case 0x81: names.push(`email: ${v}`); break;
+            case 0x86: names.push(`URI: ${v}`); break;
+            case 0x87: {
+              const b = inner.subarray(gn.valueStart, gn.valueEnd);
+              names.push(`IP: ${Array.from(b).join('.')}`);
+              break;
+            }
+            case 0xa0: names.push(`otherName: ${bytesToHex(inner.subarray(gn.valueStart, gn.valueEnd)).slice(0, 32)}…`); break;
+            default: names.push(`tag 0x${gn.tag.toString(16)}: ${v.slice(0, 40)}`);
+          }
+        }
+        return names.length ? names.join(' · ') : '(empty)';
+      }
+      case '2.5.29.19': { // basicConstraints
+        try {
+          const r = derReader(inner);
+          const seq = r.readTlv();
+          const sr = derReader(inner, seq.valueStart, seq.valueEnd);
+          const parts = [];
+          while (sr.pos < seq.valueEnd) {
+            const t = sr.readTlv();
+            if (t.tag === 0x01) parts.push('CA: ' + (inner[t.valueStart] !== 0));
+            if (t.tag === 0x02) parts.push('pathLen: ' + bytesToInt(inner.subarray(t.valueStart, t.valueEnd)));
+          }
+          return parts.join(', ');
+        } catch { return '—'; }
+      }
+      case '2.5.29.35': // authorityKeyIdentifier
+        return 'keyid: ' + bytesToHex(inner).slice(0, 40) + '…';
+      case '2.5.29.37': { // extendedKeyUsage
+        try {
+          const r = derReader(inner);
+          const seq = r.readTlv();
+          const sr = derReader(inner, seq.valueStart, seq.valueEnd);
+          const names = [];
+          while (sr.pos < seq.valueEnd) {
+            const t = sr.readTlv();
+            const o = oidToString(inner, t);
+            names.push(OID_LABELS[o] || o);
+          }
+          return names.join(', ');
+        } catch { return '—'; }
+      }
+      case '2.5.29.31': case '2.5.29.32':
+        return 'encoded (see DER)';
+      default:
+        return bytesToHex(inner).slice(0, 64) + (inner.length > 32 ? '…' : '');
+    }
+  }
+
+  function decode(der) {
+    const certTlv = derReader(der).readTlv();
+    const tbsTlv = derReader(der, certTlv.valueStart, certTlv.valueEnd).readTlv();
+    const r = derReader(der, tbsTlv.valueStart, tbsTlv.valueEnd);
+
+    let version = 'v1';
+    let next = r.readTlv();
+    if (next.tag === 0xa0) {
+      const vr = derReader(der, next.valueStart, next.valueEnd);
+      const vt = vr.readTlv();
+      version = 'v' + (bytesToInt(der.subarray(vt.valueStart, vt.valueEnd)) + 1);
+      next = r.readTlv();
+    }
+    const serial = bytesToHex(der.subarray(next.valueStart, next.valueEnd));
+    next = r.readTlv();
+    const sigAlg = parseAlgorithm(der, next);
+    next = r.readTlv();
+    const issuer = parseName(der, next);
+    next = r.readTlv();
+    const validity = parseValidity(der, next);
+    next = r.readTlv();
+    const subject = parseName(der, next);
+    next = r.readTlv();
+    const spki = parseSpki(der, next);
+
+    let extensions = [];
+    try {
+      while (r.pos < tbsTlv.valueEnd) {
+        const ext = r.readTlv();
+        if (ext.tag === 0xa3) extensions = parseExtensions(der, ext);
+      }
+    } catch {}
+
+    return { version, serial, sigAlg, issuer, validity, subject, spki, extensions };
+  }
+
+  function nameLine(name) {
+    return name.map(n => n.oid.split(' ')[0] + '=' + n.value).join(', ');
+  }
+
+  function render(decoded) {
+    const L = [];
+    const push = (k, v) => L.push((k + ':').padEnd(24, ' ') + v);
+    push('Version', decoded.version);
+    push('Serial number', decoded.serial.slice(0, 48) + (decoded.serial.length > 48 ? '…' : ''));
+    push('Signature algorithm', decoded.sigAlg);
+    push('Issuer', nameLine(decoded.issuer));
+    push('Validity notBefore', decoded.validity.notBefore);
+    push('Validity notAfter', decoded.validity.notAfter);
+    push('Subject', nameLine(decoded.subject));
+    push('Public key', decoded.spki.alg);
+    push('Key details', decoded.spki.details);
+    if (decoded.extensions.length) {
+      L.push('');
+      push('Extensions', '');
+      for (const ext of decoded.extensions) {
+        push('  ' + ext.oid, (ext.critical ? 'critical · ' : '') + ext.value);
+      }
+    }
+    return L.join('\n');
+  }
+
+  function pemToDer(pem) {
+    const b64 = pem.replace(/-----[A-Z ]+-----/g, '').replace(/\s+/g, '');
+    if (!b64) throw new Error('No certificate body found. Paste a full PEM block.');
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  $('decode').addEventListener('click', () => {
+    const pem = $('input').value.trim();
+    if (!pem) { alert('Paste a PEM certificate first.'); return; }
+    try {
+      const der = pemToDer(pem);
+      const decoded = decode(der);
+      $('output').textContent = render(decoded);
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', () => { $('input').value = SAMPLE; });
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+})();
+</script>

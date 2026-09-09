@@ -1,0 +1,140 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = '.env Template Generator';
+const description = 'Generate a .env template from a JSON object or "key: value" text — keys become UPPER_SNAKE_CASE, values are serialized without quotes.';
+---
+<BaseLayout site="codegen" title={title} description={description}
+  canonical="https://jsonversal.com/codegen/tools/env-generator/"
+  keywords={['.env generator', 'environment variables', 'env template']}
+  current="/codegen/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Input</h2>
+    <label class="text-muted">Mode</label>
+    <div style="display:flex;gap:16px;margin:8px 0 12px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="radio" name="mode" value="json" checked /> JSON
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="radio" name="mode" value="kv" /> key: value
+      </label>
+    </div>
+    <textarea id="input" placeholder='{"api_key": "sk-xxx", "debug": true, "port": 8080}'></textarea>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="primary" id="gen">Generate</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="result" style="display:none;">
+    <strong>Output — .env template</strong>
+    <pre id="out" class="mt-2"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="error" style="display:none;"></section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>In JSON mode, parses the input and reads the top-level object entries</li>
+    <li>In key: value mode, splits each line at the first colon</li>
+    <li>Converts every key to UPPER_SNAKE_CASE (apiKey → API_KEY)</li>
+    <li>Serializes values without quotes: strings as-is (special characters escaped), booleans as true/false, numbers as plain text</li>
+  </ul>
+
+  <h2>About .env Template Generator</h2>
+  <p class="text-muted">A .env file holds environment variables as plain KEY=value lines, letting the same codebase run with different configuration in different environments — a core idea of the 12-factor app methodology. Loaders such as Node's dotenv, Python's python-dotenv, and shell scripts read it at startup.</p>
+  <p class="text-muted">Keys are conventionally written in UPPER_SNAKE_CASE, e.g. DATABASE_URL or API_KEY. Generate a template when you scaffold a project so contributors know which variables to fill in — ship it as .env.example. Never commit a real .env to git: add it to .gitignore and keep secrets like tokens and passwords out of version control.</p>
+</BaseLayout>
+
+<style>
+  #error { color: var(--danger); border-color: var(--danger); }
+  input[type="radio"] { accent-color: var(--accent); width: auto; }
+</style>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  function upperSnake(k) {
+    return k
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/[^A-Za-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toUpperCase();
+  }
+
+  function envValue(v) {
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    if (typeof v === 'number') return String(v);
+    if (v === null) return '';
+    if (typeof v === 'string') {
+      return v
+        .replace(/\\/g, '\\\\')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t');
+    }
+    return JSON.stringify(v); // arrays and nested objects
+  }
+
+  function showError(msg) {
+    const e = $('error');
+    e.textContent = msg;
+    e.style.display = 'block';
+    $('result').style.display = 'none';
+  }
+
+  function generate() {
+    $('error').style.display = 'none';
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const raw = $('input').value.trim();
+    if (!raw) { showError('Please paste some input first.'); return; }
+
+    let entries = [];
+    if (mode === 'json') {
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch (err) { showError('Invalid JSON: ' + err.message); return; }
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        showError('Please provide a JSON object, e.g. {"api_key": "sk-xxx", "debug": true}.');
+        return;
+      }
+      entries = Object.entries(parsed);
+    } else {
+      const lines = raw.split(/\r?\n/);
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t || t.startsWith('#')) continue;
+        const idx = t.indexOf(':');
+        if (idx <= 0) { showError('Line has no "key: value" separator: "' + line + '"'); return; }
+        entries.push([t.slice(0, idx).trim(), t.slice(idx + 1).trim()]);
+      }
+      if (!entries.length) { showError('No key: value pairs found.'); return; }
+    }
+
+    let out = '# .env template generated by codegen.jsonversal.com\n';
+    for (const [k, v] of entries) {
+      if (!k) continue;
+      out += upperSnake(k) + '=' + envValue(v) + '\n';
+    }
+    $('out').textContent = out;
+    $('result').style.display = 'block';
+  }
+
+  $('gen').addEventListener('click', generate);
+  document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', () => {
+    $('error').style.display = 'none';
+    $('result').style.display = 'none';
+  }));
+  $('input').addEventListener('input', () => { $('error').style.display = 'none'; });
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); } catch {}
+  });
+})();
+</script>

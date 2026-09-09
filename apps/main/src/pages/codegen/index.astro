@@ -1,0 +1,40 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const tools = [
+  { title: '.gitignore Generator', description: 'Generate .gitignore for any language or framework.', href: '/codegen/tools/gitignore/' },
+  { title: 'License Generator', description: 'Pick a license, fill in metadata, download the file.', href: '/codegen/tools/license/' },
+  { title: 'README Skeleton', description: 'Generate a professional README structure for your repo.', href: '/codegen/tools/readme/' },
+  { title: 'GitHub Actions Workflow', description: 'Scaffold CI workflows: Node, Python, Go, Docker.', href: '/codegen/tools/ci-workflow/' },
+  { title: 'JSON to Python', description: 'Convert a JSON sample into a ready-to-use Python dict literal.', href: '/codegen/tools/json-to-python/' },
+  { title: 'cURL to Fetch', description: 'Turn a curl command into modern browser/Node fetch() code.', href: '/codegen/tools/curl-to-fetch/' },
+  { title: '.env Template Generator', description: 'Generate an .env template from JSON or key: value pairs.', href: '/codegen/tools/env-generator/' },
+  { title: 'Conventional Commit', description: 'Format commit messages: feat/fix/chore with scope.', href: '/codegen/tools/commit-msg/' },
+  { title: 'HTML Entity Escaper', description: 'Escape and unescape HTML entities in any text.', href: '/codegen/tools/html-escaper/' },
+  { title: 'JSON to CSV', description: 'Turn a JSON array into CSV with proper quoting.', href: '/codegen/tools/json-to-csv/' },
+  { title: 'CSV to JSON', description: 'Parse CSV/TSV into JSON with type inference.', href: '/codegen/tools/csv-to-json/' },
+  { title: 'JSON ↔ XML Converter', description: 'Convert JSON to XML or XML to JSON.', href: '/codegen/tools/json-xml/' },
+  { title: 'JSON to SQL Generator', description: 'Generate CREATE TABLE + INSERT from JSON arrays.', href: '/codegen/tools/sql-generator/' },
+  { title: 'Docker Compose Generator', description: 'Scaffold docker-compose.yml with ports and volumes.', href: '/codegen/tools/docker-compose/' },
+  { title: 'JSON Schema to TypeScript', description: 'Convert a JSON Schema (draft-07) into TypeScript interfaces.', href: '/codegen/tools/schema-to-typescript/', status: 'live' as const },
+  { title: 'cURL to Python', description: 'Turn curl commands into runnable Python requests/httpx code.', href: '/codegen/tools/curl-to-python/', status: 'live' as const },
+  { title: 'Base64 Image Viewer', description: 'Decode base64 images for preview/download, or encode files.', href: '/codegen/tools/base64-image/', status: 'live' as const },
+  { title: 'SQL Formatter', description: 'Pretty-print or minify SQL with a real tokenizer.', href: '/codegen/tools/sql-formatter/', status: 'live' as const },
+];
+---
+
+<BaseLayout site="codegen" current="/codegen/">
+  <h1>Code generators that run in your browser.</h1>
+  <p class="text-muted">No signup, no upload. Every generator on codegen.jsonversal runs 100% locally — your templates never leave your device.</p>
+  <h2>Tools</h2>
+  <div class="grid">
+    {tools.map(tool => <ToolCard {...tool} />)}
+  </div>
+  <h2>Related</h2>
+  <div class="grid">
+    <ToolCard title="DevOps Tools" description="devops.jsonversal.com — YAML/JSON, Base64, JWT, crontab, regex." href="/devops/" />
+    <ToolCard title="JSON / LLM Tools" description="jsonversal.com — UUID v7, JSON to TS, LLM token calculator." href="/tools/" />
+    <ToolCard title="Security Tools" description="sec.jsonversal.com — Hash, AES, password strength." href="/sec/" />
+  </div>
+</BaseLayout>

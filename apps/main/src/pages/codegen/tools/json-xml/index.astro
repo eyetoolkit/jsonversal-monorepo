@@ -1,0 +1,210 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON ↔ XML Converter';
+const description = 'Convert JSON to XML or XML to JSON with a single click. Handles nested objects, arrays, attributes, and text nodes. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="codegen"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/codegen/tools/json-xml/"
+  keywords={['JSON to XML', 'XML to JSON', 'JSON XML converter', 'XML parser', 'data conversion']}
+  current="/codegen/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input</h2>
+    <textarea id="input" spellcheck="false"></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="to-xml">JSON → XML</button>
+      <button class="primary" id="to-json">XML → JSON</button>
+      <label class="text-muted" for="root">XML root tag</label>
+      <input id="root" type="text" value="root" style="max-width:120px;" />
+      <button class="ghost" id="sample-json">Sample JSON</button>
+      <button class="ghost" id="sample-xml">Sample XML</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Output</h2>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>JSON → XML</strong>: objects become elements, arrays repeat the element, scalars become text; attributes are not used (clean 1:1 mapping).</li>
+    <li><strong>XML → JSON</strong>: elements become objects, repeated element names become arrays, text-only elements become strings, and attributes appear under <code>@attr</code> keys.</li>
+    <li>Output is indented for readability and valid in both directions for the data shapes shown here.</li>
+  </ul>
+
+  <h2>About JSON ↔ XML Converter</h2>
+  <p class="text-muted">JSON and XML both describe hierarchical data, but with very different conventions: JSON has objects, arrays, and a compact syntax, while XML has elements, attributes, text nodes, and namespaces. Converting between them is common when integrating JSON-first APIs with XML-based systems — SOAP web services, legacy enterprise middleware, RSS/Atom feeds, or configuration formats like Maven POM files.</p>
+  <p class="text-muted">No mapping is perfectly lossless in both directions: JSON has no notion of attributes, so this tool uses plain elements on the way out and puts XML attributes under <code>@</code>-prefixed keys on the way in; repeating XML elements collapse into arrays. Whitespace-only text nodes are dropped. For exotic documents (mixed content, namespaces, CDATA) review the output — but for typical API payloads the round trip is clean. Everything runs locally in your browser.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 220px; }
+  pre { min-height: 80px; max-height: 480px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function escXml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escText(s) {
+    return escXml(s).replace(/\r\n|\r|\n/g, '\n');
+  }
+  function tagName(k) {
+    const clean = String(k).replace(/[^a-zA-Z0-9._-]/g, '_');
+    return clean ? clean : 'item';
+  }
+
+  function jsonToXml(value, name, indent) {
+    const pad = '    '.repeat(indent);
+    const open = `${pad}<${name}>`;
+    const close = `${pad}</${name}>`;
+    if (value === null) return open + close;
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        if (!value.length) return open + close;
+        return value.map(v => jsonToXml(v, name, indent)).join('\n');
+      }
+      const entries = Object.entries(value);
+      if (!entries.length) return open + close;
+      const body = entries.map(([k, v]) => jsonToXml(v, tagName(k), indent + 1)).join('\n');
+      return open + '\n' + body + '\n' + close;
+    }
+    if (typeof value === 'string') return open + escText(value) + close;
+    return open + String(value) + close;
+  }
+
+  function xmlToJson(xml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+    if (doc.querySelector('parsererror')) {
+      const err = doc.querySelector('parsererror');
+      throw new Error(err ? err.textContent.trim().split('\n')[0] : 'Invalid XML.');
+    }
+    function nodeToJson(node) {
+      const children = Array.from(node.childNodes);
+      const elems = children.filter(n => n.nodeType === 1);
+      const textNodes = children.filter(n => n.nodeType === 3 || n.nodeType === 4);
+      const text = textNodes.map(n => n.textContent).join('').trim();
+
+      if (!elems.length) {
+        return text === '' ? null : text;
+      }
+      const obj = {};
+      for (const el of elems) {
+        const name = el.nodeName;
+        const val = nodeToJson(el);
+        if (name in obj) {
+          if (!Array.isArray(obj[name])) obj[name] = [obj[name]];
+          obj[name].push(val);
+        } else {
+          obj[name] = val;
+        }
+      }
+      for (const attr of Array.from(node.attributes || [])) {
+        obj['@' + attr.name] = attr.value;
+      }
+      return obj;
+    }
+    const root = doc.documentElement;
+    return { [root.nodeName]: nodeToJson(root) };
+  }
+
+  function showOut(content, err) {
+    if (err) {
+      $('err-out').textContent = err;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    } else {
+      $('output').textContent = content;
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    }
+  }
+
+  $('to-xml').addEventListener('click', () => {
+    const raw = $('input').value.trim();
+    if (!raw) { alert('Paste JSON first.'); return; }
+    try {
+      const obj = JSON.parse(raw);
+      const root = $('root').value.trim() || 'root';
+      showOut(jsonToXml(obj, tagName(root), 0), null);
+    } catch (e) { showOut(null, 'Invalid JSON: ' + e.message); }
+  });
+
+  $('to-json').addEventListener('click', () => {
+    const raw = $('input').value.trim();
+    if (!raw) { alert('Paste XML first.'); return; }
+    try {
+      showOut(JSON.stringify(xmlToJson(raw), null, 2), null);
+    } catch (e) { showOut(null, e.message); }
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+
+  $('sample-json').addEventListener('click', () => {
+    $('input').value = JSON.stringify({
+      order: {
+        id: 9001,
+        customer: { name: 'Alice', vip: true },
+        items: [
+          { sku: 'A-1', qty: 2, price: 12.5 },
+          { sku: 'B-2', qty: 1, price: 3.0 }
+        ],
+        note: 'leave at the front desk'
+      }
+    }, null, 2);
+  });
+
+  $('sample-xml').addEventListener('click', () => {
+    $('input').value = `<?xml version="1.0" encoding="UTF-8"?>
+<order id="9001">
+  <customer vip="true">
+    <name>Alice</name>
+  </customer>
+  <items>
+    <item>
+      <sku>A-1</sku>
+      <qty>2</qty>
+      <price>12.5</price>
+    </item>
+    <item>
+      <sku>B-2</sku>
+      <qty>1</qty>
+      <price>3.0</price>
+    </item>
+  </items>
+</order>`;
+  });
+})();
+</script>

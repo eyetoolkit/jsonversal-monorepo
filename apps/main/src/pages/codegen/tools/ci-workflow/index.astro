@@ -1,0 +1,186 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'GitHub Actions Workflow Scaffold';
+const description = 'Scaffold a GitHub Actions CI workflow — pick language, node version, and optional deploy steps.';
+---
+<BaseLayout site="codegen" title={title} description={description}
+  canonical="https://jsonversal.com/codegen/tools/ci-workflow/"
+  keywords={['github actions', 'ci workflow', 'github actions scaffold']}
+  current="/codegen/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Workflow config</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label class="text-muted">Language</label>
+        <select id="lang">
+          <option value="node">Node.js</option>
+          <option value="python">Python</option>
+          <option value="go">Go</option>
+          <option value="rust">Rust</option>
+          <option value="docker">Docker</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-muted">Trigger</label>
+        <select id="trigger">
+          <option value="push">Push to main</option>
+          <option value="pr">Pull requests</option>
+          <option value="both">Both push + PR</option>
+        </select>
+      </div>
+    </div>
+    <div id="node-opts" style="display:none;">
+      <label class="text-muted" style="margin-top:12px;">Node versions (comma-separated)</label>
+      <input id="node-versions" type="text" value="18, 20, 22" />
+    </div>
+    <div id="py-opts" style="display:none;">
+      <label class="text-muted" style="margin-top:12px;">Python versions</label>
+      <input id="py-versions" type="text" value="3.10, 3.11, 3.12" />
+    </div>
+    <div id="go-opts" style="display:none;">
+      <label class="text-muted" style="margin-top:12px;">Go versions</label>
+      <input id="go-versions" type="text" value="1.21, 1.22, 1.23" />
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:6px;"><input id="lint" type="checkbox" checked /> Run linter</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="test" type="checkbox" checked /> Run tests</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="build" type="checkbox" checked /> Build</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="cache" type="checkbox" checked /> Cache deps</label>
+    </div>
+    <label class="text-muted" style="margin-top:12px;">Workflow name</label>
+    <input id="wfname" type="text" value="CI" />
+    <button class="primary mt-2" id="gen">Generate workflow</button>
+  </section>
+
+  <section class="card mt-2">
+    <strong>.github/workflows/ci.yml</strong>
+    <pre id="out" class="mt-2" style="white-space:pre-wrap;"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="download">Download ci.yml</button>
+    </div>
+  </section>
+
+  <h2>About GitHub Actions Workflow Scaffold</h2>
+  <p class="text-muted">A GitHub Actions workflow is a YAML file that automates tasks in response to repository events, wiring together an on trigger, jobs that run on runners, and the steps each job executes. This scaffold generates a standard CI pipeline that installs dependencies, lints, tests, and builds on every push or pull request.</p>
+  <p class="text-muted">Use it from day one of a project so regressions are caught before merge, and test against a matrix of supported language versions to avoid "works on my machine" surprises. Keep permissions minimal — request read-only GITHUB_TOKEN scopes where possible and store credentials as encrypted secrets rather than plain text in the YAML file.</p>
+</BaseLayout>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  function updateOpts() {
+    const lang = $('lang').value;
+    $('node-opts').style.display = lang === 'node' ? '' : 'none';
+    $('py-opts').style.display = lang === 'python' ? '' : 'none';
+    $('go-opts').style.display = lang === 'go' ? '' : 'none';
+  }
+
+  function gen() {
+    const lang = $('lang').value;
+    const trigger = $('trigger').value;
+    const wfname = $('wfname').value.trim() || 'CI';
+
+    const onPush = trigger === 'push' || trigger === 'both' ? "    push:\n      branches: [main]" : '';
+    const onPR   = trigger === 'pr'   || trigger === 'both' ? "    pull_request:\n      branches: [main]" : '';
+
+    let jobs = '';
+
+    if (lang === 'node') {
+      const versions = $('node-versions').value.split(',').map(v=>v.trim()).filter(Boolean);
+      jobs = `  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [${versions.join(', ')}]
+    steps:
+      - uses: actions/checkout@v4${$('cache').checked ? '\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ matrix.node-version }}\n          cache: npm' : '\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ matrix.node-version }}'}
+      - name: Install dependencies
+        run: npm ci${$('lint').checked ? '\n      - name: Lint\n        run: npm run lint' : ''}${$('test').checked ? '\n      - name: Test\n        run: npm test' : ''}${$('build').checked ? '\n      - name: Build\n        run: npm run build' : ''}
+`;
+    } else if (lang === 'python') {
+      const versions = $('py-versions').value.split(',').map(v=>v.trim()).filter(Boolean);
+      jobs = `  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [${versions.join(', ')}]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}${$('cache').checked ? '\n          cache: pip' : ''}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt${$('lint').checked ? '\n      - name: Lint\n        run: ruff check .' : ''}${$('test').checked ? '\n      - name: Test\n        run: pytest' : ''}${$('build').checked ? '\n      - name: Build\n        run: pip install build && python -m build' : ''}
+`;
+    } else if (lang === 'go') {
+      const versions = $('go-versions').value.split(',').map(v=>v.trim()).filter(Boolean);
+      jobs = `  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [${versions.join(', ')}]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}${$('cache').checked ? '\n      - uses: actions/cache@v4\n        with:\n          path: ~/go/pkg/mod\n          key: ${{ runner.os }}-go-${{ hashFiles(\'**/go.sum\') }}\n          restore-keys: |\n            ${{ runner.os }}-go-' : ''}${$('lint').checked ? '\n      - name: Lint\n        run: golangci-lint run' : ''}${$('test').checked ? '\n      - name: Test\n        run: go test ./...' : ''}${$('build').checked ? '\n      - name: Build\n        run: go build -o dist/ ./...' : ''}
+`;
+    } else if (lang === 'rust') {
+      jobs = `  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable${$('cache').checked ? '\n      - uses: Swatinem/rust-cache@v2' : ''}${$('lint').checked ? '\n      - name: Lint\n        run: cargo clippy --all-targets' : ''}${$('test').checked ? '\n      - name: Test\n        run: cargo test' : ''}${$('build').checked ? '\n      - name: Build\n        run: cargo build --release' : ''}
+`;
+    } else if (lang === 'docker') {
+      jobs = `  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: my-image:latest
+`;
+    }
+
+    const out = `name: ${wfname}
+
+on:
+${onPush}${onPR}
+${onPush && onPR ? '' : ''}
+jobs:
+${jobs}`;
+    $('out').textContent = out.replace(/\n{3,}/g, '\n\n');
+  }
+
+  $('gen').addEventListener('click', gen);
+  ['lang','trigger','wfname','node-versions','py-versions','go-versions'].forEach(id => $(id).addEventListener('input', ()=>{updateOpts();gen()}));
+  $('lang').addEventListener('change', ()=>{updateOpts();gen()});
+  ['lint','test','build','cache'].forEach(id => $(id).addEventListener('change', gen));
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent='Copied!'; setTimeout(()=>$('copy').textContent='Copy',1200); } catch {}
+  });
+  $('download').addEventListener('click', () => {
+    const blob = new Blob([$('out').textContent], {type:'application/x-yaml'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download='ci.yml'; a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  updateOpts(); gen();
+})();
+</script>
