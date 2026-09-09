@@ -1,0 +1,117 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'HMAC Calculator';
+const description = 'Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures for any message and secret key, in hex and base64. Runs locally with Web Crypto.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://sec.jsonversal.com/tools/hmac/"
+  keywords={['hmac', 'hmac calculator', 'hmac sha256', 'message authentication', 'api signature']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Input</h2>
+    <label class="text-muted">Message</label>
+    <textarea id="msg" placeholder="Message to sign..." style="min-height:120px;"></textarea>
+    <label class="text-muted" style="margin-top:12px;">Secret key</label>
+    <input id="secret" type="text" placeholder="Shared secret key" />
+    <label class="text-muted" style="margin-top:12px;">Algorithm</label>
+    <select id="algo">
+      <option value="SHA-256">SHA-256 (recommended)</option>
+      <option value="SHA-384">SHA-384</option>
+      <option value="SHA-512">SHA-512</option>
+    </select>
+    <div class="row mt-2">
+      <button class="primary" id="compute">Compute</button>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>HMAC (hex)</strong>
+    <pre id="hex-out" class="mt-2" style="display:none;white-space:pre-wrap;word-break:break-all;"></pre>
+    <button class="ghost mt-1" id="copy-hex" style="display:none;">Copy hex</button>
+    <strong style="display:block;margin-top:16px;">HMAC (base64)</strong>
+    <pre id="b64-out" class="mt-2" style="display:none;white-space:pre-wrap;word-break:break-all;"></pre>
+    <button class="ghost mt-1" id="copy-b64" style="display:none;">Copy base64</button>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Error</strong>
+    <div id="err" class="mt-2" style="display:none;"></div>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>HMAC wraps the chosen hash algorithm with a secret key: the key is padded, XOR-mixed into two inner/outer pads, and hashed in a specific order.</li>
+    <li>The result has the same length as the underlying hash — 256, 384, or 512 bits — regardless of message or key length.</li>
+    <li>Computing the same HMAC requires the shared secret, so a valid signature proves the message came from someone who knows the key.</li>
+    <li>Everything is calculated in your browser with <code>crypto.subtle</code>; no data is sent anywhere.</li>
+  </ul>
+
+  <h2>About HMAC</h2>
+  <p class="text-muted">HMAC (Hash-based Message Authentication Code) is a keyed hash: it combines a hash function such as SHA-256 with a shared secret to produce a signature that verifies both integrity and authenticity. Unlike a plain hash, which anyone can recompute, an HMAC is unpredictable without the key — changing even one bit of the message produces a completely different signature. The secret is the root of trust, and the message can be stored or transmitted openly.</p>
+  <p class="text-muted">Use HMAC whenever two parties share a secret and need to prove messages were not tampered with or forged: API request signing, webhook payload verification, and session tokens are the most common cases. Never use a plain hash for these — an attacker can recompute MD5 or SHA-256 without the key. Keep the secret key out of client-side code, rotate it periodically, and use separate keys for different purposes. The signature authenticates, but it does not encrypt: if confidentiality is also needed, combine HMAC with encryption (for example, AES-GCM).</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #err { color: var(--danger); }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+  const enc = new TextEncoder();
+
+  function toHex(buf) {
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function toB64(buf) {
+    const bin = Array.from(new Uint8Array(buf)).map(b => String.fromCharCode(b)).join('');
+    return btoa(bin);
+  }
+
+  async function run() {
+    const msg = $('msg').value;
+    const secret = $('secret').value;
+    const algo = $('algo').value;
+    const err = $('err');
+    err.style.display = 'none';
+    if (!msg) { alert('Please enter a message.'); return; }
+    if (!secret) { alert('Please enter a secret key.'); return; }
+
+    try {
+      const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: algo }, false, ['sign']);
+      const sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
+      $('hex-out').textContent = toHex(sig);
+      $('b64-out').textContent = toB64(sig);
+      $('hex-out').style.display = 'block';
+      $('b64-out').style.display = 'block';
+      $('copy-hex').style.display = 'inline-block';
+      $('copy-b64').style.display = 'inline-block';
+    } catch (e) {
+      err.textContent = 'Error: ' + e.message;
+      err.style.display = 'block';
+    }
+  }
+
+  $('compute').addEventListener('click', run);
+
+  $('copy-hex').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('hex-out').textContent);
+      $('copy-hex').textContent = 'Copied!';
+      setTimeout(() => { $('copy-hex').textContent = 'Copy hex'; }, 1200);
+    } catch {}
+  });
+  $('copy-b64').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('b64-out').textContent);
+      $('copy-b64').textContent = 'Copied!';
+      setTimeout(() => { $('copy-b64').textContent = 'Copy base64'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

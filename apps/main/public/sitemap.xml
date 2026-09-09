@@ -2,11 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://jsonversal.com/</loc></url>
   <url><loc>https://jsonversal.com/tools/</loc></url>
-  <url><loc>https://jsonversal.com/tools/uuid-v7/</loc></url>
-  <url><loc>https://jsonversal.com/tools/json-to-typescript/</loc></url>
-  <url><loc>https://jsonversal.com/tools/json-to-zod/</loc></url>
   <url><loc>https://jsonversal.com/tools/llm-token-calculator/</loc></url>
   <url><loc>https://jsonversal.com/tools/json-schema-generator/</loc></url>
+  <url><loc>https://jsonversal.com/tools/json-schema-sample-generator/</loc></url>
+  <url><loc>https://jsonversal.com/tools/json-to-pydantic/</loc></url>
+  <url><loc>https://jsonversal.com/tools/json-to-zod/</loc></url>
+  <url><loc>https://jsonversal.com/tools/json-to-typescript/</loc></url>
+  <url><loc>https://jsonversal.com/tools/jsonpath-tester/</loc></url>
+  <url><loc>https://jsonversal.com/tools/json-diff/</loc></url>
+  <url><loc>https://jsonversal.com/tools/uuid-v7/</loc></url>
   <url><loc>https://jsonversal.com/privacy/</loc></url>
   <url><loc>https://jsonversal.com/terms/</loc></url>
 </urlset>

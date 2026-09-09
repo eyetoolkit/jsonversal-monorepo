@@ -1,0 +1,113 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'URL Encoder / Decoder';
+const description = 'Encode or decode URL strings in both directions. Choose Component encoding for query parameter values or Full URL encoding for whole URLs.';
+---
+
+<BaseLayout site="devops" title={title} description={description}
+  canonical="https://devops.jsonversal.com/tools/url-codec/"
+  keywords={['URL encode', 'URL decode', 'encodeURIComponent', 'encodeURI', 'percent encoding']}
+  current="/tools/">
+
+  <nav class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <strong>Input</strong>
+      <label class="text-muted" style="font-size:.8rem;">Direction:
+        <select id="direction">
+          <option value="encode">Encode</option>
+          <option value="decode">Decode</option>
+        </select>
+      </label>
+      <label class="text-muted" style="font-size:.8rem;">Mode:
+        <select id="mode">
+          <option value="component">Component</option>
+          <option value="full">Full URL</option>
+        </select>
+      </label>
+    </div>
+    <textarea id="input" placeholder="Text or URL to convert..." style="margin-top:12px;min-height:220px;"></textarea>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="primary" id="convert">Convert</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="result-section" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <strong>Output</strong>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+    <pre id="output" style="min-height:160px;margin-top:12px;white-space:pre-wrap;word-break:break-all;">—</pre>
+  </div>
+
+  <div class="card mt-2" id="error-section" style="display:none;">
+    <strong style="color:var(--danger);">Error</strong>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Component mode uses <code>encodeURIComponent</code> / <code>decodeURIComponent</code> — it escapes everything, including <code>&amp;</code>, <code>=</code>, <code>?</code>, and <code>/</code>.</li>
+    <li>Full URL mode uses <code>encodeURI</code> / <code>decodeURI</code> — it leaves reserved characters such as <code>?</code>, <code>&amp;</code>, <code>=</code>, <code>/</code>, and <code>#</code> untouched.</li>
+    <li>Decoding stops on malformed percent escapes like <code>%ZZ</code> and reports an error instead of returning garbage.</li>
+  </ul>
+
+  <h2>About URL Encoder / Decoder</h2>
+  <p class="text-muted">URL encoding, also called percent-encoding, replaces characters that are unsafe in a URL with a percent sign followed by their two-digit hexadecimal byte value — a space becomes <code>%20</code>, and a non-ASCII character becomes a UTF-8 byte sequence such as <code>%E4%B8%AD</code>. URLs may only safely contain a small ASCII subset, so everything outside it must be escaped before the URL is sent over the wire.</p>
+  <p class="text-muted">Component mode escapes reserved characters like <code>&amp;</code> and <code>=</code> so they are treated as data rather than separators — use it for individual query parameter values. Full URL mode keeps those separators intact so an already-structured URL stays readable — use it when encoding a whole URL, including its query string. Encode each parameter value before you build the URL, never encode a full URL with Component mode, and be careful not to decode twice: re-decoding an already-decoded value can corrupt legitimate <code>%xx</code> sequences.</p>
+</BaseLayout>
+
+<style>
+  select { width: auto; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function convert() {
+    const text = $('input').value;
+    $('error-section').style.display = 'none';
+    $('result-section').style.display = 'none';
+    if (!text.trim()) {
+      $('error-out').textContent = 'Please enter some text to convert.';
+      $('error-section').style.display = '';
+      return;
+    }
+    const dir = $('direction').value;
+    const mode = $('mode').value;
+    try {
+      const out = dir === 'encode'
+        ? (mode === 'component' ? encodeURIComponent(text) : encodeURI(text))
+        : (mode === 'component' ? decodeURIComponent(text) : decodeURI(text));
+      $('output').textContent = out;
+      $('result-section').style.display = '';
+    } catch (e) {
+      $('error-out').textContent = 'Error: ' + e.message;
+      $('error-section').style.display = '';
+    }
+  }
+
+  $('convert').addEventListener('click', convert);
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('result-section').style.display = 'none';
+    $('error-section').style.display = 'none';
+  });
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => $('copy').textContent = 'Copy', 1200);
+    } catch {}
+  });
+})();
+</script>

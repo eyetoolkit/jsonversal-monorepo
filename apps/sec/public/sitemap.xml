@@ -4,6 +4,10 @@
   <url><loc>https://sec.jsonversal.com/tools/</loc></url>
   <url><loc>https://sec.jsonversal.com/tools/hash/</loc></url>
   <url><loc>https://sec.jsonversal.com/tools/aes/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/bcrypt/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/hmac/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/password-generator/</loc></url>
+  <url><loc>https://sec.jsonversal.com/tools/file-checksum/</loc></url>
   <url><loc>https://sec.jsonversal.com/tools/password-strength/</loc></url>
   <url><loc>https://sec.jsonversal.com/tools/csp/</loc></url>
   <url><loc>https://sec.jsonversal.com/tools/csr/</loc></url>

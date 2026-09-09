@@ -1,0 +1,218 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON to Pydantic Model';
+const description = 'Generate Pydantic v2 BaseModel classes from a JSON sample. Get type-safe Python models for API responses, configs, and LLM structured output.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-to-pydantic/"
+  keywords={['JSON to Pydantic', 'Pydantic model generator', 'Pydantic v2', 'Python model from JSON', 'Pydantic BaseModel']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input JSON</h2>
+    <textarea id="input" placeholder='&#123;&#10;  "id": 1,&#10;  "name": "Bob",&#10;  "email": "bob@example.com",&#10;  "age": null&#10;&#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="generate">Generate Pydantic Model</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="output-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Pydantic v2 Model</h2>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+    <pre id="output">—</pre>
+    <p class="text-dim" style="margin-top:8px;font-size:.85rem;">
+      Requires <code>pydantic</code> — install with <code>pip install pydantic</code>
+    </p>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste a JSON sample representing your expected data shape.</li>
+    <li>Click <strong>Generate Pydantic Model</strong> — nested objects become their own <code>BaseModel</code> classes, arrays become <code>List[...]</code>, and nullable values become <code>Optional[...]</code>.</li>
+    <li>Copy the generated classes into your Python project and use them for validation, serialization, and type hints.</li>
+  </ul>
+
+  <h2>Usage example</h2>
+  <pre>from models import UserModel
+import requests
+
+resp = requests.get("https://api.example.com/user/1")
+user = UserModel.model_validate(resp.json())
+print(user.name, user.address.city)</pre>
+
+  <h2>About JSON to Pydantic Model</h2>
+  <p class="text-muted">Pydantic is the standard data-validation library for Python, using type hints to validate and serialize data at runtime. Generating BaseModel classes from a JSON sample saves you from hand-writing the boilerplate for API responses, configuration objects, and LLM structured output, while keeping your code type-checkable.</p>
+  <p class="text-muted">Use it when you receive untyped JSON — from a REST API, a database row, or an LLM call — and want runtime guarantees in Python. As with any inferred model, the output is only as accurate as the sample: add optional fields, unions, and constraints by hand after generation, and remember that an empty array becomes <code>List[Any]</code> because the sample carries no element type.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 160px; }
+  pre { min-height: 120px; }
+  code { font-size: .85rem; }
+</style>
+
+<script is:inline>
+(function () {
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  const KEYWORDS = new Set(['class', 'def', 'import', 'from', 'return', 'pass', 'None', 'True', 'False', 'and', 'or', 'not', 'if', 'else', 'elif', 'for', 'while', 'in', 'is', 'lambda', 'global', 'nonlocal', 'try', 'except', 'finally', 'raise', 'with', 'as', 'assert', 'break', 'continue', 'del', 'yield', 'async', 'await', 'match', 'case']);
+
+  function pyName(s) {
+    let n = s.replace(/[^a-zA-Z0-9_]/g, '_');
+    if (!/^[a-zA-Z_]/.test(n)) n = '_' + n;
+    if (KEYWORDS.has(n)) n = n + '_';
+    return n;
+  }
+
+  // Returns { code: 'str' | 'int' | ... , subModels: [definitions] }
+  function jsonToPy(obj, name) {
+    const typeName = capitalize(pyName(name || 'Root')) + 'Model';
+    if (obj === null) return { code: 'None', subModels: [] };
+    if (typeof obj === 'boolean') return { code: 'bool', subModels: [] };
+    if (typeof obj === 'number') {
+      return { code: Number.isInteger(obj) ? 'int' : 'float', subModels: [] };
+    }
+    if (typeof obj === 'string') return { code: 'str', subModels: [] };
+    if (Array.isArray(obj)) {
+      if (obj.length === 0) return { code: 'List[Any]', subModels: [] };
+      const codes = new Set();
+      const subModels = [];
+      for (const item of obj) {
+        if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
+          const r = jsonToPy(item, 'Item');
+          codes.add(r.code);
+          subModels.push(...r.subModels);
+        } else {
+          codes.add(jsonToPy(item, '').code);
+        }
+      }
+      const arr = Array.from(codes);
+      const inner = arr.length === 1 ? arr[0] : 'Union[' + arr.join(', ') + ']';
+      return { code: 'List[' + inner + ']', subModels };
+    }
+    // object
+    const entries = Object.entries(obj);
+    const defs = [];
+    const lines = [];
+    for (const [k, v] of entries) {
+      const field = pyName(k);
+      const alias = field === k ? null : k;
+      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+        const r = jsonToPy(v, capitalize(k));
+        const subName = capitalize(pyName(k)) + 'Model';
+        defs.push({ name: subName, lines: r.lines, subModels: r.subModels });
+        lines.push({ field, type: subName, optional: false, alias });
+      } else if (Array.isArray(v)) {
+        const r = jsonToPy(v, capitalize(k));
+        lines.push({ field, type: r.code, optional: false, alias });
+        defs.push(...r.subModels);
+      } else {
+        const r = jsonToPy(v, '');
+        const optional = v === null || r.code === 'None';
+        const t = optional ? 'Optional[' + (r.code === 'None' ? 'Any' : r.code) + ']' : r.code;
+        lines.push({ field, type: t, optional, alias });
+      }
+    }
+    return { code: typeName, lines, subModels: defs, nested: true };
+  }
+
+  function render(result, rootName) {
+    // result is { code, lines?, subModels?, nested? }
+    const parts = [];
+    (function emit(r) {
+      if (!r.nested) return;
+      for (const sub of r.subModels) emit(sub);
+      const lines = r.lines.map((l) => {
+        let s = '    ' + l.field + ': ' + l.type;
+        if (l.alias) s += ' = Field(alias=' + JSON.stringify(l.alias) + ')';
+        else if (l.optional) s += ' = None';
+        return s;
+      });
+      parts.push('class ' + r.code + '(BaseModel):\n' + (lines.length ? lines.join('\n') : '    pass'));
+    })(result);
+    return parts.join('\n\n');
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const input = $('input');
+  const outputSection = $('output-section');
+  const errorSection = $('error-section');
+  const output = $('output');
+  const errorOut = $('error-out');
+
+  $('generate').addEventListener('click', function () {
+    const raw = input.value.trim();
+    if (!raw) { alert('Please paste some JSON first.'); return; }
+    try {
+      const obj = JSON.parse(raw);
+      const r = jsonToPy(obj, 'Root');
+      const body = render(r, 'Root');
+      const header = 'from pydantic import BaseModel, Field\nfrom typing import Any, List, Optional, Union\n\n';
+      output.textContent = header + body + '\n';
+      outputSection.style.display = 'block';
+      errorSection.style.display = 'none';
+    } catch (e) {
+      errorOut.textContent = e.message;
+      errorSection.style.display = 'block';
+      outputSection.style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', function () {
+    input.value = JSON.stringify({
+      id: 1,
+      name: "Bob",
+      email: "bob@example.com",
+      age: null,
+      active: true,
+      scores: [98.5, 87, 95],
+      tags: ["admin", "editor"],
+      address: {
+        street: "123 Main St",
+        city: "New York",
+        zip_code: 10001
+      }
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', function () {
+    input.value = '';
+    outputSection.style.display = 'none';
+    errorSection.style.display = 'none';
+  });
+
+  $('copy').addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText(output.textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => $('copy').textContent = 'Copy', 1200);
+    } catch {
+      $('copy').textContent = 'Failed';
+      setTimeout(() => $('copy').textContent = 'Copy', 1200);
+    }
+  });
+})();
+</script>

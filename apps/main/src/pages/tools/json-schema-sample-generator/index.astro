@@ -1,0 +1,241 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Schema Sample Data Generator';
+const description = 'Generate realistic sample JSON from a JSON Schema. Great for creating mock data, test fixtures, and LLM structured-output examples.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-schema-sample-generator/"
+  keywords={['JSON Schema generator', 'sample JSON from schema', 'mock data generator', 'JSON Schema example', 'test fixtures']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input JSON Schema</h2>
+    <textarea id="input" placeholder='&#123; "type": "object", "properties": &#123; "name": &#123; "type": "string" &#125; &#125; &#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="generate">Generate sample</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="output-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Sample JSON</h2>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+    <pre id="output">—</pre>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>Supported keywords</h2>
+  <ul>
+    <li><strong>Types</strong>: <code>string</code>, <code>number</code>, <code>integer</code>, <code>boolean</code>, <code>null</code>, <code>array</code>, <code>object</code> (including type arrays)</li>
+    <li><strong>Strings</strong>: <code>format</code> (email, date-time, date, time, uri, uuid, hostname, ipv4, ipv6, password), <code>pattern</code>, <code>minLength</code>/<code>maxLength</code>, <code>enum</code>, <code>const</code></li>
+    <li><strong>Numbers</strong>: <code>minimum</code>/<code>maximum</code>, <code>multipleOf</code>, <code>exclusiveMinimum</code>/<code>exclusiveMaximum</code></li>
+    <li><strong>Objects &amp; arrays</strong>: <code>properties</code>, <code>required</code>, <code>additionalProperties</code>, <code>items</code>, <code>minItems</code>/<code>maxItems</code></li>
+    <li><strong>Composition</strong>: <code>oneOf</code>/<code>anyOf</code> (first branch), <code>allOf</code> (merged), <code>example</code>/<code>default</code> values</li>
+  </ul>
+
+  <h2>About JSON Schema Sample Data Generator</h2>
+  <p class="text-muted">Writing mock data by hand is tedious and drifts from your schema. This tool reads a JSON Schema and produces a sample document that satisfies it — respecting types, formats, required fields, and value constraints — so you get test fixtures and placeholder data that match your contract. With LLM structured output, a schema-compliant example is also a quick way to see what a model is expected to return.</p>
+  <p class="text-muted">Use it when you need fixtures for unit tests, placeholder payloads for frontend development, or a concrete example to pair with a published schema. Generated values are deterministic per schema, but they are meant as plausible examples, not production data. Recursive schemas are depth-limited to keep output finite, and the implementation covers the common draft-07 keyword set listed above.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 240px; }
+  pre { min-height: 120px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const MAX_DEPTH = 6;
+
+  const FORMATS = {
+    'email': 'alice@example.com',
+    'date-time': '2026-09-09T08:30:00Z',
+    'date': '2026-09-09',
+    'time': '08:30:00',
+    'duration': 'P3D',
+    'uri': 'https://example.com/resource',
+    'url': 'https://example.com/resource',
+    'uuid': '8f1d3c2a-5b47-4e6c-9a1d-2e3f4a5b6c7d',
+    'hostname': 'api.example.com',
+    'ipv4': '192.168.1.10',
+    'ipv6': '2001:db8::8a2e:370:7334',
+    'password': 'S3cure-Passw0rd!',
+    'binary': 'U3RyaW5n',
+    'byte': 'U3RyaW5n',
+  };
+
+  function pickString(s) {
+    if (s.format && FORMATS[s.format]) return FORMATS[s.format];
+    if (s.pattern) {
+      // produce a simple string that satisfies common patterns
+      if (s.pattern.startsWith('^') && s.pattern.endsWith('$')) {
+        const inner = s.pattern.slice(1, -1);
+        const m = /^\[a-zA-Z0-9_-\]\+$/.test(inner) ? 'abc123' :
+                 /^\[0-9\]\+$/.test(inner) ? '123456' :
+                 /^\\d\+$/.test(inner) ? '123456' : 'value123';
+        return m;
+      }
+      return 'value123';
+    }
+    let s2 = 'sample string';
+    const min = s.minLength || 0;
+    const max = s.maxLength || 40;
+    if (min > s2.length) s2 = s2.repeat(Math.ceil(min / s2.length)).slice(0, Math.max(min, 1));
+    if (s2.length > max) s2 = s2.slice(0, max);
+    return s2;
+  }
+
+  function pickNumber(s) {
+    let min = (typeof s.minimum === 'number') ? s.minimum : (typeof s.exclusiveMinimum === 'number' ? s.exclusiveMinimum + 1 : 0);
+    let max = (typeof s.maximum === 'number') ? s.maximum : (typeof s.exclusiveMaximum === 'number' ? s.exclusiveMaximum - 1 : min + 100);
+    if (s.multipleOf) {
+      const base = Math.max(min, s.multipleOf);
+      const v = base;
+      return s.type === 'integer' || Number.isInteger(s.multipleOf) ? Math.round(v) : v;
+    }
+    if (min > max) [min, max] = [max, min];
+    if (s.type === 'integer') return Math.floor(min) + 1;
+    return Math.round((min + 1 + Math.random() * Math.max(0, max - min - 1)) * 100) / 100;
+  }
+
+  function generate(schema, depth) {
+    if (depth > MAX_DEPTH) return null;
+
+    if (schema.const !== undefined) return schema.const;
+    if (schema.enum && schema.enum.length) return schema.enum[0];
+    if (schema.example !== undefined) return schema.example;
+    if (schema.default !== undefined) return schema.default;
+
+    if (schema.oneOf && schema.oneOf.length) return generate(schema.oneOf[0], depth + 1);
+    if (schema.anyOf && schema.anyOf.length) return generate(schema.anyOf[0], depth + 1);
+    if (schema.allOf && schema.allOf.length) {
+      const merged = {};
+      for (const sub of schema.allOf) Object.assign(merged, sub);
+      return generate(merged, depth + 1);
+    }
+
+    let types = schema.type ? (Array.isArray(schema.type) ? schema.type : [schema.type]) : [];
+    if (types.includes('null')) types = types.filter((t) => t !== 'null');
+
+    if (types.length === 0) {
+      if (schema.properties || schema.additionalProperties !== undefined) types = ['object'];
+      else if (schema.items) types = ['array'];
+      else types = ['string'];
+    }
+
+    const t = types[0];
+    switch (t) {
+      case 'string': return pickString(schema);
+      case 'number':
+      case 'integer': return pickNumber({ ...schema, type: t });
+      case 'boolean': return true;
+      case 'null': return null;
+      case 'array': {
+        if (!schema.items) return [];
+        const min = schema.minItems || 1;
+        const max = Math.min(schema.maxItems || 3, min + 2);
+        const n = Math.max(1, min);
+        const out = [];
+        for (let i = 0; i < n && i < max; i++) out.push(generate(schema.items, depth + 1));
+        return out;
+      }
+      case 'object': {
+        const out = {};
+        if (schema.properties) {
+          for (const [k, sub] of Object.entries(schema.properties)) {
+            out[k] = generate(sub, depth + 1);
+          }
+        }
+        if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+          out['extra'] = generate(schema.additionalProperties, depth + 1);
+        }
+        return out;
+      }
+      default: return null;
+    }
+  }
+
+  const input = $('input');
+  const outputSection = $('output-section');
+  const errorSection = $('error-section');
+  const output = $('output');
+  const errorOut = $('error-out');
+
+  $('generate').addEventListener('click', function () {
+    const raw = input.value.trim();
+    if (!raw) { alert('Please paste a JSON Schema first.'); return; }
+    try {
+      const schema = JSON.parse(raw);
+      const sample = generate(schema, 0);
+      output.textContent = JSON.stringify(sample, null, 2);
+      outputSection.style.display = 'block';
+      errorSection.style.display = 'none';
+    } catch (e) {
+      errorOut.textContent = e.message;
+      errorSection.style.display = 'block';
+      outputSection.style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', function () {
+    input.value = JSON.stringify({
+      type: 'object',
+      required: ['id', 'name', 'email', 'created_at', 'roles'],
+      properties: {
+        id: { type: 'integer', minimum: 1 },
+        name: { type: 'string', minLength: 3, maxLength: 50 },
+        email: { type: 'string', format: 'email' },
+        active: { type: 'boolean' },
+        score: { type: 'number', minimum: 0, maximum: 100 },
+        created_at: { type: 'string', format: 'date-time' },
+        roles: { type: 'array', items: { type: 'string', enum: ['admin', 'editor', 'viewer'] }, minItems: 1, maxItems: 3 },
+        address: {
+          type: 'object',
+          properties: {
+            city: { type: 'string' },
+            zip: { type: 'string', pattern: '^[0-9]{5}$' },
+          },
+          required: ['city'],
+        },
+      },
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', function () {
+    input.value = '';
+    outputSection.style.display = 'none';
+    errorSection.style.display = 'none';
+  });
+
+  $('copy').addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText(output.textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => $('copy').textContent = 'Copy', 1200);
+    } catch {
+      $('copy').textContent = 'Failed';
+      setTimeout(() => $('copy').textContent = 'Copy', 1200);
+    }
+  });
+})();
+</script>

@@ -1,0 +1,203 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Diff';
+const description = 'Compare two JSON documents and see exactly what changed — added, removed, or modified values with their JSON paths.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-diff/"
+  keywords={['JSON diff', 'compare JSON', 'JSON comparison tool', 'diff two JSON', 'JSON change detection']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input</h2>
+    <div class="diff-grid">
+      <div>
+        <label class="text-muted" for="a">Document A</label>
+        <textarea id="a" placeholder='&#123;&#10;  "name": "Alice",&#10;  "age": 30&#10;&#125;'></textarea>
+      </div>
+      <div>
+        <label class="text-muted" for="b">Document B</label>
+        <textarea id="b" placeholder='&#123;&#10;  "name": "Alice",&#10;  "age": 31&#10;&#125;'></textarea>
+      </div>
+    </div>
+    <div class="row mt-1">
+      <button class="primary" id="compare">Compare</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="result-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Differences</h2>
+      <span class="token-badge" id="summary">—</span>
+    </div>
+    <div id="result"></div>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste two JSON documents — the tool recursively compares them value by value.</li>
+    <li>Every difference is reported with its JSON path (e.g. <code>$.user.address.city</code>) and the change type.</li>
+    <li><strong>Added</strong> keys or array items appear in B but not A; <strong>removed</strong> appear in A but not B; <strong>changed</strong> exist in both with different values.</li>
+    <li>Object key order is ignored — only values and structure are compared.</li>
+  </ul>
+
+  <h2>About JSON Diff</h2>
+  <p class="text-muted">Comparing two JSON documents by eye is error-prone once they grow beyond a few lines. A JSON diff computes the precise set of differences — new keys, deleted keys, and modified values — and reports each one with a path you can act on. This is especially useful when debugging API responses, configuration files, or generated schemas that change between deploys.</p>
+  <p class="text-muted">Use it whenever you need to answer "what actually changed?" between two data snapshots. Note that this is a structural comparison: it does not do semantic comparison (e.g. 1 vs 1.0 are different values) and it treats arrays positionally, so a reordered array appears as many individual changes rather than a single "moved" entry.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  textarea { min-height: 180px; }
+  .token-badge {
+    background: var(--accent); color: #fff; border-radius: 999px;
+    padding: 2px 12px; font-size: .85rem; font-weight: 600;
+  }
+  .diff-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); margin-bottom: 6px;
+  }
+  .badge { flex: 0 0 auto; font-size: .72rem; font-weight: 700; text-transform: uppercase; border-radius: 4px; padding: 2px 8px; margin-top: 2px; }
+  .badge.added { background: rgba(34,197,94,.15); color: var(--success); }
+  .badge.removed { background: rgba(239,68,68,.15); color: var(--danger); }
+  .badge.changed { background: rgba(245,158,11,.15); color: var(--warning); }
+  .diff-body { min-width: 0; }
+  .diff-path { font-family: var(--font-mono); font-size: .82rem; color: var(--accent); word-break: break-all; }
+  .diff-val { font-family: var(--font-mono); font-size: .8rem; color: var(--text-muted); word-break: break-all; margin-top: 2px; }
+  @media (max-width: 640px) { .diff-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function fmt(v) {
+    if (v === undefined) return '∅';
+    if (typeof v === 'string') {
+      if (v.length > 60) return JSON.stringify(v.slice(0, 60)) + '…';
+      return JSON.stringify(v);
+    }
+    if (typeof v === 'object' && v !== null) {
+      const s = JSON.stringify(v);
+      return s.length > 80 ? s.slice(0, 80) + '…' : s;
+    }
+    return String(v);
+  }
+
+  function diff(a, b, path, out) {
+    const pa = path || '$';
+    if (a === b) return;
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object' ||
+        Array.isArray(a) !== Array.isArray(b)) {
+      out.push({ type: 'changed', path: pa, from: a, to: b });
+      return;
+    }
+    if (Array.isArray(a) && Array.isArray(b)) {
+      const n = Math.max(a.length, b.length);
+      for (let i = 0; i < n; i++) {
+        const p = pa + '[' + i + ']';
+        if (i >= a.length) out.push({ type: 'added', path: p, to: b[i] });
+        else if (i >= b.length) out.push({ type: 'removed', path: p, from: a[i] });
+        else diff(a[i], b[i], p, out);
+      }
+      return;
+    }
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    for (const k of keys) {
+      const p = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? pa + '.' + k : pa + '[' + JSON.stringify(k) + ']';
+      if (!(k in b)) out.push({ type: 'removed', path: p, from: a[k] });
+      else if (!(k in a)) out.push({ type: 'added', path: p, to: b[k] });
+      else diff(a[k], b[k], p, out);
+    }
+  }
+
+  const resultSection = $('result-section');
+  const errorSection = $('error-section');
+  const result = $('result');
+  const errorOut = $('error-out');
+
+  $('compare').addEventListener('click', function () {
+    const ra = $('a').value.trim();
+    const rb = $('b').value.trim();
+    if (!ra || !rb) { alert('Please paste both JSON documents first.'); return; }
+    try {
+      const a = JSON.parse(ra);
+      const b = JSON.parse(rb);
+      const out = [];
+      diff(a, b, '', out);
+      const stats = {
+        added: out.filter((d) => d.type === 'added').length,
+        removed: out.filter((d) => d.type === 'removed').length,
+        changed: out.filter((d) => d.type === 'changed').length,
+      };
+      $('summary').textContent = stats.added + ' added · ' + stats.removed + ' removed · ' + stats.changed + ' changed';
+      if (out.length === 0) {
+        result.innerHTML = '<p class="text-muted">No differences found — the two documents are structurally identical.</p>';
+      } else {
+        result.innerHTML = out.map((d) => {
+          const lbl = d.type === 'added' ? 'added' : d.type === 'removed' ? 'removed' : 'changed';
+          let val = '';
+          if (d.type === 'added') val = 'value: ' + fmt(d.to);
+          else if (d.type === 'removed') val = 'was: ' + fmt(d.from);
+          else val = 'was: ' + fmt(d.from) + ' → now: ' + fmt(d.to);
+          return '<div class="diff-row"><span class="badge ' + lbl + '">' + lbl + '</span>' +
+                 '<div class="diff-body"><div class="diff-path">' + d.path + '</div>' +
+                 '<div class="diff-val">' + val.replace(/</g, '&lt;') + '</div></div></div>';
+        }).join('');
+      }
+      resultSection.style.display = 'block';
+      errorSection.style.display = 'none';
+    } catch (e) {
+      errorOut.textContent = e.message;
+      errorSection.style.display = 'block';
+      resultSection.style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', function () {
+    $('a').value = JSON.stringify({
+      name: 'Alice',
+      age: 30,
+      email: 'alice@example.com',
+      roles: ['admin', 'editor'],
+      address: { city: 'Paris', zip: 75001 },
+      active: true
+    }, null, 2);
+    $('b').value = JSON.stringify({
+      name: 'Alice',
+      age: 31,
+      email: 'alice@example.com',
+      roles: ['admin'],
+      address: { city: 'Lyon', zip: 69001 },
+      active: false
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', function () {
+    $('a').value = '';
+    $('b').value = '';
+    resultSection.style.display = 'none';
+    errorSection.style.display = 'none';
+  });
+})();
+</script>

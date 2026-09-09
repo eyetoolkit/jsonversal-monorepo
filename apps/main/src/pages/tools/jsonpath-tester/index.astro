@@ -1,0 +1,275 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSONPath Tester';
+const description = 'Test JSONPath expressions against your JSON document. See every match with its path and value, including wildcards and recursive descent.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/jsonpath-tester/"
+  keywords={['JSONPath', 'JSONPath tester', 'JSON path query', 'JSONPath expression', 'query JSON']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input</h2>
+    <label class="text-muted" for="path">JSONPath expression</label>
+    <input id="path" class="path-input" type="text" value="$.store.book[*].title" spellcheck="false" />
+    <label class="text-muted mt-1" for="input">JSON document</label>
+    <textarea id="input" placeholder='&#123; "store": &#123; "book": [&#123; "title": "A" &#125;] &#125; &#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="run">Run query</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="result-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Matches</h2>
+      <span class="token-badge" id="summary">—</span>
+    </div>
+    <div id="result"></div>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>Supported syntax</h2>
+  <ul>
+    <li><code>$</code> — root of the document</li>
+    <li><code>.key</code> / <code>['key']</code> — child by property name</li>
+    <li><code>[0]</code> — array index</li>
+    <li><code>[*]</code> / <code>.*</code> — wildcard over all children</li>
+    <li><code>..name</code> — recursive descent: find <code>name</code> at any depth</li>
+    <li><code>[1:3]</code> — array slice (start:end, end exclusive)</li>
+  </ul>
+
+  <h2>About JSONPath Tester</h2>
+  <p class="text-muted">JSONPath is a query language for extracting data from JSON documents, loosely inspired by XPath for XML. Expressions like <code>$.store.book[*].title</code> let you pull specific values out of deeply nested structures without writing loops — useful for inspecting API responses, configuration files, or any large JSON payload in a shell script or automation.</p>
+  <p class="text-muted">Use this tester to validate and debug expressions before embedding them in code or tooling. This implementation supports the core syntax (child access, wildcards, indices, slices, and recursive descent) but not filter predicates like <code>[?(@.price &gt; 10)]</code> — if you need filtering, run the expression in a full JSONPath library such as jsonpath-plus in your project.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 220px; }
+  .path-input {
+    width: 100%; font-family: var(--font-mono); font-size: .95rem;
+    padding: 10px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  }
+  .token-badge {
+    background: var(--accent); color: #fff; border-radius: 999px;
+    padding: 2px 12px; font-size: .85rem; font-weight: 600;
+  }
+  .match-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); margin-bottom: 6px;
+  }
+  .match-idx { flex: 0 0 auto; font-size: .72rem; font-weight: 700; color: var(--text-dim); margin-top: 2px; }
+  .match-body { min-width: 0; }
+  .match-path { font-family: var(--font-mono); font-size: .82rem; color: var(--accent); word-break: break-all; }
+  .match-val { font-family: var(--font-mono); font-size: .8rem; color: var(--text-muted); word-break: break-all; margin-top: 2px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function isObject(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+
+  // Recursive descent: collect all values that match a key/index/wildcard token at any depth.
+  function descend(node, token, out) {
+    if (isObject(node) || Array.isArray(node)) {
+      const children = Object.entries(node);
+      for (const [k, v] of children) {
+        if (token.type === 'key' && k === token.name) out.push(v);
+        else if (token.type === 'wildcard') out.push(v);
+        else if (token.type === 'index' && Array.isArray(node) && token.i === Number(k)) out.push(v);
+        else if (token.type === 'slice' && Array.isArray(node)) {
+          const i = Number(k);
+          if (i >= token.start && i < token.end) out.push(v);
+        }
+        if (isObject(v) || Array.isArray(v)) descend(v, token, out);
+      }
+    }
+  }
+
+  function tokenize(expr) {
+    const toks = [];
+    if (!expr.startsWith('$')) throw new Error('Expression must start with $');
+    let i = 1;
+    while (i < expr.length) {
+      const c = expr[i];
+      if (c === '.') {
+        i++;
+        if (expr[i] === '.') { toks.push({ type: 'recursive' }); i++; }
+        else if (expr[i] === '*') { toks.push({ type: 'wildcard' }); i++; }
+        else {
+          const m = /^[a-zA-Z_$][a-zA-Z0-9_$]*/.exec(expr.slice(i));
+          if (!m) throw new Error('Invalid property after "." at position ' + i);
+          toks.push({ type: 'key', name: m[0] });
+          i += m[0].length;
+        }
+      } else if (c === '[') {
+        const end = expr.indexOf(']', i);
+        if (end === -1) throw new Error('Missing closing ]');
+        const inner = expr.slice(i + 1, end).trim();
+        if (inner === '*') toks.push({ type: 'wildcard' });
+        else if (/^\d+$/.test(inner)) toks.push({ type: 'index', i: Number(inner) });
+        else if (/^\d+:\d+$/.test(inner)) {
+          const [s, e] = inner.split(':').map(Number);
+          toks.push({ type: 'slice', start: s, end: e });
+        } else if (/^'.*'$/.test(inner) || /^".*"$/.test(inner)) {
+          toks.push({ type: 'key', name: inner.slice(1, -1) });
+        } else {
+          throw new Error('Unsupported token inside []: ' + inner);
+        }
+        i = end + 1;
+      } else {
+        throw new Error('Unexpected character "' + c + '" at position ' + i);
+      }
+    }
+    return toks;
+  }
+
+  function fmt(v) {
+    if (typeof v === 'string') {
+      if (v.length > 70) return JSON.stringify(v.slice(0, 70)) + '…';
+      return JSON.stringify(v);
+    }
+    if (typeof v === 'object' && v !== null) {
+      const s = JSON.stringify(v);
+      return s.length > 120 ? s.slice(0, 120) + '…' : s;
+    }
+    return String(v);
+  }
+
+  const resultSection = $('result-section');
+  const errorSection = $('error-section');
+  const result = $('result');
+  const errorOut = $('error-out');
+
+  $('run').addEventListener('click', function () {
+    const expr = $('path').value.trim();
+    const raw = $('input').value.trim();
+    if (!expr) { alert('Please enter a JSONPath expression.'); return; }
+    if (!raw) { alert('Please paste a JSON document.'); return; }
+    try {
+      const doc = JSON.parse(raw);
+      const toks = tokenize(expr);
+
+      // Apply tokens: when we hit a recursive token, the next token is matched at every depth.
+      let cur = [{ path: '$', node: doc }];
+      for (let t = 0; t < toks.length; t++) {
+        const tok = toks[t];
+        const next = [];
+        if (tok.type === 'recursive') {
+          const nextTok = toks[t + 1];
+          if (!nextTok) throw new Error('Recursive descent ".." must be followed by a key or wildcard');
+          // gather every node at any depth, then match nextTok against each node's children
+          const all = [];
+          (function collect(node) {
+            all.push(node);
+            if (isObject(node) || Array.isArray(node)) {
+              for (const v of Object.values(node)) collect(v);
+            }
+          })(doc);
+          const matched = [];
+          for (const node of all) {
+            if (isObject(node) || Array.isArray(node)) {
+              for (const [k, v] of Object.entries(node)) {
+                if (nextTok.type === 'key' && k === nextTok.name) matched.push({ path: pathOf(doc, node) + '.' + k, node: v });
+                else if (nextTok.type === 'wildcard') matched.push({ path: pathOf(doc, node) + '.*', node: v });
+                else if (nextTok.type === 'index' && Array.isArray(node) && nextTok.i < node.length) matched.push({ path: pathOf(doc, node) + '[' + nextTok.i + ']', node: node[nextTok.i] });
+              }
+            }
+          }
+          next.push(...matched);
+          t++; // consume the key/wildcard token after ".."
+        } else {
+          for (const { path, node } of cur) {
+            if (Array.isArray(node) && tok.type === 'index') {
+              if (tok.i < node.length) next.push({ path: path + '[' + tok.i + ']', node: node[tok.i] });
+            } else if (Array.isArray(node) && tok.type === 'slice') {
+              for (let i = tok.start; i < Math.min(tok.end, node.length); i++) next.push({ path: path + '[' + i + ']', node: node[i] });
+            } else if ((Array.isArray(node) || isObject(node)) && tok.type === 'wildcard') {
+              for (const [k, v] of Object.entries(node)) next.push({ path: path + (Array.isArray(node) ? '[' + k + ']' : '.' + k), node: v });
+            } else if (isObject(node) && tok.type === 'key' && tok.name in node) {
+              next.push({ path: path + '.' + tok.name, node: node[tok.name] });
+            }
+          }
+        }
+        cur = next;
+        if (cur.length === 0) break;
+      }
+
+      $('summary').textContent = cur.length + (cur.length === 1 ? ' match' : ' matches');
+      if (cur.length === 0) {
+        result.innerHTML = '<p class="text-muted">No matches for this expression.</p>';
+      } else {
+        result.innerHTML = cur.map((m, i) =>
+          '<div class="match-row"><span class="match-idx">#' + (i + 1) + '</span>' +
+          '<div class="match-body"><div class="match-path">' + m.path + '</div>' +
+          '<div class="match-val">' + fmt(m.node).replace(/</g, '&lt;') + '</div></div></div>'
+        ).join('');
+      }
+      resultSection.style.display = 'block';
+      errorSection.style.display = 'none';
+
+      function pathOf(doc, target) {
+        // Build a stable path for recursive matches (used before matched entries are constructed).
+        const found = [];
+        (function walk(node, p) {
+          if (found.length) return;
+          if (node === target) { found.push(p); return; }
+          if (isObject(node) || Array.isArray(node)) {
+            for (const [k, v] of Object.entries(node)) {
+              walk(v, p + (Array.isArray(node) ? '[' + k + ']' : '.' + k));
+              if (found.length) return;
+            }
+          }
+        })(doc, '$');
+        return found[0] || '$';
+      }
+    } catch (e) {
+      errorOut.textContent = e.message;
+      errorSection.style.display = 'block';
+      resultSection.style.display = 'none';
+    }
+  });
+
+  $('sample').addEventListener('click', function () {
+    $('path').value = '$.store.book[*].title';
+    $('input').value = JSON.stringify({
+      store: {
+        book: [
+          { title: 'The JSON Way', price: 8.95, category: 'reference' },
+          { title: 'Structured Output', price: 12.99, category: 'ai' },
+          { title: 'Browser Tools', price: 8.99, category: 'web' }
+        ],
+        bicycle: { color: 'red', price: 19.95 }
+      },
+      expensive: 10
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', function () {
+    $('path').value = '';
+    $('input').value = '';
+    resultSection.style.display = 'none';
+    errorSection.style.display = 'none';
+  });
+})();
+</script>
