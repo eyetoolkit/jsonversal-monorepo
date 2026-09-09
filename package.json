@@ -2,6 +2,13 @@
   "name": "jsonversal-monorepo",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@10.11.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  },
   "description": "jsonversal brand matrix monorepo — jsonversal + devops + codegen + sec subdomains",
   "workspaces": [
     "apps/*",
