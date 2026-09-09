@@ -45,6 +45,10 @@ const description = 'Decode any JSON Web Token and inspect its header, payload, 
     <li>This tool does <strong>not</strong> verify the JWT signature. It only decodes Base64URL parts.</li>
     <li>Never paste production tokens into shared chat rooms or support tickets.</li>
   </ul>
+
+  <h2>About JWT Decoder</h2>
+  <p class="text-muted">A JSON Web Token (JWT) is a compact, URL-safe token made of three dot-separated parts: the header (signing algorithm and token type), the payload (claims such as sub, exp, iss, and custom fields), and the signature used to verify integrity. This decoder reads the header and payload after Base64URL-decoding each part and formats timestamps like iat and exp into human-readable dates. That makes it a quick way to inspect what a token actually contains without setting up a full verification pipeline.</p>
+  <p class="text-muted">Decode JWTs when you are debugging SSO or OAuth flows, checking whether a token has expired, or confirming which claims a service receives. Keep in mind that decoding is not verifying: this tool does not validate the signature, so an attacker can forge a token with any claims. Never base authorization decisions on the content of a token whose signature you have not verified, and avoid pasting production tokens into chat tools or support tickets.</p>
 </BaseLayout>
 
 

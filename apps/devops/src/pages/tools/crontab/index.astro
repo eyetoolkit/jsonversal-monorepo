@@ -46,6 +46,10 @@ const description = 'Translate a crontab expression into human-readable schedule
     <li><code>-</code> — range (e.g. <code>1-5</code>)</li>
     <li>Dow: 0/7 = Sun, 1 = Mon, … 6 = Sat</li>
   </ul>
+
+  <h2>About Crontab Explainer</h2>
+  <p class="text-muted">A crontab expression describes a repeating schedule with five whitespace-separated fields: minute, hour, day of month, month, and day of week, with a sixth field adding seconds in some implementations. Wildcards, lists, ranges, and step values let you express anything from a nightly backup to a quarterly report run. This explainer parses the expression, shows what each field means, and lists the next ten times the job will fire.</p>
+  <p class="text-muted">Use it when you are troubleshooting scheduled jobs: jobs that never run, run at the wrong time, or run more often than expected are usually explained by a subtle field mistake. Note that cron interprets times in the local timezone of the daemon rather than the user's, and on most systems there is no per-job timezone field without extensions like CRON_TZ. Also remember that shorthands such as @daily, @hourly, or @reboot are convenience strings supported by cronie and Vixie cron, not part of the standard five-field format.</p>
 </BaseLayout>
 
 <script is:inline client:load>

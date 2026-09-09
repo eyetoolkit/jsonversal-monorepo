@@ -45,6 +45,10 @@ const description = 'Encode any text to Base64, or decode Base64 back to text. S
     <li>Standard Base64 uses <code>+</code>, <code>/</code>, <code>=</code>. URL-safe replaces them with <code>-</code>, <code>_</code> and drops padding.</li>
     <li>Supports Unicode text via UTF-8 encoding.</li>
   </ul>
+
+  <h2>About Base64 Encoder / Decoder</h2>
+  <p class="text-muted">Base64 is an encoding that converts arbitrary binary data into a safe ASCII representation using a 64-character alphabet (A–Z, a–z, 0–9, plus + and /) with = padding. It is not compression: the output is roughly 33% larger than the original bytes, but it guarantees that data survives transport through text-only channels. This tool encodes text as UTF-8 and decodes Base64 back to the original string.</p>
+  <p class="text-muted">Reach for Base64 when you must embed or transmit binary data inside text-based protocols: email attachments, data URIs in HTML and CSS, or binary blobs in JSON fields. The URL-safe variant replaces + and / with - and _ and strips the = padding, so the output can appear safely in URLs, query strings, and filenames. Remember that Base64 is an encoding, not encryption — anyone can decode it, so never rely on it to protect secrets or passwords.</p>
 </BaseLayout>
 
 

@@ -66,6 +66,10 @@ if (result.success) &#123;
 &#125; else &#123;
   console.error(result.error.format());
 &#125;</pre>
+
+  <h2>About JSON to Zod Schema</h2>
+  <p class="text-muted">Zod is a TypeScript-first schema declaration and validation library that checks your data at runtime and infers types at compile time. Because JSON carries no type information beyond its values, inferring a Zod schema from a JSON sample gives you a fast starting point instead of handwriting validators by hand. This tool performs that inference and outputs a schema you can drop straight into your project.</p>
+  <p class="text-muted">Use it when you receive data from an external API, a database, or an LLM and want runtime guarantees about its shape. Remember that the inferred schema is only as good as your sample: if the sample is incomplete — missing optional fields, empty arrays, or null values — the generated schema may be too narrow or too wide, so review and adjust it before relying on it in production.</p>
 </BaseLayout>
 
 <style>

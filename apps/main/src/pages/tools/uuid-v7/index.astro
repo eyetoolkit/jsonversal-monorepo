@@ -58,6 +58,10 @@ const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and deco
     <li>Message and job IDs that correlate with when they were created.</li>
     <li>Migrating away from v4 when ordering or recency matters.</li>
   </ul>
+
+  <h2>About UUID v7</h2>
+  <p class="text-muted">UUID v7 is a time-ordered UUID format standardized in RFC 9562: the first 48 bits carry a millisecond timestamp, and the remaining bits are random, with fixed version and variant bits. Unlike random v4 UUIDs, v7 values increase over time, so they sort chronologically and play much better with B-tree indexes in databases — avoiding the page splits and cache misses that random keys cause. This tool generates v7 UUIDs in bulk and decodes the embedded timestamp back to a readable date.</p>
+  <p class="text-muted">Reach for v7 when you need primary keys or IDs that benefit from insertion-order sorting — database tables, event logs, message queues, and job IDs — especially when you are migrating away from v4. One caveat: the timestamp has millisecond precision, so IDs generated within the same millisecond are not strictly monotonic; if you need exact ordering, add a sequence or use v7's optional counter bits. The generator runs entirely in your browser using the Web Crypto API, so no data leaves your machine.</p>
 </BaseLayout>
 
 <script is:inline>

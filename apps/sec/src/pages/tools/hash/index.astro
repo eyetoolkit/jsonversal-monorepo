@@ -37,6 +37,10 @@ const description = 'Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text o
     <li>All processing uses the browser's <code>SubtleCrypto</code> API (SHA) and a bundled MD5 implementation.</li>
     <li>Nothing is uploaded.</li>
   </ul>
+
+  <h2>About Hash Generator</h2>
+  <p class="text-muted">A hash function maps data of any size to a fixed-length digest, and it is one-way: you cannot recover the original input from its output. This tool computes MD5, SHA-1, SHA-256, SHA-384, and SHA-512 digests so you can compare files, verify downloads, or check data integrity. SHA-256 and SHA-512 are the current cryptographic standards, while MD5 and SHA-1 are considered broken for security-sensitive uses.</p>
+  <p class="text-muted">Use a hash when you need integrity verification — for example, confirming that a downloaded file matches its published checksum. Never rely on MD5 or SHA-1 to protect passwords or sign data, and choose SHA-256 or SHA-512 for any new system. Note that a hash proves data was not accidentally corrupted, but it does not authenticate who the data came from.</p>
 </BaseLayout>
 
 <script is:inline>

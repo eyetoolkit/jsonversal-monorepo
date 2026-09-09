@@ -30,6 +30,13 @@ const pageTitle = title ? `${title} | ${t.name}` : seo.title;
 const pageDesc = description || seo.description;
 const pageUrl = canonical || seo.canonical;
 const pageKeywords = keywords?.join(', ') || seo.keywords;
+
+// 品牌 favicon —— 深色圆角底 + accent 色花括号（JSON 标识），按子站色彩差异化
+const faviconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='#0b0d12'/><text x='32' y='44' font-family='ui-monospace,Menlo,Consolas,monospace' font-size='30' font-weight='700' text-anchor='middle' fill='${t.accent}'>{ }</text></svg>`;
+const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
+
+// Cloudflare Web Analytics —— 通过 PUBLIC_CF_WEB_ANALYTICS_TOKEN 注入，未配置则不输出
+const cfAnalyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN;
 ---
 
 <!doctype html>
@@ -57,8 +64,9 @@ const pageKeywords = keywords?.join(', ') || seo.keywords;
     {/* Theme color 按子站差异化 */}
     <meta name="theme-color" content={t.accent} />
 
-    {/* favicon 占位 */}
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E{t.emoji}%3C/text%3E%3C/svg%3E" />
+    {/* favicon —— 品牌 SVG（按子站 accent 色） */}
+    <link rel="icon" href={faviconHref} />
+    <link rel="apple-touch-icon" href={faviconHref} />
 
     {/* Cloudflare Web Analytics —— 占位 id 由子站覆盖 */}
     <slot name="head" />
@@ -71,9 +79,9 @@ const pageKeywords = keywords?.join(', ') || seo.keywords;
     <Footer site={site} />
     <ConsentBanner />
 
-    {/* Cloudflare Insights beacon —— 在子站 base 配置里替换为实际 token */}
-    <script is:inline>
-      // placeholder for Cloudflare beacon
-    </script>
+    {/* Cloudflare Web Analytics beacon —— 配置 PUBLIC_CF_WEB_ANALYTICS_TOKEN 后自动注入 */}
+    {cfAnalyticsToken && (
+      <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={`{"token": "${cfAnalyticsToken}", "spa": true}`} />
+    )}
   </body>
 </html>

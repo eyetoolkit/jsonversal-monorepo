@@ -88,6 +88,10 @@ const description = 'Build a strict Content-Security-Policy header by toggling w
       <button class="ghost" id="copy-full">Copy HTTP header</button>
     </div>
   </section>
+
+  <h2>About Content-Security-Policy Generator</h2>
+  <p class="text-muted">Content-Security-Policy (CSP) is an HTTP response header that tells the browser which sources of scripts, styles, images, and other resources are allowed to load. It is one of the most effective defenses against cross-site scripting (XSS) because it blocks inline scripts and unauthorized origins before they can execute. Directives such as script-src, style-src, and img-src define the allow-list for each resource type.</p>
+  <p class="text-muted">Use this generator to build a policy for a new site, or to tighten an existing one by removing 'unsafe-inline' and 'unsafe-eval'. Start with a report-only policy (Content-Security-Policy-Report-Only) and review the violation reports before switching to enforce mode, so you do not break legitimate functionality. Keep the allow-list as narrow as possible — the stricter the policy, the stronger the protection.</p>
 </BaseLayout>
 
 <script is:inline>

@@ -48,6 +48,10 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
 
   <h2>How it works</h2>
   <p>All parsing happens locally in your browser. Nothing is uploaded.</p>
+
+  <h2>About YAML to JSON Converter</h2>
+  <p class="text-muted">YAML and JSON are closely related data formats: since YAML 1.2, YAML is a strict superset of JSON, so any valid JSON document is also valid YAML. This converter lets you move between the two without losing data, translating YAML's indentation-based blocks into JSON's braces and brackets and back again. It is especially handy when you receive a YAML config file but your pipeline, API, or database expects JSON.</p>
+  <p class="text-muted">Use YAML when humans will hand-edit the file, such as Kubernetes manifests, CI/CD pipelines, or Docker Compose, and use JSON when machines exchange data over HTTP or store it in documents. When converting, watch for YAML-only features that cannot round-trip: anchors and aliases are not representable in JSON, and YAML's type inference can turn unquoted values like yes, on, or 0123 into booleans or numbers. Quote strings explicitly to keep them as text.</p>
 </BaseLayout>
 
 <script is:inline client:load>

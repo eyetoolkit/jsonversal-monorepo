@@ -48,6 +48,10 @@ const description = 'Test a regular expression against sample input, highlight m
     <li><code>^</code> start · <code>$</code> end · <code>[abc]</code> char class · <code>[^abc]</code> negated</li>
     <li><code>(x)</code> group · <code>(?:x)</code> non-capturing · <code>x|y</code> or</li>
   </ul>
+
+  <h2>About Regex Visualizer</h2>
+  <p class="text-muted">A regular expression (regex) is a compact pattern language for describing text: character classes, quantifiers, anchors, alternation, and capture groups combine to match everything from email addresses to log lines. This visualizer runs your pattern against sample input, highlights every match, and shows what each capture group captured so you can see exactly how the engine interprets the pattern.</p>
+  <p class="text-muted">Reach for regex when you need text validation, log parsing, extraction, or search-and-replace in scripts and code. Be careful with greedy quantifiers like .* which consume as much as possible — add ? to make them lazy when needed. Also mind the risks: patterns with nested quantifiers can cause catastrophic backtracking (ReDoS) on untrusted input, and different engines differ in features, so a pattern using lookaheads or backreferences may work in PCRE or JavaScript but not in RE2, Go, or MySQL.</p>
 </BaseLayout>
 
 

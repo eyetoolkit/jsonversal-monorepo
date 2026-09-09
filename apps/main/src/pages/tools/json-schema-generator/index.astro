@@ -103,6 +103,9 @@ message = client.messages.create(
         &#125;
     &#125;,
 )</pre>
+  <h2>About JSON Schema Generator</h2>
+  <p class="text-muted">JSON Schema is a declarative format that describes the structure of JSON data — which fields are required, what types they have, and how nested objects are shaped. It plays a central role in LLM structured output: providers like OpenAI and Anthropic accept a JSON Schema in their response format or function-calling APIs to force the model to return valid, predictable JSON. This generator builds such a schema from simple field definitions.</p>
+  <p class="text-muted">Use it whenever you need reliable JSON back from a language model — for example, turning free-form responses into typed data your code can parse without error handling. A few notes: keep the schema strict but minimal (overly complex schemas can hurt model compliance), mark genuinely optional fields as optional, and test your schema with the built-in validator before deploying it in production.</p>
 </BaseLayout>
 
 <style>

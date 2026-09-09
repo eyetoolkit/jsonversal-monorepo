@@ -4,24 +4,6 @@ import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
   {
-    title: 'UUID v7 Generator & Timestamp Decoder',
-    description: 'Generate RFC 9562 UUID v7 in bulk and decode the embedded timestamp.',
-    href: '/tools/uuid-v7/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON to TypeScript Interface',
-    description: 'Generate type-safe TypeScript interfaces from JSON.',
-    href: '/tools/json-to-typescript/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON to Zod Schema',
-    description: 'Infer a Zod validation schema from a JSON sample.',
-    href: '/tools/json-to-zod/',
-    status: 'live' as const,
-  },
-  {
     title: 'LLM Token & Pricing Calculator',
     description: 'Estimate tokens and cost across GPT, Claude, Llama and Gemini.',
     href: '/tools/llm-token-calculator/',
@@ -33,13 +15,31 @@ const tools = [
     href: '/tools/json-schema-generator/',
     status: 'live' as const,
   },
+  {
+    title: 'JSON to Zod Schema',
+    description: 'Infer a Zod validation schema from a JSON sample.',
+    href: '/tools/json-to-zod/',
+    status: 'live' as const,
+  },
+  {
+    title: 'JSON to TypeScript Interface',
+    description: 'Generate type-safe TypeScript interfaces from JSON.',
+    href: '/tools/json-to-typescript/',
+    status: 'live' as const,
+  },
+  {
+    title: 'UUID v7 Generator & Timestamp Decoder',
+    description: 'Generate RFC 9562 UUID v7 in bulk and decode the embedded timestamp.',
+    href: '/tools/uuid-v7/',
+    status: 'live' as const,
+  },
 ];
 ---
 
 <BaseLayout site="main" current="/">
-  <h1>Fast, free developer tools that run in your browser.</h1>
+  <h1>JSON & LLM developer tools that run in your browser.</h1>
   <p class="text-muted">
-    No signup, no upload, no accounts. Every tool on jsonversal runs 100% on your device — your data never leaves your browser.
+    No signup, no upload, no accounts. Every tool on jsonversal runs 100% on your device — paste JSON, infer schemas, count LLM tokens, and estimate API costs without your data ever leaving your browser.
   </p>
 
   <h2>Tools</h2>

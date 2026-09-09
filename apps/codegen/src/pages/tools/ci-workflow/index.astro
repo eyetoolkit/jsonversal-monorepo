@@ -64,6 +64,10 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       <button class="ghost" id="download">Download ci.yml</button>
     </div>
   </section>
+
+  <h2>About GitHub Actions Workflow Scaffold</h2>
+  <p class="text-muted">A GitHub Actions workflow is a YAML file that automates tasks in response to repository events, wiring together an on trigger, jobs that run on runners, and the steps each job executes. This scaffold generates a standard CI pipeline that installs dependencies, lints, tests, and builds on every push or pull request.</p>
+  <p class="text-muted">Use it from day one of a project so regressions are caught before merge, and test against a matrix of supported language versions to avoid "works on my machine" surprises. Keep permissions minimal — request read-only GITHUB_TOKEN scopes where possible and store credentials as encrypted secrets rather than plain text in the YAML file.</p>
 </BaseLayout>
 
 <script is:inline>

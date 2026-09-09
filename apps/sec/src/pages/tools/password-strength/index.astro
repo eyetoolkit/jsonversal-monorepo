@@ -32,6 +32,10 @@ const description = 'Score any password and get actionable hints. Checks length,
     <strong>Details</strong>
     <div id="details" class="mt-2">—</div>
   </section>
+
+  <h2>About Password Strength Analyzer</h2>
+  <p class="text-muted">Password strength is a measure of how hard it is for an attacker to guess or crack a password, usually estimated from length, character diversity, and entropy. This analyzer scores passwords by combining those factors with checks for repeated characters and common weak substrings such as "1234" or "qwerty". Longer and more random passwords score higher because each additional character multiplies the number of possible combinations.</p>
+  <p class="text-muted">Use this tool to sanity-check a password before choosing it, or to understand why simple substitutions like "P@ssw0rd" are still weak. Keep in mind that a high score is not a guarantee of safety — real strength depends on whether the password appears in breach dictionaries, which no pattern check can fully cover. Prioritize length over complexity, since a long passphrase is almost always stronger than a short password padded with symbols.</p>
 </BaseLayout>
 
 <script is:inline>

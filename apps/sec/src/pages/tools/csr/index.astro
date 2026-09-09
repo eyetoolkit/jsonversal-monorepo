@@ -30,6 +30,10 @@ MIIF...
     <li>Uses WebCrypto <code>crypto.subtle.importKey</code> to parse public key + custom DER parser for subject/SANs.</li>
     <li>This is a best-effort decoder — for exact output always use OpenSSL: <code>openssl req -in csr.pem -text -noout</code>.</li>
   </ul>
+
+  <h2>About Certificate Signing Request Decoder</h2>
+  <p class="text-muted">A Certificate Signing Request (CSR) is a PKCS#10 message that a certificate authority uses to issue an X.509 TLS certificate. It contains the subject (such as the common name), subject alternative names (SANs), and the public key that will be bound to the certificate. This tool decodes those fields so you can inspect a CSR before submitting it to a CA.</p>
+  <p class="text-muted">Generate and verify a CSR whenever you are about to apply for a TLS certificate, for example with openssl req -new. The private key is never included in a CSR — if a file claims to contain it, treat that as a red flag. After the certificate is issued, keep the private key safe on the server and never send it to the certificate authority or anyone else.</p>
 </BaseLayout>
 
 <script is:inline>
