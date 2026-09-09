@@ -1,0 +1,169 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'RSA Key Pair Generator';
+const description = 'Generate RSA key pairs (2048/3072/4096-bit) in your browser with Web Crypto, view PEM output, and encrypt/decrypt text. Private keys never leave your device.';
+---
+
+<BaseLayout
+  site="sec"
+  title={title}
+  description={description}
+  canonical="https://sec.jsonversal.com/tools/rsa-keygen/"
+  keywords={['RSA key generator', 'RSA key pair', 'PEM', 'public key', 'private key', 'RSA-OAEP']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Generate key pair</h2>
+    <div class="row">
+      <label class="text-muted" for="bits">Modulus length</label>
+      <select id="bits">
+        <option value="2048" selected>2048 bits</option>
+        <option value="3072">3072 bits</option>
+        <option value="4096">4096 bits</option>
+      </select>
+      <button class="primary" id="gen">Generate key pair</button>
+    </div>
+    <div class="text-dim" id="gen-status" style="font-size:.85rem;margin-top:8px;"></div>
+  </section>
+
+  <section class="card mt-2" id="keys-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">PEM output</h2>
+      <div class="row" style="gap:8px;">
+        <button class="ghost" id="copy-pub">Copy public</button>
+        <button class="ghost" id="copy-priv">Copy private</button>
+      </div>
+    </div>
+    <label class="text-muted">Public key (SPKI)</label>
+    <pre id="pub" class="mt-1">—</pre>
+    <label class="text-muted mt-2">Private key (PKCS#8)</label>
+    <pre id="priv" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="crypto-section" style="display:none;">
+    <h2 style="margin-top:0;">Encrypt / Decrypt with the generated pair</h2>
+    <textarea id="plain" placeholder="Message to encrypt with the public key (RSA-OAEP, SHA-256). RSA can only encrypt small messages — a few hundred bytes at most."></textarea>
+    <div class="row mt-1">
+      <button class="ghost" id="encrypt">Encrypt</button>
+      <button class="ghost" id="decrypt">Decrypt</button>
+      <button class="ghost" id="copy-cipher">Copy ciphertext</button>
+    </div>
+    <textarea id="cipher" class="mt-2" placeholder="Base64 ciphertext from the Encrypt step."></textarea>
+    <div id="crypto-err" class="mt-1" style="color:var(--danger);display:none;"></div>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>Generate</strong> creates an RSA-OAEP key pair using <code>crypto.subtle.generateKey</code> — a pure software operation, fully local.</li>
+    <li>The public key is exported as SubjectPublicKeyInfo (SPKI) PEM, the private key as PKCS#8 PEM.</li>
+    <li><strong>Encrypt</strong> signs with the public key; <strong>Decrypt</strong> reverses it with the private key, using RSA-OAEP with SHA-256.</li>
+    <li>RSA-OAEP is limited to small payloads (roughly modulus length / 8 minus overhead — about 190 bytes at 2048 bits), so use it for keys and short secrets, not large files.</li>
+  </ul>
+
+  <h2>About RSA Key Pair Generator</h2>
+  <p class="text-muted">RSA remains one of the most widely supported asymmetric algorithms: a <em>public key</em> encrypts or verifies, and the matching <em>private key</em> decrypts or signs. Generating a pair locally means the private key is created and exported on your machine — it is never transmitted, and you are in control of storing it (and ideally protecting it with a passphrase) yourself.</p>
+  <p class="text-muted">For exchanging secrets, RSA is almost always used to wrap a symmetric key (hybrid encryption) rather than encrypt data directly, because of the small payload limit. For new designs, ECDH or ECDSA with P-256/384 are more efficient and give equivalent strength with smaller keys — this tool exists for interop with existing systems, key stores, and OpenSSL-based workflows. Keep the private key private: anyone holding it can decrypt anything encrypted to your public key.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 110px; }
+  pre { min-height: 90px; max-height: 240px; overflow: auto; font-size: .78rem; white-space: pre-wrap; word-break: break-all; }
+  .mt-2 { margin-top: 16px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+  let publicKey = null, privateKey = null;
+
+  function bufToB64(buf) {
+    let bin = '';
+    const bytes = new Uint8Array(buf);
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64ToBuf(b64) {
+    const bin = atob(b64.replace(/\s+/g, ''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+  function pem(type, b64) {
+    const lines = b64.match(/.{1,64}/g) || [];
+    return '-----BEGIN ' + type + ' KEY-----\n' + lines.join('\n') + '\n-----END ' + type + ' KEY-----';
+  }
+
+  $('gen').addEventListener('click', async () => {
+    const bits = parseInt($('bits').value, 10);
+    const status = $('gen-status');
+    status.textContent = 'Generating… this can take a few seconds.';
+    try {
+      const pair = await crypto.subtle.generateKey(
+        { name: 'RSA-OAEP', modulusLength: bits, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      publicKey = pair.publicKey;
+      privateKey = pair.privateKey;
+      const spki = await crypto.subtle.exportKey('spki', publicKey);
+      const pkcs8 = await crypto.subtle.exportKey('pkcs8', privateKey);
+      $('pub').textContent = pem('PUBLIC', bufToB64(spki));
+      $('priv').textContent = pem('PRIVATE', bufToB64(pkcs8));
+      $('keys-section').style.display = 'block';
+      $('crypto-section').style.display = 'block';
+      status.textContent = `Generated ${bits}-bit RSA key pair.`;
+    } catch (e) {
+      status.textContent = 'Generation failed: ' + e.message;
+    }
+  });
+
+  $('encrypt').addEventListener('click', async () => {
+    const plain = $('plain').value;
+    $('crypto-err').style.display = 'none';
+    if (!publicKey) { $('crypto-err').textContent = 'Generate a key pair first.'; $('crypto-err').style.display = 'block'; return; }
+    try {
+      const enc = await crypto.subtle.encrypt(
+        { name: 'RSA-OAEP' },
+        publicKey,
+        new TextEncoder().encode(plain)
+      );
+      $('cipher').value = bufToB64(enc);
+    } catch (e) {
+      $('crypto-err').textContent = 'Encryption failed: ' + e.message;
+      $('crypto-err').style.display = 'block';
+    }
+  });
+
+  $('decrypt').addEventListener('click', async () => {
+    $('crypto-err').style.display = 'none';
+    if (!privateKey) { $('crypto-err').textContent = 'Generate a key pair first.'; $('crypto-err').style.display = 'block'; return; }
+    const cipher = $('cipher').value.trim();
+    if (!cipher) { $('crypto-err').textContent = 'Paste base64 ciphertext first.'; $('crypto-err').style.display = 'block'; return; }
+    try {
+      const dec = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, privateKey, b64ToBuf(cipher));
+      $('plain').value = new TextDecoder().decode(dec);
+    } catch (e) {
+      $('crypto-err').textContent = 'Decryption failed — wrong key or corrupt ciphertext: ' + e.message;
+      $('crypto-err').style.display = 'block';
+    }
+  });
+
+  $('copy-pub').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('pub').textContent); $('copy-pub').textContent = 'Copied!'; setTimeout(() => { $('copy-pub').textContent = 'Copy public'; }, 1200); } catch {}
+  });
+  $('copy-priv').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('priv').textContent); $('copy-priv').textContent = 'Copied!'; setTimeout(() => { $('copy-priv').textContent = 'Copy private'; }, 1200); } catch {}
+  });
+  $('copy-cipher').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('cipher').value); $('copy-cipher').textContent = 'Copied!'; setTimeout(() => { $('copy-cipher').textContent = 'Copy ciphertext'; }, 1200); } catch {}
+  });
+})();
+</script>

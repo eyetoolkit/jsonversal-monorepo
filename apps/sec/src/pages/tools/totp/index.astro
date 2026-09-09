@@ -1,0 +1,206 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'TOTP Authenticator Code Generator';
+const description = 'Generate time-based one-time passcodes (RFC 6238) from a Base32 secret, with a live countdown and code verification. Runs locally with Web Crypto.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://sec.jsonversal.com/tools/totp/"
+  keywords={['totp', 'authenticator', 'one-time password', '2fa', 'rfc 6238', 'verification code']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Generate code</h2>
+    <label class="text-muted">Base32 secret</label>
+    <input id="secret" type="text" placeholder="e.g. JBSWY3DPEHPK3PXP" />
+    <label class="text-muted" style="margin-top:12px;">Issuer / account (optional)</label>
+    <input id="label" type="text" placeholder="e.g. GitHub (alice@example.com)" />
+    <div class="row mt-2">
+      <button class="primary" id="gen">Generate</button>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Current code</strong>
+    <div id="result" class="mt-2" style="display:none;">
+      <div class="text-dim" id="label-out" style="font-size:.875rem;"></div>
+      <div id="code" class="mt-1"></div>
+      <div class="text-muted mt-2">Expires in <span id="countdown">30</span> seconds</div>
+      <div style="max-width:320px;height:6px;background:var(--surface-alt);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-top:8px;">
+        <div id="bar" style="height:100%;width:100%;background:var(--accent);transition:width 1s linear;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Verify</strong>
+    <label class="text-muted" style="margin-top:12px;">6-digit code</label>
+    <input id="v-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+    <div class="row mt-2">
+      <button class="ghost" id="verify">Verify</button>
+    </div>
+    <div id="v-result" class="mt-2" style="display:none;"></div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Error</strong>
+    <div id="err" class="mt-2" style="display:none;"></div>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The secret is decoded from Base32 (RFC 4648) into raw bytes — spaces and hyphens are ignored, and lowercase is accepted.</li>
+    <li>The current Unix time is divided into 30-second steps; the step number becomes an 8-byte big-endian counter.</li>
+    <li>HMAC-SHA1 is computed over that counter with the decoded secret, then a 31-bit number is extracted from the digest (dynamic truncation) and reduced modulo 1,000,000 to give the 6-digit code.</li>
+    <li>The countdown shows how long the displayed code stays valid; the code is recomputed every second with Web Crypto, entirely in your browser.</li>
+  </ul>
+
+  <h2>About TOTP</h2>
+  <p class="text-muted">TOTP (Time-based One-Time Password) is a one-time password derived from a shared secret and the current time, standardized in RFC 6238. It is built on the same HMAC-SHA1 construction as HOTP (RFC 4226), but instead of a moving event counter it uses a 30-second time step as the moving factor, so each code is valid only for that window. The code is the low 6 digits of a dynamically truncated HMAC-SHA1 over the time-step counter — change the secret or the time, and the code changes completely.</p>
+  <p class="text-muted">Use TOTP for two-factor authentication (2FA) — authenticator apps such as Google Authenticator, 1Password, and Authy all speak TOTP — and for any service where a shared secret can be provisioned safely, including password-manager accounts. Because the code depends on time, the device must keep its clock synchronized: if codes keep failing, check the system time before suspecting the secret. The Base32 secret is the root of trust: provision it over a trusted channel, back it up securely (for example, as a recovery code), and treat it like a password — anyone who obtains it can generate every future code. Real-world verifiers often accept ±1 step to absorb clock drift; this page checks only the current step.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #err { color: var(--danger); }
+  #code { font-family: var(--font-mono); font-size: 3rem; font-weight: 700; color: var(--accent); letter-spacing: .12em; line-height: 1.2; }
+  :global(.token-badge) {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+  }
+  :global(.token-badge.ok) {
+    background: rgba(34, 197, 94, .15);
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+  :global(.token-badge.fail) {
+    background: rgba(239, 68, 68, .15);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+  const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+  // RFC 4648 Base32 decode — ignores spaces/hyphens, accepts lowercase
+  function base32Decode(str) {
+    const clean = str.toUpperCase().replace(/[\s-]/g, '');
+    if (!clean) throw new Error('Please enter a Base32 secret.');
+    if (clean.length === 1) throw new Error('Invalid Base32 secret: too short.');
+    const bytes = [];
+    let bits = 0, value = 0;
+    for (const ch of clean) {
+      const idx = B32.indexOf(ch);
+      if (idx === -1) throw new Error('Invalid Base32 character: "' + ch + '" — expected A–Z or 2–7.');
+      value = (value << 5) | idx;
+      bits += 5;
+      if (bits >= 8) {
+        bytes.push((value >>> (bits - 8)) & 0xff);
+        bits -= 8;
+      }
+    }
+    return new Uint8Array(bytes);
+  }
+
+  // RFC 6238: HMAC-SHA1 over an 8-byte big-endian counter, dynamic truncation
+  async function totpFor(keyBytes, step) {
+    const counter = new Uint8Array(8);
+    let c = step;
+    for (let i = 7; i >= 0; i--) {
+      counter[i] = c & 0xff;
+      c = Math.floor(c / 256);
+    }
+    const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', key, counter));
+    const offset = hmac[19] & 0x0f;
+    const bin = ((hmac[offset] & 0x7f) << 24) | (hmac[offset + 1] << 16) | (hmac[offset + 2] << 8) | hmac[offset + 3];
+    return String(bin % 1000000).padStart(6, '0');
+  }
+
+  let keyBytes = null;
+  let timer = null;
+
+  function stopTimer() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+
+  async function refresh() {
+    if (!keyBytes) return;
+    const nowSec = Math.floor(Date.now() / 1000);
+    const remaining = 30 - (nowSec % 30);
+    $('countdown').textContent = remaining;
+    $('bar').style.width = ((remaining / 30) * 100) + '%';
+    try {
+      $('code').textContent = await totpFor(keyBytes, Math.floor(nowSec / 30));
+    } catch (e) {
+      stopTimer();
+      $('err').textContent = 'Error: ' + e.message;
+      $('err').style.display = 'block';
+    }
+  }
+
+  $('gen').addEventListener('click', async () => {
+    const secret = $('secret').value.trim();
+    const err = $('err');
+    err.style.display = 'none';
+    if (!secret) { alert('Please enter a Base32 secret.'); return; }
+
+    let bytes;
+    try {
+      bytes = base32Decode(secret);
+    } catch (e) {
+      err.textContent = e.message;
+      err.style.display = 'block';
+      return;
+    }
+    keyBytes = bytes;
+
+    const label = $('label').value.trim();
+    $('label-out').textContent = label;
+    $('label-out').style.display = label ? 'block' : 'none';
+
+    $('result').style.display = 'block';
+    stopTimer();
+    await refresh();
+    timer = setInterval(refresh, 1000);
+  });
+
+  $('verify').addEventListener('click', async () => {
+    const secret = $('secret').value.trim();
+    const code = $('v-code').value.trim();
+    const err = $('err');
+    const vOut = $('v-result');
+    err.style.display = 'none';
+    vOut.style.display = 'none';
+
+    if (!secret) { alert('Please enter the Base32 secret first.'); return; }
+    if (!/^\d{6}$/.test(code)) { alert('Please enter a 6-digit verification code.'); return; }
+
+    let bytes;
+    try {
+      bytes = base32Decode(secret);
+    } catch (e) {
+      err.textContent = e.message;
+      err.style.display = 'block';
+      return;
+    }
+    try {
+      const expected = await totpFor(bytes, Math.floor(Date.now() / 1000 / 30));
+      vOut.innerHTML = expected === code
+        ? '<span class="token-badge ok">✓ Match — the code is valid for this secret</span>'
+        : '<span class="token-badge fail">✗ No match — wrong code or secret</span>';
+      vOut.style.display = 'block';
+    } catch (e) {
+      err.textContent = 'Error: ' + e.message;
+      err.style.display = 'block';
+    }
+  });
+})();
+</script>

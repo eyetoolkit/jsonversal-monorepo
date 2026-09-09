@@ -1,0 +1,211 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON to Go Struct';
+const description = 'Convert a JSON sample into a ready-to-use Go struct with json tags. Handles nested structs, slices, unions, and null fields. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-to-go/"
+  keywords={['JSON to Go', 'Go struct generator', 'Go json tags', 'json to golang', 'struct generator']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input JSON</h2>
+    <textarea id="input" spellcheck="false" placeholder='&#123;&#10;  "id": 42,&#10;  "name": "Alice",&#10;  "email": "alice@example.com",&#10;  "active": true,&#10;  "roles": ["admin", "editor"]&#10;&#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="convert">Convert to Go Struct</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Go Struct</h2>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste any valid JSON — the struct definition is inferred from the values: numbers, strings, booleans, arrays, and nested objects.</li>
+    <li>Whole numbers become <code>int64</code>, decimals become <code>float64</code>, and <code>null</code> becomes <code>interface{}</code>.</li>
+    <li>Arrays of objects become <code>[]Type</code> slices; arrays of mixed values become <code>[]interface{}</code>.</li>
+    <li>Every field gets a Go field name and a <code>json:"..."</code> tag matching the original key.</li>
+  </ul>
+
+  <h2>Type mapping rules</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>JSON value</th><th>Go type</th></tr></thead>
+    <tbody>
+      <tr><td><code>42</code></td><td><code>int64</code></td></tr>
+      <tr><td><code>3.14</code></td><td><code>float64</code></td></tr>
+      <tr><td><code>"hello"</code></td><td><code>string</code></td></tr>
+      <tr><td><code>true</code> / <code>false</code></td><td><code>bool</code></td></tr>
+      <tr><td><code>null</code></td><td><code>interface{}</code></td></tr>
+      <tr><td><code>[1, 2, 3]</code></td><td><code>[]int64</code></td></tr>
+      <tr><td><code>[&#123;...&#125;, &#123;...&#125;]</code></td><td><code>[]Type</code></td></tr>
+      <tr><td><code>&#123;"a": 1&#125;</code></td><td><code>struct</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>About JSON to Go Struct</h2>
+  <p class="text-muted">Go&rsquo;s <code>encoding/json</code> needs explicit struct types, and writing them by hand for a large API payload is slow and error-prone. This tool infers the struct skeleton from a representative JSON sample and emits idiomatic fields with <code>json</code> tags, so the decoder maps keys correctly even when Go field names differ. Nested objects become nested structs and arrays of objects become slices of structs.</p>
+  <p class="text-muted">Inferred output reflects only the sample: fields that are absent from the sample will be missing from the struct, and optional fields that happen to hold <code>null</code> become <code>interface{}</code>. After generating, review the result, add <code>omitempty</code> where you want zero values skipped, and consider <code>json.RawMessage</code> for polymorphic fields. The tool runs fully locally — paste production payloads safely.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 180px; }
+  pre { min-height: 80px; max-height: 520px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); }
+  th { background: var(--surface-alt); color: var(--text-muted); }
+  td code { background: none; border: none; padding: 0; font-size: .85rem; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const defs = [];
+
+  function pascal(s) {
+    return s.replace(/[^a-zA-Z0-9]+/g, ' ').split(' ')
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join('');
+  }
+
+  function fieldName(key) {
+    let n = pascal(key);
+    if (!n) n = 'Field';
+    // avoid Go builtins that make the field unusable
+    return n;
+  }
+
+  function goType(v, key, parent) {
+    if (v === null) return 'interface{}';
+    if (typeof v === 'boolean') return 'bool';
+    if (typeof v === 'number') return Number.isInteger(v) ? 'int64' : 'float64';
+    if (typeof v === 'string') return 'string';
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '[]interface{}';
+      const merged = {};
+      let hasObj = false;
+      const scalarTypes = new Set();
+      for (const item of v) {
+        if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
+          hasObj = true;
+          for (const [k, val] of Object.entries(item)) {
+            if (!(k in merged)) merged[k] = val;
+          }
+        } else {
+          scalarTypes.add(goType(item, key, parent));
+        }
+      }
+      if (hasObj) {
+        const t = fieldName(key) + 'Item';
+        defs.push([t, merged]);
+        const inner = '[]' + t;
+        return scalarTypes.size ? '[]interface{}' : inner;
+      }
+      if (scalarTypes.size === 1) return '[]' + [...scalarTypes][0];
+      return '[]interface{}';
+    }
+    if (typeof v === 'object') {
+      const t = fieldName(key);
+      defs.push([t, v]);
+      return t;
+    }
+    return 'interface{}';
+  }
+
+  function renderDef(name, obj) {
+    const lines = [`type ${name} struct {`];
+    for (const [k, v] of Object.entries(obj)) {
+      lines.push(`\t${fieldName(k)} ${goType(v, k, name)} \`json:"${k}"\``);
+    }
+    lines.push('}');
+    return lines.join('\n');
+  }
+
+  function convert(raw) {
+    defs.length = 0;
+    const obj = JSON.parse(raw);
+    if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+      throw new Error('Top-level value must be a JSON object.');
+    }
+    defs.push(['Root', obj]);
+    const out = [];
+    // render nested types first so Go compiles regardless of order
+    for (let i = 1; i < defs.length; i++) out.push(renderDef(defs[i][0], defs[i][1]));
+    out.push(renderDef(defs[0][0], defs[0][1]));
+    return out.join('\n\n');
+  }
+
+  $('convert').addEventListener('click', () => {
+    const raw = $('input').value.trim();
+    if (!raw) { alert('Please paste some JSON first.'); return; }
+    try {
+      $('output').textContent = convert(raw);
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+
+  $('sample').addEventListener('click', () => {
+    $('input').value = JSON.stringify({
+      id: 42,
+      name: 'Alice',
+      email: 'alice@example.com',
+      active: true,
+      balance: 99.5,
+      score: null,
+      roles: ['admin', 'editor'],
+      address: { street: '123 Main St', city: 'New York', zip: 10001 },
+      orders: [
+        { id: 9001, total: 12.5, items: ['widget'] },
+        { id: 9002, total: 3.0, items: [] }
+      ]
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+})();
+</script>

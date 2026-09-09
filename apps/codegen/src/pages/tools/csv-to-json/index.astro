@@ -1,0 +1,173 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'CSV to JSON Converter';
+const description = 'Convert CSV (or TSV / semicolon-separated) into JSON with optional type inference. Handles quoted fields, embedded commas, and newlines. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="codegen"
+  title={title}
+  description={description}
+  canonical="https://codegen.jsonversal.com/tools/csv-to-json/"
+  keywords={['CSV to JSON', 'CSV converter', 'TSV to JSON', 'spreadsheet to JSON', 'json array']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">CSV input</h2>
+    <textarea id="input" spellcheck="false" placeholder="name,age,city&#10;Ada,36,London&#10;Grace,45,New York"></textarea>
+    <div class="row mt-1">
+      <label class="text-muted" for="delim">Delimiter</label>
+      <select id="delim">
+        <option value="auto" selected>Auto-detect</option>
+        <option value=",">Comma (CSV)</option>
+        <option value="\t">Tab (TSV)</option>
+        <option value=";">Semicolon</option>
+        <option value="|">Pipe</option>
+      </select>
+      <label class="text-muted"><input type="checkbox" id="header" checked /> First row is header</label>
+      <label class="text-muted"><input type="checkbox" id="infer" checked /> Infer types</label>
+      <button class="primary" id="convert">Convert to JSON</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">JSON output</h2>
+      <div class="row" style="gap:8px;">
+        <span class="text-dim" id="meta" style="font-size:.85rem;"></span>
+        <button class="ghost" id="copy">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The CSV is parsed row by row with a proper state machine: quoted fields, escaped quotes (<code>""</code>), embedded commas, and multiline fields are all handled.</li>
+    <li>With <strong>header</strong> enabled the first row becomes object keys; without it you get an array of arrays.</li>
+    <li><strong>Infer types</strong> turns numeric and boolean-looking strings into real numbers/booleans and empty cells into <code>null</code>.</li>
+    <li>Every row in a header-driven result becomes one JSON object; missing cells become <code>null</code>.</li>
+  </ul>
+
+  <h2>About CSV to JSON Converter</h2>
+  <p class="text-muted">CSV is everywhere — spreadsheet exports, database dumps, analytics downloads — but its text format is awkward to consume in code. Converting to JSON gives you structured data you can feed directly into JavaScript, Python, or any API tooling. This converter parses CSV properly, not with a naive <code>split(",")</code>: fields wrapped in quotes can contain commas, quotes, and even newlines, and a correct parser keeps those intact.</p>
+  <p class="text-muted">Export from Excel, Google Sheets, or your database, paste it here, and get JSON you can use immediately. Type inference keeps your numbers as numbers instead of strings, which matters for anything you will later sum, average, or chart. Pair this with the JSON to CSV tool on this site to go back the other way, or with the JSON Formatter on jsonversal.com to tidy the output.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 200px; }
+  pre { min-height: 80px; max-height: 480px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function parseCsv(text, delim) {
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else inQuotes = false;
+        } else field += c;
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === delim) { row.push(field); field = ''; }
+        else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          row.push(field); field = '';
+          rows.push(row); row = [];
+        } else field += c;
+      }
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function inferValue(s) {
+    if (s === '') return null;
+    if (s === 'true' || s === 'TRUE' || s === 'True') return true;
+    if (s === 'false' || s === 'FALSE' || s === 'False') return false;
+    if (/^[+-]?\d+$/.test(s) && s.length < 16) return parseInt(s, 10);
+    if (/^[+-]?\d*\.\d+([eE][+-]?\d+)?$/.test(s)) return parseFloat(s);
+    return s;
+  }
+
+  function detectDelim(text) {
+    const candidates = [',', '\t', ';', '|'];
+    let best = ',', bestCount = 0;
+    for (const d of candidates) {
+      // count delimiters outside quotes in the first line
+      const line = text.split(/\r?\n/)[0] || '';
+      let count = 0, inQ = false;
+      for (const c of line) {
+        if (c === '"') inQ = !inQ;
+        else if (c === d && !inQ) count++;
+      }
+      if (count > bestCount) { bestCount = count; best = d; }
+    }
+    return best;
+  }
+
+  $('convert').addEventListener('click', () => {
+    const text = $('input').value;
+    $('err-section').style.display = 'none';
+    if (!text.trim()) { alert('Paste some CSV first.'); return; }
+    try {
+      let delim = $('delim').value;
+      if (delim === 'auto') delim = detectDelim(text);
+      if (delim === '\\t') delim = '\t';
+      const rows = parseCsv(text, delim);
+      if (!rows.length) throw new Error('No rows found.');
+      const useHeader = $('header').checked;
+      const infer = $('infer').checked;
+
+      let result;
+      if (useHeader) {
+        const headers = rows[0].map(h => h.trim());
+        result = rows.slice(1).map(r => {
+          const obj = {};
+          headers.forEach((h, i) => {
+            const raw = r[i] !== undefined ? r[i] : '';
+            obj[h] = infer ? inferValue(raw) : raw;
+          });
+          return obj;
+        });
+      } else {
+        result = rows.map(r => infer ? r.map(inferValue) : r);
+      }
+      $('output').textContent = JSON.stringify(result, null, 2);
+      $('meta').textContent = `${result.length} records · delimiter "${delim === '\t' ? '\\t' : delim}"`;
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

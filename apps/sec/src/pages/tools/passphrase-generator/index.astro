@@ -1,0 +1,215 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'Passphrase Generator (Diceware-style)';
+const description = 'Generate memorable passphrases from a 256-word diceware-style word list, with separators, digits, symbols, and live entropy estimates. All randomness comes from the browser\'s CSPRNG.';
+---
+<BaseLayout site="sec" title={title} description={description}
+  canonical="https://sec.jsonversal.com/tools/passphrase-generator/"
+  keywords={['passphrase generator', 'diceware', 'memorable password', 'entropy', 'word list']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Options</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+      <div>
+        <label class="text-muted">Words (3–8)</label>
+        <select id="words">
+          <option value="3">3 words</option>
+          <option value="4">4 words</option>
+          <option value="5" selected>5 words</option>
+          <option value="6">6 words</option>
+          <option value="7">7 words</option>
+          <option value="8">8 words</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-muted">Separator</label>
+        <select id="sep">
+          <option value="-" selected>hyphen ( - )</option>
+          <option value=" ">space</option>
+          <option value=".">dot ( . )</option>
+          <option value="camel">camelCase</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-muted">Passphrases (1–10)</label>
+        <input id="count" type="number" min="1" max="10" value="5" />
+      </div>
+    </div>
+    <div class="row mt-2">
+      <label style="display:flex;align-items:center;gap:6px;"><input id="digit" type="checkbox" checked /> Append a 2-digit number</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="symbol" type="checkbox" /> Insert a symbol ( ! @ # $ % ^ &amp; * )</label>
+      <label style="display:flex;align-items:center;gap:6px;"><input id="upper" type="checkbox" /> Capitalize first letter of each word</label>
+    </div>
+    <div class="row mt-2">
+      <button class="primary" id="gen">Generate passphrases</button>
+      <span id="entropy" class="text-dim" style="font-size:.9rem;"></span>
+    </div>
+  </section>
+
+  <section class="card mt-2">
+    <strong>Passphrases</strong>
+    <div id="out" class="mt-2"></div>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <strong>Error</strong>
+    <pre id="err-out" style="color:var(--danger);"></pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Each word is picked with <code>crypto.getRandomValues</code> from a fixed list of 256 short, memorable words — the same idea as the classic diceware scheme (5 dice give 6⁵ = 7776 words; here one draw from 256 words gives log₂(256) = 8 bits).</li>
+    <li>Entropy is estimated as <code>words × 8 bits</code>, plus about 6.6 bits for a two-digit suffix and about 6 bits for a symbol. A 5-word passphrase with a digit therefore scores roughly 47 bits — comparable to a random 8-character password, but far easier to type.</li>
+    <li>Word selection uses rejection sampling so every word in the list is exactly equally likely — no modulo bias.</li>
+    <li>Generation happens entirely on your device; nothing is transmitted or stored.</li>
+  </ul>
+
+  <h2>About Passphrase Generator</h2>
+  <p class="text-muted">A passphrase strings together ordinary words, and its strength comes from the number of words and the randomness of the draw — not from trick spellings like "p@ssw0rd". Because "correct horse battery staple" style passphrases are long but memorable, they resist both brute-force and human-factors failure better than short random strings that users write on sticky notes.</p>
+  <p class="text-muted">Do not reuse a generated passphrase across services: treat it like any other secret, keep it in a password manager, and prefer longer word counts (6–8) for master passwords and encryption keys. The entropy estimate assumes an attacker knows your word list and exact generation options, which is the correct conservative assumption.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row label { font-size: .9rem; }
+  .mt-2 { margin-top: 16px; }
+  #out code { display: inline-block; padding: 4px 10px; font-family: var(--font-mono); }
+  .pass-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .pass-row:last-child { border-bottom: none; }
+  .pass-row code { flex: 1; word-break: break-all; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const WORDS = [
+    'able','acid','acorn','actor','after','again','agent','alarm',
+    'album','amber','angel','anger','ankle','apple','apply','april',
+    'arena','arrow','audio','audit','august','bacon','badge','bagel',
+    'baker','banana','banner','barrel','basin','beach','beacon','beam',
+    'beans','beard','beetle','bench','berry','bible','bird','blade',
+    'blank','blast','bliss','blitz','block','bloom','board','boat',
+    'bolt','boost','border','bottle','branch','brand','brass','bread',
+    'brick','bride','bridge','bright','bring','brisk','broad','bronze',
+    'brook','broom','brown','brush','buck','budget','build','bulb',
+    'bulk','bunch','burst','cabin','cable','cactus','cake','camel',
+    'camera','camp','canal','candle','candy','canon','canyon','cape',
+    'carbon','cargo','carpet','carrot','carry','cart','castle','catch',
+    'cedar','cell','chalk','chant','chapel','charge','charm','chart',
+    'chase','cheap','check','cheese','cherry','chess','chest','chick',
+    'chief','child','chill','chime','chin','chip','choir','chord',
+    'cider','circle','civic','clamp','clan','class','claw','clay',
+    'cliff','climb','clock','cloud','clover','club','coach','coast',
+    'cobra','cocoa','coffee','coil','coin','cold','collar','color',
+    'comet','comic','comma','cone','cook','copper','coral','cord',
+    'cork','corn','cosmos','couch','count','court','cover','cow',
+    'crab','crack','craft','crane','crash','cream','creek','crew',
+    'crib','crisp','crown','crust','cube','curve','cycle','dairy',
+    'daisy','dance','dark','dart','dawn','deal','deck','deep',
+    'deer','delta','dense','desk','diamond','dice','digit','dinner',
+    'dirt','dish','dock','dome','door','dozen','draft','dragon',
+    'drama','dream','dress','drift','drill','drink','drive','drop',
+    'drum','dry','duck','duel','duke','dusk','dust','eagle',
+    'earth','easel','east','edge','eight','elbow','elder','elf',
+    'elk','elm','else','ember','empty','end','envy','epic',
+    'equal','essay','event','evil','exit','extra','fairy','fall',
+    'fame','fan','far','farm','fast','fat','fence','fern',
+    'field','fig','file','find','fire','firm','fish','five'
+  ];
+
+  function randInt(n) {
+    // Unbiased via rejection sampling: no modulo bias.
+    const max = Math.floor(0xFFFFFFFF / n) * n;
+    const u = new Uint32Array(1);
+    do { crypto.getRandomValues(u); } while (u[0] >= max);
+    return u[0] % n;
+  }
+
+  function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
+
+  function entropyBits() {
+    const words = parseInt($('words').value, 10);
+    let bits = words * 8;
+    if ($('digit').checked) bits += 6.6;
+    if ($('symbol').checked) bits += 6;
+    return Math.round(bits);
+  }
+
+  function generateOne() {
+    const n = parseInt($('words').value, 10);
+    const sep = $('sep').value;
+    const upper = $('upper').checked;
+    const chosen = [];
+    for (let i = 0; i < n; i++) chosen.push(WORDS[randInt(WORDS.length)]);
+    let phrase;
+    if (sep === 'camel') {
+      phrase = chosen.map((w, i) => (i === 0 && !upper ? w : cap(w))).join('');
+    } else {
+      phrase = chosen.map(w => (upper ? cap(w) : w)).join(sep);
+    }
+    if ($('digit').checked) phrase += String(randInt(100)).padStart(2, '0');
+    if ($('symbol').checked) {
+      const syms = '!@#$%^&*';
+      const s = syms[randInt(syms.length)];
+      const at = randInt(phrase.length + 1);
+      phrase = phrase.slice(0, at) + s + phrase.slice(at);
+    }
+    return phrase;
+  }
+
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function run() {
+    const count = parseInt($('count').value, 10);
+    if (isNaN(count) || count < 1 || count > 10) {
+      $('err-out').textContent = 'Passphrases must be a number between 1 and 10.';
+      $('err-section').style.display = 'block';
+      return;
+    }
+    $('err-section').style.display = 'none';
+    const bits = entropyBits();
+    $('entropy').textContent = '≈ ' + bits + ' bits of entropy';
+    const rows = [];
+    for (let i = 0; i < count; i++) {
+      const phrase = generateOne();
+      rows.push(
+        '<div class="pass-row">' +
+        '<code>' + esc(phrase) + '</code>' +
+        '<button class="ghost copy-btn" data-p="' + i + '">Copy</button>' +
+        '</div>'
+      );
+    }
+    $('out').innerHTML = rows.join('');
+    $('gen').textContent = 'Regenerate';
+  }
+
+  $('gen').addEventListener('click', run);
+
+  $('out').addEventListener('click', async e => {
+    const btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    const row = btn.closest('.pass-row');
+    const code = row.querySelector('code');
+    try {
+      await navigator.clipboard.writeText(code.textContent);
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+
+  for (const id of ['words', 'sep', 'digit', 'symbol', 'upper']) {
+    $(id).addEventListener('change', () => {
+      $('entropy').textContent = '≈ ' + entropyBits() + ' bits of entropy';
+    });
+  }
+
+  run();
+})();
+</script>

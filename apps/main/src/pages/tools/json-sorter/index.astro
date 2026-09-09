@@ -1,0 +1,228 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Sorter & Deduper';
+const description = 'Sort object keys recursively, sort array items alphabetically or numerically, and dedupe array items — then pretty-print the result with stats. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-sorter/"
+  keywords={['JSON sorter', 'JSON dedupe', 'sort JSON keys', 'sort array', 'remove duplicates JSON']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input JSON</h2>
+    <textarea id="input" spellcheck="false" placeholder='&#123;&#10;  "zebra": 1,&#10;  "apple": [3, 1, 3, 2],&#10;  "name": "ada"&#10;&#125;'></textarea>
+  </section>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Options</h2>
+    <div class="opts">
+      <label class="opt"><input type="checkbox" id="sort-keys" checked> Sort object keys (recursive)</label>
+      <label class="opt">Sort arrays
+        <select id="sort-arrays">
+          <option value="none">None</option>
+          <option value="asc" selected>Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </label>
+      <label class="opt"><input type="checkbox" id="dedupe" checked> Dedupe array items</label>
+      <label class="opt">Sort mode
+        <select id="sort-mode">
+          <option value="alpha" selected>Alphabetical</option>
+          <option value="numeric">Numeric (for numbers)</option>
+        </select>
+      </label>
+    </div>
+    <div class="row mt-1">
+      <button class="primary" id="run">Sort &amp; Dedupe</button>
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Output</h2>
+      <div class="row" style="gap:8px;">
+        <span class="text-dim" id="stats" style="font-size:.85rem;"></span>
+        <button class="ghost" id="copy-out">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Invalid JSON</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Object keys are sorted recursively with localeCompare, so the whole document — nested objects included — becomes deterministic and diff-friendly.</li>
+    <li>Arrays can be sorted ascending or descending. Primitive arrays sort by value; arrays of objects sort by their first key, which keeps records grouped consistently.</li>
+    <li>Deduplication removes duplicate array items (primitives by value, objects by their serialized form) and reports how many were dropped.</li>
+    <li>If the input is invalid, the error message points to the exact line and column of the problem.</li>
+  </ul>
+
+  <h2>About JSON Sorter & Deduper</h2>
+  <p class="text-muted">Unsorted JSON is hard to eyeball: equivalent documents differ, review diffs grow noisy, and duplicate entries inflate payloads. A deterministic sort turns a hand-edited blob into a canonical form you can diff, cache, or commit with confidence.</p>
+  <p class="text-muted">Use it to normalize config files before committing, to shrink response payloads by removing duplicate items, or to prepare stable fixtures for tests and examples. Sorting and deduplication happen locally, so private schemas and payloads never leave your browser.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .opt { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; }
+  textarea { min-height: 220px; }
+  pre { min-height: 80px; max-height: 480px; overflow: auto; }
+  #output { white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function lineColAt(text, pos) {
+    const before = text.slice(0, pos);
+    const lines = before.split('\n');
+    return { line: lines.length, col: lines[lines.length - 1].length + 1 };
+  }
+
+  function firstKeyVal(x) {
+    const k = Object.keys(x)[0];
+    return k === undefined ? '' : String(x[k]);
+  }
+
+  function compareValues(x, y, mode) {
+    if (typeof x === 'number' && typeof y === 'number') return x - y;
+    const xs = typeof x === 'object' && x !== null ? firstKeyVal(x) : String(x);
+    const ys = typeof y === 'object' && y !== null ? firstKeyVal(y) : String(y);
+    if (mode === 'numeric' && xs !== '' && ys !== '' && isFinite(+xs) && isFinite(+ys)) {
+      return (+xs) - (+ys);
+    }
+    return xs.localeCompare(ys);
+  }
+
+  function transform(value, opts, stats) {
+    if (Array.isArray(value)) {
+      stats.arrays++;
+      let arr = value;
+      if (opts.sortArrays !== 'none') {
+        const desc = opts.sortArrays === 'desc';
+        arr = arr.slice().sort((x, y) => {
+          const r = compareValues(x, y, opts.sortMode);
+          return desc ? -r : r;
+        });
+      }
+      if (opts.dedupe) {
+        const seen = new Set();
+        const out = [];
+        for (const item of arr) {
+          const key = typeof item === 'object' && item !== null
+            ? JSON.stringify(item)
+            : typeof item + ':' + String(item);
+          if (seen.has(key)) stats.deduped++;
+          else { seen.add(key); out.push(item); }
+        }
+        arr = out;
+      }
+      return arr.map(item => transform(item, opts, stats));
+    }
+    if (value !== null && typeof value === 'object') {
+      stats.objects++;
+      let entries = Object.entries(value);
+      if (opts.sortKeys) entries.sort((a, b) => a[0].localeCompare(b[0]));
+      const out = {};
+      for (const [k, v] of entries) {
+        stats.keys++;
+        out[k] = transform(v, opts, stats);
+      }
+      return out;
+    }
+    return value;
+  }
+
+  function run() {
+    const raw = $('input').value;
+    if (!raw.trim()) { alert('Please paste some JSON first.'); return; }
+    const opts = {
+      sortKeys: $('sort-keys').checked,
+      sortArrays: $('sort-arrays').value,
+      dedupe: $('dedupe').checked && $('sort-arrays').value !== 'none',
+      sortMode: $('sort-mode').value,
+    };
+    try {
+      const obj = JSON.parse(raw);
+      const stats = { objects: 0, arrays: 0, keys: 0, deduped: 0 };
+      const result = transform(obj, opts, stats);
+      $('output').textContent = JSON.stringify(result, null, 2);
+      $('stats').textContent = stats.objects + ' objects · ' + stats.arrays + ' arrays · '
+        + stats.keys + ' keys · ' + stats.deduped + ' items deduped';
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    } catch (e) {
+      let msg = e.message || String(e);
+      const m = msg.match(/position (\d+)/);
+      if (m) {
+        const lc = lineColAt($('input').value, parseInt(m[1], 10));
+        msg = msg + '  (line ' + lc.line + ', column ' + lc.col + ')';
+      }
+      $('err-out').textContent = msg;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  }
+
+  $('run').addEventListener('click', run);
+
+  function flash(btn, label) {
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1200);
+  }
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('input').value); flash($('copy'), 'Copy'); } catch {}
+  });
+  $('copy-out').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('output').textContent); flash($('copy-out'), 'Copy'); } catch {}
+  });
+
+  const sa = $('sort-arrays');
+  const de = $('dedupe');
+  function syncDedupe() { de.disabled = sa.value === 'none'; }
+  sa.addEventListener('change', syncDedupe);
+  syncDedupe();
+
+  $('sample').addEventListener('click', () => {
+    $('input').value = JSON.stringify({
+      zeta: 3,
+      alpha: 1,
+      items: [3, 1, 2, 3, 1],
+      users: [
+        { name: 'bob', id: 2 },
+        { name: 'ada', id: 1 },
+        { name: 'bob', id: 2 }
+      ],
+      nested: { b: { y: 1, x: 2 }, a: [2.5, 1.5, 3.5] },
+      numbers: [10, 2, 33, 4]
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+})();
+</script>

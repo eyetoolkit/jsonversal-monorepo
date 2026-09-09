@@ -1,0 +1,132 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'UUID v4 Generator';
+const description = 'Generate RFC 4122 UUID v4 identifiers in bulk, with configurable count, case, and format (standard, no-hyphen, or URN).';
+---
+
+<BaseLayout site="devops" title={title} description={description}
+  canonical="https://devops.jsonversal.com/tools/uuid-generator/"
+  keywords={['UUID v4', 'UUID generator', 'RFC 4122', 'random identifier', 'UUID format']}
+  current="/tools/">
+
+  <nav class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      <div>
+        <strong>Count</strong>
+        <input id="count" type="number" min="1" max="100" value="5" style="margin-top:12px;" />
+      </div>
+      <div>
+        <strong>Case</strong>
+        <select id="case-select" style="margin-top:12px;">
+          <option value="lower">lowercase</option>
+          <option value="upper">UPPERCASE</option>
+        </select>
+      </div>
+      <div>
+        <strong>Format</strong>
+        <select id="format" style="margin-top:12px;">
+          <option value="standard">Standard (8-4-4-4-12)</option>
+          <option value="nohyphen">No hyphens</option>
+          <option value="urn">URN (urn:uuid:)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="primary" id="generate">Generate</button>
+      <button class="ghost" id="copy-all">Copy all</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="result-section" style="display:none;">
+    <div class="text-dim" id="result-meta" style="font-size:.8rem;margin-bottom:4px;">—</div>
+    <pre id="result-list" class="uuid-list">—</pre>
+  </div>
+
+  <div class="card mt-2" id="error-section" style="display:none;">
+    <strong style="color:var(--danger);">Error</strong>
+    <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Each UUID is generated with the browser's native <code>crypto.randomUUID()</code>, which produces RFC 4122 version 4 (random) identifiers on modern browsers.</li>
+    <li>No-hyphen mode strips the four dashes; URN mode prefixes the standard form with <code>urn:uuid:</code>; uppercase mode applies <code>.toUpperCase()</code> to the final string.</li>
+    <li>Generation happens entirely in your browser — nothing is sent to a server.</li>
+  </ul>
+
+  <h2>About UUID v4 Generator</h2>
+  <p class="text-muted">A UUID v4 is a 128-bit identifier in which 122 bits are randomly generated; the remaining 6 bits encode the version and variant. Because it needs no coordination with a central authority, anyone can mint UUID v4s independently, which makes them ideal for database primary keys, log correlation IDs, and deduplication keys in distributed systems. Unlike sequential IDs, random UUIDs reveal nothing about how many records exist or when they were created.</p>
+  <p class="text-muted">Compared with UUID v7, which is time-ordered and therefore friendlier to B-tree indexes in databases, UUID v4 values are uniformly random: inserts land in random positions of an index, which can slow down write-heavy workloads at very large scale. Reach for v4 when you value unpredictability and simplicity; reach for v7 when time-sorting and index locality matter more. Collisions are astronomically unlikely — you would need roughly 2.7×10^18 UUIDs for a 50% chance of one collision — but UUIDs are not secrets: never use them to protect sensitive information, and never embed user data inside them.</p>
+</BaseLayout>
+
+<style>
+  .uuid-list {
+    font-family: var(--font-mono);
+    font-size: .85rem;
+    line-height: 1.7;
+    margin-top: 12px;
+    max-height: 320px;
+    overflow: auto;
+  }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function showError(msg) {
+    $('error-out').textContent = msg;
+    $('error-section').style.display = '';
+  }
+  function hideError() { $('error-section').style.display = 'none'; }
+
+  function formatUuid(uuid) {
+    const format = $('format').value;
+    let out = uuid;
+    if (format === 'nohyphen') out = out.replace(/-/g, '');
+    else if (format === 'urn') out = 'urn:uuid:' + out;
+    if ($('case-select').value === 'upper') out = out.toUpperCase();
+    return out;
+  }
+
+  function formatLabel() {
+    const f = $('format').value;
+    if (f === 'nohyphen') return 'no hyphens';
+    if (f === 'urn') return 'urn:uuid:';
+    return 'standard (8-4-4-4-12)';
+  }
+
+  function generate() {
+    hideError();
+    $('result-section').style.display = 'none';
+    const raw = $('count').value.trim();
+    const n = Number(raw);
+    if (!raw || !/^\d+$/.test(raw) || n < 1 || n > 100) {
+      showError('Please enter a count between 1 and 100.');
+      return;
+    }
+    const list = [];
+    for (let i = 0; i < n; i++) list.push(formatUuid(crypto.randomUUID()));
+    $('result-meta').textContent = n + ' UUID' + (n === 1 ? '' : 's') + ' · ' + formatLabel() + ' · ' + ($('case-select').value === 'upper' ? 'uppercase' : 'lowercase');
+    $('result-list').textContent = list.join('\n');
+    $('result-section').style.display = '';
+  }
+
+  $('generate').addEventListener('click', generate);
+  $('copy-all').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('result-list').textContent);
+      $('copy-all').textContent = 'Copied!';
+      setTimeout(() => $('copy-all').textContent = 'Copy all', 1200);
+    } catch {}
+  });
+})();
+</script>

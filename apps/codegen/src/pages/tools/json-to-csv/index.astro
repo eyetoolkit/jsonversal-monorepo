@@ -1,0 +1,127 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+const title = 'JSON to CSV Converter';
+const description = 'Convert a JSON array of objects into CSV — columns are the union of all keys in first-appearance order, missing values stay blank, and rows use CRLF line endings per RFC 4180.';
+---
+<BaseLayout site="codegen" title={title} description={description}
+  canonical="https://codegen.jsonversal.com/tools/json-to-csv/"
+  keywords={['json to csv', 'csv converter', 'json array', 'export to excel']}
+  current="/tools/">
+  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-1">
+    <h2 style="margin-top:0;">Paste your JSON</h2>
+    <textarea id="input" placeholder='[{"name": "Alice", "age": 30, "city": "Berlin"}, {"name": "Bob, Jr.", "age": 25, "notes": "Line1&#10;Line2"}]'></textarea>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="primary" id="gen">Convert to CSV</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="result" style="display:none;">
+    <strong>Output — CSV</strong>
+    <p class="text-muted" id="stats" style="margin:4px 0 0;"></p>
+    <pre id="out" class="mt-2"></pre>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="download">Download .csv</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="error" style="display:none;"></section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Parses the input and requires a JSON array at the top level</li>
+    <li>Walks every element and collects the union of all keys in first-appearance order as the header row</li>
+    <li>Serializes each value: null and undefined become empty cells, objects and arrays become JSON strings, and strings containing commas, quotes or newlines are wrapped in double quotes with inner quotes doubled (<code>""</code>)</li>
+    <li>Joins rows with CRLF (<code>\r\n</code>) line endings and appends a trailing newline, per RFC 4180</li>
+  </ul>
+
+  <h2>About JSON to CSV Converter</h2>
+  <p class="text-muted">A JSON array of objects and a CSV table describe the same shape: each element is a row, each key is a column, and the value fills the cell. Converting between the two lets you move data out of APIs and scripts and into spreadsheets, or hand tabular data to tools that only speak CSV.</p>
+  <p class="text-muted">Reach for this tool when you need to export data to Excel or Google Sheets, or migrate records between systems. A few caveats: nested objects and arrays are serialized as JSON strings inside the cell rather than flattened; columns are the union of all keys in first-appearance order, so elements with missing keys simply leave those cells blank; and null or undefined values become empty cells — a null and an empty string look identical after conversion.</p>
+</BaseLayout>
+
+<style>
+  #error { color: var(--danger); border-color: var(--danger); }
+</style>
+
+<script is:inline>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  function csvCell(v) {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'object') return JSON.stringify(v);
+    const s = String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function toCsv(arr) {
+    const keys = [];
+    const seen = new Set();
+    for (const el of arr) {
+      if (el === null || typeof el !== 'object' || Array.isArray(el)) {
+        throw new Error('Every element must be a JSON object, found: ' + JSON.stringify(el));
+      }
+      for (const k of Object.keys(el)) {
+        if (!seen.has(k)) { seen.add(k); keys.push(k); }
+      }
+    }
+    const lines = [keys.map(k => csvCell(k)).join(',')];
+    for (const el of arr) {
+      lines.push(keys.map(k => csvCell(el[k])).join(','));
+    }
+    return { csv: lines.join('\r\n') + '\r\n', rows: arr.length, cols: keys.length };
+  }
+
+  function showError(msg) {
+    const e = $('error');
+    e.textContent = msg;
+    e.style.display = 'block';
+    $('result').style.display = 'none';
+  }
+
+  $('gen').addEventListener('click', () => {
+    $('error').style.display = 'none';
+    const raw = $('input').value.trim();
+    if (!raw) { showError('Please paste a JSON array first.'); return; }
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch (err) { showError('Invalid JSON: ' + err.message); return; }
+    if (!Array.isArray(parsed)) {
+      showError('Please provide a JSON array at the top level, e.g. [{"name": "Alice"}].');
+      return;
+    }
+    if (parsed.length === 0) { showError('The array is empty — nothing to convert.'); return; }
+    let res;
+    try { res = toCsv(parsed); }
+    catch (err) { showError(err.message); return; }
+    $('stats').textContent = res.rows + ' data row(s) × ' + res.cols + ' column(s)';
+    $('out').textContent = res.csv;
+    $('result').style.display = 'block';
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); } catch {}
+  });
+
+  $('download').addEventListener('click', () => {
+    const csv = $('out').textContent;
+    if (!csv) return;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  $('input').addEventListener('input', () => { $('error').style.display = 'none'; });
+})();
+</script>

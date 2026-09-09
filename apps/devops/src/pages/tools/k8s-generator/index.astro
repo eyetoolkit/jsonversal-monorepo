@@ -1,0 +1,258 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Kubernetes YAML Generator';
+const description = 'Scaffold Kubernetes Deployment, Service, and Ingress manifests from a small form. Copy the YAML straight into kubectl. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://devops.jsonversal.com/tools/k8s-generator/"
+  keywords={['Kubernetes YAML generator', 'k8s manifest', 'deployment yaml', 'service yaml', 'ingress yaml']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Resource</h2>
+    <div class="row">
+      <label class="text-muted" for="kind">Kind</label>
+      <select id="kind">
+        <option value="deployment">Deployment</option>
+        <option value="service">Service</option>
+        <option value="ingress">Ingress</option>
+      </select>
+      <label class="text-muted" for="name">Name</label>
+      <input id="name" type="text" value="my-app" style="max-width:180px;" />
+      <label class="text-muted" for="ns">Namespace</label>
+      <input id="ns" type="text" value="default" style="max-width:140px;" />
+    </div>
+
+    <div id="labels-row" class="mt-2">
+      <label class="text-muted">Labels (key=value, comma separated)</label>
+      <input id="labels" type="text" value="app=my-app" style="max-width:320px;" />
+    </div>
+
+    <div id="deployment-fields" class="mt-2">
+      <div class="row">
+        <label class="text-muted" for="image">Image</label>
+        <input id="image" type="text" value="nginx:1.27" style="max-width:260px;" />
+        <label class="text-muted" for="replicas">Replicas</label>
+        <input id="replicas" type="number" min="1" max="50" value="3" style="max-width:80px;" />
+        <label class="text-muted" for="port">Container port</label>
+        <input id="port" type="number" min="1" max="65535" value="80" style="max-width:90px;" />
+      </div>
+    </div>
+
+    <div id="service-fields" class="mt-2" style="display:none;">
+      <div class="row">
+        <label class="text-muted" for="svc-type">Type</label>
+        <select id="svc-type">
+          <option value="ClusterIP">ClusterIP</option>
+          <option value="NodePort">NodePort</option>
+          <option value="LoadBalancer">LoadBalancer</option>
+        </select>
+        <label class="text-muted" for="svc-port">Service port</label>
+        <input id="svc-port" type="number" min="1" max="65535" value="80" style="max-width:90px;" />
+        <label class="text-muted" for="target-port">Target port</label>
+        <input id="target-port" type="number" min="1" max="65535" value="80" style="max-width:90px;" />
+      </div>
+    </div>
+
+    <div id="ingress-fields" class="mt-2" style="display:none;">
+      <div class="row">
+        <label class="text-muted" for="ing-host">Host</label>
+        <input id="ing-host" type="text" value="app.example.com" style="max-width:240px;" />
+        <label class="text-muted" for="ing-path">Path</label>
+        <input id="ing-path" type="text" value="/" style="max-width:120px;" />
+        <label class="text-muted" for="ing-service">Backend service</label>
+        <input id="ing-service" type="text" value="my-app" style="max-width:140px;" />
+        <label class="text-muted" for="ing-port">Backend port</label>
+        <input id="ing-port" type="number" min="1" max="65535" value="80" style="max-width:90px;" />
+      </div>
+      <div class="row mt-2">
+        <label class="text-muted" for="ing-class">Ingress class</label>
+        <input id="ing-class" type="text" value="nginx" style="max-width:160px;" />
+      </div>
+    </div>
+
+    <div class="row mt-2">
+      <button class="primary" id="gen">Generate YAML</button>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 style="margin-top:0;">Manifest</h2>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Pick a kind, fill the fields, and click <strong>Generate YAML</strong> — a valid manifest (apiVersion, metadata, spec) is built for you.</li>
+    <li><strong>Deployment</strong> scaffolds a workload with replicas, a container, and a container port; <strong>Service</strong> maps a port to a target port; <strong>Ingress</strong> routes a host + path to a service.</li>
+    <li>Labels you enter are reused as the selector so Service ↔ Deployment wire up correctly.</li>
+    <li>Apply with <code>kubectl apply -f -</code> after pasting.</li>
+  </ul>
+
+  <h2>About Kubernetes YAML Generator</h2>
+  <p class="text-muted">Kubernetes objects are YAML documents, and the common workflow — a Deployment for your pods, a Service for stable networking, an Ingress for external traffic — has a lot of repetitive boilerplate: apiVersion, kind, metadata, labels, selectors, and ports all need to agree. This generator produces consistent, minimal manifests so you start from something that works instead of from a blank file or a blog snippet you cannot fully trust.</p>
+  <p class="text-muted">The output targets current stable APIs: <code>apps/v1</code> for Deployments, <code>v1</code> for Services, and <code>networking.k8s.io/v1</code> for Ingress. Treat it as a starting point — add resource requests/limits, probes, config maps, and secrets for production, and remember that the Service selector must match the Deployment&rsquo;s pod labels, which this tool wires up for you automatically. If your cluster is older, check that the Ingress API version and class name are supported before applying.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  input, select { max-width: 100%; }
+  pre { min-height: 120px; max-height: 520px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-size: .8rem; }
+  .mt-2 { margin-top: 16px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function yamlStr(s) {
+    if (/[:#\{\}\[\],&*!|>'"%@`\n]|^\s|\s$/.test(s)) {
+      return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    }
+    return s;
+  }
+
+  function parseLabels(str) {
+    const out = {};
+    for (const part of str.split(',')) {
+      const t = part.trim();
+      if (!t) continue;
+      const eq = t.indexOf('=');
+      if (eq < 1) throw new Error(`Bad label "${t}" — use key=value.`);
+      out[t.slice(0, eq).trim()] = t.slice(eq + 1).trim();
+    }
+    return out;
+  }
+
+  function labelsYaml(labels, indent) {
+    const pad = ' '.repeat(indent);
+    return Object.entries(labels)
+      .map(([k, v]) => `${pad}${yamlStr(k)}: ${yamlStr(v)}`)
+      .join('\n');
+  }
+
+  $('kind').addEventListener('change', () => {
+    const kind = $('kind').value;
+    $('deployment-fields').style.display = kind === 'deployment' ? 'block' : 'none';
+    $('service-fields').style.display = kind === 'service' ? 'block' : 'none';
+    $('ingress-fields').style.display = kind === 'ingress' ? 'block' : 'none';
+    $('labels-row').style.display = kind === 'service' ? 'none' : 'block';
+  });
+
+  $('gen').addEventListener('click', () => {
+    try {
+      const kind = $('kind').value;
+      const name = $('name').value.trim();
+      const ns = $('ns').value.trim();
+      if (!name) throw new Error('Name is required.');
+      const labels = parseLabels($('labels').value);
+
+      let yaml = '';
+      if (kind === 'deployment') {
+        const image = $('image').value.trim();
+        const replicas = parseInt($('replicas').value, 10);
+        const port = parseInt($('port').value, 10);
+        if (!image) throw new Error('Image is required.');
+        if (isNaN(replicas) || replicas < 1) throw new Error('Replicas must be at least 1.');
+        if (isNaN(port) || port < 1 || port > 65535) throw new Error('Invalid container port.');
+        yaml = `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${yamlStr(name)}
+  namespace: ${yamlStr(ns)}
+  labels:
+${labelsYaml(labels, 4)}
+spec:
+  replicas: ${replicas}
+  selector:
+    matchLabels:
+${labelsYaml(labels, 6)}
+  template:
+    metadata:
+      labels:
+${labelsYaml(labels, 8)}
+    spec:
+      containers:
+      - name: ${yamlStr(name)}
+        image: ${yamlStr(image)}
+        ports:
+        - containerPort: ${port}`;
+      } else if (kind === 'service') {
+        const type = $('svc-type').value;
+        const svcPort = parseInt($('svc-port').value, 10);
+        const target = parseInt($('target-port').value, 10);
+        if (isNaN(svcPort) || svcPort < 1 || svcPort > 65535) throw new Error('Invalid service port.');
+        if (isNaN(target) || target < 1 || target > 65535) throw new Error('Invalid target port.');
+        const matchLabels = parseLabels($('labels').value);
+        yaml = `apiVersion: v1
+kind: Service
+metadata:
+  name: ${yamlStr(name)}
+  namespace: ${yamlStr(ns)}
+spec:
+  type: ${type}
+  selector:
+${labelsYaml(matchLabels, 4)}
+  ports:
+  - port: ${svcPort}
+    targetPort: ${target}
+    protocol: TCP`;
+      } else { // ingress
+        const host = $('ing-host').value.trim();
+        const path = $('ing-path').value.trim();
+        const service = $('ing-service').value.trim();
+        const ingPort = parseInt($('ing-port').value, 10);
+        const ingClass = $('ing-class').value.trim();
+        if (!host) throw new Error('Host is required.');
+        if (!path) path; // default '/'
+        if (!service) throw new Error('Backend service is required.');
+        if (isNaN(ingPort) || ingPort < 1 || ingPort > 65535) throw new Error('Invalid backend port.');
+        yaml = `apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${yamlStr(name)}
+  namespace: ${yamlStr(ns)}
+  labels:
+${labelsYaml(labels, 4)}
+spec:
+  ingressClassName: ${yamlStr(ingClass)}
+  rules:
+  - host: ${yamlStr(host)}
+    http:
+      paths:
+      - path: ${yamlStr(path)}
+        pathType: Prefix
+        backend:
+          service:
+            name: ${yamlStr(service)}
+            port:
+              number: ${ingPort}`;
+      }
+      $('output').textContent = yaml;
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      alert(e.message);
+    }
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

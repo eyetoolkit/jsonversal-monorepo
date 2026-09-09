@@ -1,0 +1,331 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Text Diff';
+const description = 'Compare two texts line by line with a side-by-side view and a git-style unified diff, powered by a fast LCS algorithm. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/text-diff/"
+  keywords={['text diff', 'diff tool', 'line diff', 'unified diff', 'compare text', 'LCS diff']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Inputs</h2>
+    <div class="diff-inputs">
+      <div>
+        <label class="text-muted" for="left">Original</label>
+        <textarea id="left" spellcheck="false"></textarea>
+      </div>
+      <div>
+        <label class="text-muted" for="right">Changed</label>
+        <textarea id="right" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1">
+      <button class="primary" id="diff-btn">Diff</button>
+      <button class="ghost" id="swap">Swap</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Side-by-side</h2>
+      <span class="text-dim" id="stats" style="font-size:.85rem;"></span>
+    </div>
+    <div id="diff-view" class="mt-1"></div>
+    <div class="row mt-2">
+      <h2 style="margin:0;">Unified diff</h2>
+      <button class="ghost" id="copy-unified">Copy unified diff</button>
+    </div>
+    <pre id="unified" class="mt-1"></pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The two texts are split into lines and aligned with a longest-common-subsequence (LCS) dynamic program, which finds the minimal set of insertions and deletions.</li>
+    <li>The side-by-side view colors removed lines red and added lines green, with unchanged context in between; the unified view follows the git diff format with hunk headers.</li>
+    <li>Documents up to 5,000 lines per side run through the full LCS table; anything larger falls back to a fast line-by-line comparison so the page never freezes.</li>
+    <li>Everything runs locally — config files, logs, and private snippets never leave your device.</li>
+  </ul>
+
+  <h2>About Text Diff</h2>
+  <p class="text-muted">A good diff shows not just that two texts differ, but exactly where and how. Line-based comparison is the right granularity for configuration files, server logs, generated code, or any change review: a single moved block reads clearly as removed-plus-added instead of a wall of red.</p>
+  <p class="text-muted">Use this tool to sanity-check config changes before deploying, to review what a teammate actually changed in a pasted snippet, or to build a patch you can paste into a PR description. Because the comparison happens on your machine, even confidential log excerpts or private configs can be diffed safely.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .diff-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 860px) { .diff-inputs { grid-template-columns: 1fr; } }
+  textarea { min-height: 220px; font-size: .95rem; }
+  label { display: block; margin-bottom: 6px; font-size: .9rem; }
+  #diff-view { max-height: 480px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+  .drow { display: grid; grid-template-columns: 1fr 1fr; }
+  .dcell {
+    margin: 0; padding: 2px 8px; white-space: pre-wrap; word-break: break-word;
+    border-bottom: 1px solid rgba(128,128,128,.15); font-size: .85rem; line-height: 1.5;
+    display: flex; gap: 8px;
+  }
+  .dcell .ln { color: var(--text-muted); opacity: .6; min-width: 2.5em; text-align: right; user-select: none; flex: none; }
+  .dcell.add { background: #e6f4ea; color: #137333; }
+  .dcell.del { background: #fbe9e9; color: #d93025; }
+  #unified { white-space: pre; overflow: auto; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function simpleFallback(a, b) {
+    const ops = [];
+    const len = Math.min(a.length, b.length);
+    for (let i = 0; i < len; i++) {
+      if (a[i] === b[i]) ops.push({ type: 'same', text: a[i] });
+      else { ops.push({ type: 'del', text: a[i] }); ops.push({ type: 'add', text: b[i] }); }
+    }
+    for (let i = len; i < a.length; i++) ops.push({ type: 'del', text: a[i] });
+    for (let i = len; i < b.length; i++) ops.push({ type: 'add', text: b[i] });
+    return ops;
+  }
+
+  // LCS over lines via dynamic programming. The DP table values are computed
+  // with two rolling rows; the per-cell move direction is stored as 2 bits so
+  // the full (n+1)*(m+1) table costs only ~0.25 bytes per cell.
+  function lcsOps(a, b) {
+    const n = a.length, m = b.length;
+    if (n === 0) return b.map(t => ({ type: 'add', text: t }));
+    if (m === 0) return a.map(t => ({ type: 'del', text: t }));
+    if (n > 5000 || m > 5000 || n * m > 30000000) return simpleFallback(a, b);
+
+    const cols = m + 1;
+    const dirs = new Uint8Array(Math.ceil(((n + 1) * cols * 2) / 8));
+    let prev = new Uint32Array(cols);
+    let cur = new Uint32Array(cols);
+    for (let i = 1; i <= n; i++) {
+      cur[0] = 0;
+      const ai = a[i - 1];
+      for (let j = 1; j <= m; j++) {
+        let d;
+        if (ai === b[j - 1]) { cur[j] = prev[j - 1] + 1; d = 0; }
+        else if (prev[j] >= cur[j - 1]) { cur[j] = prev[j]; d = 1; }
+        else { cur[j] = cur[j - 1]; d = 2; }
+        const bit = (i * cols + j) * 2;
+        const byteIdx = bit >> 3;
+        const bitOff = bit & 7;
+        dirs[byteIdx] = (dirs[byteIdx] & ~(3 << bitOff)) | ((d << bitOff) & (3 << bitOff));
+      }
+      const t = prev; prev = cur; cur = t;
+    }
+    const ops = [];
+    let i = n, j = m;
+    while (i > 0 || j > 0) {
+      if (i === 0) { ops.push({ type: 'add', text: b[j - 1] }); j--; continue; }
+      if (j === 0) { ops.push({ type: 'del', text: a[i - 1] }); i--; continue; }
+      const bit = (i * cols + j) * 2;
+      const byteIdx = bit >> 3;
+      const bitOff = bit & 7;
+      const d = (dirs[byteIdx] >> bitOff) & 3;
+      if (d === 0) { ops.push({ type: 'same', text: a[i - 1] }); i--; j--; }
+      else if (d === 1) { ops.push({ type: 'del', text: a[i - 1] }); i--; }
+      else { ops.push({ type: 'add', text: b[j - 1] }); j--; }
+    }
+    ops.reverse();
+    return ops;
+  }
+
+  function unifiedDiff(ops) {
+    const lines = ['--- Original', '+++ Changed'];
+    const runs = [];
+    let k = 0;
+    while (k < ops.length) {
+      if (ops[k].type === 'same') { k++; continue; }
+      const s = k;
+      while (k < ops.length && ops[k].type !== 'same') k++;
+      runs.push([s, k]);
+    }
+    if (!runs.length) { lines.push('(no differences)'); return lines.join('\n'); }
+    const hunks = [];
+    for (const [s, e] of runs) {
+      const hs = Math.max(0, s - 3);
+      const he = Math.min(ops.length, e + 3);
+      if (hunks.length && hs <= hunks[hunks.length - 1].end) {
+        hunks[hunks.length - 1].end = Math.max(hunks[hunks.length - 1].end, he);
+      } else {
+        hunks.push({ start: hs, end: he });
+      }
+    }
+    for (const h of hunks) {
+      let oldStart = 0, newStart = 0, oldCount = 0, newCount = 0;
+      for (let x = 0; x < h.start; x++) {
+        if (ops[x].type === 'del' || ops[x].type === 'same') oldStart++;
+        if (ops[x].type === 'add' || ops[x].type === 'same') newStart++;
+      }
+      for (let x = h.start; x < h.end; x++) {
+        if (ops[x].type === 'add') newCount++;
+        else if (ops[x].type === 'del') oldCount++;
+      }
+      lines.push('@@ -' + (oldCount ? oldStart + 1 + ',' + oldCount : oldStart + ',0')
+        + ' +' + (newCount ? newStart + 1 + ',' + newCount : newStart + ',0') + ' @@');
+      for (let x = h.start; x < h.end; x++) {
+        const o = ops[x];
+        if (o.type === 'same') lines.push(' ' + o.text);
+        else if (o.type === 'del') lines.push('-' + o.text);
+        else lines.push('+' + o.text);
+      }
+    }
+    return lines.join('\n');
+  }
+
+  function sideRows(ops) {
+    const rows = [];
+    let i = 0, li = 0, ri = 0;
+    while (i < ops.length) {
+      const t = ops[i].type;
+      if (t === 'same') {
+        li++; ri++;
+        rows.push({ left: { n: li, text: ops[i].text, cls: 'same' }, right: { n: ri, text: ops[i].text, cls: 'same' } });
+        i++;
+      } else if (t === 'del') {
+        const dels = [];
+        while (i < ops.length && ops[i].type === 'del') { dels.push({ n: ++li, text: ops[i].text }); i++; }
+        const adds = [];
+        while (i < ops.length && ops[i].type === 'add') { adds.push({ n: ++ri, text: ops[i].text }); i++; }
+        const len = Math.max(dels.length, adds.length);
+        for (let x = 0; x < len; x++) {
+          rows.push({
+            left: x < dels.length ? { n: dels[x].n, text: dels[x].text, cls: 'del' } : null,
+            right: x < adds.length ? { n: adds[x].n, text: adds[x].text, cls: 'add' } : null,
+          });
+        }
+      } else {
+        const adds = [];
+        while (i < ops.length && ops[i].type === 'add') { adds.push({ n: ++ri, text: ops[i].text }); i++; }
+        for (const ad of adds) rows.push({ left: null, right: { n: ad.n, text: ad.text, cls: 'add' } });
+      }
+    }
+    return rows;
+  }
+
+  function makeCell(info, side) {
+    const cell = document.createElement('pre');
+    cell.className = 'dcell ' + side;
+    if (!info) { cell.classList.add('empty'); return cell; }
+    cell.classList.add(info.cls);
+    const num = document.createElement('span');
+    num.className = 'ln';
+    num.textContent = info.n;
+    cell.appendChild(num);
+    const txt = document.createElement('span');
+    txt.textContent = info.text;
+    cell.appendChild(txt);
+    return cell;
+  }
+
+  function renderRows(rows) {
+    const cont = $('diff-view');
+    cont.innerHTML = '';
+    for (const r of rows) {
+      const row = document.createElement('div');
+      row.className = 'drow';
+      row.appendChild(makeCell(r.left, 'left'));
+      row.appendChild(makeCell(r.right, 'right'));
+      cont.appendChild(row);
+    }
+  }
+
+  function run() {
+    const a = $('left').value.split('\n');
+    const b = $('right').value.split('\n');
+    const ops = lcsOps(a, b);
+    let added = 0, removed = 0, unchanged = 0;
+    for (const o of ops) {
+      if (o.type === 'add') added++;
+      else if (o.type === 'del') removed++;
+      else unchanged++;
+    }
+    $('stats').textContent = added + ' lines added · ' + removed + ' removed · ' + unchanged + ' unchanged';
+    if (added === 0 && removed === 0) {
+      $('diff-view').innerHTML = '<p class="text-muted" style="padding:16px;">No differences — the two inputs are identical.</p>';
+    } else {
+      renderRows(sideRows(ops));
+    }
+    $('unified').textContent = unifiedDiff(ops);
+    $('out-section').style.display = 'block';
+  }
+
+  $('diff-btn').addEventListener('click', run);
+  $('swap').addEventListener('click', () => {
+    const l = $('left').value;
+    $('left').value = $('right').value;
+    $('right').value = l;
+    run();
+  });
+
+  $('copy-unified').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('unified').textContent);
+      $('copy-unified').textContent = 'Copied!';
+      setTimeout(() => { $('copy-unified').textContent = 'Copy unified diff'; }, 1200);
+    } catch {}
+  });
+
+  $('sample').addEventListener('click', () => {
+    $('left').value = [
+      'server {',
+      '  listen 80;',
+      '  server_name example.com;',
+      '  root /var/www/html;',
+      '  index index.html;',
+      '  location /api {',
+      '    proxy_pass http://backend:8080;',
+      '  }',
+      '  location /static {',
+      '    alias /var/www/static;',
+      '    expires 7d;',
+      '  }',
+      '}',
+      '# deploy: run build.sh then restart nginx',
+    ].join('\n');
+    $('right').value = [
+      'server {',
+      '  listen 80;',
+      '  listen [::]:80;',
+      '  server_name example.com www.example.com;',
+      '  root /var/www/html;',
+      '  index index.html;',
+      '  location /api {',
+      '    proxy_pass http://backend:8080;',
+      '    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;',
+      '  }',
+      '  location /static {',
+      '    alias /var/www/static;',
+      '    expires 30d;',
+      '  }',
+      '  location /health {',
+      '    return 200 "ok";',
+      '  }',
+      '}',
+      '# deploy: run deploy.sh then reload nginx',
+    ].join('\n');
+    run();
+  });
+
+  $('clear').addEventListener('click', () => {
+    $('left').value = '';
+    $('right').value = '';
+    $('out-section').style.display = 'none';
+  });
+})();
+</script>

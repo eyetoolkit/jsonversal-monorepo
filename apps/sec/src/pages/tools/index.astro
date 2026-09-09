@@ -12,6 +12,15 @@ const tools = [
   { title: 'Password Strength Analyzer', description: 'Score + entropy + crack-time estimate + actionable hints.', href: '/tools/password-strength/' },
   { title: 'Content-Security-Policy Generator', description: 'Build a strict CSP header with resource directives and flags.', href: '/tools/csp/' },
   { title: 'CSR Decoder', description: 'Decode a PEM Certificate Signing Request and show CN + SANs.', href: '/tools/csr/' },
+  { title: 'TOTP Authenticator', description: 'Generate 6-digit TOTP codes from a Base32 secret (RFC 6238).', href: '/tools/totp/' },
+  { title: 'Random Token Generator', description: 'CSPRNG hex / base64 / base64url / UUID tokens for API keys.', href: '/tools/random-token/' },
+  { title: 'RSA Key Pair Generator', description: 'Generate RSA-OAEP key pairs in PEM and encrypt/decrypt text.', href: '/tools/rsa-keygen/' },
+  { title: 'JWT Generator & Signer', description: 'Build and sign JWTs with HS256 / HS384 / HS512 locally.', href: '/tools/jwt-generator/' },
+  { title: 'X.509 Certificate Decoder', description: 'Decode PEM certificates: subject, issuer, validity, SANs, key usage.', href: '/tools/x509-decoder/' },
+  { title: 'Hash Identifier', description: 'Identify hash formats: MD5/SHA families, bcrypt, crypt, JWT, UUID, AWS keys.', href: '/tools/hash-identifier/' },
+  { title: 'Passphrase Generator', description: 'Diceware-style memorable passphrases with entropy estimates.', href: '/tools/passphrase-generator/' },
+  { title: 'Password-Based Encryption', description: 'PBKDF2 + AES-GCM encrypt/decrypt of text with a password.', href: '/tools/password-encrypt/' },
+  { title: 'Secret & API Key Scanner', description: 'Detect and redact leaked credentials in logs, configs and env dumps.', href: '/tools/secret-scanner/' },
 ];
 ---
 <BaseLayout site="sec" title="All Security Tools" current="/tools/">

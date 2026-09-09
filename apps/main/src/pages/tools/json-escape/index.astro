@@ -1,0 +1,157 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Escape & Unescape';
+const description = 'Escape plain text into a valid JSON string literal, decode an escaped literal back to readable text, and get a JavaScript-source-safe variant. Runs entirely in your browser.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-escape/"
+  keywords={['JSON escape', 'JSON unescape', 'escape quotes', 'JSON string literal', 'escape newline']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Input</h2>
+    <div class="row">
+      <label class="text-muted" for="mode">Mode</label>
+      <select id="mode">
+        <option value="escape" selected>Escape JSON</option>
+        <option value="unescape">Unescape JSON</option>
+      </select>
+    </div>
+    <textarea id="input" class="mt-1" spellcheck="false" placeholder="Paste text to escape, or an escaped JSON string literal to unescape."></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="run">Run</button>
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;" id="out-title">Output</h2>
+      <div class="row" style="gap:8px;">
+        <span class="text-dim" id="stats" style="font-size:.85rem;"></span>
+        <button class="ghost" id="copy-out">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+    <div id="js-row" class="mt-2" style="display:none;">
+      <div class="row" style="margin-bottom:8px;">
+        <h3 style="margin:0;">For JavaScript source</h3>
+        <button class="ghost" id="copy-js">Copy</button>
+      </div>
+      <pre id="out-js" class="mt-1">—</pre>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Invalid escaped string</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>Escape</strong> serializes the input with JSON.stringify: quotes, backslashes, newlines, tabs and control characters become the short \u-escapes that JSON requires, wrapped in double quotes.</li>
+    <li><strong>Unescape</strong> parses the literal back with JSON.parse, restoring the original text — handy for decoding API logs, CSV dumps, or generated payloads.</li>
+    <li>The <strong>For JavaScript source</strong> row shows the same literal with U+2028 and U+2029 also escaped, so the string is safe to paste into older JS engines that reject those characters in source code.</li>
+    <li>Byte counts (UTF-8) for input and output are shown under the result.</li>
+  </ul>
+
+  <h2>About JSON Escape & Unescape</h2>
+  <p class="text-muted">Escaping is the price of putting arbitrary text inside a JSON document: quotes and backslashes must be marked, and control characters cannot appear literally. Getting the escaping wrong produces invalid JSON — a leading cause of broken configs, failed API calls, and corrupted import scripts.</p>
+  <p class="text-muted">This tool removes the guesswork. Escape raw text before embedding it in a config file, a request body, or a test fixture; unescape when you pull an escaped literal out of logs and want to read it. Both directions run locally, so sensitive payloads never leave your browser.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 200px; }
+  pre { min-height: 60px; max-height: 240px; overflow: auto; }
+  #output { white-space: pre-wrap; word-break: break-word; }
+  #out-js { white-space: pre-wrap; word-break: break-word; font-size: .85rem; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function flash(btn, label) {
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1200);
+  }
+
+  function run() {
+    const input = $('input').value;
+    if (!input) { alert('Please enter some text first.'); return; }
+    const mode = $('mode').value;
+    const enc = new TextEncoder();
+    try {
+      if (mode === 'escape') {
+        const lit = JSON.stringify(input);
+        const jsLit = lit.replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+        $('output').textContent = lit;
+        $('out-js').textContent = jsLit;
+        $('js-row').style.display = 'block';
+        $('out-title').textContent = 'Escaped JSON string literal';
+      } else {
+        const t = input.trim();
+        const text = t.startsWith('"') ? JSON.parse(t) : JSON.parse('"' + input + '"');
+        $('output').textContent = text;
+        $('js-row').style.display = 'none';
+        $('out-title').textContent = 'Decoded text';
+      }
+      $('stats').textContent = 'Input ' + enc.encode(input).length + ' bytes → Output ' + enc.encode($('output').textContent).length + ' bytes';
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    } catch (e) {
+      $('err-out').textContent = 'Invalid escaped string: ' + (e.message || String(e));
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  }
+
+  $('run').addEventListener('click', run);
+  $('mode').addEventListener('change', () => { if ($('input').value) run(); });
+
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('input').value); flash($('copy'), 'Copy'); } catch {}
+  });
+  $('copy-out').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('output').textContent); flash($('copy-out'), 'Copy'); } catch {}
+  });
+  $('copy-js').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('out-js').textContent); flash($('copy-js'), 'Copy'); } catch {}
+  });
+
+  $('sample').addEventListener('click', () => {
+    if ($('mode').value === 'escape') {
+      $('input').value = [
+        'He said "hello" and left.',
+        'Path: C:\\Users\\bob\\docs\\report.txt',
+        'Line 1\t(tab here)',
+        'Unicode: 你好 🌍',
+      ].join('\n');
+    } else {
+      $('input').value = 'He said \\"hello\\".\\nPath: C:\\\\Users\\\\bob\\\\docs\\nUnicode: \\u4f60\\u597d \\ud83c\\udf0d';
+    }
+    run();
+  });
+
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+})();
+</script>

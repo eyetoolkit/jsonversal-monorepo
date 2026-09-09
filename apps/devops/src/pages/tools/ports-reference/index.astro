@@ -1,0 +1,155 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Common Ports Reference';
+const description = 'Search and filter common TCP/UDP ports — SSH, HTTP, databases, container runtimes, and more. Instant lookups, no network calls.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://devops.jsonversal.com/tools/ports-reference/"
+  keywords={['common ports', 'port number lookup', 'TCP UDP ports', 'well-known ports', 'port reference']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <input id="search" type="search" placeholder="Filter by port, name, or description… e.g. 443, mysql, redis" />
+    <div class="text-dim mt-1" style="font-size:.85rem;"><span id="count"></span></div>
+  </section>
+
+  <section class="card mt-2">
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Port</th><th>Proto</th><th>Service</th><th>Description</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    </div>
+  </section>
+
+  <h2>About Common Ports Reference</h2>
+  <p class="text-muted">Every TCP/UDP service listens on a port: well-known ports (0–1023) belong to system services, registered ports (1024–49151) cover most application and database software, and the dynamic range (49152–65535) is used for ephemeral connections. Recognizing the common ones — <code>22</code> SSH, <code>80/443</code> HTTP(S), <code>3306</code> MySQL, <code>5432</code> PostgreSQL, <code>6379</code> Redis, <code>27017</code> MongoDB — makes debugging connectivity, reading firewall logs, and configuring services far faster.</p>
+  <p class="text-muted">Remember that the official IANA list is just a registry: an application can listen on any port it likes, and firewalls or NAT can remap everything. When something is not connecting, verify the actual listening port (<code>ss -tlnp</code> on Linux, <code>netstat -an</code> elsewhere) rather than assuming the default. TLS services often run on the non-SSL port with STARTTLS, so a port alone does not tell you whether the traffic is encrypted.</p>
+</BaseLayout>
+
+<style>
+  input[type="search"] { width: 100%; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); }
+  th { background: var(--surface-alt); color: var(--text-muted); position: sticky; top: 0; }
+  td code { background: none; border: none; padding: 0; }
+  .mt-1 { margin-top: 8px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const PORTS = [
+    { port: 20, proto: 'TCP', service: 'FTP-data', desc: 'File Transfer Protocol data transfer' },
+    { port: 21, proto: 'TCP', service: 'FTP', desc: 'File Transfer Protocol control' },
+    { port: 22, proto: 'TCP', service: 'SSH / SCP / SFTP', desc: 'Secure Shell remote access' },
+    { port: 23, proto: 'TCP', service: 'Telnet', desc: 'Unencrypted remote terminal (avoid)' },
+    { port: 25, proto: 'TCP', service: 'SMTP', desc: 'Email submission between mail servers' },
+    { port: 53, proto: 'TCP+UDP', service: 'DNS', desc: 'Domain name resolution' },
+    { port: 67, proto: 'UDP', service: 'DHCP server', desc: 'Dynamic host configuration' },
+    { port: 68, proto: 'UDP', service: 'DHCP client', desc: 'DHCP client requests' },
+    { port: 69, proto: 'UDP', service: 'TFTP', desc: 'Trivial file transfer' },
+    { port: 80, proto: 'TCP', service: 'HTTP', desc: 'Web traffic, unencrypted' },
+    { port: 88, proto: 'TCP+UDP', service: 'Kerberos', desc: 'Network authentication' },
+    { port: 110, proto: 'TCP', service: 'POP3', desc: 'Email retrieval (legacy)' },
+    { port: 111, proto: 'TCP+UDP', service: 'RPC / portmapper', desc: 'SunRPC binding (NFS)' },
+    { port: 123, proto: 'UDP', service: 'NTP', desc: 'Network time protocol' },
+    { port: 137, proto: 'UDP', service: 'NetBIOS-NS', desc: 'Windows name service' },
+    { port: 138, proto: 'UDP', service: 'NetBIOS-DGM', desc: 'Windows datagram service' },
+    { port: 139, proto: 'TCP', service: 'NetBIOS-SSN', desc: 'Windows file sharing (legacy)' },
+    { port: 143, proto: 'TCP', service: 'IMAP', desc: 'Email retrieval (legacy)' },
+    { port: 161, proto: 'UDP', service: 'SNMP', desc: 'Network monitoring/management' },
+    { port: 194, proto: 'TCP', service: 'IRC', desc: 'Internet relay chat' },
+    { port: 389, proto: 'TCP+UDP', service: 'LDAP', desc: 'Lightweight directory access' },
+    { port: 443, proto: 'TCP', service: 'HTTPS', desc: 'Web traffic, TLS encrypted' },
+    { port: 445, proto: 'TCP', service: 'SMB', desc: 'Windows file sharing' },
+    { port: 465, proto: 'TCP', service: 'SMTPS', desc: 'SMTP over TLS (implicit)' },
+    { port: 514, proto: 'UDP', service: 'Syslog', desc: 'System log transport' },
+    { port: 587, proto: 'TCP', service: 'SMTP submission', desc: 'Email submission with auth (STARTTLS)' },
+    { port: 636, proto: 'TCP', service: 'LDAPS', desc: 'LDAP over TLS' },
+    { port: 993, proto: 'TCP', service: 'IMAPS', desc: 'IMAP over TLS (implicit)' },
+    { port: 995, proto: 'TCP', service: 'POP3S', desc: 'POP3 over TLS (implicit)' },
+    { port: 1080, proto: 'TCP', service: 'SOCKS proxy', desc: 'SOCKS proxy protocol' },
+    { port: 1433, proto: 'TCP', service: 'MSSQL', desc: 'Microsoft SQL Server' },
+    { port: 1521, proto: 'TCP', service: 'Oracle DB', desc: 'Oracle database listener' },
+    { port: 1701, proto: 'UDP', service: 'L2TP', desc: 'VPN tunneling (with IPsec)' },
+    { port: 1723, proto: 'TCP', service: 'PPTP', desc: 'Legacy VPN (insecure)' },
+    { port: 2049, proto: 'TCP+UDP', service: 'NFS', desc: 'Network file system' },
+    { port: 2375, proto: 'TCP', service: 'Docker API (plain)', desc: 'Docker daemon, unencrypted — avoid' },
+    { port: 2376, proto: 'TCP', service: 'Docker API (TLS)', desc: 'Docker daemon over TLS' },
+    { port: 2379, proto: 'TCP', service: 'etcd', desc: 'Kubernetes etcd client' },
+    { port: 2380, proto: 'TCP', service: 'etcd peer', desc: 'Kubernetes etcd peer sync' },
+    { port: 3000, proto: 'TCP', service: 'Dev servers', desc: 'Common for Node/Grafana/Rails dev' },
+    { port: 3306, proto: 'TCP', service: 'MySQL / MariaDB', desc: 'Relational database' },
+    { port: 3389, proto: 'TCP+UDP', service: 'RDP', desc: 'Windows remote desktop' },
+    { port: 4000, proto: 'TCP', service: 'Dev servers', desc: 'Phoenix/Jekyll/Phoenix apps' },
+    { port: 4369, proto: 'TCP', service: 'Erlang epmd', desc: 'Erlang node discovery (RabbitMQ)' },
+    { port: 5000, proto: 'TCP', service: 'Dev servers', desc: 'Flask / registry default' },
+    { port: 5001, proto: 'TCP', service: 'Syncthing / ML', desc: 'Sync daemon, ML tooling web UI' },
+    { port: 5432, proto: 'TCP', service: 'PostgreSQL', desc: 'Relational database' },
+    { port: 5672, proto: 'TCP', service: 'AMQP', desc: 'RabbitMQ messaging' },
+    { port: 5900, proto: 'TCP', service: 'VNC', desc: 'Remote desktop (RFB)' },
+    { port: 5984, proto: 'TCP', service: 'CouchDB', desc: 'Document database' },
+    { port: 6000, proto: 'TCP', service: 'X11', desc: 'X Window System' },
+    { port: 6379, proto: 'TCP', service: 'Redis', desc: 'In-memory key-value store' },
+    { port: 6443, proto: 'TCP', service: 'kube-apiserver', desc: 'Kubernetes API server' },
+    { port: 7001, proto: 'TCP', service: 'Cassandra / WebLogic', desc: 'Cassandra inter-node; WebLogic' },
+    { port: 7474, proto: 'TCP', service: 'Neo4j', desc: 'Graph database HTTP' },
+    { port: 8000, proto: 'TCP', service: 'Dev servers', desc: 'Common Django/Node dev port' },
+    { port: 8008, proto: 'TCP', service: 'Matrix / HTTP', desc: 'Matrix homeserver; HTTP alt' },
+    { port: 8080, proto: 'TCP', service: 'HTTP alt', desc: 'Common alternative web port' },
+    { port: 8086, proto: 'TCP', service: 'InfluxDB', desc: 'Time-series database' },
+    { port: 8200, proto: 'TCP', service: 'Vault', desc: 'HashiCorp Vault API' },
+    { port: 8443, proto: 'TCP', service: 'HTTPS alt', desc: 'Common alternative TLS port' },
+    { port: 8500, proto: 'TCP', service: 'Consul', desc: 'Service discovery / KV' },
+    { port: 8888, proto: 'TCP', service: 'Dev servers', desc: 'Jupyter / general dev' },
+    { port: 9000, proto: 'TCP', service: 'MinIO / PHP-FPM', desc: 'S3-compatible storage; app servers' },
+    { port: 9090, proto: 'TCP', service: 'Prometheus', desc: 'Metrics scraping / alerting UI' },
+    { port: 9092, proto: 'TCP', service: 'Kafka', desc: 'Distributed event streaming' },
+    { port: 9200, proto: 'TCP', service: 'Elasticsearch', desc: 'Search and analytics (HTTP)' },
+    { port: 9300, proto: 'TCP', service: 'Elasticsearch transport', desc: 'ES node transport' },
+    { port: 9418, proto: 'TCP', service: 'Git', desc: 'git:// protocol' },
+    { port: 9999, proto: 'TCP', service: 'Dev servers / Scylla', desc: 'Generic app servers; ScyllaDB' },
+    { port: 10000, proto: 'TCP', service: 'Webmin / dev', desc: 'Webmin admin; common dev' },
+    { port: 10250, proto: 'TCP', service: 'kubelet', desc: 'Kubernetes node agent' },
+    { port: 11211, proto: 'TCP+UDP', service: 'Memcached', desc: 'Distributed cache' },
+    { port: 11223, proto: 'TCP', service: 'Gitea / Forgejo SSH', desc: 'Self-hosted Git SSH' },
+    { port: 15672, proto: 'TCP', service: 'RabbitMQ mgmt', desc: 'RabbitMQ management UI' },
+    { port: 27017, proto: 'TCP', service: 'MongoDB', desc: 'Document database' },
+    { port: 28017, proto: 'TCP', service: 'MongoDB http', desc: 'Legacy MongoDB web status' },
+    { port: 30080, proto: 'TCP', service: 'NodePort range start', desc: 'Kubernetes default NodePort' },
+    { port: 32768, proto: 'TCP', service: 'Ephemeral start', desc: 'Linux ephemeral port range' }
+  ];
+
+  function render(filter) {
+    const q = filter.toLowerCase();
+    const rows = PORTS.filter(p =>
+      !q ||
+      String(p.port).includes(q) ||
+      p.service.toLowerCase().includes(q) ||
+      p.desc.toLowerCase().includes(q) ||
+      p.proto.toLowerCase().includes(q)
+    );
+    $('rows').innerHTML = rows.map(p =>
+      `<tr><td><code>${p.port}</code></td><td>${p.proto}</td><td><strong>${p.service}</strong></td><td class="text-muted">${p.desc}</td></tr>`
+    ).join('');
+    $('count').textContent = `${rows.length} of ${PORTS.length} ports`;
+  }
+
+  $('search').addEventListener('input', e => render(e.target.value));
+  render('');
+})();
+</script>

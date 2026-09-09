@@ -1,0 +1,143 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JWT Generator & Signer';
+const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your browser. Edit header and payload, supply a secret, and get a ready-to-use token. Nothing is uploaded.';
+---
+
+<BaseLayout
+  site="sec"
+  title={title}
+  description={description}
+  canonical="https://sec.jsonversal.com/tools/jwt-generator/"
+  keywords={['JWT generator', 'JWT signer', 'HS256', 'JSON Web Token', 'jwt encoder', 'sign token']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Header</h2>
+    <textarea id="header" spellcheck="false">&#123;"alg": "HS256", "typ": "JWT"&#125;</textarea>
+    <label class="text-muted mt-2" for="payload">Payload</label>
+    <textarea id="payload" spellcheck="false">&#123;&quot;sub&quot;: &quot;1234567890&quot;, &quot;name&quot;: &quot;Alice&quot;, &quot;iat&quot;: 1788800000, &quot;exp&quot;: 1810000000&#125;</textarea>
+    <label class="text-muted mt-2" for="secret">Secret (never stored or transmitted)</label>
+    <input id="secret" type="password" placeholder="your-hmac-secret" autocomplete="off" />
+    <div class="row mt-2">
+      <button class="primary" id="sign">Sign JWT</button>
+      <button class="ghost" id="now">Insert now</button>
+      <button class="ghost" id="exp">Insert exp (now + 1h)</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 style="margin:0;">Signed JWT</h2>
+      <button class="ghost" id="copy">Copy</button>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+    <div class="text-dim mt-2" id="parts" style="font-size:.85rem;"></div>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The header and payload are encoded as Base64URL, then concatenated as <code>header.payload</code>.</li>
+    <li>The signature is an HMAC-SHA2 over that string, keyed with your secret, per RFC 7519 / RFC 7515.</li>
+    <li>Signing runs in your browser with <code>crypto.subtle</code> — the secret is never sent anywhere.</li>
+    <li><strong>Insert now</strong> / <strong>Insert exp</strong> fill common <code>iat</code> / <code>exp</code> timestamps for testing.</li>
+  </ul>
+
+  <h2>About JWT Generator & Signer</h2>
+  <p class="text-muted">JWTs are compact, URL-safe tokens used for authentication and authorization — typically a header declaring the algorithm, a payload of claims, and a signature that proves the token was issued by whoever holds the secret. HMAC-signed (HS*) tokens are symmetric: the same secret both signs and verifies, so it must live only on the server. This tool is for local testing, crafting fixtures, and understanding the format — use it alongside the JWT decoder on devops.jsonversal.com to verify what you produced.</p>
+  <p class="text-muted">Keep your secret out of the payload and out of the header: the header and payload of an HMAC JWT are only base64-encoded, not encrypted — anyone can read them. Never place passwords or sensitive data inside claims, prefer short-lived tokens with an <code>exp</code> claim, and use an asymmetric algorithm (RS256/ES256) when multiple parties must verify tokens without sharing a secret.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 120px; }
+  input[type="password"] { width: 100%; max-width: 420px; }
+  pre { min-height: 60px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+  .mt-2 { margin-top: 16px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function b64url(s) {
+    return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  $('sign').addEventListener('click', async () => {
+    const headerRaw = $('header').value.trim();
+    const payloadRaw = $('payload').value.trim();
+    const secret = $('secret').value;
+    $('err-section').style.display = 'none';
+    $('out-section').style.display = 'none';
+    if (!secret) { alert('Enter a secret to sign with.'); return; }
+    try {
+      const header = JSON.parse(headerRaw);
+      const payload = JSON.parse(payloadRaw);
+      const alg = header.alg;
+      if (!['HS256', 'HS384', 'HS512'].includes(alg)) {
+        throw new Error('Only HS256, HS384, HS512 are supported in-browser.');
+      }
+      const hash = { HS256: 'SHA-256', HS384: 'SHA-384', HS512: 'SHA-512' }[alg];
+      const head = b64url(headerRaw);
+      const body = b64url(payloadRaw);
+      const data = head + '.' + body;
+      const key = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(secret),
+        { name: 'HMAC', hash },
+        false,
+        ['sign']
+      );
+      const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+      const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const jwt = data + '.' + sigB64;
+      $('output').textContent = jwt;
+      const claims = Object.keys(payload).join(', ') || '(empty)';
+      $('parts').textContent = `${alg} signature · ${jwt.length} chars · claims: ${claims}`;
+      $('out-section').style.display = 'block';
+    } catch (e) {
+      $('err-out').textContent = e.message;
+      $('err-section').style.display = 'block';
+    }
+  });
+
+  $('now').addEventListener('click', () => {
+    const now = Math.floor(Date.now() / 1000);
+    try {
+      const p = JSON.parse($('payload').value);
+      p.iat = now;
+      $('payload').value = JSON.stringify(p, null, 2);
+    } catch { alert('Payload is not valid JSON.'); }
+  });
+
+  $('exp').addEventListener('click', () => {
+    const exp = Math.floor(Date.now() / 1000) + 3600;
+    try {
+      const p = JSON.parse($('payload').value);
+      p.exp = exp;
+      $('payload').value = JSON.stringify(p, null, 2);
+    } catch { alert('Payload is not valid JSON.'); }
+  });
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+})();
+</script>

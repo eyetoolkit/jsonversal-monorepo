@@ -1,0 +1,337 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Markdown Editor & Live Preview';
+const description = 'Write Markdown and see a rendered HTML preview as you type. A safe, CommonMark-style subset parser with headings, lists, tables, task lists and code blocks — all in your browser.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/markdown-preview/"
+  keywords={['markdown editor', 'markdown preview', 'markdown to html', 'live markdown', 'markdown parser']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
+    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 style="margin-top:0;">Markdown source</h2>
+    <div class="md-grid">
+      <textarea id="input" spellcheck="false" placeholder="Type or paste Markdown here — the preview updates as you type."></textarea>
+      <div class="md-preview" id="preview" aria-live="polite"></div>
+    </div>
+    <div class="row mt-1">
+      <span class="text-dim" id="counts" style="font-size:.85rem;"></span>
+      <button class="primary" id="copy-html">Copy HTML</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Every keystroke re-renders the document locally — no network request, no upload, nothing leaves your device.</li>
+    <li>The parser supports headings, bold, italic, strikethrough, inline code, fenced code blocks, blockquotes, ordered and unordered (nestable) lists, task lists, links, images, horizontal rules, and GitHub-style pipe tables.</li>
+    <li>Raw HTML in your Markdown is escaped by default: tags are shown as plain text, so pasted markup can never execute.</li>
+    <li><strong>Copy HTML</strong> grabs the generated markup for reuse in emails, CMS fields, or documentation.</li>
+  </ul>
+
+  <h2>About Markdown Editor & Live Preview</h2>
+  <p class="text-muted">Markdown is the de-facto format for READMEs, issue comments, chat messages, and docs. A live preview closes the loop between what you type and what readers see: formatting mistakes, broken table columns, and unclosed code fences become visible instantly instead of surfacing after you publish.</p>
+  <p class="text-muted">The renderer implements a pragmatic subset of CommonMark with the two safety rules that matter most: all raw HTML is escaped, and every construct (links, images, code) is rendered from your input alone. Because parsing happens in your browser, you can draft confidential notes or internal documentation here with the same comfort as any local editor.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .md-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .md-grid { grid-template-columns: 1fr; } }
+  textarea { min-height: 320px; font-size: .95rem; }
+  .md-preview {
+    border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+    background: var(--surface); min-height: 320px; max-height: 70vh; overflow: auto;
+    font-size: .95rem; line-height: 1.55;
+  }
+  .md-preview h1 { font-size: 1.55rem; }
+  .md-preview h2 { font-size: 1.3rem; }
+  .md-preview h3 { font-size: 1.1rem; }
+  .md-preview h4, .md-preview h5, .md-preview h6 { font-size: 1rem; }
+  .md-preview h1, .md-preview h2 { border-bottom: 1px solid var(--border); padding-bottom: .3em; }
+  .md-preview pre { background: var(--surface-alt); padding: 12px; border-radius: 8px; overflow: auto; }
+  .md-preview code { background: var(--surface-alt); padding: 1px 5px; border-radius: 4px; font-size: .88em; }
+  .md-preview pre code { padding: 0; background: transparent; }
+  .md-preview blockquote { border-left: 3px solid var(--accent); margin: 0; padding: 2px 12px; color: var(--text-muted); }
+  .md-preview table { border-collapse: collapse; }
+  .md-preview th, .md-preview td { border: 1px solid var(--border); padding: 4px 10px; }
+  .md-preview hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .md-preview img { max-width: 100%; }
+  .md-preview a { color: var(--accent); }
+  .md-preview .task input { margin-right: 6px; vertical-align: middle; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Inline rendering: escape first, then apply constructs in a safe order.
+  function inline(text) {
+    let s = escapeHtml(text);
+    const codes = [];
+    s = s.replace(/`([^`\n]+)`/g, (m, c) => {
+      codes.push('<code>' + c + '</code>');
+      return '\u0000' + (codes.length - 1) + '\u0000';
+    });
+    s = s.replace(/(\*\*\*|___)(?=\S)([\s\S]*?\S)\1/g, '<strong><em>$2</em></strong>');
+    s = s.replace(/(\*\*|__)(?=\S)([\s\S]*?\S)\1/g, '<strong>$2</strong>');
+    s = s.replace(/(^|[^*\w])(\*|_)(?=\S)([\s\S]*?\S)\2(?=[^*\w]|$)/g, '$1<em>$3</em>');
+    s = s.replace(/~~(?=\S)([\s\S]*?\S)~~/g, '<del>$1</del>');
+    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+[^)]*)?\)/g, '<img src="$2" alt="$1" loading="lazy" />');
+    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+[^)]*)?\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    s = s.replace(/\u0000(\d+)\u0000/g, (m, i) => codes[+i]);
+    return s;
+  }
+
+  function splitCells(line) {
+    let s = line.trim();
+    if (s.startsWith('|')) s = s.slice(1);
+    if (s.endsWith('|')) s = s.slice(0, -1);
+    return s.split('|').map(c => c.trim());
+  }
+  function isSepRow(cells) {
+    return cells.length >= 2 && cells.every(c => /^:?-+:?$/.test(c));
+  }
+  function renderTable(header, rows) {
+    let h = '<table><thead><tr>';
+    for (const c of header) h += '<th>' + inline(c) + '</th>';
+    h += '</tr></thead><tbody>';
+    for (const r of rows) {
+      h += '<tr>';
+      for (let k = 0; k < header.length; k++) h += '<td>' + inline(r[k] || '') + '</td>';
+      h += '</tr>';
+    }
+    return h + '</tbody></table>';
+  }
+
+  function renderList(items) {
+    let pos = 0;
+    function walk(baseLevel) {
+      let h = '';
+      while (pos < items.length && items[pos].level >= baseLevel) {
+        const level = items[pos].level;
+        const isOl = items[pos].ordered;
+        let inner = '';
+        while (pos < items.length && items[pos].level === level) {
+          const it = items[pos];
+          pos++;
+          let child = '';
+          if (pos < items.length && items[pos].level > level) {
+            child = walk(items[pos].level);
+          }
+          const body = it.done !== undefined
+            ? '<label class="task"><input type="checkbox" disabled' + (it.done ? ' checked' : '') + '> ' + inline(it.content) + '</label>'
+            : inline(it.content);
+          inner += '<li>' + body + (child || '') + '</li>';
+        }
+        h += '<' + (isOl ? 'ol' : 'ul') + '>' + inner + '</' + (isOl ? 'ol' : 'ul') + '>';
+      }
+      return h;
+    }
+    return walk(items.length ? items[0].level : 0);
+  }
+
+  function renderMarkdown(src) {
+    const lines = src.replace(/\r\n?/g, '\n').split('\n');
+    const out = [];
+    let i = 0;
+    let inCode = false, codeLang = '', codeLines = [];
+    let para = [];
+    const flushPara = () => {
+      if (para.length) {
+        out.push('<p>' + para.map(l => inline(l)).join(' ') + '</p>');
+        para = [];
+      }
+    };
+    const closeCode = () => {
+      if (inCode) {
+        out.push('<pre><code' + (codeLang ? ' class="lang-' + codeLang + '"' : '') + '>' + escapeHtml(codeLines.join('\n')) + '</code></pre>');
+        inCode = false; codeLang = ''; codeLines = [];
+      }
+    };
+
+    while (i < lines.length) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      if (trimmed === '') { flushPara(); i++; continue; }
+
+      const fence = trimmed.match(/^```([^\s`]*)\s*$/);
+      if (fence) {
+        flushPara();
+        if (inCode) closeCode(); else { inCode = true; codeLang = fence[1]; codeLines = []; }
+        i++;
+        continue;
+      }
+      if (inCode) { codeLines.push(line); i++; continue; }
+
+      const h = trimmed.match(/^(#{1,6})\s+(.*)$/);
+      if (h) {
+        flushPara();
+        const lvl = h[1].length;
+        out.push('<h' + lvl + '>' + inline(h[2]) + '</h' + lvl + '>');
+        i++;
+        continue;
+      }
+
+      if (/^(\s*([-*_])\s*){3,}$/.test(line)) {
+        flushPara();
+        out.push('<hr>');
+        i++;
+        continue;
+      }
+
+      if (splitCells(line).length >= 2 && isSepRow(splitCells(lines[i + 1] || ''))) {
+        flushPara();
+        const header = splitCells(line);
+        i += 2;
+        const rows = [];
+        while (i < lines.length && lines[i].trim() !== '' && lines[i].includes('|')) {
+          rows.push(splitCells(lines[i]));
+          i++;
+        }
+        out.push(renderTable(header, rows));
+        continue;
+      }
+
+      if (trimmed.startsWith('>')) {
+        flushPara();
+        const q = [];
+        while (i < lines.length && lines[i].trim().startsWith('>')) {
+          q.push(lines[i].trim().replace(/^>\s?/, ''));
+          i++;
+        }
+        out.push('<blockquote><p>' + q.map(l => inline(l)).join(' ') + '</p></blockquote>');
+        continue;
+      }
+
+      const um = trimmed.match(/^(\s*)[-*+]\s+(.*)$/);
+      const om = trimmed.match(/^(\s*)(\d+)[.)]\s+(.*)$/);
+      if (um || om) {
+        flushPara();
+        const items = [];
+        while (i < lines.length && lines[i].trim() !== '') {
+          const t = lines[i].trim();
+          const u = t.match(/^(\s*)[-*+]\s+(.*)$/);
+          const o = t.match(/^(\s*)(\d+)[.)]\s+(.*)$/);
+          if (!u && !o) break;
+          const level = Math.floor((u ? u[1] : o[1]).length / 2);
+          const content = o ? o[3] : u[2];
+          const task = content.match(/^\[([ xX])\]\s+(.*)$/);
+          items.push(task
+            ? { level, ordered: !!o, content: task[2], done: task[1].toLowerCase() === 'x' }
+            : { level, ordered: !!o, content });
+          i++;
+        }
+        out.push(renderList(items));
+        continue;
+      }
+
+      para.push(line);
+      i++;
+    }
+    flushPara();
+    closeCode();
+    return out.join('\n');
+  }
+
+  function render() {
+    const src = $('input').value;
+    $('preview').innerHTML = renderMarkdown(src);
+    const trimmed = src.trim();
+    const words = trimmed ? trimmed.split(/\s+/).length : 0;
+    $('counts').textContent = words + ' words · ' + src.length + ' chars';
+  }
+
+  let timer = null;
+  $('input').addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(render, 150);
+  });
+
+  function flash(btn) {
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1200);
+  }
+
+  $('copy-html').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('preview').innerHTML);
+      flash($('copy-html'));
+    } catch {}
+  });
+
+  $('sample').addEventListener('click', () => {
+    $('input').value = [
+      '# Welcome to the Markdown Preview',
+      '',
+      'This editor renders a **CommonMark-style subset** with _live_ preview and ~~strikethrough~~.',
+      '',
+      '## Features',
+      '',
+      '- Unordered lists and **nested** items',
+      '  - Sub item one',
+      '  - Sub item two',
+      '- [x] Task lists render as checkboxes',
+      '- [ ] A task not yet done',
+      '',
+      '1. Ordered lists work too',
+      '2. Number two',
+      '3. Number three',
+      '',
+      '> A blockquote with `inline code` inside it.',
+      '',
+      '```js',
+      'function greet(name) {',
+      '  return "Hello, " + name;',
+      '}',
+      '```',
+      '',
+      '| Column A | Column B |',
+      '| --- | --- |',
+      '| one | two |',
+      '| three | four |',
+      '',
+      'Inline: **bold**, *italic*, `code`, [links](https://jsonversal.com/), and images ![placeholder](https://placehold.co/320x80).',
+      '',
+      '---',
+      '',
+      '## HTML is escaped',
+      '',
+      '<scr' + 'ipt>alert(1)</scr' + 'ipt> is shown as plain text, never executed.',
+      '',
+      '#### Deep heading',
+      '',
+      'Trailing paragraph with a soft line break',
+      'continuing on the next line.',
+    ].join('\n');
+    render();
+  });
+
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('preview').innerHTML = '';
+    $('counts').textContent = '';
+  });
+
+  render();
+})();
+</script>
