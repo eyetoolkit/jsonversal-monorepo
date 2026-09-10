@@ -1,171 +1,149 @@
 ---
 name: "jsonversal-deploy-chain"
-description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops/codegen 子栏目）在 Cloudflare Pages + GitHub 的部署链路、项目映射、当前部署方式与已知缺口。当需要部署/更新站点、核实 CF Pages 项目或 jsonversal 源码与 Git 的连接时要调用。不涉及 tri-sites 与 mquickcalc 站点，那些走各自 skill。"
+description: "jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops/codegen 四栏目）在 Cloudflare Pages + GitHub 上的部署链路、项目配置、推送方式与核验方法。当需要部署/更新站点、核实 CF Pages 项目、排查线上不生效或域名问题时调用。仅覆盖 jsonversal；tri-sites（mathduel/boardduel/memoryduel）走 tinysite-deploy-chain，mathduel 细节走 mathduel-site-manager。"
 ---
 
-# jsonversal 部署链路（jsonversal-deploy-chain）
+# jsonversal 部署链路
 
-本技能固化「jsonversal 品牌矩阵」的部署链路与真实配置，供任意对话复用。**不含任何密钥明文**；凭据一律走已授权连接器（Cloudflare 插件 MCP / GitHub 插件 + gh CLI），不要在文档中保存 token。
+**一句话：改 monorepo → push `main` → Cloudflare Pages 自动构建 → 上线。没有手动上传环节。**
 
-## 当前状态（2026-09-10 实测 / 最新部署）
+> 通用方法论（四段链路体检、零残留推送、凭证验活、522 排查）已抽到用户级技能 `deploy-chain-audit`，
+> 本文只记 jsonversal 专属的事实与配置。**本文不记录任何密钥明文**；凭据只从 `.env` 或用户级环境变量按需读取。
 
-- **生产 `main` = `506af9a`** "fix(codegen): escape GitHub Actions expr in ci-workflow tool; add tool test harness + jsdom devDep"（上层 `c9fcea8` 文档更新）
-- **线上**：`ci-workflow` 工具的 GH Actions 表达式转义修复已部署（curl 核验：转义 `$\{\{` 命中，未转义 `${{` 为 0）；全工具 `69` 个中 `65` 正常 + `4` 需上传外部文件（file-checksum/csr/x509-decoder/base64-image）
-- 全站视觉已重设计：现代深色 + 渐变强调；共享组件 `Hero` / `ToolGrid`（可搜索）+ `tools-icons` 图标映射（70 项）已随 `packages/{ui,config}` 发布
+---
 
-## 站点结构（单域名 + 四子栏目）
+## 1. 链路总览（2026-09-10 实测）
 
-所有页面由 Astro 静态生成，托管于 Cloudflare Pages `jsonversal-main-v2`。
-
-| 路径 | 主题 | 线上 |
+| 环节 | 状态 | 权威证据 |
 |---|---|---|
-| `https://jsonversal.com/` | LLM / JSON 工程工具 | ✅ |
-| `https://jsonversal.com/tools/` | JSON / LLM 工具（16 个） | ✅ |
-| `https://jsonversal.com/sec/` | 安全工具（18 个） | ✅ |
-| `https://jsonversal.com/devops/` | DevOps 工具（17 个） | ✅ |
-| `https://jsonversal.com/codegen/` | 代码生成器（18 个） | ✅ |
+| ① 本地构建 | ✅ | `turbo run build --filter=@versal/site-main` → 79 页 / 12.9s / 0 报错 |
+| ② 本地 → GitHub | ✅ | push 成功，本地 HEAD = 远端 HEAD = `641219c` |
+| ③ GitHub → CF Pages | ✅ | Pages 最新部署 `09f4e8f3`，`github:push` of `641219c`，`deploy/success` |
+| ④ 平台 → 站点 | ✅ | apex / www / pages.dev 全 200；sitemap **79 条 = 本地 79 条**，抽检全 200 |
 
-> **子站已彻底删除**：`sec/devops/codegen.jsonversal.com` 三个旧子域及其 CF 项目 `*-v2`、DNS CNAME、monorepo 的 `apps/{sec,devops,codegen}` redirect 包均已删除，内容整合进主站子目录。
+**当前生产 commit：`641219c`**（production 分支 `main`）
 
-## 源码与 Git
+### 最近部署（CF Pages API）
 
-- **Monorepo**：`eyetoolkit/jsonversal-monorepo`，生产分支 `main`。
-  - 当前工作区：`E:\TRAE\jsonversal-monorepo`（2026-09-10 起为权威本地克隆）
-  - 历史路径 `c:\new\jsonversal-monorepo`、Trae 沙箱 `/workspace` 均已作废，看到即视为过期信息
-- **远端为 SSH**：`git@github.com:eyetoolkit/jsonversal-monorepo.git`（非 https）。
-  - 本机 Git Bash 下 `git ls-remote origin` 可能静默无输出（SSH key 未加载），核对远端 HEAD 优先用 GitHub 插件 MCP 的 `list_commits`。
-- 结构：pnpm workspace + turbo；`apps/main` 为唯一 Astro 应用，含 `src/pages/{tools,sec,devops,codegen}/` 栏目落地页与工具目录页各 1 个，以及各工具详情页；`packages/{ui,config}`。
-- 共享 UI 组件（`@versal/ui`）：`BaseLayout`、`Header`、`Footer`、`ToolCard`、`Hero`、`ToolGrid`；`@versal/config`：`tokens`、`sites`、`tools-icons`。
-- 旧单仓库 `eyetoolkit/jsonversal` 已废弃。
-
-## Cloudflare Pages 项目
-
-**唯一生产项目：**
-
-| 线上域名 | CF 项目 | 源/构建 | 产物目录 |
+| 部署 ID | commit | 状态 | 时间 |
 |---|---|---|---|
-| jsonversal.com | `jsonversal-main-v2` | GitHub 集成 | `apps/main/dist` |
+| `09f4e8f3` | `641219c` | deploy/success | 2026-09-10 09:47Z |
+| `8af70bb4` | `48d202b` | deploy/success | 2026-09-10 09:25Z |
+| `c1dfceb0` | `0e62dcd` | deploy/success | 2026-09-10 08:04Z |
 
-- 构建命令：`npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`，产物 `apps/main/dist`，框架 `astro`。
-- 旧三子站项目 `jsonversal-sec-v2` / `-devops-v2` / `-codegen-v2` 及更早 direct-upload 四项目均已删除。
+---
 
-## 部署方式 = git push 自动构建
+## 2. 站点结构
 
-**更新站点 = 修改 monorepo + push `main`** → Cloudflare Pages 自动构建部署，无需手动上传。
+单域名 + 四子栏目，全部由 Astro 静态生成，托管于 CF Pages 项目 `jsonversal-main-v2`。
 
-### 流程（实测可用）
-
-1. **改代码**：UI/工具改动 → `apps/main/src/pages/**`；共享样式/组件 → `packages/{ui,config}`。
-2. **本地构建自检**：
-   `npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`
-3. **提交**：`git add <具体文件> && git commit`（只针对本次改动文件，勿 `git add -A`）。
-4. **推送**：origin 是 SSH 但公钥未注册，`gh` 也未安装 —— 直接 `git push origin main` **会失败**。
-   用「GitHub 认证」小节里的 `GH_TOKEN` + `http.extraheader` 一次性方式推送（已验证可用、`.git/config` 零残留）。
-5. **核验线上**：调用 Cloudflare MCP 拉部署列表，确认最顶一条为 `github:push` + 目标 commit，状态由 `active` 轮询至 `success`。
-
-### 注意事项
-- 触发空构建：`git commit --allow-empty` + push（无法直接对失败部署 retry）。
-- 改 commit 消息：`git commit --amend` + `git push --force-with-lease origin main`，会改变 hash 并重部署；**用户本地需 `git fetch && git reset --hard origin/main` 对齐**（避免与远端分叉）。
-- commit 消息要语义准确，避免「查看部署状态」这类无关命名（曾因此返工改写）。
-
-## Cloudflare 认证（2026-09-10 第四轮 · ✅ 已有可用凭据）
-
-### ✅ 当前可用（用户于 2026-09-10 提供，已存入工作区 `.env`）
-
-| 名称 | 权限（实测） | 能干什么 |
+| 路径 | 主题 | 工具数 |
 |---|---|---|
-| `CF_TOKEN_PAGES`（`cfat_qFQP…`） | Pages 项目读 ✅、自定义域读 ✅、**POST 添加自定义域成功** ✅、Zone 读 ✅、账户读 ✅ | **修 www 用的就是这个** |
-| `CF_TOKEN_DNS_WRITE`（`cfat_6M3a…`） | Zone 读 ✅（7 个 zone）、DNS 记录读 ✅、**DNS 写 ✅**（2026-09-10 用一次性 TXT 记录 POST 建 / DELETE 删均 200，事后确认 0 残留） | DNS 操作 |
-| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | ✅ ListBuckets 200，可见 `mathduel-backup`、`md-quiz-bucket`；PUT/GET/DELETE 全链路通过 | S3 兼容对象存储 ⚠️ 见下方弱派生告警 |
+| `/` | LLM / JSON 工程工具（首页） | — |
+| `/tools/` | JSON / LLM 工具 | 16 |
+| `/sec/` | 安全工具 | 18 |
+| `/devops/` | DevOps 工具 | 17 |
+| `/codegen/` | 代码生成器 | 18 |
 
-两个 token 的权限**互补且都是最小权限**：DNS 那个没有 Pages 权限（403），Pages 那个没有 DNS 记录权限（403），但两者都能列 zone。要做完整 CF 运维需要同时用。
+合计 **69 个工具**（65 个可脚本自检通过 + 4 个需上传外部文件：file-checksum / csr / x509-decoder / base64-image）。
 
-### ⚠️⚠️ 安全告警：R2 秘密密钥是 CF token 的 SHA-256
+> 旧子站 `sec/devops/codegen.jsonversal.com` 已**彻底删除**：三个 CF 项目 `*-v2`、三条 DNS 记录、monorepo 里的三个 redirect 包全部清除。实测三域均 **NXDOMAIN**（`socket.gethostbyname_ex` 抛 `gaierror`）。
 
-实测确认（**逐字节相等，已多路复现**）：
+---
 
-```
-sha256(CF_TOKEN_PAGES)  ==  R2_SECRET_ACCESS_KEY
-```
+## 3. 源码与仓库
 
-> ⚠️ **本文件不记录这两个值的明文。** 这里曾经直接写出完整令牌来"举例说明"，
-> 结果被 GitHub Push Protection 以 `GH013` 拦下推送——**在仓库里写明文密钥本身就是事故**。
-> 需要复核时请用本技能配套脚本 `verify_credentials.py`，它在本地从 `.env` 读取并当场计算，
-> 仓库内不留任何密钥。指纹仅供比对：秘密密钥前 8 位 `bd280fbc`、后 4 位 `654f3`。
-
-两套凭证**本身都完全可用**（Pages 能列 10 个项目；R2 跑通了 PUT/GET/DELETE/404 复查），所以只看"能不能用"永远发现不了这个问题。
-
-**危害**：R2 秘密密钥可由 `CF_TOKEN_PAGES` 直接算出。而 `cfat_` 令牌会出现在请求头、CI 变量、日志、报错里——**它一泄漏，R2 秘密密钥随即泄漏**；再配上同一文件里的 `R2_ACCESS_KEY_ID`，即可对 `mathduel-backup` / `md-quiz-bucket` 完整读写。
-
-**处置（待用户执行）**：到 Cloudflare 重新签发一个 R2 API 令牌，使其 secret 由服务器随机生成、不由任何其他凭证派生；替换 `.env` 后作废当前 AK。已在 `.env` 该段加显式告警注释。
-
-> 通用教训一：凭证盘点时**务必对密钥值两两做一次 `sha256(A) == B` 检查**。这类弱派生无法靠"验活"发现。
-> 通用教训二：**安全发现要写进文档时，只写关系和指纹，绝不写明文。** 否则"记录漏洞"这个动作本身就成了新的泄漏源。
-
-### 验证工具
-
-通用验活脚本（已沉淀到用户级技能，与本项目 skill 配套）：
-
-```bash
-python "C:/Users/刘先生/.workbuddy/skills/deploy-chain-audit/scripts/verify_credentials.py" --r2-full
-python "C:/Users/刘先生/.workbuddy/skills/deploy-chain-audit/scripts/verify_credentials.py" --dns-write
-```
-
-### ⚠️ 重要：`/user/tokens/verify` 对细粒度 token 会误报
-
-两个**实际可用**的 token，调 `GET /user/tokens/verify` 都返回 `code 1000 Invalid API Token`。
-原因是该端点要求 token 具备 `User API Tokens:Read` 权限，而这些是限定资源的细粒度 token。
-
-> **判断 token 是否可用，唯一可靠的办法是打它该干的活**（列 zone、读 DNS、读 Pages 项目），**不要用 `/user/tokens/verify` 下结论。** 这一点和 GitHub 那边的经验一致：`api.github.com` 能通不代表 `github.com` 能推，**「探针通」≠「目标通」**。
-
-### ❌ 已失效（留档，勿用）
-
-用户级环境变量与 `.env` 里的 `CF_API_TOKEN`、`CLOUDFLARE_API_TOKEN`、`CF_TOKEN_MAIN`、`CF_TOKEN_A`~`D` —— 共 7 个，实测均不可用（列 zone 也拿不到）。`.env` 里原注释「全部实测 OK(2026-09-01)」已过期，已在文件中标注。
-
-### 其他
-
-- **`CF_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID` = `00cb5cd6be4881053e57a338ce62de2f`**（与 CF 账号一致，本身不是密钥）。
-- **jsonversal 的 zone id = `82591a57fa474a57fc21d26ea6e5c558`**（已补入 `.env` 的 `CF_ZONE_JSONVERSAL`）。
-- **Trae 侧**：`mcp_trae-remote-official_plugin_cloudflare_cloudflare-api` 的 `execute` 无需自备 token。授权失败先 `RequestAuthorization`（service `trae-remote-official:cloudflare::cloudflare-api`）。
-- **WorkBuddy 侧无 Cloudflare 连接器**，走 HTTP API + 上面的 token。
-
-### 工作区 `.env`（`.gitignore` 第 16 行保护，`git check-ignore` 验证过）
-
-| 凭证 | 实测 |
+| 项 | 值 |
 |---|---|
-| `GH_TOKEN` / `GH_PAT` | ✅ 有效，`eyetoolkit`，admin/push（与注册表同值） |
-| `MINIMAX_API_KEY` | ✅ `/models` 200（base `https://token-plan-cn.xiaomimimo.com/v1`，model `mimo-v2.5-pro`） |
-| `MATHDUEL_R2_AK1` + `SK1` | ❌ **2026-09-10 复测 401 Unauthorized**（早前轮次记的「✅ SigV4 200」基于当时版本的 `.env`，现版本已失效） |
-| `MATHDUEL_R2_AK2` + `SK2` | ❌ HTTP 400 `Credential access key has length 64, should be 32`（AK2 长度 64，是 SK 规格串填进了 AK 位） |
-| `MATHDUEL_R2_AK3` | ❌ 只有 AK、无 `SK3`；与 `SK1`/`SK2` 组合亦均 401 |
-| `AK1+SK2` / `AK3+SK2` | ❌ 401 —— 即整套旧 mathduel 密钥已全部作废 |
-| `R2_*`（新） | ✅ 见上表（⚠️ 弱派生告警另见上） |
-| `MATHDUEL_R2_ENDPOINT` / `MATHDUEL_R2_BUCKET` | ✅ 端点可达、bucket 名有效（`MATHDUEL_R2_BUCKET=mathduel-backup`）；`mathduel-backup` 请改用 `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` 访问 |
+| 仓库 | `eyetoolkit/jsonversal-monorepo`（public） |
+| 生产分支 | `main` |
+| 权威本地克隆 | `E:\TRAE\jsonversal-monorepo` |
+| 技术栈 | pnpm workspace + turbo |
+| 应用 | `apps/main`（唯一 Astro 应用） |
+| 共享包 | `packages/ui`（BaseLayout / Header / Footer / ToolCard / Hero / ToolGrid）、`packages/config`（tokens / sites / tools-icons） |
 
-> 2026-09-10 已把上面 5 行失效的 `MATHDUEL_R2_AK*/SK*` 从 `.env` **删除**（值已无用途，留着只会误导），仅保留端点与 bucket 名，并在原位留实测记录。
+- 旧单仓库 `eyetoolkit/jsonversal` 已废弃。
+- 历史路径 `c:\new\jsonversal-monorepo`、Trae 沙箱 `/workspace` 均已作废，看到即视为过期信息。
 
-> `.env` 原注释「注意本机网络对 r2.cloudflarestorage.com TLS 不可达」也已过期 —— 2026-09-10 实测 R2 端点 200 正常。
+---
 
-## GitHub 认证（2026-09-10 第二轮实测修订）
+## 4. Cloudflare Pages 项目配置（权威值，取自 API）
 
-**核心认知：凭证是齐的，但沙箱 shell 不继承。** 用户级全局环境变量（注册表 `HKCU\Environment`）里存有完整凭据；Agent 的 Bash / PowerShell 进程**读不到**，必须显式取值后注入。
+```
+name              = jsonversal-main-v2
+subdomain         = jsonversal-main-v2.pages.dev
+domains           = jsonversal-main-v2.pages.dev, jsonversal.com, www.jsonversal.com
+production_branch = main
+source            = github  eyetoolkit/jsonversal-monorepo
+framework         = astro
+build_command     = npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main
+destination_dir   = apps/main/dist
+root_dir          = (空)
+```
 
-### 凭据实测清单
+账户 ID `00cb5cd6be4881053e57a338ce62de2f`（不是密钥）。
 
-| 名称 | 位置 | 实测 |
-|---|---|---|
-| `GH_TOKEN` / `GH_PAT` / `MQUICKCALC_GITHUB_PAT` | 用户级环境变量 | ✅ **有效** —— 细粒度 PAT，身份 `eyetoolkit`（id 312025408），仓库权限 `admin/maintain/push/triage/pull` 全真 |
-| `CF_API_TOKEN` / `CLOUDFLARE_API_TOKEN` | 用户级环境变量 | ❌ 均 `Invalid API Token`（详见上一节） |
-| SSH `id_ed25519` / `github_ed25519` | `~/.ssh/` | ❌ 均未注册到 GitHub（`Permission denied (publickey)`） |
-| `gh` CLI | — | ❌ 未安装（含 scoop apps 内也无）；旧记录「gh 已认证」有误 |
-| ssh-agent | — | ❌ 未运行 |
-| `~/.ssh/config` | — | ⚠️ 无 `Host github.com` 条目（只有 `volc` / `hk`） |
+> 构建配置在 **dashboard / API** 里，`apps/main/wrangler.toml` **不参与**线上构建。
+> 该文件的 `name` 已于 2026-09-10 校正为 `jsonversal-main-v2`，避免 `wrangler pages deploy` 打错项目。
 
-### 可用的推送方法（2026-09-10 实测三笔推送成功）
+---
 
-**禁止**把 token 写进 remote URL（会残留 `.git/config`）。用一次性 `http.extraheader`，零残留。
+## 5. 部署流程
 
-**必须同时绕过沙箱代理** —— 代理对 `github.com` 间歇性回 `CONNECT tunnel failed 502`，且代理端口**每次 Bash 调用都会变**（见过 `59335`→`56178`），靠它推送不可靠：
+1. **改代码**
+   - UI / 页面 → `apps/main/src/pages/**`
+   - 共享样式 / 组件 → `packages/{ui,config}`
+2. **本地构建自检**
+   ```bash
+   npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main
+   ```
+3. **提交**（只 add 本次改动文件，勿 `git add -A`）
+   ```bash
+   git add <具体文件> && git commit
+   ```
+   commit message 要语义准确——曾用「查看部署状态」这类无关命名导致返工。
+4. **推送 `main`** → 见第 7 节。origin 是 SSH 但公钥未注册，**直接 `git push origin main` 会失败**。
+5. **核验**（约 35 秒后出结果）→ 见第 6 节。
+
+### 触发重建的两种特殊情形
+- **空构建**：`git commit --allow-empty` + push（CF 不提供对失败部署的直接 retry）。
+- **改 commit message**：`git commit --amend` + 强推；会改变 hash 并触发重部署。**用户本地需 `git fetch && git reset --hard origin/main` 对齐**，避免分叉。
+
+---
+
+## 6. 核验"线上是否是最新"——三层，从便宜到硬
+
+### ① 最快：GitHub check-runs（免认证，不需 CF 凭据）
+```bash
+curl -s https://api.github.com/repos/eyetoolkit/jsonversal-monorepo/commits/<sha>/check-runs
+```
+看 `name=Cloudflare Pages` + `status=completed` + `conclusion=success`。公开仓库无需 token，push 后约 35 秒出结果。
+
+### ② 最权威：CF Pages API 的部署列表
+```bash
+GET /accounts/{acc}/pages/projects/jsonversal-main-v2/deployments
+```
+确认最顶一条是 `production` 环境、`github:push`、commit hash 与本地 HEAD 一致、`latest_stage` 为 `deploy/success`。
+**这是唯一能直接证明「哪个 commit 被部署了」的接口**，优先用它。
+
+### ③ 最硬：归一化 diff（证明内容等于源码）
+```bash
+curl -s "https://jsonversal.com/<path>?v=$RANDOM" -o live.html   # 随机 query 绕边缘缓存
+diff <(sed -E 's/data-astro-cid-[a-z0-9]+/CID/g; s/index\.[A-Za-z0-9_-]+\.css/index.CSS/g' apps/main/dist/<path>/index.html) \
+     <(sed -E 's/data-astro-cid-[a-z0-9]+/CID/g; s/index\.[A-Za-z0-9_-]+\.css/index.CSS/g' live.html)
+```
+归一化后无差异 = 线上等于当前源码。**预期且无害**的三类差异：
+1. Astro 作用域样式哈希与 CSS/JS 文件名哈希（随构建机绝对路径变化）
+2. `ToolGrid.astro` 用 `Math.random()` 生成的 `data-toolgrid` uid
+3. Cloudflare 邮件混淆注入（`mailto:` → `/cdn-cgi/l/email-protection#...`，另注入 `email-decode.min.js`，约 +151B/页）
+
+> 批量探活 sitemap 时**每条 URL 都加 `?v=$RANDOM`**，否则边缘缓存会给你旧内容。
+
+---
+
+## 7. 推送通道（当前唯一可用方式：HTTPS + PAT）
+
+**现状**：SSH 走不通，`gh` CLI 未安装。可用的是用户级环境变量里的细粒度 PAT（身份 `eyetoolkit`，仓库权限 `admin/maintain/push/triage/pull` 全真）。
 
 ```bash
 GH=$(grep '^GH_TOKEN=' .env | cut -d= -f2- | tr -d '\r"'"'"'')   # 或从用户级环境变量取
@@ -177,165 +155,162 @@ env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u all_proxy -u AL
       push https://github.com/eyetoolkit/jsonversal-monorepo.git main:main
 ```
 
-为什么能通（2026-09-10 实测）：
-- `hosts` 已把 `github.com` 钉到 `140.82.112.4`，**直连可达**（`curl --noproxy '*' https://github.com` → 200，1.1s；git `info/refs` → 200，3.6s）。
-- `api.github.com` 走代理或不走代理都通（200）——**所以「能查 API」不代表「能 push」，不要用它判断推送通道**。
-- 代理对 `github.com` 本体超时/502，绕开即恢复稳定。
-- 全局 `credential.helper=manager` 存的 `x-access-token` 对 push 不稳定，推送时显式带 PAT。
+**为什么这么写（每条都有实测依据）**
+- **不改 remote**、不在 `.git/config` 留 token —— 推完自检 `grep -c "extraheader\|_pat" .git/config` 应为 `0`。
+- **必须绕开沙箱代理**：代理端口每次 Bash 调用都变（见过 `59335`→`56178`），且对 `github.com` 本体间歇 `CONNECT tunnel failed 502` / 10s 超时。
+- 显式 `credential.helper=` 清空凭据助手，避免 GCM 的 `x-access-token` 协商干扰。
 
-**推送后自检两项**：`git rev-parse HEAD` 与远端 `/branches/main` 的 sha 是否一致；`grep -c "extraheader\|_pat" .git/config` 是否为 0。
-
-### 持久化修复（三者择一，需用户操作）
-
-1. **注册公钥**：把 `C:/Users/刘先生/.ssh/github_ed25519.pub`（comment `local-windows-push`，指纹 `SHA256:m/zbKprP6JmTBn9e9g/RJE+rQ3hJhzUYN9iu+7Eey9c`）加到 GitHub → Settings → SSH and GPG keys。
-2. **改 remote 为 HTTPS**：`git remote set-url origin https://github.com/eyetoolkit/jsonversal-monorepo.git`。
-3. 给 `~/.ssh/config` 补（`IdentityFile` 必须写 Windows 绝对路径，否则中文用户名被 MSYS 转义成 `/c/Users/\301\365...`）：
-
-```
-Host github.com
-    HostName github.com
-    User git
-    IdentityFile C:/Users/刘先生/.ssh/github_ed25519
-    UserKnownHostsFile C:/Users/刘先生/.ssh/known_hosts
-    IdentitiesOnly yes
+### 推送自检（两项，缺一不可）
+```bash
+git rev-parse HEAD                                   # 与远端 /branches/main 的 sha 比对（以远端为准）
+grep -c "extraheader\|_pat" .git/config              # 必须为 0
 ```
 
-- 或走 GitHub 插件 MCP 读写仓库/提交，无需本地凭据。授权失败：`RequestAuthorization`（service `trae-remote-official:github::github`）。
+### 坑
+- ⚠️ **判断推送成败不能靠输出文本匹配**。`grep -qE 'main -> main'` 会被 `GH013` 之类的报错输出误命中，造成"推送成功"假阳性。**一律以远端 sha 为准。**
+- ⚠️ **`gh013 GITHUB PUSH PROTECTION`**：提交内容里只要有明文密钥就会被拒。安全发现只写**关系 + 短指纹**。
+- ⚠️ push 失败常是**间歇性抖动**（`Recv failure: Connection was reset`），**先重试几次**，别急着改配置。
+- ⚠️ **`hosts` 里 `github.com` 的 IP 钉定不可长期信任**：曾钉 `140.82.112.4`（当时 14/14 通）。2026-09-10 下午复测 140.82.112/113/114/116/121 段全超时，反而 DNS 解析的 `20.205.243.166` 恢复可用 —— **同一 IP 的通断会随时间反转**。改 hosts 需管理员权限（非提权会话会 `PermissionError`），要改必须请用户操作。
+- ✅ 目前 `hosts` 仍钉 `140.82.112.4`，实测**对 git push 有效**（`curl` 探测可能超时但 git 能推）。
 
-### Agent 沙箱注意
+### 持久化修复（三者择一，均需用户操作）
+1. 把 `C:/Users/刘先生/.ssh/github_ed25519.pub`（comment `local-windows-push`，指纹 `SHA256:m/zbKprP6JmTBn9e9g/RJE+rQ3hJhzUYN9iu+7Eey9c`）注册到 GitHub → Settings → SSH and GPG keys。
+2. 或把 remote 改为 HTTPS：`git remote set-url origin https://github.com/eyetoolkit/jsonversal-monorepo.git`。
+3. 或给 `~/.ssh/config` 补（`IdentityFile` **必须写 Windows 绝对路径**，否则中文用户名会被 MSYS 转义成 `/c/Users/\301\365...`）：
+   ```
+   Host github.com
+       HostName github.com
+       User git
+       IdentityFile C:/Users/刘先生/.ssh/github_ed25519
+       UserKnownHostsFile C:/Users/刘先生/.ssh/known_hosts
+       IdentitiesOnly yes
+   ```
 
-- **`.git/refs/remotes/` 的写入被沙箱静默丢弃**：`git update-ref refs/remotes/origin/main <sha>` 返回 0，但既不生成 loose ref 也不改 `packed-refs`，连 `mkdir` 都不落地 → 沙箱内 `git status` 会长期显示过期的 `ahead N`。**判断同步状态一律以 `git rev-parse HEAD` + 远端 API 为准**，不要相信本地跟踪引用。
-- **代理端口每次 Bash 调用都会变**（`59335` → `56178` …），且该代理对 `github.com` 本体不稳（502 / 超时）。**不要硬编码代理端口**，也不要缓存 `env` 里的值跨调用使用；需要联网时直接 `env -u http_proxy …` 绕开，或 `curl --noproxy '*'`。注意 `env | grep -i proxy` 会同时命中 `http_proxy` 与 `HTTP_PROXY` 两行，取值要用 `grep -m1 '^http_proxy='`（区分大小写）。
-- `hosts` 已把 `github.com` 钉到 `140.82.112.4`（可用 `socket.gethostbyname_ex('github.com')` 验证），直连可靠。
-- 读 Windows 全局环境变量要「落盘再读」（PowerShell 的 stdout 在本环境捕获失效）：`[Environment]::GetEnvironmentVariables('User') | Out-File $out -Encoding utf8`，再用 Read 工具读该文件。**读完立即删除该文件**（含明文密钥）。
-- `reg.exe` 被安全策略列入黑名单，不可调用；也不要从 Bash 调 `powershell.exe`（同样被拦），要用 PowerShell 工具。
+---
 
-## 部署链路体检结论（2026-09-10 第四轮 · 全绿）
+## 8. 凭据
 
-| 环节 | 状态 | 证据 |
+### ✅ 当前可用（存于 `.env`，`.gitignore` 第 16 行保护）
+
+| 名称 | 实测权限 | 用途 |
 |---|---|---|
-| 本地构建 | ✅ | 79 页 / 12.9s / 0 报错 |
-| 本地 → GitHub 推送 | ✅ | `GH_TOKEN` + `http.extraheader`（**须绕开沙箱代理**）；origin 仍是 SSH，需显式带 PAT |
-| GitHub 仓库 | ✅ | public，默认分支 main，本地 = 远端 = `0e62dcd` |
-| GitHub → Cloudflare Pages | ✅ | 每个 commit 的 `Cloudflare Pages` check run 均 `completed/success` |
-| CF Pages → 站点 | ✅ | `jsonversal.com` 200、`jsonversal-main-v2.pages.dev` 200 |
-| 域名 apex | ✅ | 200，sitemap 79 条 URL 全 200 |
-| 域名 **www** | ✅ **已修复** | 2026-09-10 注册为 Pages 自定义域后 200（详见下） |
-| 旧子域 sec/devops/codegen | ✅ | 无解析记录（NXDOMAIN）、HTTP 000，确认删净 |
+| `CF_TOKEN_PAGES` | Pages 项目读 ✅、自定义域读/写 ✅、Zone 读 ✅ | **加自定义域就是用它**；打 DNS 记录会 403 |
+| `CF_TOKEN_DNS_WRITE` | Zone 读 ✅（7 个 zone）、DNS 记录读/写 ✅ | DNS 操作；打 Pages 会 403 |
+| `GH_TOKEN` / `GH_PAT` | ✅ `eyetoolkit`，admin/push | 推送 |
+| `MINIMAX_API_KEY` | ✅ `/models` 200 | — |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | ✅ ListBuckets 200 + PUT/GET/DELETE 全链路 | S3 对象存储 ⚠️ 见下 |
 
-> **「GitHub → CF Pages 是否触发构建」的最优查法**：无需 Cloudflare 凭据，直接查 GitHub check-runs ——
-> `curl -s https://api.github.com/repos/eyetoolkit/jsonversal-monorepo/commits/<sha>/check-runs`
-> 返回 `name=Cloudflare Pages` + `status: completed` + `conclusion: success` 即表示该 commit 的 CF 构建已成功。实测推送后约 35 秒即出结果。公开仓库**无需认证**。
+**两枚 CF 令牌是最小权限分工、权限互补**（互相缺对方那一块，但都能列 zone），做完整 CF 运维要同时用。
+两枚令牌**已写入用户级全局环境变量**（`setx CF_TOKEN_PAGES` / `CF_TOKEN_DNS_WRITE`，用 sha256 比对校验无误）——新开终端即可直接读，无需再手工从 `.env` 取。
 
-### ✅ 已解决：`www.jsonversal.com` 522（2026-09-10 修复并验证）
+### 🔴 安全告警：R2 秘密密钥是 CF 令牌的 SHA-256
 
-**真实根因不是「双 CNAME 环路」，而是 `www.jsonversal.com` 从未被注册为 Pages 项目的自定义域。**
+```
+sha256(CF_TOKEN_PAGES)  ==  R2_SECRET_ACCESS_KEY        （逐字节相等，已多路复现）
+```
 
-修复前后证据链：
+> ⚠️ **本文件不记录这两个值的明文。** 曾经直接写出完整令牌来"举例说明"，被 GitHub Push Protection
+> 以 `GH013` 拦下 —— **在仓库里写明文密钥本身就是事故**。复核请用配套脚本（本地读 `.env` 当场计算）：
+> ```bash
+> python "C:/Users/刘先生/.workbuddy/skills/deploy-chain-audit/scripts/verify_credentials.py" --r2-full
+> ```
+> 指纹仅供比对：秘密密钥前 8 位 `bd280fbc`、后 4 位 `654f3`。
+
+**危害**：R2 秘密密钥可由 `cfat_` 令牌直接算出。而该令牌会出现在请求头、CI 变量、日志、报错里——**它一泄漏，R2 密钥随即泄漏**；再配上同文件里的 `R2_ACCESS_KEY_ID`，即可对 `mathduel-backup` / `md-quiz-bucket` 完整读写。
+**两套凭证本身都完全可用**，所以只看"能不能用"永远发现不了这个问题。
+
+**处置（待用户执行）**：到 Cloudflare 重新签发 R2 API 令牌，使其 secret 由服务器随机生成、**不由任何其他凭证派生**；替换 `.env` 后作废当前 AK。
+
+### ❌ 已失效（勿用）
+
+- **7 个 CF 令牌**：`CF_API_TOKEN`、`CLOUDFLARE_API_TOKEN`、`CF_TOKEN_MAIN`、`CF_TOKEN_A`~`D` —— 实测均不可用（列 zone 也拿不到）。
+  ⚠️ 清理前先确认旧名 `CF_API_TOKEN` / `CLOUDFLARE_API_TOKEN` 没被别的项目脚本引用，**不要直接覆盖**，否则权限错配。
+- **整套旧 mathduel R2 密钥**（`MATHDUEL_R2_AK1/SK1/AK2/SK2/AK3`）—— 逐组合实测：`AK1+SK1` 401、`AK2` 报 400（长度 64，是 SK 规格串填进了 AK 位）、`AK3` 无配对 SK 且组合均 401。**2026-09-10 已从 `.env` 删除**，仅保留 `MATHDUEL_R2_ENDPOINT` / `_BUCKET`。该 bucket 请改用 `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`。
+
+### ⚠️ 两件容易误判的事
+
+1. **`GET /user/tokens/verify` 会误报**：细粒度 token 一律返回 `code 1000 Invalid API Token`，即使完全可用。**判 token 死活只能打它该干的活**（列 zone / 读 DNS / 读 Pages）。
+2. **凭证会轮换，旧记录必须复测**：本文早前记的「`MATHDUEL_R2_AK1+SK1` ✅ 200」在后续版本的 `.env` 上实测为 401。
+
+---
+
+## 9. 域名与 DNS（zone `82591a57fa474a57fc21d26ea6e5c558`）
+
+| 名称 | 类型 | 指向 | proxied | 实测 |
+|---|---|---|---|---|
+| `jsonversal.com` | CNAME | `jsonversal-main-v2.pages.dev` | ✅ | 200 |
+| `www.jsonversal.com` | CNAME | `jsonversal.com` | ✅ | 200（已注册为 Pages 自定义域） |
+
+`www` 的 CNAME 指向 apex **不是问题**（橙云下 CNAME 到同 zone 主机，解析成相同边缘 IP 属正常）。**决定成败的是 Pages 项目的自定义域列表**，不是这条 DNS 记录。
+
+### ✅ 已修复：`www` 522（2026-09-10）
+
+**真根因不是「双 CNAME 环路」，而是 `www.jsonversal.com` 从未被注册为 Pages 自定义域。** CF Pages 的边缘路由**按 Host 头匹配已注册的自定义域**，未注册的 `www` 无法路由到项目 → 522。
 
 | 检查 | 修复前 | 修复后 |
 |---|---|---|
-| Pages 自定义域列表 | `['jsonversal.com']` ← 只有 apex | `['jsonversal.com', 'www.jsonversal.com']` |
-| Pages 域状态 | — | `active` / verification `active` |
-| DNS `www` 记录 | `CNAME → jsonversal.com` proxied | **未变**（仍是 `CNAME → jsonversal.com`） |
-| `https://www.jsonversal.com/` | ❌ 522（稳定复现） | ✅ **200**（0.7~1.3s，HTML 31224B，含 69 工具与四栏目导航） |
-| `http://www.jsonversal.com/` | ❌ 522 | ✅ 301 跳 https |
+| Pages 自定义域列表 | `['jsonversal.com']` | `['jsonversal.com', 'www.jsonversal.com']` |
+| DNS `www` 记录 | `CNAME → jsonversal.com` | **一个字节都没动** |
+| `https://www.../` | ❌ 522（稳定复现） | ✅ 200 |
+| `http://www.../` | ❌ 522 | ✅ 301 跳 https |
 
-**关键教训：DNS 记录本身没错，不需要改。** 我先前根据「www 与 apex 解析到相同边缘 IP」推断成双代理环路，方向错了 —— 那只是橙云下 CNAME 到同 zone 主机的正常表现。CF Pages 的边缘路由按 Host 头匹配已注册的自定义域；未注册的 `www` 就无法路由到项目，才回 522。**先查 Pages 自定义域列表，而不是先怀疑 DNS。**
-
-**修复命令（一条搞定）：**
+**修复命令（一条）：**
 ```bash
-POST /accounts/{account_id}/pages/projects/jsonversal-main-v2/domains
-body: {"name": "www.jsonversal.com"}
+POST /accounts/{acc}/pages/projects/jsonversal-main-v2/domains
+body: {"name": "www.jsonversal.com"}     # initializing → pending → active，约 60~90 秒
 ```
-`status` 从 `initializing` → `pending` → `active` 约需 60~90 秒，**DNS 记录无需改动**。
 
-> 排查 CF Pages 域名问题的正确入口：`GET /accounts/{account_id}/pages/projects/{project}/domains` —— 比看 DNS 更能说明问题。
+---
 
-### 剩余待修配置项（非阻塞）
+## 10. 常用 API 入口
 
-**✅ 2026-09-10 已办结：**
+Base：`https://api.cloudflare.com/client/v4`，Header：`Authorization: Bearer $CF_TOKEN_PAGES`
 
-1. ~~`apps/main/wrangler.toml` 项目名不符~~ → **已改为 `name = "jsonversal-main-v2"`**，并加注释说明：必须与 CF 上项目名一致（否则 `wrangler pages deploy` 会打错项目），且线上构建实际由 CF Pages 的 Git 集成按 dashboard 配置执行，本文件不参与该流程。
-2. ~~`.env` 里坏 R2 键~~ → **5 行失效的 `MATHDUEL_R2_AK1/SK1/AK2/SK2/AK3` 已删除**（实测全部 401 或畸形），保留端点/bucket 名并留实测记录。
-3. ~~`.gitignore` 漏 `.workbuddy/`~~ → **已补**（并加注释说明 `.trae/` 是有意入库的，不要一并忽略）。
-4. ~~DNS 写权限未验证~~ → **已用一次性 TXT 探针验证：可读可写**。
-
-**⏳ 仍未办：**
-
-1. **`~/.ssh/config` 缺 `Host github.com`**（见上）。当前推送走 HTTPS+PAT，SSH 非必需。
-2. **清理 7 个失效 CF token**：`CF_API_TOKEN`、`CLOUDFLARE_API_TOKEN`、`CF_TOKEN_MAIN`、`CF_TOKEN_A`~`D`。现由 `CF_TOKEN_PAGES` + `CF_TOKEN_DNS_WRITE` 覆盖需求，建议在控制台删除。⚠️ 删之前先确认旧名 `CF_API_TOKEN`/`CLOUDFLARE_API_TOKEN` 没有被别的项目脚本引用——**不要直接覆盖这两个键**，会造成权限错配。
-3. **🔴 R2 弱派生轮换**（最高优先级）：重新签发 R2 API 令牌，替换 `R2_SECRET_ACCESS_KEY`（见上方安全告警）。
-
-## 常用操作入口
-
-Base：`https://api.cloudflare.com/client/v4`，Header：`Authorization: Bearer $CF_TOKEN_PAGES`（或 Trae 侧 `cloudflare.request`）
-
-- 列项目：`GET /accounts/{accountId}/pages/projects`
-- 查项目（含 build_config）：`GET /accounts/{accountId}/pages/projects/jsonversal-main-v2`
-- **查自定义域**：`GET /accounts/{accountId}/pages/projects/jsonversal-main-v2/domains` ← **排查 522 / 域名问题的第一入口**
-- **加自定义域**：`POST /accounts/{accountId}/pages/projects/jsonversal-main-v2/domains`，body `{"name":"www.jsonversal.com"}`
-- 删自定义域：`DELETE /accounts/{accountId}/pages/projects/jsonversal-main-v2/domains/{domain}`
+- 列项目：`GET /accounts/{acc}/pages/projects`
+- 查项目（含 build_config）：`GET /accounts/{acc}/pages/projects/jsonversal-main-v2`
+- **查自定义域** ← **排查 522 / 域名问题的第一入口**：`GET .../pages/projects/jsonversal-main-v2/domains`
+- 加 / 删自定义域：`POST` / `DELETE .../domains[/{domain}]`
 - 查部署历史：`GET .../pages/projects/jsonversal-main-v2/deployments`
 - 查部署日志：`GET .../deployments/{id}/history/logs`
-- 改构建配置：`PATCH .../pages/projects/jsonversal-main-v2` body `{ build_config: { build_command, destination_dir } }`
+- 改构建配置：`PATCH .../pages/projects/jsonversal-main-v2`，body `{ "build_config": { "build_command": ..., "destination_dir": ... } }`
+- DNS 记录（换 `CF_TOKEN_DNS_WRITE`）：`GET /zones/{zone}/dns_records`
 
-> 账户 ID `00cb5cd6be4881053e57a338ce62de2f`；jsonversal zone `82591a57fa474a57fc21d26ea6e5c558`。两个 ID 都在 `.env` 里。
+---
 
-## DNS 记录（zone: 82591a57fa474a57fc21d26ea6e5c558）
+## 11. 历史坑（避免重踩）
 
-| 名称 | 类型 | 指向 | 实测解析 | 状态 |
-|---|---|---|---|---|
-| jsonversal.com | CNAME | `jsonversal-main-v2.pages.dev` | `172.67.191.163` / `104.21.60.47` | ✅ 200 |
-| www.jsonversal.com | CNAME | `jsonversal.com` | 与 apex 相同 IP（橙云 CNAME 到同 zone 主机，**属正常**） | ✅ 200（已注册为 Pages 自定义域） |
+- ❌ **CF API 无法把 Direct Upload 项目改绑 GitHub**（错误码 `8000069`）→ 旧四项目作废删除，改用 `-v2` + GitHub 集成。
+- ❌ **redirect 项目 build 失败**：旧构建命令 `--filter=@versal/site-sec` 指向已删的 turbo 包。随子站删除已不相关。
+- ❌ **改动未同步生产分支**：曾误在非 `main` 分支提交 → 需合并后再 push `main`。
+- ❌ **把 `www` 522 误判为 DNS 问题**（2026-09-10 踩过）→ 正解是注册进 Pages 项目。**遇 522 先查 `.../pages/projects/{proj}/domains`。**
+- ❌ **用 `/user/tokens/verify` 判 token 死活** → 细粒度 token 会误报，必须打真实业务请求。
+- ❌ **把密钥明文写进文档**（2026-09-10 踩过）→ 被 `GH013` 拦下；只写关系 + 指纹。
+- ❌ **靠输出文本判断 push 成功**（2026-09-10 踩过）→ 会被报错输出误命中；以远端 sha 为准。
 
-**注意：`www` 的 CNAME 指向 apex 并不是问题**，不要照「双代理环路」的直觉去改它 —— 真正决定成败的是 Pages 项目的自定义域列表（见上）。实测修复 www 时 DNS 记录**一个字节都没动**。
+---
 
-（`sec/devops/codegen.jsonversal.com` 三条记录已删除，实测 NXDOMAIN + HTTP 000。判定无解析记录用 `socket.gethostbyname_ex()` 最省事，比解析 `nslookup` 输出可靠。）
+## 12. 本地工具脚本
 
-## 关键历史坑（避免重踩）
+### `.toolcheck.cjs`（仓库根目录）
+遍历 4 栏目 → jsdom 解析页面脚本查语法错 → 灌入 `SAMPLES` 样例值 → 点动作按钮 → 抓输出判定 `PASS / NO_OUTPUT / NEEDS-INPUT`。依赖 root `devDependencies` 的 `jsdom`。
 
-- ❌ **CF API 无法把 Direct Upload 项目改绑 GitHub**（8000069）：旧四项目已作废删除，改用 `-v2` GitHub 集成。
-- ❌ **redirect 项目 build 失败**：旧命令 `--filter=@versal/site-sec` 指向已删 turbo 包。随子站删除已不相关。
-- ❌ **改动未同步生产分支**：曾误在非 `main` 分支提交，需 fast-forward/合并后再 push `main`。
-- ❌ **误判 www 522 为 DNS 问题**（2026-09-10 踩过）：只改了 DNS 的猜想方向不对，正解是把域名注册进 Pages 项目。**遇到 522 先查 `.../pages/projects/{proj}/domains`。**
-- ❌ **误用 `/user/tokens/verify` 判断 token 是否可用**：细粒度 token 会误报 `Invalid API Token`。**用实际业务请求探活。**
-- ✅ 当前仅一个生产项目 `jsonversal-main-v2`，四个栏目整合在内；子站三 CF 项目 + 三 DNS 记录 + 三 redirect 包均已删除。
+```bash
+node .toolcheck.cjs                        # 默认读 apps/main/dist
+node .toolcheck.cjs <dist目录>             # 或 TOOLCHECK_DIST=<dist目录> node .toolcheck.cjs
+```
+`SAMPLES` 中标 `'SKIP'` 的 4 个工具需上传文件，脚本不测，属预期。基线：**PASS=65 / SKIP=4 / NO_OUTPUT=0 / parse 错误=0**。
 
-## 当前核实状态（2026-09-10 第四轮 · 全链路打通）
+---
 
-- **本地 HEAD = 远端 HEAD = `0e62dcd`**（推送方法与自检见「GitHub 认证」）。
-- **线上全部正常**：apex 与 **www 均 200**；sitemap **79 条 URL 全 200**。
-- **本地全量构建通过**：`pnpm install` + `turbo run build --filter=@versal/site-main` → 79 页 / 12.9s / 0 报错。
-- **工具自检 69 个全跑通**：`.toolcheck.cjs` → `PASS=65`、`SKIP=4`（file-checksum / csr / x509-decoder / base64-image，需上传外部文件）、`NO_OUTPUT=0`、`parse/load 错误=0`。
-- **推送通道可用**：`GH_TOKEN` + `http.extraheader`，**必须绕开沙箱代理**。
-- **Cloudflare API 可用**：`CF_TOKEN_PAGES` + `CF_TOKEN_DNS_WRITE`（权限互补），**修 www 就是用它做的**。
-- **原遗留项全部关闭**：推送断开 ✅ 修复、www 522 ✅ 修复、「待确认 CF 部署」✅ 用 check-runs 闭环。
-- **两枚 CF 令牌已同时写入用户级全局环境变量**（`setx CF_TOKEN_PAGES` / `setx CF_TOKEN_DNS_WRITE`，写入后用 sha256 比对校验无误）——新开终端即可直接读取，无需再手工从 `.env` 取值。
-- 剩余仅为非阻塞清理项（ssh config、失效 token 清理），外加一项**需用户到控制台处理的高优先级项：R2 弱派生密钥轮换**。
+## 13. 沙箱环境注意（Agent 相关）
 
-## 验证线上是否为最新（推荐方法，不依赖 CF 凭据）
+- **`.git/refs/remotes/` 写入被静默丢弃**：`git update-ref refs/remotes/origin/main <sha>` 返回 0 但不落地 → `git status` 会谎报 `ahead N`。**一律以 `git rev-parse HEAD` + 远端 API 为准。**
+- **代理端口每次 Bash 调用都变**，不要缓存/硬编码；取值用 `grep -m1 '^http_proxy='`（区分大小写，`grep -i` 会命中两行导致变量含换行，请求秒败 `code=000`）。
+- **沙箱 shell 不继承 Windows 用户级环境变量** —— 读全局凭据要「PowerShell 落盘 → Read → 立即删文件」。
+- `reg.exe` 被安全策略列入黑名单；也不要从 Bash 调 `powershell.exe`（同样被拦），要用 PowerShell 工具。
+- 临时文件别写 `/tmp`（Git Bash 下会失败），写工作区内相对路径或 `%TEMP%`。
 
-1. 本地全量构建：`npx pnpm@10.11.1 install && npx pnpm@10.11.1 turbo run build --filter=@versal/site-main`
-2. 抽页比对：`curl -s https://jsonversal.com/<path> -o live.html`，与 `apps/main/dist/<path>/index.html` 做**归一化 diff**：
-   `sed -E 's/data-astro-cid-[a-z0-9]+/CID/g; s/index\.[A-Za-z0-9_-]+\.css/index.CSS/g'`
-3. 归一化后**无差异**即线上等于当前源码。预期且**无害**的三类差异：
-   - Astro 作用域样式哈希与 CSS 文件名哈希（随构建机绝对路径变化）
-   - `ToolGrid.astro` 的 `Math.random()` uid（`data-toolgrid="tgXXXXXX"`）
-   - Cloudflare 邮件混淆注入（`mailto:` → `/cdn-cgi/l/email-protection#...` 且注入 `email-decode.min.js`，约 +151B/页）
+## 附：其他环境
 
-## 工具自检脚本 `.toolcheck.cjs`
-
-- 位置：仓库根目录；依赖 root `devDependencies` 的 `jsdom`。
-- 用法（`DIST` 已改为自动推导，不再硬编码沙箱路径）：
-  - `node .toolcheck.cjs`（默认读 `apps/main/dist`）
-  - 或 `node .toolcheck.cjs <dist目录>` / `TOOLCHECK_DIST=<dist目录> node .toolcheck.cjs`
-- 流程：遍历 4 栏目 → jsdom 解析页面脚本查语法错 → 灌入 `SAMPLES` 样例值 → 点动作按钮 → 抓输出判定 `PASS / NO_OUTPUT / NEEDS-INPUT`。
-- `SAMPLES` 中标 `'SKIP'` 的 4 个工具需上传文件，脚本不测，属预期。
-
-## 注意事项
-
-- 每轮先走 Cloudflare 插件 MCP 核验真实权限/配置，不要假定 token 可用（credentials.md 里那两串 CF token 已验证失效）。
-- 验证写权限或改动线上资源时，优先「临时资源 + 用完即删」。
-- 本 skill 只覆盖 jsonversal 品牌矩阵；tri-sites（mathduel/boardduel/memoryduel）走 `tinysite-deploy-chain`；mathduel 细节走 `mathduel-site-manager`。
-- 推送前把本地与 `origin/main` 对齐（`git fetch` + 比对 HEAD），避免分叉；推送后可用 GitHub 插件 MCP `list_commits` 复核远端 HEAD。
+若在 **Trae** 侧操作，可用 `mcp_trae-remote-official_plugin_cloudflare_cloudflare-api` 的 `execute`（无需自备 token；授权失败先 `RequestAuthorization`，service `trae-remote-official:cloudflare::cloudflare-api`），以及 GitHub 插件 MCP 读写仓库（`trae-remote-official:github::github`）。
+**在 WorkBuddy 侧没有 Cloudflare / GitHub 连接器**，走上面的 HTTP API + `.env` 令牌 / PAT 即可，不要因为"用不了 MCP"就认为做不了。
