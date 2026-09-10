@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '@versal/ui/BaseLayout';
+import Hero from '@versal/ui/Hero.astro';
+import ToolGrid from '@versal/ui/ToolGrid.astro';
 import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
@@ -72,44 +74,50 @@ const tools = [
     title: 'Nginx Config Generator',
     description: 'Generate nginx server blocks for static sites or reverse proxies with HTTPS, gzip, and security headers.',
     href: '/devops/tools/nginx-config/',
-    status: 'live' as const,
   },
   {
     title: 'Systemd Unit Generator',
     description: 'Build systemd unit files with environment, restart policy, and hardening options.',
     href: '/devops/tools/systemd-unit/',
-    status: 'live' as const,
   },
   {
     title: 'Log Line Parser',
     description: 'Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats.',
     href: '/devops/tools/log-parser/',
-    status: 'live' as const,
   },
   {
     title: 'Number Base Converter',
     description: 'Convert between binary, octal, decimal, hex, and ASCII with exact 64-bit BigInt math.',
     href: '/devops/tools/number-base/',
-    status: 'live' as const,
   },
 ];
 ---
 
 <BaseLayout site="devops" current="/devops/">
-  <h1>DevOps tools that run in your browser.</h1>
-  <p class="text-muted">
-    No signup, no upload. Every tool on devops.jsonversal runs 100% locally — your configs, secrets, and logs never leave your device.
-  </p>
+  <Hero
+    overline="DevOps · operations tooling in your browser"
+    sub="No signup, no upload. Every tool runs 100% locally — your configs, secrets and logs never leave your device."
+  >
+    DevOps tools that <span class="grad">run in your browser.</span>
+    <Fragment slot="actions">
+      <a class="button button-primary" href="/devops/tools/">Browse all devops tools</a>
+      <a class="button button-ghost" href="/devops/tools/yaml-json/">Convert YAML ↔ JSON</a>
+    </Fragment>
+  </Hero>
 
-  <h2>Tools</h2>
-  <div class="grid">
-    {tools.map(tool => <ToolCard {...tool} />)}
+  <div class="section-head">
+    <span class="overline">DevOps toolkit</span>
+    <h2>Convert, decode &amp; inspect</h2>
+    <p>YAML/JSON, Base64, JWT, crontab, regex, CIDR, Kubernetes, nginx and more — all processed on-device.</p>
   </div>
+  <ToolGrid tools={tools} />
 
-  <h2>Related — from the jsonversal brand</h2>
-  <div class="grid">
-    <ToolCard title="JSON / LLM Tools" description="jsonversal.com — JSON to TypeScript, UUID v7, LLM token calculator." href="/tools/" />
-    <ToolCard title="Code Generators" description="codegen.jsonversal.com — .gitignore, license, CI workflow generator." href="/codegen/" />
-    <ToolCard title="Security Tools" description="sec.jsonversal.com — Hash, AES, password strength, CSP generator." href="/sec/" />
+  <div class="brand-strip">
+    <h2>Related — from the jsonversal brand</h2>
+    <div class="grid">
+      <ToolCard title="JSON / LLM Tools" description="jsonversal — JSON to TypeScript, UUID v7, LLM token calculator." href="/tools/" />
+      <ToolCard title="Code Generators" description="codegen — .gitignore, license, CI workflow generator." href="/codegen/" />
+      <ToolCard title="Security Tools" description="sec — Hash, AES, password strength, CSP generator." href="/sec/" />
+    </div>
   </div>
 </BaseLayout>

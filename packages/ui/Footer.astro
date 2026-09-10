@@ -6,34 +6,123 @@ export interface Props {
 }
 
 const { site } = Astro.props as Props;
+const t = tokens.sites[site];
 const year = new Date().getFullYear();
+
+const sections = [
+  {
+    title: 'Tools',
+    links: [
+      { label: 'JSON / LLM Tools', href: '/tools/' },
+      { label: 'Security Tools', href: '/sec/' },
+      { label: 'DevOps Tools', href: '/devops/' },
+      { label: 'Code Generators', href: '/codegen/' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'Privacy Policy', href: '/privacy/' },
+      { label: 'Terms of Use', href: '/terms/' },
+      { label: 'Do Not Sell/Share My Info', href: '/privacy/' },
+      { label: 'Contact', href: 'mailto:hello@jsonversal.com' },
+    ],
+  },
+];
 ---
 
 <footer class="site-footer">
-  <div class="container row">
-    <span>© {year} jsonversal.com</span>
-    <nav>
-      <a href="/privacy/">Privacy</a>
-      <a href="/terms/">Terms</a>
-      <a href="/privacy/">Do Not Sell/Share My Info</a>
-      <a href="mailto:hello@jsonversal.com">Contact</a>
-    </nav>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="f-brand">
+          <span class="f-mark">{t.emoji}</span>
+          <span class="f-name"><span class="brand-json">json</span><span class="brand-versal">versal</span></span>
+        </a>
+        <p>
+          Browser-based developer tools. {t.tagline}.
+          Everything runs locally — your data never leaves your device.
+        </p>
+      </div>
+
+      {sections.map(s => (
+        <nav class="footer-col" aria-label={s.title}>
+          <h4>{s.title}</h4>
+          <ul>
+            {s.links.map(l => (
+              <li><a href={l.href}>{l.label}</a></li>
+            ))}
+          </ul>
+        </nav>
+      ))}
+    </div>
+
+    <div class="footer-bottom">
+      <span>© {year} jsonversal.com</span>
+      <span class="tag">100% in-browser · No signup · No upload</span>
+    </div>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    background: var(--surface);
+    margin-top: 80px;
     border-top: 1px solid var(--border);
-    margin-top: 64px;
-    padding: 24px 0;
+    background: var(--bg-deep);
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: .9rem;
+    padding-top: 48px;
   }
-  .row {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 40px;
   }
-  nav a { color: var(--text-muted); margin-left: 16px; }
-  nav a:first-child { margin-left: 0; }
-  nav a:hover { color: var(--text); text-decoration: none; }
+  .footer-brand p { margin: 14px 0 0; max-width: 340px; line-height: 1.6; }
+  .f-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none !important;
+  }
+  .f-mark {
+    display: grid; place-items: center;
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    font-size: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+  }
+  .f-name { font-weight: 800; font-size: 1.1rem; }
+  .brand-json { color: var(--text); }
+  .brand-versal { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  .footer-col h4 {
+    margin: 0 0 14px;
+    font-size: .8rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .footer-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .footer-col a { color: var(--text-muted); }
+  .footer-col a:hover { color: var(--text); text-decoration: none; }
+
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-top: 1px solid var(--border);
+    padding: 20px 0;
+    font-size: .85rem;
+    color: var(--text-dim);
+  }
+  .tag { color: var(--text-dim); }
+
+  @media (max-width: 760px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  }
 </style>

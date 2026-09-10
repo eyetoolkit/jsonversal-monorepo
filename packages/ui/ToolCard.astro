@@ -1,4 +1,6 @@
 ---
+import { toolIcon } from '@versal/config/tools-icons';
+
 export interface Props {
   title: string;
   description: string;
@@ -7,25 +9,95 @@ export interface Props {
 }
 
 const { title, description, href, status = 'live' } = Astro.props as Props;
+const icon = toolIcon(href);
 ---
 
-<a href={href} class="tool-card card">
-  <div class="row">
-    <h3>{title}</h3>
-    {status === 'soon' && <span class="badge">Coming soon</span>}
+<a href={href} class="tool-card" style={`--accent-icon:${icon.accent};`}>
+  <div class="tool-card-top">
+    <span class="icon-tile" aria-hidden="true">{icon.emoji}</span>
+    <div class="tool-card-head">
+      <h3>{title}</h3>
+      {status === 'soon' && <span class="badge badge-accent">Coming soon</span>}
+    </div>
+    <svg class="arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M7 17 17 7" />
+      <path d="M8 7h9v9" />
+    </svg>
   </div>
-  <p class="text-muted">{description}</p>
+  <p class="tool-card-desc">{description}</p>
 </a>
 
 <style>
-  .tool-card { color: var(--text); text-decoration: none; display: block; }
-  .tool-card:hover { text-decoration: none; border-color: var(--accent); }
-  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .row h3 { margin: 0; }
-  p { margin: 8px 0 0; font-size: 0.95rem; }
-  .badge {
-    background: var(--surface-alt); color: var(--text-muted);
+  .tool-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: var(--text);
+    text-decoration: none !important;
+    background: var(--surface);
     border: 1px solid var(--border);
-    font-size: 0.7rem; padding: 2px 8px; border-radius: 999px;
+    border-radius: var(--radius-md);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  /* top 强调线 */
+  .tool-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: var(--accent-gradient);
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+  .tool-card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent-icon) 55%, var(--border));
+    box-shadow: var(--shadow-md);
+  }
+  .tool-card:hover::before { opacity: 1; }
+
+  .tool-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .icon-tile {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--accent-icon) 26%, transparent), var(--surface-2));
+    border: 1px solid color-mix(in srgb, var(--accent-icon) 30%, var(--border));
+  }
+  .tool-card-head { flex: 1; min-width: 0; }
+  .tool-card-head h3 {
+    margin: 2px 0 0;
+    font-size: 1.02rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .tool-card-head .badge { margin-top: 8px; }
+  .arrow {
+    color: var(--text-dim);
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity .18s ease, transform .18s ease, color .18s ease;
+    flex-shrink: 0;
+  }
+  .tool-card:hover .arrow { opacity: 1; transform: translate(0, 0); color: var(--accent-icon); }
+
+  .tool-card-desc {
+    margin: 0;
+    font-size: .9rem;
+    color: var(--text-muted);
+    line-height: 1.55;
   }
 </style>

@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '@versal/ui/BaseLayout';
+import Hero from '@versal/ui/Hero.astro';
+import ToolGrid from '@versal/ui/ToolGrid.astro';
 import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
@@ -17,24 +19,38 @@ const tools = [
   { title: 'RSA Key Pair Generator', description: 'Generate RSA-OAEP key pairs and encrypt/decrypt text locally.', href: '/sec/tools/rsa-keygen/' },
   { title: 'JWT Generator & Signer', description: 'Build and sign JWTs with HS256 / HS384 / HS512 in-browser.', href: '/sec/tools/jwt-generator/' },
   { title: 'X.509 Certificate Decoder', description: 'Decode PEM certificates: subject, issuer, SANs, key usage.', href: '/sec/tools/x509-decoder/' },
-  { title: 'Hash Identifier', description: 'Identify hash formats: MD5/SHA families, bcrypt, crypt, JWT, UUID, AWS keys.', href: '/sec/tools/hash-identifier/', status: 'live' as const },
-  { title: 'Passphrase Generator', description: 'Diceware-style memorable passphrases with entropy estimates.', href: '/sec/tools/passphrase-generator/', status: 'live' as const },
-  { title: 'Password-Based Encryption', description: 'PBKDF2 + AES-GCM encrypt/decrypt of text with a password.', href: '/sec/tools/password-encrypt/', status: 'live' as const },
-  { title: 'Secret & API Key Scanner', description: 'Detect and redact leaked credentials in logs, configs and env dumps.', href: '/sec/tools/secret-scanner/', status: 'live' as const },
+  { title: 'Hash Identifier', description: 'Identify hash formats: MD5/SHA families, bcrypt, crypt, JWT, UUID, AWS keys.', href: '/sec/tools/hash-identifier/' },
+  { title: 'Passphrase Generator', description: 'Diceware-style memorable passphrases with entropy estimates.', href: '/sec/tools/passphrase-generator/' },
+  { title: 'Password-Based Encryption', description: 'PBKDF2 + AES-GCM encrypt/decrypt of text with a password.', href: '/sec/tools/password-encrypt/' },
+  { title: 'Secret & API Key Scanner', description: 'Detect and redact leaked credentials in logs, configs and env dumps.', href: '/sec/tools/secret-scanner/' },
 ];
 ---
 
 <BaseLayout site="sec" current="/sec/">
-  <h1>Security tools that run in your browser.</h1>
-  <p class="text-muted">No signup, no upload. Everything stays on your device — keys, secrets, passwords never leave your browser.</p>
-  <h2>Tools</h2>
-  <div class="grid">
-    {tools.map(tool => <ToolCard {...tool} />)}
+  <Hero
+    overline="Security · cryptography in your browser"
+    sub="No signup, no upload. Everything stays on your device — keys, secrets and passwords never leave your browser."
+  >
+    Security tools that <span class="grad">run in your browser.</span>
+    <Fragment slot="actions">
+      <a class="button button-primary" href="/sec/tools/">Browse all security tools</a>
+      <a class="button button-ghost" href="/sec/tools/password-generator/">Generate a password</a>
+    </Fragment>
+  </Hero>
+
+  <div class="section-head">
+    <span class="overline">Security toolkit</span>
+    <h2>Cryptography &amp; secrets, locally</h2>
+    <p>Hash, encrypt and inspect security primitives — AES, bcrypt, HMAC, TOTP, JWT, X.509, CSP and more. All client-side.</p>
   </div>
-  <h2>Related</h2>
-  <div class="grid">
-    <ToolCard title="DevOps Tools" description="devops.jsonversal.com — YAML/JSON, Base64, JWT, crontab." href="/devops/" />
-    <ToolCard title="Code Generators" description="codegen.jsonversal.com — .gitignore, license, CI workflow." href="/codegen/" />
-    <ToolCard title="JSON / LLM Tools" description="jsonversal.com — UUID v7, JSON to TypeScript." href="/tools/" />
+  <ToolGrid tools={tools} />
+
+  <div class="brand-strip">
+    <h2>Related — from the jsonversal brand</h2>
+    <div class="grid">
+      <ToolCard title="DevOps Tools" description="devops — YAML/JSON, Base64, JWT, crontab." href="/devops/" />
+      <ToolCard title="Code Generators" description="codegen — .gitignore, license, CI workflow." href="/codegen/" />
+      <ToolCard title="JSON / LLM Tools" description="jsonversal — UUID v7, JSON to TypeScript." href="/tools/" />
+    </div>
   </div>
 </BaseLayout>

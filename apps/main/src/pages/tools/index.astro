@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@versal/ui/BaseLayout';
-import ToolCard from '@versal/ui/ToolCard.astro';
+import ToolGrid from '@versal/ui/ToolGrid.astro';
 
 const tools = [
   {
@@ -86,13 +86,11 @@ const tools = [
 ];
 ---
 
-<BaseLayout site="main" current="/tools/" title="All Tools" current="/tools/">
-  <h1>Online Developer Tools</h1>
-  <p class="text-muted">Every tool runs 100% in your browser. No signup, no upload, unlimited and free.</p>
-
-  <div class="grid">
-    {tools.map(tool => (
-      <ToolCard {...tool} />
-    ))}
+<BaseLayout site="main" title="All Tools" current="/tools/">
+  <div class="tool-head">
+    <h1>Online Developer Tools</h1>
+    <p class="desc">Every tool runs 100% in your browser. No signup, no upload, unlimited and free. Use the filter to find what you need.</p>
   </div>
+
+  <ToolGrid tools={tools} />
 </BaseLayout>

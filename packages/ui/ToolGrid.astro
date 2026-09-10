@@ -1,0 +1,77 @@
+---
+import ToolCard from './ToolCard.astro';
+import type { Props as ToolCardProps } from './ToolCard.astro';
+
+export interface Props {
+  tools: ToolCardProps[];
+  placeholder?: string;
+}
+
+const { tools, placeholder = 'Filter tools…' } = Astro.props as Props;
+const uid = 'tg' + Math.random().toString(36).slice(2, 8);
+---
+
+<div class="tool-browser" data-toolgrid={uid}>
+  <div class="tool-search">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+    <input
+      type="search"
+      data-filter-input
+      placeholder={placeholder}
+      autocomplete="off"
+      aria-label="Filter tools"
+    />
+  </div>
+  <p class="tool-count" data-filter-count>
+    Showing <strong>{tools.length}</strong> of <strong>{tools.length}</strong> tools
+  </p>
+  <div class="grid" data-filter-grid>
+    {tools.map(t => (
+      <div
+        class="toolgrid-item"
+        data-search={`${t.title} ${t.description}`.toLowerCase()}
+        style="display:block;"
+      >
+        <ToolCard {...t} />
+      </div>
+    ))}
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    document.querySelectorAll('[data-toolgrid]').forEach(function (container) {
+      var input = container.querySelector('[data-filter-input]');
+      var grid = container.querySelector('[data-filter-grid]');
+      var count = container.querySelector('[data-filter-count]');
+      if (!input || !grid) return;
+
+      var empty = document.createElement('div');
+      empty.className = 'no-results';
+      empty.textContent = 'No tools match your search.';
+      empty.style.display = 'none';
+      grid.appendChild(empty);
+
+      var items = Array.prototype.slice.call(grid.querySelectorAll('.toolgrid-item'));
+      var shownCount = null;
+      var totalCount = null;
+      if (count) { var s = count.querySelectorAll('strong'); shownCount = s[0]; totalCount = s[1]; }
+
+      function update() {
+        var q = (input.value || '').toLowerCase().trim();
+        var shown = 0;
+        items.forEach(function (el) {
+          var hit = !q || (el.getAttribute('data-search') || '').indexOf(q) !== -1;
+          el.style.display = hit ? 'block' : 'none';
+          if (hit) shown++;
+        });
+        empty.style.display = (q && shown === 0) ? 'block' : 'none';
+        if (shownCount) shownCount.textContent = String(q ? shown : items.length);
+      }
+      input.addEventListener('input', update);
+    });
+  })();
+</script>
