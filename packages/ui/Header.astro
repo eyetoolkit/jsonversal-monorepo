@@ -9,44 +9,171 @@ export interface Props {
 const { site, current = '' } = Astro.props as Props;
 const t = tokens.sites[site];
 const cur = current || '';
+
+const links = [
+  { label: 'Home', href: '/', match: '/' },
+  { label: 'Tools', href: '/tools/', match: '/tools/' },
+  { label: 'Security', href: '/sec/', match: '/sec/' },
+  { label: 'DevOps', href: '/devops/', match: '/devops/' },
+  { label: 'Codegen', href: '/codegen/', match: '/codegen/' },
+];
+const isActive = (match: string) => (match === '/' ? cur === '/' : cur.startsWith(match));
 ---
 
 <header class="site-header">
-  <div class="container row">
-    <a href="/" class="brand">
-      <span class="brand-json">json</span><span class="brand-versal">versal</span>
-      <span class="brand-emoji">{t.emoji}</span>
-    </a>
-    <nav>
-      <a href="/" class={cur === '/' ? 'active' : ''}>Home</a>
-      <a href="/tools/" class={cur.startsWith('/tools/') ? 'active' : ''}>Tools</a>
-      <a href="/sec/" class={cur.startsWith('/sec/') ? 'active' : ''}>Security</a>
-      <a href="/devops/" class={cur.startsWith('/devops/') ? 'active' : ''}>DevOps</a>
-      <a href="/codegen/" class={cur.startsWith('/codegen/') ? 'active' : ''}>Codegen</a>
-    </nav>
+  <div class="container header-inner">
+    <div class="header-left">
+      <a href="/" class="brand" aria-label="jsonversal home">
+        <span class="brand-mark">{t.emoji}</span>
+        <span class="brand-name">
+          <span class="brand-json">json</span><span class="brand-versal">versal</span>
+        </span>
+      </a>
+      <nav class="nav" id="site-nav" aria-label="Primary">
+        {links.map(l => (
+          <a
+            href={l.href}
+            class={isActive(l.match) ? 'nav-link active' : 'nav-link'}
+          >
+            {l.label}
+          </a>
+        ))}
+      </nav>
+    </div>
+
+    <button
+      id="nav-toggle"
+      class="nav-toggle"
+      aria-label="Toggle navigation"
+      aria-expanded="false"
+      aria-controls="site-nav"
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7" />
+        <line x1="4" y1="12" x2="20" y2="12" />
+        <line x1="4" y1="17" x2="20" y2="17" />
+      </svg>
+    </button>
   </div>
 </header>
 
+<script is:inline>
+  (function () {
+    var toggle = document.getElementById('nav-toggle');
+    var nav = document.getElementById('site-nav');
+    if (!toggle || !nav) return;
+    toggle.addEventListener('click', function () {
+      var open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    nav.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  })();
+</script>
+
 <style>
   .site-header {
-    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--header-h);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
     border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 10;
   }
-  .row {
-    display: flex; align-items: center; justify-content: space-between;
+
+  .header-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    min-width: 0;
+  }
+
   .brand {
-    font-weight: 700; font-size: 1.25rem; color: var(--text);
-    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none !important;
+    flex-shrink: 0;
+  }
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 18px;
+    background: linear-gradient(135deg, var(--surface-2), var(--surface));
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-sm);
+  }
+  .brand-name {
+    font-weight: 800;
+    font-size: 1.18rem;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
   }
   .brand-json { color: var(--text); }
-  .brand-versal { color: var(--accent); }
-  .brand-emoji { margin-left: 6px; }
-  nav a {
-    color: var(--text-muted); margin-left: 20px; font-weight: 500;
+  .brand-versal { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  .nav { display: flex; align-items: center; gap: 4px; }
+  .nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: .95rem;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: color .15s ease, background .15s ease;
   }
-  nav a:hover { color: var(--text); text-decoration: none; }
-  nav a.active { color: var(--accent); }
-  nav a.muted { color: var(--text-dim); font-size: 0.875rem; }
+  .nav-link:hover { color: var(--text); background: var(--surface-alt); text-decoration: none; }
+  .nav-link.active { color: var(--text); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+
+  .nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  @media (max-width: 760px) {
+    .header-left { gap: 12px; }
+    .nav-toggle { display: inline-flex; }
+    .nav {
+      position: absolute;
+      top: calc(var(--header-h) - 4px);
+      left: 12px;
+      right: 12px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    }
+    .nav.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .nav-link { padding: 11px 14px; font-size: 1rem; }
+  }
 </style>

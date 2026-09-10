@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '@versal/ui/BaseLayout';
+import Hero from '@versal/ui/Hero.astro';
+import ToolGrid from '@versal/ui/ToolGrid.astro';
 import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
@@ -17,24 +19,38 @@ const tools = [
   { title: 'JSON ↔ XML Converter', description: 'Convert JSON to XML or XML to JSON.', href: '/codegen/tools/json-xml/' },
   { title: 'JSON to SQL Generator', description: 'Generate CREATE TABLE + INSERT from JSON arrays.', href: '/codegen/tools/sql-generator/' },
   { title: 'Docker Compose Generator', description: 'Scaffold docker-compose.yml with ports and volumes.', href: '/codegen/tools/docker-compose/' },
-  { title: 'JSON Schema to TypeScript', description: 'Convert a JSON Schema (draft-07) into TypeScript interfaces.', href: '/codegen/tools/schema-to-typescript/', status: 'live' as const },
-  { title: 'cURL to Python', description: 'Turn curl commands into runnable Python requests/httpx code.', href: '/codegen/tools/curl-to-python/', status: 'live' as const },
-  { title: 'Base64 Image Viewer', description: 'Decode base64 images for preview/download, or encode files.', href: '/codegen/tools/base64-image/', status: 'live' as const },
-  { title: 'SQL Formatter', description: 'Pretty-print or minify SQL with a real tokenizer.', href: '/codegen/tools/sql-formatter/', status: 'live' as const },
+  { title: 'JSON Schema to TypeScript', description: 'Convert a JSON Schema (draft-07) into TypeScript interfaces.', href: '/codegen/tools/schema-to-typescript/' },
+  { title: 'cURL to Python', description: 'Turn curl commands into runnable Python requests/httpx code.', href: '/codegen/tools/curl-to-python/' },
+  { title: 'Base64 Image Viewer', description: 'Decode base64 images for preview/download, or encode files.', href: '/codegen/tools/base64-image/' },
+  { title: 'SQL Formatter', description: 'Pretty-print or minify SQL with a real tokenizer.', href: '/codegen/tools/sql-formatter/' },
 ];
 ---
 
 <BaseLayout site="codegen" current="/codegen/">
-  <h1>Code generators that run in your browser.</h1>
-  <p class="text-muted">No signup, no upload. Every generator on codegen.jsonversal runs 100% locally — your templates never leave your device.</p>
-  <h2>Tools</h2>
-  <div class="grid">
-    {tools.map(tool => <ToolCard {...tool} />)}
+  <Hero
+    overline="Codegen · generate configs &amp; code in your browser"
+    sub="No signup, no upload. Every generator runs 100% locally — your templates never leave your device."
+  >
+    Code generators that <span class="grad">run in your browser.</span>
+    <Fragment slot="actions">
+      <a class="button button-primary" href="/codegen/tools/">Browse all generators</a>
+      <a class="button button-ghost" href="/codegen/tools/gitignore/">Generate a .gitignore</a>
+    </Fragment>
+  </Hero>
+
+  <div class="section-head">
+    <span class="overline">Codegen toolkit</span>
+    <h2>Generate code &amp; config files</h2>
+    <p>.gitignore, license, README, CI workflow, commit messages, SQL, Docker Compose and more — instantly.</p>
   </div>
-  <h2>Related</h2>
-  <div class="grid">
-    <ToolCard title="DevOps Tools" description="devops.jsonversal.com — YAML/JSON, Base64, JWT, crontab, regex." href="/devops/" />
-    <ToolCard title="JSON / LLM Tools" description="jsonversal.com — UUID v7, JSON to TS, LLM token calculator." href="/tools/" />
-    <ToolCard title="Security Tools" description="sec.jsonversal.com — Hash, AES, password strength." href="/sec/" />
+  <ToolGrid tools={tools} />
+
+  <div class="brand-strip">
+    <h2>Related — from the jsonversal brand</h2>
+    <div class="grid">
+      <ToolCard title="DevOps Tools" description="devops — YAML/JSON, Base64, JWT, crontab, regex." href="/devops/" />
+      <ToolCard title="JSON / LLM Tools" description="jsonversal — UUID v7, JSON to TS, LLM token calculator." href="/tools/" />
+      <ToolCard title="Security Tools" description="sec — Hash, AES, password strength." href="/sec/" />
+    </div>
   </div>
 </BaseLayout>

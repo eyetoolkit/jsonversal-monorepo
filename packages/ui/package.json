@@ -19,6 +19,10 @@
     "./ConsentBanner.astro": "./ConsentBanner.astro",
     "./ToolCard": "./ToolCard.astro",
     "./ToolCard.astro": "./ToolCard.astro",
+    "./Hero": "./Hero.astro",
+    "./Hero.astro": "./Hero.astro",
+    "./ToolGrid": "./ToolGrid.astro",
+    "./ToolGrid.astro": "./ToolGrid.astro",
     "./base.css": "./base.css",
     "./styles": "./base.css"
   }

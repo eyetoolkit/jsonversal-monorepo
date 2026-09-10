@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '@versal/ui/BaseLayout';
+import Hero from '@versal/ui/Hero.astro';
+import ToolGrid from '@versal/ui/ToolGrid.astro';
 import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
@@ -103,34 +105,47 @@ const tools = [
 ---
 
 <BaseLayout site="main" current="/">
-  <h1>JSON & LLM developer tools that run in your browser.</h1>
-  <p class="text-muted">
-    No signup, no upload, no accounts. Every tool on jsonversal runs 100% on your device — paste JSON, infer schemas, count LLM tokens, and estimate API costs without your data ever leaving your browser.
-  </p>
+  <Hero
+    overline="jsonversal — free in-browser toolkit"
+    sub="No signup, no upload, no accounts. Every tool runs 100% on your device — paste JSON, infer schemas, count LLM tokens, and estimate API costs without your data ever leaving your browser."
+  >
+    JSON &amp; LLM developer tools that <span class="grad">run in your browser.</span>
+    <Fragment slot="actions">
+      <a class="button button-primary" href="/tools/">Explore 69 tools</a>
+      <a class="button button-ghost" href="/tools/json-schema-generator/">Try JSON Schema Generator</a>
+    </Fragment>
+    <Fragment slot="chips">
+      <span class="chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg><strong>100% local</strong> — nothing uploaded</span>
+      <span class="chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><strong>0 sign-up</strong> — no accounts</span>
+      <span class="chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg><strong>Free &amp; unlimited</strong> — for devs</span>
+    </Fragment>
+  </Hero>
 
-  <h2>Tools</h2>
-  <div class="grid">
-    {tools.map(tool => (
-      <ToolCard {...tool} />
-    ))}
+  <div class="section-head">
+    <span class="overline">Core toolkit</span>
+    <h2>JSON &amp; LLM tools</h2>
+    <p>Format, validate, transform and generate JSON — plus LLM token counting, schema generation and structured output helpers.</p>
   </div>
+  <ToolGrid tools={tools} />
 
-  <h2>More from the jsonversal brand matrix</h2>
-  <div class="grid">
-    <ToolCard
-      title="DevOps Tools (devops)"
-      description="YAML/JSON converter, Base64, crontab, JWT decoder, regex tester."
-      href="/devops/"
-    />
-    <ToolCard
-      title="Code Generators (codegen)"
-      description=".gitignore, license, README, CI workflow, commit message."
-      href="/codegen/"
-    />
-    <ToolCard
-      title="Security Tools (sec)"
-      description="Hash, AES encryption, password strength, CSP generator, CSR decoder."
-      href="/sec/"
-    />
+  <div class="brand-strip">
+    <h2>More from the jsonversal brand matrix</h2>
+    <div class="grid">
+      <ToolCard
+        title="DevOps Tools"
+        description="YAML/JSON converter, Base64, crontab, JWT decoder, regex tester and more."
+        href="/devops/"
+      />
+      <ToolCard
+        title="Code Generators"
+        description=".gitignore, license, README, CI workflow, commit message and more."
+        href="/codegen/"
+      />
+      <ToolCard
+        title="Security Tools"
+        description="Hash, AES encryption, password strength, CSP generator, CSR decoder."
+        href="/sec/"
+      />
+    </div>
   </div>
 </BaseLayout>

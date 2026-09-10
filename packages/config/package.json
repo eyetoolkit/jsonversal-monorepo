@@ -9,6 +9,8 @@
     "./tokens": "./tokens.js",
     "./tokens.js": "./tokens.js",
     "./sites": "./sites.js",
-    "./sites.js": "./sites.js"
+    "./sites.js": "./sites.js",
+    "./tools-icons": "./tools-icons.js",
+    "./tools-icons.js": "./tools-icons.js"
   }
 }
