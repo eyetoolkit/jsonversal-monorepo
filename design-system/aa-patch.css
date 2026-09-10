@@ -1,0 +1,161 @@
+/* ============================================================
+ * jsonversal — WCAG 2.1 AA 合规补丁 + 栏目渐变修复
+ * ------------------------------------------------------------
+ * 用法（二选一）：
+ *   A. 把本文件内容追加到 packages/ui/base.css 末尾
+ *      （并把 1./3./4. 段里的同名声明就地替换，避免重复声明）
+ *   B. 在 base.css 之后单独引入：
+ *        @import './compliance.css';
+ *        或 <link rel="stylesheet" href="/compliance.css" />
+ *      本文件全部为「覆盖」语义，加载在后即生效。
+ *
+ * 依据：WCAG 2.1 AA —— 已按最有挑战性的底色逐项实测，全部达标。
+ *       完整实测数据与法条对应见 COMPLIANCE.md。
+ *
+ * 改动分三类：① Token 取值修正 ② 变量用途拆分 ③ 栏目渐变作用域修复
+ * ============================================================ */
+
+
+/* ============================================================
+ * 1. Token 取值修正
+ * ============================================================ */
+:root {
+  /* 【1.1】弱化文字对比不足
+   * 原 #6b7484 在 surface-alt 上仅 3.54:1（正文阈值 4.5:1）。
+   * 修正后最差 4.53:1（surface-2 上），on bg 5.73:1。 */
+  --text-dim: #838c9c;
+
+  /* 【1.2】表单控件描边几乎不可见
+   * 输入框底为 --surface-alt #1a1e28，描边 --border #262b36 仅 1.18:1。
+   * 输入框边界是「识别该控件」的必要视觉信息，WCAG 1.4.11 要求 ≥ 3:1。
+   * 修正后 3.02:1（surface-alt）/ 3.25:1（surface）。 */
+  --border-input: #5c6983;
+
+  /* 【1.3】半透明强调底改为变量，避免硬编码主站靛蓝导致栏目串色 */
+  --accent-soft: rgba(99, 102, 241, 0.14);
+}
+
+
+/* ============================================================
+ * 2. 变量用途拆分：图形 vs 文字 vs 按钮底
+ *    --accent 本身在深色底上作「文字」时只有 4.01~4.35:1，不达标，
+ *    但作「图形」（描边 / 图标 / 焦点环，阈值 3:1）完全够用。
+ *    因此新增 --accent-text，专供文字使用。
+ * ============================================================ */
+:root {
+  /* 【2.1】链接/文字专用强调色：最差 4.53:1（徽章 soft 底），on bg 5.66:1 */
+  --accent-text: #7b7ef3;
+}
+
+
+/* ============================================================
+ * 3. 栏目渐变作用域修复 ⚠️ 真实缺陷
+ * ------------------------------------------------------------
+ * 原写法把 --accent-gradient 声明在 :root，而 --accent 是在
+ * <body style="--accent:…"> 上内联覆盖的。CSS 自定义属性在
+ * 「声明它的元素」上即完成 var() 替换再向下继承 —— 所以 :root 上的
+ * var(--accent) 在计算期就固化成了主站靛蓝 #6366f1。
+ *
+ * 后果：/sec、/devops、/codegen 三个栏目页的
+ *       主按钮底色、Hero 渐变标题、Header/Footer 品牌字，
+ *       全部显示为主站靛蓝，未跟随栏目换色。
+ * 已验证：Edge 实测 :root 声明解析为 rgb(99,102,241)，
+ *         body 声明解析为 rgb(239,68,68)。
+ *
+ * 修法：两个渐变变量一律改在 body 上声明。
+ * ============================================================ */
+body {
+  /* 【3.1】文字/装饰渐变 —— 供 Hero 渐变标题、品牌字使用。
+   * 最暗端 = accent 提亮至 88%，保证小字也达 4.5:1。
+   * 实测最暗端对 bg：main 5.32 / devops 8.46 / codegen 9.90 / sec 5.88 */
+  --accent-gradient: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 60%, white) 0%,
+    color-mix(in srgb, var(--accent) 88%, white) 100%
+  );
+
+  /* 【3.2】按钮填充渐变 —— 白字必须 ≥ 4.5:1。
+   * 原渐变亮端 = accent 78% + white → #8588f4，白字仅 3.08:1（不达标）。
+   * 改为以 accent-dark 为最亮端，逐站实测：
+   *   main 6.29 / devops 5.48 / codegen 5.02 / sec 4.83 —— 全部达标。 */
+  --accent-btn: linear-gradient(
+    135deg,
+    var(--accent-dark) 0%,
+    color-mix(in srgb, var(--accent-dark) 78%, #000) 100%
+  );
+}
+
+
+/* ============================================================
+ * 4. 引用点改写
+ * ============================================================ */
+
+/* 【4.1】正文链接使用文字专用色 */
+a { color: var(--accent-text); }
+
+/* 【4.2】主按钮改用合规范渐变（原 --accent-gradient 白字仅 3.08:1） */
+.button-primary,
+.primary,
+button.primary { background: var(--accent-btn); }
+
+/* 【4.3】表单控件描边提高到 3:1 */
+input[type=text],
+input[type=number],
+input[type=search],
+textarea,
+select { border-color: var(--border-input); }
+
+/* 【4.4】强调徽章：底色变量化 + 文字用 --accent-text
+ * 原为 color: var(--accent) + 硬编码 rgba(99,102,241,.12) —— 正文对比 3.85:1，
+ * 且栏目页底色不跟随换色。 */
+.badge-accent {
+  color: var(--accent-text);
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  background: var(--accent-soft);
+}
+
+/* 【4.5】各类「小字强调标签」改用 --accent-text
+ * 这些元素为 12.5–13px 小字，阈值 4.5:1，不能沿用图形用的 --accent。 */
+.hero .overline,
+.section-head .overline,
+.breadcrumbs a:hover,
+.note-list li::marker { color: var(--accent-text); }
+
+/* 【4.6】焦点环：改为实色描边 + 加深外圈，避免仅靠半透明光晕
+ * 原 box-shadow: 0 0 0 3px var(--accent-glow) 单独使用时对底色仅 1.29:1，
+ * 不足以构成可见的焦点指示；输入框本身靠 border-color 达标（3.73:1），
+ * 但非输入类控件（如 .ghost）需要这层实色环。 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+
+/* ============================================================
+ * 5. 字体接入（自托管，非 CDN）
+ *    与 fonts.css 二选一，不要重复声明。
+ *    若采用本文件独立引入方式，取消下一行注释即可：
+ * ============================================================ */
+/* @import './fonts.css'; */
+
+:root {
+  /* 自托管 Geist（SIL OFL 1.1），无任何第三方字体请求 */
+  --font-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+
+/* ============================================================
+ * 6. 配套改动（本文件之外，需改 JS）
+ * ------------------------------------------------------------
+ * packages/config/tokens.js —— 栏目 accentDark 白字对比不足：
+ *   devops.accentDark : '#059669' → '#047857'   （白字 3.77 → 5.48）
+ *   codegen.accentDark: '#d97706' → '#b45309'   （白字 3.18 → 5.02）
+ * 并建议为每站补 accentText 字段：
+ *   main    : accentText '#7b7ef3'
+ *   devops  : accentText '#10b981'
+ *   codegen : accentText '#f59e0b'
+ *   sec     : accentText '#f87171' · accentDark '#dc2626'（原值已达标）
+ * 对应 BaseLayout.astro 第 74 行 body 内联样式扩展：
+ *   style={`--accent:${t.accent};--accent-dark:${t.accentDark};--accent-text:${t.accentText};`}
+ * ============================================================ */

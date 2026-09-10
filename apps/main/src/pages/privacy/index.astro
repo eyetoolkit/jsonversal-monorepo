@@ -4,22 +4,63 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 <BaseLayout site="main" title="Privacy Policy" canonical="https://jsonversal.com/privacy/">
   <h1>Privacy Policy</h1>
-  <p class="text-muted">Last updated: 2026-09-08</p>
+  <p class="text-muted">Effective date: 2026-09-10 · Last updated: 2026-09-10</p>
 
   <h2>Summary</h2>
   <ul>
     <li>All tools run 100% on your device. We do not collect, log, or transmit the data you process.</li>
     <li>We use Cloudflare Web Analytics (no cookies, no personal identifiers) to count page views.</li>
     <li>We set only strictly necessary cookies (consent state) by default.</li>
+    <li>Fonts and code libraries are served from our own domain — no third-party CDN receives your IP address.</li>
     <li>We do not sell or share your personal information.</li>
   </ul>
 
   <h2>Information collected</h2>
-  <p>None of the data you submit to our tools leaves your browser. We have no server-side processing for tool inputs.</p>
+  <p>None of the data you submit to our tools leaves your browser. We have no server-side processing for tool inputs. There are no accounts, no sign-up and no user profiles.</p>
 
   <h2>Analytics</h2>
-  <p>We use Cloudflare Web Analytics, which is cookieless and aggregated.</p>
+  <p>We use Cloudflare Web Analytics, which is cookieless and aggregated. It does not fingerprint visitors, does not track you across sites, and does not build a profile of you. It reports only aggregate metrics such as page views and referrers.</p>
+
+  <h2>Cookies and local storage</h2>
+  <p>We do not set advertising or tracking cookies. We store a single item in your browser's local storage to remember that you have dismissed the consent notice, and one to remember your light/dark theme preference. Both stay on your device and are never transmitted to us.</p>
+
+  <h2>Third-party requests</h2>
+  <p>
+    Loading an asset from a third-party CDN discloses your IP address to that provider. We avoid this
+    wherever possible:
+  </p>
+  <ul>
+    <li><strong>Fonts</strong> — Geist and Geist Mono are self-hosted from this domain. We do not use Google Fonts or any other font CDN.</li>
+    <li><strong>JavaScript libraries</strong> — bundled or self-hosted; none are fetched from a public CDN at runtime.</li>
+    <li><strong>Cloudflare Web Analytics</strong> — the one external request, described above.</li>
+  </ul>
+  <p>See <a href="/licenses/">Licenses &amp; Third-Party Notices</a> for the full attribution list.</p>
+
+  <h2>Where data is processed</h2>
+  <p>
+    The site is hosted on Cloudflare Pages. Cloudflare is a US-headquartered provider, so serving a page
+    involves processing connection metadata (including your IP address) on infrastructure that may be
+    located outside your country. For transfers out of the EEA/UK we rely on Cloudflare's data processing
+    addendum incorporating the European Commission's Standard Contractual Clauses, together with the
+    technical measures described above. We do not sell personal data and do not use it for advertising.
+  </p>
+
+  <h2>Your rights</h2>
+  <p>
+    If you are in the European Economic Area, the UK or Switzerland, you have the right to access, rectify
+    or erase your personal data, to restrict or object to processing, and to data portability. If you are a
+    California resident, you have the right to know what personal information is collected and to opt out of
+    its sale or sharing — we do neither. Because we hold no personal data about you beyond aggregate
+    analytics, most requests resolve to confirming we hold nothing. You may contact us at any time to exercise
+    these rights, and you may lodge a complaint with your local supervisory authority.
+  </p>
+
+  <h2>Children</h2>
+  <p>This site is a developer tool aimed at a professional audience and is not directed at children under 16.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If we change this policy we will update the "Last updated" date above. Material changes will be noted on the homepage.</p>
 
   <h2>Contact</h2>
-  <p>hello@jsonversal.com</p>
+  <p>Questions or requests: <a href="mailto:hello@jsonversal.com">hello@jsonversal.com</a></p>
 </BaseLayout>

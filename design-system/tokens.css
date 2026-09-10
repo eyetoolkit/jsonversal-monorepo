@@ -1,0 +1,164 @@
+/* ============================================================
+ * jsonversal Design System v2 — Design Tokens
+ * ------------------------------------------------------------
+ * 由 Ardot 设计文件「jsonversal 首页改版设计方案」导出
+ * 设计文件：https://ardot.tencent.com/file/724326081343576
+ *
+ * ⚠️ 本文件为「设计规范」版本（v2 命名 --color-*）。
+ *    若要直接打进现有站点，请用 aa-patch.css（沿用现有变量名，零改动）。
+ *
+ * 合规基线：
+ *   · WCAG 2.1 Level AA（EN 301 549 / 欧盟 EAA / 美国 ADA 判例基准）
+ *   · 全部文字与图形对比度已按「最差底色」校验通过，见 COMPLIANCE.md
+ *   · 字体为 SIL OFL 1.1 自托管，不经任何第三方 CDN（GDPR 合规）
+ *
+ * 命名差异：
+ *   现有 base.css  --bg / --surface / --accent
+ *   本文件 v2     --color-bg / --color-surface / --color-accent
+ * ============================================================ */
+
+:root {
+  /* ---------- Color · 背景层级（由深到浅 4 层） ---------- */
+  --color-bg: #0B0D12;
+  --color-bg-deep: #08090D;
+  --color-surface: #14171F;
+  --color-surface-alt: #1A1E28;
+  --color-surface-2: #20252F;
+
+  /* ---------- Color · 描边 ---------- */
+  /* 装饰性轮廓（卡片、分隔线）：不受 WCAG 1.4.11 约束 —— 卡片并非「识别性 UI 组件」，
+     层级由 fill 与内部文字区分。保持低对比以符合深色 UI 惯例。 */
+  --color-border: #262B36;
+  --color-border-strong: #333947;
+  /* 表单控件描边：输入框边界是「识别该控件」的必要信息，须 ≥ 3:1。
+     原 --color-border 在 --color-surface-alt 上仅 1.18:1 → 实测不可见。 */
+  --color-border-input: #5C6983; /* 3.02:1 on surface-alt，3.25:1 on surface */
+
+  /* ---------- Color · 正文灰阶 ---------- */
+  --color-text: #E7EAF0;        /* 16.13:1 on bg */
+  --color-text-muted: #9AA3B2;  /*  7.64:1 on bg / 6.04:1 on surface-2 */
+  --color-text-dim: #838C9C;    /*  5.73:1 on bg / 4.53:1 on surface-2（最差） */
+
+  /* ---------- Color · 强调色 ---------- */
+  /* 分工：--color-accent 只用于图形（描边/焦点环/图标，阈值 3:1）；
+     --color-accent-text 用于任何「文字」，阈值 4.5:1；
+     --color-accent-dark 用于白字按钮的填充。三者不可混用。 */
+  --color-accent: #6366F1;
+  --color-accent-text: #7B7EF3; /* 4.53:1（徽章 soft 底最差）/ 5.66:1 on bg */
+  --color-accent-dark: #4F46E5; /* 白字 6.29:1 */
+  --color-accent-soft: rgba(99, 102, 241, 0.14);
+  --color-accent-tint: #A5B4FC; /* 图标描边：8.99:1 on surface */
+
+  /* ---------- Color · 语义状态 ---------- */
+  --color-success: #34D399; /* 10.11:1 on bg */
+  --color-warning: #FBBF24; /* 11.64:1 on bg */
+  --color-danger: #F87171;  /*  7.03:1 on bg */
+
+  /* ---------- Color · 栏目强调色 ---------- */
+  /* 每站三个值：accent（图形）/ accent-text（文字）/ accent-dark（白字按钮底） */
+  --color-sec-accent: #EF4444;
+  --color-sec-accent-text: #F87171; /* 原 EF4444 作文字仅 4.16:1 → 提亮 */
+  --color-sec-accent-dark: #DC2626; /* 白字 4.83:1 */
+
+  --color-devops-accent: #10B981;
+  --color-devops-accent-text: #10B981;
+  --color-devops-accent-dark: #047857; /* 原 059669 白字仅 3.77:1 → 压暗 */
+
+  --color-codegen-accent: #F59E0B;
+  --color-codegen-accent-text: #F59E0B;
+  --color-codegen-accent-dark: #B45309; /* 原 D97706 白字仅 3.18:1 → 压暗 */
+
+  /* ---------- Radius · 圆角阶梯 ---------- */
+  --radius-sm: 8px;
+  --radius-md: 12px; /* 卡片 · 按钮 · 输入框 */
+  --radius-lg: 18px; /* 面板 · 大卡片 */
+  --radius-xl: 24px; /* 大区块 */
+  --radius-pill: 999px;
+
+  /* ---------- Space · 间距阶梯 ---------- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+  --space-huge: 48px;
+
+  /* ---------- Type · 字号阶梯 ---------- */
+  --type-display: 56px; /* / 64 行高 · Geist Bold */
+  --type-h1: 40px;      /* / 48 行高 · Geist SemiBold */
+  --type-h2: 28px;      /* / 36 行高 · Geist SemiBold */
+  --type-h3: 20px;      /* / 28 行高 · Geist Medium */
+  --type-body: 16px;    /* / 26 行高 · Geist Regular */
+  --type-small: 14px;
+  --type-caption: 12px;
+  --type-micro: 11px;
+
+  /* ---------- Type · 字体族（SIL OFL 1.1 · 自托管 · 无第三方 CDN） ---------- */
+  --font-display: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---------- Effect · 阴影 ---------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+  --shadow-panel: 0 24px 64px -16px rgba(0, 0, 0, 0.5),
+                  0 8px 24px -8px rgba(0, 0, 0, 0.35);
+
+  /* ---------- Layout ---------- */
+  --container: 1280px;
+  --header-h: 72px;
+}
+
+/* ============================================================
+ * Effect · 渐变（两种用途，不可共用；必须在 body 上声明）
+ * ------------------------------------------------------------
+ * ⚠️ 关键：这两个变量引用 var(--color-accent) / var(--color-accent-dark)，
+ *    而栏目换色是在 <body style="--accent:…"> 上内联覆盖的。
+ *    CSS 自定义属性在「声明它的元素」上完成 var() 替换后再继承 ——
+ *    若写在 :root，var(--accent) 会在计算期固化成主站靛蓝，
+ *    子站（/sec /devops /codegen）的按钮与渐变标题将全部显示成主站色。
+ *    （已用 Edge 实测确认：:root 声明 → rgb(99,102,241)，body 声明 → rgb(239,68,68)）
+ * ============================================================ */
+body {
+  /* 文字/装饰渐变：最暗端须在深色底上可读 → 以 accent 提亮至 88% 作为最暗端。
+     实测最暗端对 bg：main 5.32 / devops 8.46 / codegen 9.90 / sec 5.88，均 ≥ 4.5 */
+  --color-gradient-text: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 60%, white) 0%,
+    color-mix(in srgb, var(--color-accent) 88%, white) 100%
+  );
+  /* 按钮填充渐变：白字须 ≥ 4.5:1 → 最亮端用 accent-dark。
+     实测白字对比：main 6.29 / devops 5.48 / codegen 5.02 / sec 4.83，均 ≥ 4.5 */
+  --color-gradient-btn: linear-gradient(
+    135deg,
+    var(--color-accent-dark) 0%,
+    color-mix(in srgb, var(--color-accent-dark) 78%, #000) 100%
+  );
+}
+
+/* 栏目覆盖：在 <body> 上按路由切换，Header / 按钮 / 图标 / 徽章自动跟随。
+ * 三个色值同时切换，保证「图形 / 文字 / 按钮底」各处都达标。 */
+.section-tools {
+  --color-accent: #6366F1;
+  --color-accent-text: #7B7EF3;
+  --color-accent-dark: #4F46E5;
+}
+.section-sec {
+  --color-accent: var(--color-sec-accent);
+  --color-accent-text: var(--color-sec-accent-text);
+  --color-accent-dark: var(--color-sec-accent-dark);
+  --color-accent-soft: rgba(239, 68, 68, 0.14);
+}
+.section-devops {
+  --color-accent: var(--color-devops-accent);
+  --color-accent-text: var(--color-devops-accent-text);
+  --color-accent-dark: var(--color-devops-accent-dark);
+  --color-accent-soft: rgba(16, 185, 129, 0.14);
+}
+.section-codegen {
+  --color-accent: var(--color-codegen-accent);
+  --color-accent-text: var(--color-codegen-accent-text);
+  --color-accent-dark: var(--color-codegen-accent-dark);
+  --color-accent-soft: rgba(245, 158, 11, 0.14);
+}

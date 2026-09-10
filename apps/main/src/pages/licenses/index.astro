@@ -1,0 +1,154 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+---
+
+<BaseLayout
+  site="main"
+  title="Licenses & Third-Party Notices"
+  description="Font, library and infrastructure attributions for jsonversal.com — including our self-hosted Geist fonts and the third-party code we ship."
+  canonical="https://jsonversal.com/licenses/"
+>
+  <h1>Licenses &amp; Third-Party Notices</h1>
+  <p class="text-muted">Last updated: 2026-09-10</p>
+
+  <p class="lead">
+    jsonversal ships no advertising, no trackers and no third-party front-end CDNs.
+    This page lists every font, library and service the site relies on, together with
+    its license and where to find the full license text.
+  </p>
+
+  <h2>Fonts</h2>
+  <p>
+    This site uses <strong>Geist</strong> and <strong>Geist Mono</strong>, served from this
+    domain. The font files are self-hosted — the page does not contact Google Fonts,
+    Adobe Fonts, Bunny Fonts or any other font CDN.
+  </p>
+
+  <table class="lic-table">
+    <thead>
+      <tr><th>Asset</th><th>Copyright</th><th>License</th><th>Full text</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Geist · Geist Mono</td>
+        <td>© 2023 Vercel, in collaboration with basement.studio</td>
+        <td>SIL Open Font License 1.1</td>
+        <td><a href="/fonts/LICENSE-Geist-OFL.txt">LICENSE-Geist-OFL.txt</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="text-muted">
+    The SIL OFL 1.1 permits commercial use, self-hosting, web embedding and redistribution.
+    It requires that this copyright notice and the license text accompany the fonts, and
+    prohibits selling the fonts on their own.
+  </p>
+
+  <h2>Third-party code</h2>
+  <p>
+    Every library below is bundled or self-hosted and served from this origin. None of them
+    is fetched from a public CDN at runtime.
+  </p>
+
+  <table class="lic-table">
+    <thead>
+      <tr><th>Component</th><th>Version</th><th>Copyright</th><th>License</th><th>Full text</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>yaml</td>
+        <td>2.5.0</td>
+        <td>© Eemeli Aro</td>
+        <td>ISC</td>
+        <td><a href="/vendor/LICENSE-yaml.txt">LICENSE-yaml.txt</a></td>
+      </tr>
+      <tr>
+        <td>bcryptjs</td>
+        <td>^3.0.3</td>
+        <td>© Daniel Wirtz</td>
+        <td>MIT</td>
+        <td><span class="text-muted">see package</span></td>
+      </tr>
+      <tr>
+        <td>Astro</td>
+        <td>4.x</td>
+        <td>© Astro contributors</td>
+        <td>MIT</td>
+        <td><span class="text-muted">build-time only</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Infrastructure</h2>
+  <table class="lic-table">
+    <thead>
+      <tr><th>Service</th><th>Purpose</th><th>Data involved</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Cloudflare Pages</td>
+        <td>Hosting and content delivery</td>
+        <td>Connection metadata (IP) processed to serve the request</td>
+      </tr>
+      <tr>
+        <td>Cloudflare Web Analytics</td>
+        <td>Aggregate page-view counting</td>
+        <td>Cookieless, no personal identifiers, no cross-site tracking</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="text-muted">
+    Cloudflare acts as our hosting and analytics processor. See the
+    <a href="/privacy/">Privacy Policy</a> for the full description of data handling,
+    the legal bases we rely on, and your rights.
+  </p>
+
+  <h2>No third-party requests at runtime</h2>
+  <ul class="note-list">
+    <li>No external font CDN — fonts are served from this domain.</li>
+    <li>No third-party JavaScript CDN — libraries are bundled or self-hosted.</li>
+    <li>No advertising, no tracking pixels, no social widgets.</li>
+    <li>The only external request is the Cloudflare Web Analytics beacon.</li>
+  </ul>
+  <p class="text-muted">
+    This matters beyond performance: loading an asset from a third-party CDN discloses the
+    visitor's IP address to that provider. Under the GDPR that is a personal-data transfer
+    requiring a legal basis — which is why we avoid it. The tools themselves run entirely in
+    your browser, so the data you paste never leaves your device at all.
+  </p>
+
+  <h2>Reporting an attribution problem</h2>
+  <p>
+    If you believe your work is used here without proper attribution, please write to
+    <a href="mailto:hello@jsonversal.com">hello@jsonversal.com</a> and we will correct it promptly.
+  </p>
+</BaseLayout>
+
+<style>
+  .lic-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: .9rem;
+  }
+  .lic-table th,
+  .lic-table td {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .lic-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: .78rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .lic-table td:first-child { color: var(--text); font-weight: 600; }
+  .lic-table td { color: var(--text-muted); }
+  @media (max-width: 720px) {
+    .lic-table { display: block; overflow-x: auto; white-space: nowrap; }
+  }
+</style>

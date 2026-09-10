@@ -61,7 +61,9 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
 
   async function loadYaml() {
     if (yamlLib) return yamlLib;
-    await import('https://cdn.jsdelivr.net/npm/yaml@2.5.0/+esm').then(m => yamlLib = m.default || m).catch(() => null);
+    // 自托管（public/vendor/）—— 原先从第三方 CDN 动态拉取，会把访客 IP 暴露给该 CDN，
+    // 与第三方字体 CDN 属同一类 GDPR 风险。请勿改回远程 URL。
+    await import('/vendor/yaml-2.5.0.esm.js').then(m => yamlLib = m.default || m).catch(() => null);
     return yamlLib;
   }
 

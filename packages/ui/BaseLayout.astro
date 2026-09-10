@@ -61,19 +61,67 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN;
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDesc} />
 
-    {/* Theme color 按子站差异化 */}
-    <meta name="theme-color" content={t.accent} />
+    {/* Theme color —— 随主题切换（由下方内联脚本同步更新） */}
+    <meta name="theme-color" content="#0b0d12" id="meta-theme-color" />
 
     {/* favicon —— 品牌 SVG（按子站 accent 色） */}
     <link rel="icon" href={faviconHref} />
     <link rel="apple-touch-icon" href={faviconHref} />
 
+    {/* 自托管字体预加载 —— 同源字体必须带 crossorigin，否则会重复下载 */}
+    <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+
+    {/* 主题初始化 —— 必须内联且在 <head>，避免首屏闪烁（FOUC）。
+        优先级：用户手动选择（localStorage）> 系统 prefers-color-scheme。
+        未选择时跟随系统，并在系统主题变化时实时同步。 */}
+    <script is:inline>
+      (function () {
+        var KEY = 'versal-theme';
+        var root = document.documentElement;
+        var meta = document.getElementById('meta-theme-color');
+        function systemTheme() {
+          return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+            ? 'light'
+            : 'dark';
+        }
+        function stored() {
+          try {
+            var v = localStorage.getItem(KEY);
+            return v === 'light' || v === 'dark' ? v : null;
+          } catch (e) { return null; }
+        }
+        function paint(theme) {
+          root.setAttribute('data-theme', theme);
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#ffffff' : '#0b0d12');
+        }
+        paint(stored() || systemTheme());
+
+        window.__versalTheme = {
+          key: KEY,
+          current: function () { return root.getAttribute('data-theme') || 'dark'; },
+          /* 手动切换：写入 localStorage，之后不再跟随系统 */
+          set: function (theme) { paint(theme); try { localStorage.setItem(KEY, theme); } catch (e) {} },
+          /* 清除手动选择，回到跟随系统 */
+          reset: function () { try { localStorage.removeItem(KEY); } catch (e) {} paint(systemTheme()); }
+        };
+
+        if (window.matchMedia) {
+          var mq = window.matchMedia('(prefers-color-scheme: light)');
+          var onChange = function () { if (!stored()) paint(systemTheme()); };
+          if (mq.addEventListener) mq.addEventListener('change', onChange);
+          else if (mq.addListener) mq.addListener(onChange);
+        }
+      })();
+    </script>
+
     {/* Cloudflare Web Analytics —— 占位 id 由子站覆盖 */}
     <slot name="head" />
   </head>
-  <body style={`--accent:${t.accent};--accent-dark:${t.accentDark};`}>
+  <body class={`site-${site}`}>
+    <a class="skip-link" href="#main">Skip to content</a>
     <Header site={site} current={current} />
-    <main class="container">
+    <main class="container" id="main">
       <slot />
     </main>
     <Footer site={site} />

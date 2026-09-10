@@ -128,8 +128,66 @@ const tools = [
   </div>
   <ToolGrid tools={tools} />
 
+  <div class="section-head">
+    <span class="overline">Why local-first</span>
+    <h2>Your data never leaves your browser — GDPR-friendly by design</h2>
+    <p>
+      Most online tools upload your input, process it on a server and hand something back.
+      jsonversal does the opposite: every tool is a self-contained page that runs on your device.
+      There is no upload step, no queue, and no server-side copy — and no third-party CDN
+      watching you load it.
+    </p>
+  </div>
+  <div class="grid">
+    <article class="card value-card">
+      <span class="value-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+      </span>
+      <h3>Nothing is uploaded</h3>
+      <p>
+        Tools run on the Web Crypto, File and Clipboard APIs inside your tab. Paste a JWT,
+        a private key or a customer payload — it is never sent anywhere, so there is no
+        server-side log to leak and nothing to delete.
+      </p>
+    </article>
+
+    <article class="card value-card">
+      <span class="value-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18" />
+          <path d="M12 3c2.6 3.2 2.6 14.8 0 18M12 3c-2.6 3.2-2.6 14.8 0 18" />
+        </svg>
+      </span>
+      <h3>No third-party CDNs</h3>
+      <p>
+        Fonts and libraries are served from this domain. Loading them from someone else's CDN
+        would hand that provider your IP address on every page load — which is exactly the
+        transfer European courts have ruled against.
+      </p>
+    </article>
+
+    <article class="card value-card">
+      <span class="value-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="m17 11 2 2 4-4" />
+        </svg>
+      </span>
+      <h3>No accounts, no profiling</h3>
+      <p>
+        No sign-up, no ad networks, no cross-site tracking. Analytics are cookieless and
+        aggregate — we count page views, not people.
+      </p>
+    </article>
+  </div>
+
   <div class="brand-strip">
-    <h2>More from the jsonversal brand matrix</h2>
+    <h2>More developer toolkits</h2>
     <div class="grid">
       <ToolCard
         title="DevOps Tools"
@@ -149,3 +207,29 @@ const tools = [
     </div>
   </div>
 </BaseLayout>
+
+<style>
+  .value-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .value-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  }
+  .value-card h3 { margin: 4px 0 0; }
+  .value-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: .92rem;
+    line-height: 1.6;
+  }
+</style>

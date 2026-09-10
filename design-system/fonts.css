@@ -1,0 +1,73 @@
+/* ============================================================
+ * jsonversal — 自托管字体声明（Geist / Geist Mono）
+ * ------------------------------------------------------------
+ * 授权：SIL Open Font License 1.1
+ *       版权 (c) 2023 Vercel, in collaboration with basement.studio
+ *       授权全文随字体分发于 /fonts/LICENSE-Geist-OFL.txt
+ *       许可范围：可商用、可自托管、可网页嵌入、可再分发。
+ *       义务：保留版权声明与授权全文；不得单独售卖字体；
+ *             不得在「保留字体名称」列表内改名后再分发。
+ *       Geist 未声明 Reserved Font Name，改名为「jsonversal Sans」亦可。
+ *
+ * ⚠️ GDPR / 欧盟合规要点（重要）
+ *   德国慕尼黑地方法院 2022 年判决（LG München I, 3 O 17493/20）认定：
+ *   通过 Google Fonts CDN 加载字体，会把访客 IP 地址传输给美国服务器，
+ *   构成未经同意的个人数据传输，违反 GDPR，可被索赔。
+ *   因此本项目 **绝不** 使用 fonts.googleapis.com / fonts.gstatic.com，
+ *   一律自托管。上述两个域名若出现在任何页面，即为合规缺陷。
+ *
+ * 文件清单（apps/main/public/fonts/）
+ *   Geist-Variable.woff2              69.7 KB  字重 100–900
+ *   Geist-Italic-Variable.woff2       73.1 KB
+ *   GeistMono-Variable.woff2          71.4 KB  字重 100–900
+ *   GeistMono-Italic-Variable.woff2   78.8 KB
+ *   合计约 292 KB —— 用 4 个可变字体替代 16+ 个静态字重文件
+ * ============================================================ */
+
+/* 可变字体：单文件覆盖 100–900 全部字重 */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Geist-Variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Geist-Italic-Variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/GeistMono-Italic-Variable.woff2") format("woff2");
+}
+
+/* ------------------------------------------------------------
+ * 可选优化：在 <head> 预加载正文字体，消除首屏字体闪烁。
+ * 建议加到 packages/ui/BaseLayout.astro 的 <head> 内（仅需无变体主字体）：
+ *
+ *   <link rel="preload" href="/fonts/Geist-Variable.woff2"
+ *         as="font" type="font/woff2" crossorigin />
+ *
+ * 注意：字体属同源静态资源，preload 时需带 crossorigin 属性，
+ *       否则会触发重复下载。
+ * ------------------------------------------------------------ */
+
+/* 字重语义映射（可变字体直接支持，无需另加文件）
+ *   400 Regular · 500 Medium · 600 SemiBold · 700 Bold · 800 ExtraBold
+ */

@@ -109,6 +109,7 @@ export function toolIcon(href) {
   const { section, slug } = parseToolRef(href);
   return {
     emoji: ICONS[slug] || '🧰',
+    section,
     accent: SECTION_ACCENT[section] || SECTION_ACCENT.tools,
   };
 }
