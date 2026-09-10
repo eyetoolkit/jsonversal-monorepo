@@ -730,3 +730,73 @@ li { margin: 4px 0; }
   white-space: nowrap;
   border: 0;
 }
+
+/* ===== FAQ 折叠区块（工具页 SEO + 用户体验） ===== */
+.faq-block h2#faq-title { margin-bottom: 16px; font-size: 1.15rem; }
+.faq-list { display: flex; flex-direction: column; gap: 8px; }
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 2px 16px;
+  transition: background .15s ease, border-color .15s ease;
+}
+.faq-item summary {
+  cursor: pointer;
+  padding: 14px 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '+';
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  transition: transform .18s ease;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+.faq-item[open] summary::after { content: '−'; }
+.faq-item .faq-answer {
+  padding: 0 0 16px 0;
+  color: var(--text-muted);
+  line-height: 1.65;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: -4px;
+}
+
+/* ===== 隐私承诺徽章（差异化卖点） ===== */
+.privacy-promise {
+  margin-top: 40px;
+  margin-bottom: 32px;
+}
+.privacy-badge {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 22px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+}
+.lock-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1; padding-top: 2px; }
+.privacy-badge strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  color: var(--accent-text);
+}
+.privacy-badge p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}

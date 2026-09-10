@@ -11,8 +11,9 @@ export interface Props {
   description?: string;
   canonical?: string;
   current?: string;
-  /** 工具页关键词数组（可选） */
   keywords?: string[];
+  /** FAQ 数组 —— 同时用于可见折叠区块和 FAQPage JSON-LD Rich Results */
+  faqs?: Array<{ question: string; answer: string }>;
 }
 
 const {
@@ -22,6 +23,7 @@ const {
   canonical,
   current,
   keywords,
+  faqs,
 } = Astro.props as Props;
 
 const seo = sitesSEO[site];
@@ -31,11 +33,13 @@ const pageDesc = description || seo.description;
 const pageUrl = canonical || seo.canonical;
 const pageKeywords = keywords?.join(', ') || seo.keywords;
 
-// 静态 favicon —— 按子站选对应的 SVG 文件（浏览器可缓存，比每页面内联 data URI 高效）
+// 静态 favicon —— 按子站选对应的 SVG 文件（浏览器可缓存）
 const faviconHref = `/favicon-${site}.svg`;
 
-// JSON-LD WebApplication schema —— SEO 结构化数据（Rich Results）
-const jsonLd = {
+// ===== SEO 结构化数据：WebApplication + BreadcrumbList + FAQPage =====
+
+// 1. WebApplication schema —— 每个页面都有
+const waSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": title || t.name,
@@ -53,6 +57,73 @@ const jsonLd = {
   "inLanguage": "en",
   "isAccessibleForFree": true
 };
+
+// 2. BreadcrumbList —— 根据 current 路径自动推断（工具页专属）
+function buildBreadcrumbs() {
+  if (!current) return null;
+  const rootMap: Record<string, { label: string; url: string }> = {
+    tools:   { label: 'Tools',           url: 'https://jsonversal.com/tools/' },
+    sec:     { label: 'Security',         url: 'https://jsonversal.com/sec/' },
+    devops:  { label: 'DevOps',           url: 'https://jsonversal.com/devops/' },
+    codegen: { label: 'Code Generators',  url: 'https://jsonversal.com/codegen/' },
+  };
+  // "/tools/json-formatter/" → ['tools', 'json-formatter']
+  const segments = current.split('/').filter(Boolean);
+  // landing 页自身不生成面包屑
+  if (segments.length <= 1) return null;
+  
+  const items: Array<{label: string, url?: string}> = [
+    { label: 'Home', url: 'https://jsonversal.com/' },
+  ];
+  
+  // 第 1 段：根栏目或 "tools"
+  if (segments[0] === 'tools') {
+    items.push(rootMap.tools);
+  } else if (rootMap[segments[0]]) {
+    items.push(rootMap[segments[0]]);
+    // 第 2 段如果是 "tools"（子栏目的工具 landing），也加进去
+    if (segments[1] === 'tools') {
+      items.push({ label: 'Tools', url: `${rootMap[segments[0]].url}tools/` });
+    }
+  }
+  
+  // 当前页面 label —— 用 prop title 或最后一段 slug
+  const lastSeg = segments[segments.length - 1];
+  const pageLabel = title || lastSeg.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  items.push({ label: pageLabel });
+  
+  return items.map((it, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "name": it.label,
+    ...(it.url ? { "item": it.url } : {})
+  }));
+}
+
+const breadcrumbList = buildBreadcrumbs();
+
+// 3. FAQPage —— 仅当 faqs prop 有值
+const faqSchema = faqs && faqs.length ? {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": f.answer
+    }
+  }))
+} : null;
+
+// 4. 如果同时有面包屑和 FAQ，用 @graph 把多个 schema 合并输出
+const jsonLd = breadcrumbList && faqSchema
+  ? { "@context": "https://schema.org", "@graph": [waSchema, { "@type": "BreadcrumbList", itemListElement: breadcrumbList }, faqSchema] }
+  : breadcrumbList
+    ? { "@context": "https://schema.org", "@graph": [waSchema, { "@type": "BreadcrumbList", itemListElement: breadcrumbList }] }
+    : faqSchema
+      ? { "@context": "https://schema.org", "@graph": [waSchema, faqSchema] }
+      : waSchema;
 ---
 
 <!doctype html>
@@ -135,9 +206,7 @@ const jsonLd = {
       })();
     </script>
 
-    {/* JSON-LD WebApplication schema —— 全站 SEO 结构化数据（Rich Results）
-        Astro 模板中的 {expression} 在 <script> 标签内不会自动求值，
-        故改用 set:html 直接注入序列化后的 JSON 字符串 */}
+    {/* JSON-LD —— @graph 合并 WebApplication + BreadcrumbList + FAQPage（Rich Results） */}
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 
     {/* 子站可插入额外的 <head> 内容（如页面级结构化数据） */}
@@ -152,6 +221,33 @@ const jsonLd = {
     <Header site={site} current={current} />
     <main class="container" id="main">
       <slot />
+
+      {/* FAQ 折叠区块 —— 同时满足可访问性（<details>）和 SEO（FAQPage JSON-LD 已在 head）
+          仅当工具页通过 faqs prop 传入了问答时才渲染 */}
+      {faqs && faqs.length > 0 && (
+        <section class="faq-block mt-3" aria-labelledby="faq-title">
+          <h2 id="faq-title">Frequently Asked Questions</h2>
+          <div class="faq-list">
+            {faqs.map(f => (
+              <details class="faq-item">
+                <summary>{f.question}</summary>
+                <div class="faq-answer">{f.answer}</div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 隐私承诺 —— 所有工具页共享的差异化卖点 */}
+      <section class="privacy-promise mt-3">
+        <div class="privacy-badge">
+          <span class="lock-icon">🔒</span>
+          <div>
+            <strong>Your data never leaves your device</strong>
+            <p>All processing happens in your browser. No uploads, no tracking, no servers. Your API keys, configs, and private payloads stay private — 100% client-side.</p>
+          </div>
+        </div>
+      </section>
     </main>
     <Footer site={site} />
 
