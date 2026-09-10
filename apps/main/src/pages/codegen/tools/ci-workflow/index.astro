@@ -99,7 +99,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       matrix:
         node-version: [${versions.join(', ')}]
     steps:
-      - uses: actions/checkout@v4${$('cache').checked ? '\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ matrix.node-version }}\n          cache: npm' : '\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ matrix.node-version }}'}
+      - uses: actions/checkout@v4${$('cache').checked ? '\n      - uses: actions/setup-node@v4\n        with:\n          node-version: $\{\{ matrix.node-version }}\n          cache: npm' : '\n      - uses: actions/setup-node@v4\n        with:\n          node-version: $\{\{ matrix.node-version }}'}
       - name: Install dependencies
         run: npm ci${$('lint').checked ? '\n      - name: Lint\n        run: npm run lint' : ''}${$('test').checked ? '\n      - name: Test\n        run: npm test' : ''}${$('build').checked ? '\n      - name: Build\n        run: npm run build' : ''}
 `;
@@ -114,7 +114,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}${$('cache').checked ? '\n          cache: pip' : ''}
+          python-version: $\{\{ matrix.python-version }}${$('cache').checked ? '\n          cache: pip' : ''}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -131,7 +131,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}${$('cache').checked ? '\n      - uses: actions/cache@v4\n        with:\n          path: ~/go/pkg/mod\n          key: ${{ runner.os }}-go-${{ hashFiles(\'**/go.sum\') }}\n          restore-keys: |\n            ${{ runner.os }}-go-' : ''}${$('lint').checked ? '\n      - name: Lint\n        run: golangci-lint run' : ''}${$('test').checked ? '\n      - name: Test\n        run: go test ./...' : ''}${$('build').checked ? '\n      - name: Build\n        run: go build -o dist/ ./...' : ''}
+          go-version: $\{\{ matrix.go-version }}${$('cache').checked ? '\n      - uses: actions/cache@v4\n        with:\n          path: ~/go/pkg/mod\n          key: $\{\{ runner.os }}-go-$\{\{ hashFiles(\'**/go.sum\') }}\n          restore-keys: |\n            $\{\{ runner.os }}-go-' : ''}${$('lint').checked ? '\n      - name: Lint\n        run: golangci-lint run' : ''}${$('test').checked ? '\n      - name: Test\n        run: go test ./...' : ''}${$('build').checked ? '\n      - name: Build\n        run: go build -o dist/ ./...' : ''}
 `;
     } else if (lang === 'rust') {
       jobs = `  build:
