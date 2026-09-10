@@ -55,7 +55,7 @@ description: "jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops/codege
 
 | 项 | 值 |
 |---|---|
-| 仓库 | `eyetoolkit/jsonversal-monorepo`（public） |
+| 仓库 | `eyetoolkit/jsonversal-monorepo` —— **private（2026-09-10 起）** |
 | 生产分支 | `main` |
 | 权威本地克隆 | `E:\TRAE\jsonversal-monorepo` |
 | 技术栈 | pnpm workspace + turbo |
@@ -64,6 +64,22 @@ description: "jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops/codege
 
 - 旧单仓库 `eyetoolkit/jsonversal` 已废弃。
 - 历史路径 `c:\new\jsonversal-monorepo`、Trae 沙箱 `/workspace` 均已作废，看到即视为过期信息。
+
+### 转私有（2026-09-10）及其影响 —— 已实测
+
+`PATCH /repos/eyetoolkit/jsonversal-monorepo` body `{"private": true}`（需 PAT 具备仓库 **admin** 权限）。
+
+**验证方式与结论**：用 CF API 重跑一次生产部署（`POST .../deployments/{id}/retry`）→
+新部署 `deploy/success`。**这证明 CF 的 GitHub App 仍能克隆私有仓库，部署链路不受影响。**
+
+| 影响面 | 结论 |
+|---|---|
+| CF Pages 自动构建 | ✅ **不受影响**。集成按 `repo_id: 1361059429` 绑定，转私有不会撤销已授予的仓库授权 |
+| 线上站点 | ✅ 不受影响（CF 从构建产物提供服务，与源码可见性无关） |
+| 匿名访问源码/API | ✅ 已阻断（匿名 API `404`、匿名 clone 失败）——这正是转私有的目的 |
+| GitHub Actions 用量 | ✅ 无影响。`.github/workflows/deploy-matrix.yml` 是**纯注释空壳、无任何触发器**，不消耗私有仓库的 Actions 额度 |
+| check-runs 核验 | ❌ **此路不通**：匿名 `404`、当前 PAT `403`（缺 `Checks: read`）。改用 CF Pages 部署列表 |
+| 历史遗留 | ℹ️ 转私有**不能**抹掉已经公开过的历史。本次转私有之前已全量扫过历史，无明文密钥 |
 
 ---
 
@@ -106,18 +122,31 @@ root_dir          = (空)
 5. **核验**（约 35 秒后出结果）→ 见第 6 节。
 
 ### 触发重建的两种特殊情形
-- **空构建**：`git commit --allow-empty` + push（CF 不提供对失败部署的直接 retry）。
+- **空构建**：`git commit --allow-empty` + push。
+- **重跑上一次部署**（2026-09-10 实测可用，比空提交更干净）：
+  ```bash
+  POST /accounts/{acc}/pages/projects/jsonversal-main-v2/deployments/{deployment_id}/retry
+  ```
+  返回新 deployment（`stage: queued`），约 60~90 秒后变 `deploy/success`。
 - **改 commit message**：`git commit --amend` + 强推；会改变 hash 并触发重部署。**用户本地需 `git fetch && git reset --hard origin/main` 对齐**，避免分叉。
 
 ---
 
 ## 6. 核验"线上是否是最新"——三层，从便宜到硬
 
-### ① 最快：GitHub check-runs（免认证，不需 CF 凭据）
+### ① GitHub check-runs（**仓库转私有后此路不通**）
+
+⚠️ **2026-09-10 仓库已转为 private，check-runs 不再能匿名查询。** 实测：
+- 匿名请求 → `404`（仓库已隐藏）
+- 带当前 `GH_TOKEN` 请求 → **`403`**（该细粒度 PAT 没有 `Checks: read` 权限）
+
 ```bash
-curl -s https://api.github.com/repos/eyetoolkit/jsonversal-monorepo/commits/<sha>/check-runs
+curl -s -H "Authorization: Bearer $GH_TOKEN" \
+  https://api.github.com/repos/eyetoolkit/jsonversal-monorepo/commits/<sha>/check-runs
 ```
-看 `name=Cloudflare Pages` + `status=completed` + `conclusion=success`。公开仓库无需 token，push 后约 35 秒出结果。
+
+若确实需要这条路，得给 PAT 补上 `Checks: read` 权限。**否则请直接用下面的 ②**——它不依赖 GitHub 的 checks 权限，信息还更直接。
+（转私有前，该接口对公开仓库免认证、push 后约 35 秒出结果：看 `name=Cloudflare Pages` + `conclusion=success`。）
 
 ### ② 最权威：CF Pages API 的部署列表
 ```bash
