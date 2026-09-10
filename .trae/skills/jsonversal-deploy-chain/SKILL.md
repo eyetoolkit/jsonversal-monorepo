@@ -103,6 +103,12 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 - ❌ **改动未同步生产分支**：曾误在非 `main` 分支提交，需 fast-forward/合并后再 push `main`。
 - ✅ 当前仅一个生产项目 `jsonversal-main-v2`，四个栏目整合在内；子站三 CF 项目 + 三 DNS 记录 + 三 redirect 包均已删除。
 
+## 当前核实状态（2026-09-10）
+
+- **线上全部正常**（HTTP 200 实测）：`jsonversal.com`（首页 HTML≈31KB，已是含四栏目的最新部署）、`/sec/`、`/devops/`、`/codegen/`、`/tools/json-to-zod/`。
+- **代码已推送**：最近三次 push（`18df1c0` 删 redirect 包、`3412b36` README、`890022f` skill）均在 `origin/main`，本地 `main...origin/main` 无差异。
+- **待确认**：Cloudflare 插件 MCP 授权成功后须开**新对话**才生效。新会话应查 `jsonversal-main-v2` 的 `/deployments`，确认三次 commit 各 `deploy=success`。
+
 ## 注意事项
 
 - 每轮先走 Cloudflare 插件 MCP 核验真实权限/配置，不要假定 token 可用（credentials.md 里那两串 CF token 已验证失效）。
