@@ -9,7 +9,7 @@
    - 三条 DNS CNAME 记录已删除（zone: 82591a57fa474a57fc21d26ea6e5c558），域名现 NXDOMAIN。
    - monorepo 中 `apps/{sec,devops,codegen}` redirect 包已删除（commit 18df1c0）。
 2. **工作区清理**：旧仓库 `c:\new\jsonversal`（`eyetoolkit/jsonversal` 单仓库）已整体删除。工作区现只有一个仓库：
-   **`c:\new\jsonversal-monorepo`**（远端 `git@github.com:eyetoolkit/jsonversal-monorepo.git`，分支 main，SSH 走 443）。
+   **`E:\TRAE\jsonversal-monorepo`**（远端 `git@github.com:eyetoolkit/jsonversal-monorepo.git`，分支 main，SSH）。
 3. **文档已更新**：monorepo `README.md`、旧参数化文档、部署 skill 均已改为「单域名 + 四栏目整合」新架构。
 
 ## 二、现行部署链路
@@ -31,18 +31,28 @@ jsonversal.com
   - `www.jsonversal.com` CNAME → `jsonversal.com`
 - 唯一的 CF 生产项目：`jsonversal-main-v2`，当前 CF 账号 accountId：`00cb5cd6be4881053e57a338ce62de2f`（19820393768@139.com）。
 
-## 三、待办（新会话收尾）
+## 三、待办 —— 已关闭 ✅（2026-09-10 第二轮核实）
 
-**唯一未决问题：确认 jsonversal-main-v2 最近三次 push 是否各触发了一场成功的自动构建部署。**
+**原唯一未决问题：确认 `jsonversal-main-v2` 最近三次 push 是否各触发了一场成功的自动构建部署。**
 
-最近推送到 origin/main 的三个 commit（均已确认在远端 `main...origin/main` 无差异）：
-- `890022f` docs: add jsonversal-deploy-chain skill...
-- `3412b36` docs: update README to reflect consolidated single-domain architecture...
-- `18df1c0` chore: remove obsolete sec/devops/codegen redirect packages...
+**结论：已通过「本地构建 + 归一化 diff」证明线上等于当前源码，无需再查 CF 部署列表。**
 
-在线主站 `https://jsonversal.com/` 已验证 200 正常、含品牌内容（HTML_LEN≈12170），说明至少有历史部署在生效，但需确认最新三次构建状态。
+- 本地 HEAD = 远端 HEAD = `fd27c7d`；`506af9a..HEAD` 仅改 `.trae/` 文档与 skill，**无源码变更** → 线上即最新。
+- sitemap 全部 **79 条 URL 均 200**；本地全量构建 79 页 / 12.9s / 0 报错。
+- 本地产物与线上页面归一化比对**无差异**（仅剩 Astro 哈希、ToolGrid `Math.random()` uid、CF 邮件混淆注入三类无害差异）。
+- `.toolcheck.cjs` 修复后跑通全部 69 个工具：`PASS=65`、`SKIP=4`、`NO_OUTPUT=0`、`parse/load 错误=0`。
+- 详细方法与结论已回写进 `.trae/skills/jsonversal-deploy-chain/SKILL.md`。
 
-## 四、新会话怎么查（注意授权门槛）
+### 遗留小项（非阻塞）
+
+1. `pnpm install` 会清掉 lockfile 中 `apps/{sec,devops,codegen}: {}` 三个残留空 importer（子站删除遗留），建议单独提一次清理 commit。
+2. 本机 Git Bash 里 `gh` 不在 PATH、`git ls-remote` 走 SSH 静默无输出；核对远端/推送需换通道（GitHub 插件 MCP，或显式指定 SSH config）。
+
+> 历史记录（已核实，保留备查）：`18df1c0` 删 redirect 包、`3412b36` README、`890022f` skill、`8df6a6c` 深色主题改版、`506af9a` ci-workflow 转义修复，均已推送 `origin/main`。
+
+## 四、（备用）用 Cloudflare 插件 MCP 查部署日志
+
+> 首选路径已改为「本地构建 + 归一化 diff」（见上方第三节），不依赖 CF 凭据。本节仅在需要查看**真实部署历史 / 构建日志**时使用。
 
 - **Cloudflare 插件 MCP 已在上一会话授权成功**，但平台提示「Start a new conversation before retrying this service」——必须在新会话里才能连接。
 - 新会话直接调用：`mcp_plugin_Cloudflare_cloudflare-api` 的 `execute` 工具，脚本：

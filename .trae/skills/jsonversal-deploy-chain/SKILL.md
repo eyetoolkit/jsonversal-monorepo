@@ -30,9 +30,10 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 ## 源码与 Git
 
 - **Monorepo**：`eyetoolkit/jsonversal-monorepo`，生产分支 `main`。
-  - 用户权威克隆：`c:\new\jsonversal-monorepo`
-  - 助手沙箱克隆：`/workspace`（同一仓库，操作时以沙箱为准，推送前注意与用户本地 diff）
-- **远端为 https**：`https://github.com/eyetoolkit/jsonversal-monorepo`（SSH `git@...` 已不作推送通道）。
+  - 当前工作区：`E:\TRAE\jsonversal-monorepo`（2026-09-10 起为权威本地克隆）
+  - 历史路径 `c:\new\jsonversal-monorepo`、Trae 沙箱 `/workspace` 均已作废，看到即视为过期信息
+- **远端为 SSH**：`git@github.com:eyetoolkit/jsonversal-monorepo.git`（非 https）。
+  - 本机 Git Bash 下 `git ls-remote origin` 可能静默无输出（SSH key 未加载），核对远端 HEAD 优先用 GitHub 插件 MCP 的 `list_commits`。
 - 结构：pnpm workspace + turbo；`apps/main` 为唯一 Astro 应用，含 `src/pages/{tools,sec,devops,codegen}/` 栏目落地页与工具目录页各 1 个，以及各工具详情页；`packages/{ui,config}`。
 - 共享 UI 组件（`@versal/ui`）：`BaseLayout`、`Header`、`Footer`、`ToolCard`、`Hero`、`ToolGrid`；`@versal/config`：`tokens`、`sites`、`tools-icons`。
 - 旧单仓库 `eyetoolkit/jsonversal` 已废弃。
@@ -58,8 +59,8 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 2. **本地构建自检**：
    `npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`
 3. **提交**：`git add <具体文件> && git commit`（只针对本次改动文件，勿 `git add -A`）。
-4. **推送**：沙箱终端无 git https 凭据，需先用已认证的 `gh` 注入：
-   `gh auth setup-git && git push origin main`
+4. **推送**：远端为 SSH，需确保 SSH key 可用；若走 https 则先让 `gh` 注入凭据（`gh auth setup-git`）。
+   注意：本机 Git Bash 里 `gh` 可能不在 PATH，需用绝对路径调用或改走 GitHub 插件 MCP。
 5. **核验线上**：调用 Cloudflare MCP 拉部署列表，确认最顶一条为 `github:push` + 目标 commit，状态由 `active` 轮询至 `success`。
 
 ### 注意事项
@@ -103,15 +104,36 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 - ❌ **改动未同步生产分支**：曾误在非 `main` 分支提交，需 fast-forward/合并后再 push `main`。
 - ✅ 当前仅一个生产项目 `jsonversal-main-v2`，四个栏目整合在内；子站三 CF 项目 + 三 DNS 记录 + 三 redirect 包均已删除。
 
-## 当前核实状态（2026-09-10）
+## 当前核实状态（2026-09-10 第二轮 · 已闭环）
 
-- **线上全部正常**（HTTP 200 实测）：`jsonversal.com`（首页 HTML≈31KB，已是含四栏目的最新部署）、`/sec/`、`/devops/`、`/codegen/`、`/tools/json-to-zod/`。
-- **代码已推送**：最近三次 push（`18df1c0` 删 redirect 包、`3412b36` README、`890022f` skill）均在 `origin/main`，本地 `main...origin/main` 无差异。
-- **待确认**：Cloudflare 插件 MCP 授权成功后须开**新对话**才生效。新会话应查 `jsonversal-main-v2` 的 `/deployments`，确认三次 commit 各 `deploy=success`。
+- **本地 HEAD = 远端 HEAD = `fd27c7d`**，工作区干净；`506af9a..HEAD` 仅改 `.trae/` 文档与 skill，**无源码变更**。
+- **线上全部正常**：sitemap 全部 **79 条 URL 均 200**；首页含四栏目导航与「Explore 69 tools」。
+- **本地全量构建通过**：`pnpm install` + `turbo run build --filter=@versal/site-main` → 79 页 / 12.9s / 0 报错。
+- **工具自检 69 个全跑通**：`.toolcheck.cjs` → `PASS=65`、`SKIP=4`（file-checksum / csr / x509-decoder / base64-image，需上传外部文件）、`NO_OUTPUT=0`、`parse/load 错误=0`。
+- **线上即最新（已证明）**：见下方「验证线上是否为最新」。原「待确认 CF 部署」项**已关闭** —— 内容比对给出的证据比部署列表更强，不必依赖 Cloudflare MCP。
+
+## 验证线上是否为最新（推荐方法，不依赖 CF 凭据）
+
+1. 本地全量构建：`npx pnpm@10.11.1 install && npx pnpm@10.11.1 turbo run build --filter=@versal/site-main`
+2. 抽页比对：`curl -s https://jsonversal.com/<path> -o live.html`，与 `apps/main/dist/<path>/index.html` 做**归一化 diff**：
+   `sed -E 's/data-astro-cid-[a-z0-9]+/CID/g; s/index\.[A-Za-z0-9_-]+\.css/index.CSS/g'`
+3. 归一化后**无差异**即线上等于当前源码。预期且**无害**的三类差异：
+   - Astro 作用域样式哈希与 CSS 文件名哈希（随构建机绝对路径变化）
+   - `ToolGrid.astro` 的 `Math.random()` uid（`data-toolgrid="tgXXXXXX"`）
+   - Cloudflare 邮件混淆注入（`mailto:` → `/cdn-cgi/l/email-protection#...` 且注入 `email-decode.min.js`，约 +151B/页）
+
+## 工具自检脚本 `.toolcheck.cjs`
+
+- 位置：仓库根目录；依赖 root `devDependencies` 的 `jsdom`。
+- 用法（`DIST` 已改为自动推导，不再硬编码沙箱路径）：
+  - `node .toolcheck.cjs`（默认读 `apps/main/dist`）
+  - 或 `node .toolcheck.cjs <dist目录>` / `TOOLCHECK_DIST=<dist目录> node .toolcheck.cjs`
+- 流程：遍历 4 栏目 → jsdom 解析页面脚本查语法错 → 灌入 `SAMPLES` 样例值 → 点动作按钮 → 抓输出判定 `PASS / NO_OUTPUT / NEEDS-INPUT`。
+- `SAMPLES` 中标 `'SKIP'` 的 4 个工具需上传文件，脚本不测，属预期。
 
 ## 注意事项
 
 - 每轮先走 Cloudflare 插件 MCP 核验真实权限/配置，不要假定 token 可用（credentials.md 里那两串 CF token 已验证失效）。
 - 验证写权限或改动线上资源时，优先「临时资源 + 用完即删」。
-- 沙箱 `/workspace` 是临时克隆，推送前后与用户权威本地 `c:\new\jsonversal-monorepo` 保持 diff 一致，以防分叉。
 - 本 skill 只覆盖 jsonversal 品牌矩阵；tri-sites（mathduel/boardduel/memoryduel）走 `tinysite-deploy-chain`；mathduel 细节走 `mathduel-site-manager`。
+- 推送前把本地与 `origin/main` 对齐（`git fetch` + 比对 HEAD），避免分叉；推送后可用 GitHub 插件 MCP `list_commits` 复核远端 HEAD。

@@ -3,8 +3,18 @@ const fs = require('fs');
 const path = require('path');
 process.on('uncaughtException', e => console.log('UNCAUGHT:', (e && e.message || e).toString().split('\n')[0]));
 
-const DIST = '/workspace/apps/main/dist';
+// 构建产物目录：优先取 CLI 参数，其次环境变量 TOOLCHECK_DIST，最后回退到仓库内的 apps/main/dist。
+// 不要硬编码沙箱路径，换机器/换目录会直接失效。
+const DIST = path.resolve(
+  process.argv[2] || process.env.TOOLCHECK_DIST || path.join(__dirname, 'apps', 'main', 'dist')
+);
 const SECTIONS = ['tools', 'sec', 'devops', 'codegen'];
+
+if (!fs.existsSync(DIST)) {
+  console.error('找不到构建产物目录: ' + DIST);
+  console.error('请先执行: npx pnpm@10.11.1 turbo run build --filter=@versal/site-main');
+  process.exit(1);
+}
 
 const JSON_OBJ = '{"name":"Bob","age":30,"active":true,"tags":["x","y"],"nested":{"a":1}}';
 const JSON_ARR = '[{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}]';
@@ -95,6 +105,7 @@ function isActionBtn(b) {
 }
 
 (async () => {
+console.log('DIST = ' + DIST);
 const results = [];
 for (const section of SECTIONS) {
   const base = section === 'tools' ? path.join(DIST, 'tools') : path.join(DIST, section, 'tools');
