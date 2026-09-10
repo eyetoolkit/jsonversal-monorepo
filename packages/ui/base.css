@@ -24,25 +24,34 @@
   font-display: swap;
   src: url("/fonts/Geist-Variable.woff2") format("woff2");
 }
+/* Geist Italic — 工具页段落 <em> 关键词；font-display: fallback 给 75ms 窗口，
+   超时则用系统字体斜体，弱网下不再阻塞正文渲染 */
 @font-face {
   font-family: "Geist";
   font-style: italic;
   font-weight: 100 900;
-  font-display: swap;
+  font-display: fallback;
   src: url("/fonts/Geist-Italic-Variable.woff2") format("woff2");
 }
+
+/* ===== Mono 策略：optional =====
+   Geist Mono 仅在 <code> / <pre> / <textarea> / 工具页表单出现，首屏完全不涉及。
+   font-display: optional — 浏览器决定是否等待字体：
+     · 首屏渲染时 Mono 不在 Critical Rendering Path，浏览器会延后或跳过下载
+     · 弱网移动端完全不下载 → 直接用系统等宽字体（Menlo/Consolas/SFMono），体验无损失
+   字重范围收窄到 300 500：代码/输入框只用到常规字重，不做粗斜体代码 */
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
+  font-weight: 300 500;
+  font-display: optional;
   src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
 }
 @font-face {
   font-family: "Geist Mono";
   font-style: italic;
-  font-weight: 100 900;
-  font-display: swap;
+  font-weight: 300 500;
+  font-display: optional;
   src: url("/fonts/GeistMono-Italic-Variable.woff2") format("woff2");
 }
 
@@ -417,8 +426,20 @@ button {
 .ghost:hover, button.ghost:hover { border-color: var(--accent); }
 
 /* ---------- 表单 ---------- */
-input[type=text], input[type=number], input[type=search], textarea, select {
+input[type=text], input[type=number], textarea {
   font-family: var(--font-mono);
+  background: var(--surface-alt);
+  border: 1px solid var(--border-input);
+  color: var(--text);
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+/* search / select —— 搜索词和选项是自然语言，用正文 Sans-serif 更友好；
+   排除它们可以让首页（只有 ToolGrid 搜索框）完全不触发 Mono 字体下载 */
+input[type=search], select {
+  font-family: var(--font-body);
   background: var(--surface-alt);
   border: 1px solid var(--border-input);
   color: var(--text);
