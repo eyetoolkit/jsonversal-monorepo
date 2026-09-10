@@ -31,9 +31,28 @@ const pageDesc = description || seo.description;
 const pageUrl = canonical || seo.canonical;
 const pageKeywords = keywords?.join(', ') || seo.keywords;
 
-// 品牌 favicon —— 深色圆角底 + accent 色花括号（JSON 标识），按子站色彩差异化
-const faviconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='#0b0d12'/><text x='32' y='44' font-family='ui-monospace,Menlo,Consolas,monospace' font-size='30' font-weight='700' text-anchor='middle' fill='${t.accent}'>{ }</text></svg>`;
-const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
+// 静态 favicon —— 按子站选对应的 SVG 文件（浏览器可缓存，比每页面内联 data URI 高效）
+const faviconHref = `/favicon-${site}.svg`;
+
+// JSON-LD WebApplication schema —— SEO 结构化数据（Rich Results）
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": title || t.name,
+  "alternateName": t.name,
+  "description": pageDesc,
+  "url": pageUrl,
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires a modern web browser with JavaScript enabled",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "inLanguage": "en",
+  "isAccessibleForFree": true
+};
 ---
 
 <!doctype html>
@@ -69,9 +88,9 @@ const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
     <link rel="icon" href={faviconHref} />
     <link rel="apple-touch-icon" href={faviconHref} />
 
-    {/* 自托管字体预加载 —— 同源字体必须带 crossorigin，否则会重复下载 */}
+    {/* 自托管字体预加载 —— 仅 preload 首屏必需的正文字体；
+        Mono/Italic 由 @font-face + font-display: swap 按需加载，避免与 CSS/主文档竞争带宽 */}
     <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
 
     {/* 主题初始化 —— 必须内联且在 <head>，避免首屏闪烁（FOUC）。
         优先级：用户手动选择（localStorage）> 系统 prefers-color-scheme。
@@ -115,6 +134,11 @@ const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
         }
       })();
     </script>
+
+    {/* JSON-LD WebApplication schema —— 全站 SEO 结构化数据（Rich Results）
+        Astro 模板中的 {expression} 在 <script> 标签内不会自动求值，
+        故改用 set:html 直接注入序列化后的 JSON 字符串 */}
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 
     {/* 子站可插入额外的 <head> 内容（如页面级结构化数据） */}
     <slot name="head" />

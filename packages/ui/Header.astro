@@ -117,10 +117,17 @@ const isActive = (match: string) => (match === '/' ? cur === '/' : cur.startsWit
     top: 0;
     z-index: 20;
     height: var(--header-h);
-    background: color-mix(in srgb, var(--bg) 78%, transparent);
-    backdrop-filter: blur(14px) saturate(1.4);
-    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    background: color-mix(in srgb, var(--bg) 92%, var(--surface));
     border-bottom: 1px solid var(--border);
+  }
+
+  /* 仅在支持且用户未偏好减少动效时启用 backdrop-filter（blur 在低端移动设备上会掉帧） */
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header {
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      backdrop-filter: blur(14px) saturate(1.4);
+      -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    }
   }
 
   .header-inner {
