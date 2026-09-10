@@ -68,37 +68,48 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 - 改 commit 消息：`git commit --amend` + `git push --force-with-lease origin main`，会改变 hash 并重部署；**用户本地需 `git fetch && git reset --hard origin/main` 对齐**（避免与远端分叉）。
 - commit 消息要语义准确，避免「查看部署状态」这类无关命名（曾因此返工改写）。
 
-## Cloudflare 认证（2026-09-10 第三轮实测 · 结论：无任何可用凭据）
+## Cloudflare 认证（2026-09-10 第四轮 · ✅ 已有可用凭据）
 
-**已穷尽所有来源，7 个 CF token 全部失效。** 实测 `GET /user/tokens/verify` 一律返回 `success:false` / code 1000 `Invalid API Token`：
+### ✅ 当前可用（用户于 2026-09-10 提供，已存入工作区 `.env`）
 
-| 来源 | 名称 | 结果 |
+| 名称 | 权限（实测） | 能干什么 |
 |---|---|---|
-| 用户级环境变量 | `CF_API_TOKEN`（`cfat_y0i1…`） | ❌ 失效 |
-| 用户级环境变量 | `CLOUDFLARE_API_TOKEN`（`cfat_qWDg…`） | ❌ 失效 |
-| 工作区 `.env` | `CF_API_TOKEN` / `CLOUDFLARE_API_TOKEN` | ❌ 失效（与上面同值） |
-| 工作区 `.env` | `CF_TOKEN_MAIN` | ❌ 失效 |
-| 工作区 `.env` | `CF_TOKEN_A` / `CF_TOKEN_B` / `CF_TOKEN_C` / `CF_TOKEN_D` | ❌ 全部失效 |
+| `CF_TOKEN_PAGES`（`cfat_qFQP…`） | Pages 项目读 ✅、自定义域读 ✅、**POST 添加自定义域成功** ✅、Zone 读 ✅、账户读 ✅ | **修 www 用的就是这个** |
+| `CF_TOKEN_DNS_WRITE`（`cfat_6M3a…`） | Zone 读 ✅、DNS 记录读 ✅（7 个 zone 全可见）；写权限未单独验证 | DNS 操作 |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | ✅ ListBuckets 200，可见 `mathduel-backup`、`md-quiz-bucket` | S3 兼容对象存储 |
 
-- **`CF_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID` = `00cb5cd6be4881053e57a338ce62de2f`**（与 CF 账号一致，本身不是密钥，可放心用）。
-- `CF_ZONE_BOARDDUEL` / `_MATHDUEL` / `_MEMORYDUEL`（工作区 `.env` 与用户级环境变量均有）：tri-sites 的 zone id；**没有 jsonversal 的 zone id**（jsonversal 的 zone 为 `82591a57fa474a57fc21d26ea6e5c558`，仅见于旧 handoff 文档）。
-- **Trae 侧**：`mcp_trae-remote-official_plugin_cloudflare_cloudflare-api` 的 `execute` 无需自备 token——已预置认证与 `accountId`，脚本直接用 `accountId` 常量。授权失败先 `RequestAuthorization`（service `trae-remote-official:cloudflare::cloudflare-api`）。
-- **WorkBuddy 侧无 Cloudflare 连接器**（只有 agent-mail / github / wecom）。
+两个 token 的权限**互补**：DNS 那个没有 Pages 权限，Pages 那个没有 DNS 权限。要做完整 CF 运维需要同时用。
 
-> **结论：在任何 Agent 会话里都改不了 Cloudflare 的 DNS / Pages 配置。** 遇到 CF 侧问题一律「出方案 → 用户去控制台操作」。
-> 确认 CF 构建状态不需要 CF 凭据，走 GitHub check-runs 即可（见下）。
+### ⚠️ 重要：`/user/tokens/verify` 对细粒度 token 会误报
 
-### 工作区 `.env`（2026-09-10 由用户放入，已被 `.gitignore` 第 16 行保护）
+两个**实际可用**的 token，调 `GET /user/tokens/verify` 都返回 `code 1000 Invalid API Token`。
+原因是该端点要求 token 具备 `User API Tokens:Read` 权限，而这些是限定资源的细粒度 token。
 
-含 27 个键：CF 系列 7 个 token（全失效）、`GH_TOKEN`/`GH_PAT`（✅ 有效，与注册表同值）、`MINIMAX_*`（✅ 有效）、`MATHDUEL_R2_*`（见下）、`VPS_*`。
+> **判断 token 是否可用，唯一可靠的办法是打它该干的活**（列 zone、读 DNS、读 Pages 项目），**不要用 `/user/tokens/verify` 下结论。** 这一点和 GitHub 那边的经验一致：`api.github.com` 能通不代表 `github.com` 能推，**「探针通」≠「目标通」**。
 
-| R2 密钥 | 实测（SigV4 签名访问 `mathduel-backup`） |
+### ❌ 已失效（留档，勿用）
+
+用户级环境变量与 `.env` 里的 `CF_API_TOKEN`、`CLOUDFLARE_API_TOKEN`、`CF_TOKEN_MAIN`、`CF_TOKEN_A`~`D` —— 共 7 个，实测均不可用（列 zone 也拿不到）。`.env` 里原注释「全部实测 OK(2026-09-01)」已过期，已在文件中标注。
+
+### 其他
+
+- **`CF_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID` = `00cb5cd6be4881053e57a338ce62de2f`**（与 CF 账号一致，本身不是密钥）。
+- **jsonversal 的 zone id = `82591a57fa474a57fc21d26ea6e5c558`**（已补入 `.env` 的 `CF_ZONE_JSONVERSAL`）。
+- **Trae 侧**：`mcp_trae-remote-official_plugin_cloudflare_cloudflare-api` 的 `execute` 无需自备 token。授权失败先 `RequestAuthorization`（service `trae-remote-official:cloudflare::cloudflare-api`）。
+- **WorkBuddy 侧无 Cloudflare 连接器**，走 HTTP API + 上面的 token。
+
+### 工作区 `.env`（`.gitignore` 第 16 行保护，`git check-ignore` 验证过）
+
+| 凭证 | 实测 |
 |---|---|
-| `MATHDUEL_R2_AK1` + `SK1` | ✅ **可用**，HTTP 200，可列出对象（如 `accounts/accounts-2026-09-02.json`） |
-| `MATHDUEL_R2_AK2` + `SK2` | ❌ HTTP 400 `Credential access key has length 64, should be 32` —— AK2 值疑似串了（把 AK+SK 粘在一起） |
-| `MATHDUEL_R2_AK3` | ⚠️ 只有 AK 没有对应的 `SK3`，键名不配对 |
+| `GH_TOKEN` / `GH_PAT` | ✅ 有效，`eyetoolkit`，admin/push（与注册表同值） |
+| `MINIMAX_API_KEY` | ✅ `/models` 200（base `https://token-plan-cn.xiaomimimo.com/v1`，model `mimo-v2.5-pro`） |
+| `MATHDUEL_R2_AK1` + `SK1` | ✅ SigV4 200，可列 `mathduel-backup` 对象 |
+| `MATHDUEL_R2_AK2` + `SK2` | ❌ HTTP 400 `Credential access key has length 64, should be 32`（AK2 值畸形，疑似 AK+SK 粘连） |
+| `MATHDUEL_R2_AK3` | ⚠️ 只有 AK，无 `SK3`，键名不配对 |
+| `R2_*`（新） | ✅ 见上表 |
 
-- MiniMax：`MINIMAX_BASE_URL=https://token-plan-cn.xiaomimimo.com/v1`、`MINIMAX_MODEL=mimo-v2.5-pro`，`/models` 返回 200 ✅ 有效。
+> `.env` 原注释「注意本机网络对 r2.cloudflarestorage.com TLS 不可达」也已过期 —— 2026-09-10 实测 R2 端点 200 正常。
 
 ## GitHub 认证（2026-09-10 第二轮实测修订）
 
@@ -164,75 +175,100 @@ Host github.com
 - 读 Windows 全局环境变量要「落盘再读」（PowerShell 的 stdout 在本环境捕获失效）：`[Environment]::GetEnvironmentVariables('User') | Out-File $out -Encoding utf8`，再用 Read 工具读该文件。**读完立即删除该文件**（含明文密钥）。
 - `reg.exe` 被安全策略列入黑名单，不可调用；也不要从 Bash 调 `powershell.exe`（同样被拦），要用 PowerShell 工具。
 
-## 部署链路体检结论（2026-09-10 第二轮）
+## 部署链路体检结论（2026-09-10 第四轮 · 全绿）
 
 | 环节 | 状态 | 证据 |
 |---|---|---|
 | 本地构建 | ✅ | 79 页 / 12.9s / 0 报错 |
-| 本地 → GitHub 推送 | ✅ **已打通** | 用 `GH_TOKEN`（用户级环境变量）+ `http.extraheader` 推送成功：`fd27c7d..f47566f main -> main`；origin 仍是 SSH，需按上方方法显式带 PAT |
-| GitHub 仓库 | ✅ | public，默认分支 main，HEAD `f47566f` |
-| GitHub → Cloudflare Pages | ✅ **通** | 每个 commit 的 `Cloudflare Pages` check run 均为 `completed/success`（`f47566f`/`fd27c7d`/`506af9a`/`8df6a6c` 连续验证） |
+| 本地 → GitHub 推送 | ✅ | `GH_TOKEN` + `http.extraheader`（**须绕开沙箱代理**）；origin 仍是 SSH，需显式带 PAT |
+| GitHub 仓库 | ✅ | public，默认分支 main，本地 = 远端 = `0e62dcd` |
+| GitHub → Cloudflare Pages | ✅ | 每个 commit 的 `Cloudflare Pages` check run 均 `completed/success` |
 | CF Pages → 站点 | ✅ | `jsonversal.com` 200、`jsonversal-main-v2.pages.dev` 200 |
 | 域名 apex | ✅ | 200，sitemap 79 条 URL 全 200 |
-| 域名 **www** | ❌ **522** | http/https 均 522（Cloudflare 回源超时），解析到 CF 代理 IP `104.21.60.47`/`172.67.191.163` |
+| 域名 **www** | ✅ **已修复** | 2026-09-10 注册为 Pages 自定义域后 200（详见下） |
 | 旧子域 sec/devops/codegen | ✅ | 无解析记录（NXDOMAIN）、HTTP 000，确认删净 |
 
 > **「GitHub → CF Pages 是否触发构建」的最优查法**：无需 Cloudflare 凭据，直接查 GitHub check-runs ——
-> `curl -s -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/eyetoolkit/jsonversal-monorepo/commits/<sha>/check-runs`
-> 返回 `name=Cloudflare Pages` + `status: completed` + `conclusion: success` 即表示该 commit 的 CF 构建已成功。实测推送后约 35 秒即出结果。
+> `curl -s https://api.github.com/repos/eyetoolkit/jsonversal-monorepo/commits/<sha>/check-runs`
+> 返回 `name=Cloudflare Pages` + `status: completed` + `conclusion: success` 即表示该 commit 的 CF 构建已成功。实测推送后约 35 秒即出结果。公开仓库**无需认证**。
 
-### 待修配置项
+### ✅ 已解决：`www.jsonversal.com` 522（2026-09-10 修复并验证）
 
-1. **`www.jsonversal.com` 522（双 CNAME 回源环路）** —— 诊断已精确到 IP：
-   - `jsonversal.com` → `172.67.191.163` / `104.21.60.47`
-   - `www.jsonversal.com` → **完全相同的两个 IP**（`172.67.191.163` / `104.21.60.47`）
-   - `jsonversal-main-v2.pages.dev` → `172.66.44.233` / `172.66.47.23`（另一组）
+**真实根因不是「双 CNAME 环路」，而是 `www.jsonversal.com` 从未被注册为 Pages 项目的自定义域。**
 
-   即 `www` 的 CNAME 指向 apex，而 apex 本身是橙云代理到 pages.dev → CF 解析 origin 时拿到自己的边缘 IP，回源打到自己身上 → 522 超时。**http 与 https 均 522，稳定复现。**
+修复前后证据链：
 
-   **修法（用户在 Cloudflare 控制台操作，二选一）：**
-   - **A（推荐）**：Pages → `jsonversal-main-v2` → Custom domains → Add `www.jsonversal.com`，CF 会自动建好正确记录。
-   - **B**：DNS 里把 `www` 记录的目标从 `jsonversal.com` 改成 `jsonversal-main-v2.pages.dev`，保持 Proxied 开启。
+| 检查 | 修复前 | 修复后 |
+|---|---|---|
+| Pages 自定义域列表 | `['jsonversal.com']` ← 只有 apex | `['jsonversal.com', 'www.jsonversal.com']` |
+| Pages 域状态 | — | `active` / verification `active` |
+| DNS `www` 记录 | `CNAME → jsonversal.com` proxied | **未变**（仍是 `CNAME → jsonversal.com`） |
+| `https://www.jsonversal.com/` | ❌ 522（稳定复现） | ✅ **200**（0.7~1.3s，HTML 31224B，含 69 工具与四栏目导航） |
+| `http://www.jsonversal.com/` | ❌ 522 | ✅ 301 跳 https |
 
-   ⚠️ Agent 无有效 CF 凭据（7 个 token 全失效），**改不了，必须用户操作**。
-2. **`apps/main/wrangler.toml` 项目名不符**：写的是 `name = "jsonversal-main"`，实际 CF 项目为 `jsonversal-main-v2`；其 `[pages] build_config` 也不会被 CF Pages Git 集成读取（构建配置在 dashboard）。属易误导的死配置，建议改名或删除并加注释。
-3. **`~/.ssh/config` 缺 `Host github.com`**（见上）。
-4. **两个 Cloudflare token 需轮换或删除**：`CF_API_TOKEN` / `CLOUDFLARE_API_TOKEN` 均已失效，建议在 CF 控制台重新签发一个带 `Pages:Edit` + `Zone:DNS:Edit` 的 token 替换，以便后续自动化运维。
+**关键教训：DNS 记录本身没错，不需要改。** 我先前根据「www 与 apex 解析到相同边缘 IP」推断成双代理环路，方向错了 —— 那只是橙云下 CNAME 到同 zone 主机的正常表现。CF Pages 的边缘路由按 Host 头匹配已注册的自定义域；未注册的 `www` 就无法路由到项目，才回 522。**先查 Pages 自定义域列表，而不是先怀疑 DNS。**
 
-## 常用操作入口（Cloudflare execute 内调 cloudflare.request）
+**修复命令（一条搞定）：**
+```bash
+POST /accounts/{account_id}/pages/projects/jsonversal-main-v2/domains
+body: {"name": "www.jsonversal.com"}
+```
+`status` 从 `initializing` → `pending` → `active` 约需 60~90 秒，**DNS 记录无需改动**。
 
-- 列项目：`GET /accounts/${accountId}/pages/projects`
-- 查项目（domain/source/build_config/canonical_deployment）：`GET /accounts/${accountId}/pages/projects/jsonversal-main-v2`
-- 查绑定域名：`GET .../pages/projects/jsonversal-main-v2/domains`
+> 排查 CF Pages 域名问题的正确入口：`GET /accounts/{account_id}/pages/projects/{project}/domains` —— 比看 DNS 更能说明问题。
+
+### 剩余待修配置项（非阻塞）
+
+1. **`apps/main/wrangler.toml` 项目名不符**：写的是 `name = "jsonversal-main"`，实际 CF 项目为 `jsonversal-main-v2`；其 `[pages] build_config` 也不会被 CF Pages Git 集成读取（构建配置在 dashboard 里，实测为 `npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`，产物 `apps/main/dist`）。属易误导的死配置，建议改名或删除并加注释。
+2. **`~/.ssh/config` 缺 `Host github.com`**（见上）。
+3. **清理 7 个失效 CF token**：`CF_API_TOKEN`、`CLOUDFLARE_API_TOKEN`、`CF_TOKEN_MAIN`、`CF_TOKEN_A`~`D`。现已由 `CF_TOKEN_PAGES` + `CF_TOKEN_DNS_WRITE` 覆盖需求，建议在控制台删掉旧的，并顺手修正 `.env` 里过期的注释。
+4. **`.env` 里两个坏 R2 键**：`MATHDUEL_R2_AK2`/`SK2` 值畸形、`MATHDUEL_R2_AK3` 缺配对 SK，建议修掉或删除。
+
+## 常用操作入口
+
+Base：`https://api.cloudflare.com/client/v4`，Header：`Authorization: Bearer $CF_TOKEN_PAGES`（或 Trae 侧 `cloudflare.request`）
+
+- 列项目：`GET /accounts/{accountId}/pages/projects`
+- 查项目（含 build_config）：`GET /accounts/{accountId}/pages/projects/jsonversal-main-v2`
+- **查自定义域**：`GET /accounts/{accountId}/pages/projects/jsonversal-main-v2/domains` ← **排查 522 / 域名问题的第一入口**
+- **加自定义域**：`POST /accounts/{accountId}/pages/projects/jsonversal-main-v2/domains`，body `{"name":"www.jsonversal.com"}`
+- 删自定义域：`DELETE /accounts/{accountId}/pages/projects/jsonversal-main-v2/domains/{domain}`
 - 查部署历史：`GET .../pages/projects/jsonversal-main-v2/deployments`
-- 查部署日志：`GET .../deployments/[id]/history/logs`
+- 查部署日志：`GET .../deployments/{id}/history/logs`
 - 改构建配置：`PATCH .../pages/projects/jsonversal-main-v2` body `{ build_config: { build_command, destination_dir } }`
+
+> 账户 ID `00cb5cd6be4881053e57a338ce62de2f`；jsonversal zone `82591a57fa474a57fc21d26ea6e5c558`。两个 ID 都在 `.env` 里。
 
 ## DNS 记录（zone: 82591a57fa474a57fc21d26ea6e5c558）
 
 | 名称 | 类型 | 指向 | 实测解析 | 状态 |
 |---|---|---|---|---|
 | jsonversal.com | CNAME | `jsonversal-main-v2.pages.dev` | `172.67.191.163` / `104.21.60.47` | ✅ 200 |
-| www.jsonversal.com | CNAME | `jsonversal.com` ⚠️ | 与 apex **完全相同**的 IP | ❌ 522，需改为指向 `pages.dev` |
+| www.jsonversal.com | CNAME | `jsonversal.com` | 与 apex 相同 IP（橙云 CNAME 到同 zone 主机，**属正常**） | ✅ 200（已注册为 Pages 自定义域） |
 
-（`sec/devops/codegen.jsonversal.com` 三条记录已删除，实测 NXDOMAIN + HTTP 000。用 `socket.gethostbyname_ex()` 判定最省事，比 `nslookup` 输出好解析。）
+**注意：`www` 的 CNAME 指向 apex 并不是问题**，不要照「双代理环路」的直觉去改它 —— 真正决定成败的是 Pages 项目的自定义域列表（见上）。实测修复 www 时 DNS 记录**一个字节都没动**。
+
+（`sec/devops/codegen.jsonversal.com` 三条记录已删除，实测 NXDOMAIN + HTTP 000。判定无解析记录用 `socket.gethostbyname_ex()` 最省事，比解析 `nslookup` 输出可靠。）
 
 ## 关键历史坑（避免重踩）
 
-- ❌ **CF API 无法把 Direct Upload 项目改绑 GitHub**（8000069）：旧四项目 已作废删除，改用 `-v2` GitHub 集成。
+- ❌ **CF API 无法把 Direct Upload 项目改绑 GitHub**（8000069）：旧四项目已作废删除，改用 `-v2` GitHub 集成。
 - ❌ **redirect 项目 build 失败**：旧命令 `--filter=@versal/site-sec` 指向已删 turbo 包。随子站删除已不相关。
 - ❌ **改动未同步生产分支**：曾误在非 `main` 分支提交，需 fast-forward/合并后再 push `main`。
+- ❌ **误判 www 522 为 DNS 问题**（2026-09-10 踩过）：只改了 DNS 的猜想方向不对，正解是把域名注册进 Pages 项目。**遇到 522 先查 `.../pages/projects/{proj}/domains`。**
+- ❌ **误用 `/user/tokens/verify` 判断 token 是否可用**：细粒度 token 会误报 `Invalid API Token`。**用实际业务请求探活。**
 - ✅ 当前仅一个生产项目 `jsonversal-main-v2`，四个栏目整合在内；子站三 CF 项目 + 三 DNS 记录 + 三 redirect 包均已删除。
 
-## 当前核实状态（2026-09-10 第三轮 · 推送已打通）
+## 当前核实状态（2026-09-10 第四轮 · 全链路打通）
 
-- **本地 HEAD = 远端 HEAD = `9b266d6`**（截至本轮；推送方法与自检见「GitHub 认证」）。
-- **线上全部正常**：sitemap 全部 **79 条 URL 均 200**；首页含四栏目导航与「Explore 69 tools」。
+- **本地 HEAD = 远端 HEAD = `0e62dcd`**（推送方法与自检见「GitHub 认证」）。
+- **线上全部正常**：apex 与 **www 均 200**；sitemap **79 条 URL 全 200**。
 - **本地全量构建通过**：`pnpm install` + `turbo run build --filter=@versal/site-main` → 79 页 / 12.9s / 0 报错。
 - **工具自检 69 个全跑通**：`.toolcheck.cjs` → `PASS=65`、`SKIP=4`（file-checksum / csr / x509-decoder / base64-image，需上传外部文件）、`NO_OUTPUT=0`、`parse/load 错误=0`。
-- **推送通道已打通**：靠用户级环境变量里的 `GH_TOKEN` + `http.extraheader`（方法见「GitHub 认证」）。
-- **唯一未决**：`www.jsonversal.com` 522 —— 需用户在 Cloudflare 控制台改 DNS / 加自定义域（agent 无有效 CF 凭据）。
-- **原「待确认 CF 部署」项已彻底关闭**：改用 check-runs 与「本地构建 + 归一化 diff」双证据，不必依赖 Cloudflare MCP。
+- **推送通道可用**：`GH_TOKEN` + `http.extraheader`，**必须绕开沙箱代理**。
+- **Cloudflare API 可用**：`CF_TOKEN_PAGES` + `CF_TOKEN_DNS_WRITE`（权限互补），**修 www 就是用它做的**。
+- **原遗留项全部关闭**：推送断开 ✅ 修复、www 522 ✅ 修复、「待确认 CF 部署」✅ 用 check-runs 闭环。
+- 剩余仅为非阻塞清理项（wrangler.toml 注释、ssh config、失效 token 清理）。
 
 ## 验证线上是否为最新（推荐方法，不依赖 CF 凭据）
 
