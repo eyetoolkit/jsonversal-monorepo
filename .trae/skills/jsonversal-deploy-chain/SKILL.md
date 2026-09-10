@@ -9,8 +9,8 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 
 ## 当前状态（2026-09-10 实测 / 最新部署）
 
-- **生产 `main` = `8df6a6c`** "feat: redesign main site with modern dark theme"
-- **生产部署 `6ad213f6`**（commit `8df6a6c`）五阶段全 success，线上为最新
+- **生产 `main` = `506af9a`** "fix(codegen): escape GitHub Actions expr in ci-workflow tool; add tool test harness + jsdom devDep"（上层 `c9fcea8` 文档更新）
+- **线上**：`ci-workflow` 工具的 GH Actions 表达式转义修复已部署（curl 核验：转义 `$\{\{` 命中，未转义 `${{` 为 0）；全工具 `69` 个中 `65` 正常 + `4` 需上传外部文件（file-checksum/csr/x509-decoder/base64-image）
 - 全站视觉已重设计：现代深色 + 渐变强调；共享组件 `Hero` / `ToolGrid`（可搜索）+ `tools-icons` 图标映射（70 项）已随 `packages/{ui,config}` 发布
 
 ## 站点结构（单域名 + 四子栏目）
