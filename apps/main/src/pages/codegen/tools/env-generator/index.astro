@@ -13,8 +13,8 @@ const description = 'Generate a .env template from a JSON object or "key: value"
 
   <section class="card mt-1">
     <h2 style="margin-top:0;">Input</h2>
-    <label class="text-muted">Mode</label>
-    <div style="display:flex;gap:16px;margin:8px 0 12px;">
+    <span class="text-muted" id="mode-label">Mode</span>
+    <div role="radiogroup" aria-labelledby="mode-label" style="display:flex;gap:16px;margin:8px 0 12px;">
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
         <input type="radio" name="mode" value="json" checked /> JSON
       </label>

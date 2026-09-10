@@ -21,18 +21,18 @@ const description = 'Generate RFC 4122 UUID v4 identifiers in bulk, with configu
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
       <div>
         <strong>Count</strong>
-        <input id="count" type="number" min="1" max="100" value="5" style="margin-top:12px;" />
+        <input id="count" aria-label="Count" type="number" min="1" max="100" value="5" style="margin-top:12px;" />
       </div>
       <div>
         <strong>Case</strong>
-        <select id="case-select" style="margin-top:12px;">
+        <select id="case-select" aria-label="Letter case" style="margin-top:12px;">
           <option value="lower">lowercase</option>
           <option value="upper">UPPERCASE</option>
         </select>
       </div>
       <div>
         <strong>Format</strong>
-        <select id="format" style="margin-top:12px;">
+        <select id="format" aria-label="UUID format" style="margin-top:12px;">
           <option value="standard">Standard (8-4-4-4-12)</option>
           <option value="nohyphen">No hyphens</option>
           <option value="urn">URN (urn:uuid:)</option>

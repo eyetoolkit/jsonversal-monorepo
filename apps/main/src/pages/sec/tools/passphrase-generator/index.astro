@@ -15,7 +15,7 @@ const description = 'Generate memorable passphrases from a 256-word diceware-sty
     <h2 style="margin-top:0;">Options</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
       <div>
-        <label class="text-muted">Words (3–8)</label>
+        <label class="text-muted" for="words">Words (3–8)</label>
         <select id="words">
           <option value="3">3 words</option>
           <option value="4">4 words</option>
@@ -26,7 +26,7 @@ const description = 'Generate memorable passphrases from a 256-word diceware-sty
         </select>
       </div>
       <div>
-        <label class="text-muted">Separator</label>
+        <label class="text-muted" for="sep">Separator</label>
         <select id="sep">
           <option value="-" selected>hyphen ( - )</option>
           <option value=" ">space</option>
@@ -35,7 +35,7 @@ const description = 'Generate memorable passphrases from a 256-word diceware-sty
         </select>
       </div>
       <div>
-        <label class="text-muted">Passphrases (1–10)</label>
+        <label class="text-muted" for="count">Passphrases (1–10)</label>
         <input id="count" type="number" min="1" max="10" value="5" />
       </div>
     </div>

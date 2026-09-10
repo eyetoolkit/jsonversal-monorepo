@@ -21,7 +21,7 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
 
   <section class="card mt-2">
     <h2 style="margin-top:0;">Header</h2>
-    <textarea id="header" spellcheck="false">&#123;"alg": "HS256", "typ": "JWT"&#125;</textarea>
+    <textarea id="header" aria-label="Header" spellcheck="false">&#123;"alg": "HS256", "typ": "JWT"&#125;</textarea>
     <label class="text-muted mt-2" for="payload">Payload</label>
     <textarea id="payload" spellcheck="false">&#123;&quot;sub&quot;: &quot;1234567890&quot;, &quot;name&quot;: &quot;Alice&quot;, &quot;iat&quot;: 1788800000, &quot;exp&quot;: 1810000000&#125;</textarea>
     <label class="text-muted mt-2" for="secret">Secret (never stored or transmitted)</label>

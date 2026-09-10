@@ -13,8 +13,8 @@ const description = 'Escape text or code into HTML entities (&amp;, &lt;, &gt;, 
 
   <section class="card mt-1">
     <h2 style="margin-top:0;">Input</h2>
-    <label class="text-muted">Direction</label>
-    <div style="display:flex;gap:16px;margin:8px 0 12px;">
+    <span class="text-muted" id="dir-label">Direction</span>
+    <div role="radiogroup" aria-labelledby="dir-label" style="display:flex;gap:16px;margin:8px 0 12px;">
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
         <input type="radio" name="dir" value="escape" checked /> Escape to HTML entities
       </label>

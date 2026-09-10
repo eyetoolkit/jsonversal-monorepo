@@ -15,7 +15,7 @@ const description = 'Format commit messages following the Conventional Commits s
     <h2 style="margin-top:0;">Build your commit</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
-        <label class="text-muted">Type</label>
+        <label class="text-muted" for="type">Type</label>
         <select id="type">
           <option>feat</option><option>fix</option><option>docs</option><option>style</option>
           <option>refactor</option><option>perf</option><option>test</option><option>build</option>
@@ -23,15 +23,15 @@ const description = 'Format commit messages following the Conventional Commits s
         </select>
       </div>
       <div>
-        <label class="text-muted">Scope (optional)</label>
+        <label class="text-muted" for="scope">Scope (optional)</label>
         <input id="scope" type="text" placeholder="api / ui / db ..." />
       </div>
     </div>
-    <label class="text-muted" style="margin-top:12px;">Short description (required)</label>
+    <label class="text-muted" style="margin-top:12px;" for="subject">Short description (required)</label>
     <input id="subject" type="text" placeholder="add user login page" />
-    <label class="text-muted" style="margin-top:12px;">Long body (optional, separate paragraphs with blank line)</label>
+    <label class="text-muted" style="margin-top:12px;" for="body">Long body (optional, separate paragraphs with blank line)</label>
     <textarea id="body" placeholder="Explain the why, not the what..."></textarea>
-    <label class="text-muted" style="margin-top:12px;">Breaking change note (optional)</label>
+    <label class="text-muted" style="margin-top:12px;" for="breaking">Breaking change note (optional)</label>
     <input id="breaking" type="text" placeholder="BREAKING CHANGE: ..." />
     <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
       <input id="breaking-flag" type="checkbox" /> Mark as breaking change (!)

@@ -96,14 +96,14 @@ const description = 'Scaffold a docker-compose.yml with services, ports, volumes
         <button class="ghost" type="button" data-remove="${svcCount}">Remove</button>
       </div>
       <div class="svc-row">
-        <div><label>Name</label><input data-f="name" type="text" value="${name}" /></div>
-        <div><label>Image</label><input data-f="image" type="text" value="${image}" placeholder="nginx:1.27" /></div>
-        <div><label>Host port</label><input data-f="hport" type="number" min="0" max="65535" value="${hport}" /></div>
-        <div><label>Container port</label><input data-f="cport" type="number" min="1" max="65535" value="${cport}" /></div>
+        <div><label>Name</label><input data-f="name" aria-label="Name" type="text" value="${name}" /></div>
+        <div><label>Image</label><input data-f="image" aria-label="Image" type="text" value="${image}" placeholder="nginx:1.27" /></div>
+        <div><label>Host port</label><input data-f="hport" aria-label="Host port" type="number" min="0" max="65535" value="${hport}" /></div>
+        <div><label>Container port</label><input data-f="cport" aria-label="Container port" type="number" min="1" max="65535" value="${cport}" /></div>
       </div>
       <div class="svc-row">
-        <div><label>Volume (name:path)</label><input data-f="volume" type="text" value="${volume}" placeholder="data:/var/lib/example" /></div>
-        <div><label>Env (KEY=value, comma separated)</label><input data-f="env" type="text" value="${env}" placeholder="NODE_ENV=production" /></div>
+        <div><label>Volume (name:path)</label><input data-f="volume" aria-label="Volume (name:path)" type="text" value="${volume}" placeholder="data:/var/lib/example" /></div>
+        <div><label>Env (KEY=value, comma separated)</label><input data-f="env" aria-label="Env (KEY=value, comma separated)" type="text" value="${env}" placeholder="NODE_ENV=production" /></div>
       </div>`;
     $('services').appendChild(div);
     svcCount++;

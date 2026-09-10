@@ -1,0 +1,98 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import ToolCard from '@versal/ui/ToolCard.astro';
+
+const sections = [
+  {
+    title: 'JSON / LLM Tools',
+    description: 'Format, validate, diff and transform JSON — plus token counting and schema generation.',
+    href: '/tools/',
+  },
+  {
+    title: 'Security Tools',
+    description: 'Hashing, AES encryption, password strength, TOTP, JWT inspecting and more.',
+    href: '/sec/',
+  },
+  {
+    title: 'DevOps Tools',
+    description: 'YAML/JSON converter, Base64, crontab, JWT decoder, regex tester and more.',
+    href: '/devops/',
+  },
+  {
+    title: 'Code Generators',
+    description: '.gitignore, license, README, CI workflow, commit message and more.',
+    href: '/codegen/',
+  },
+];
+---
+
+<BaseLayout
+  site="main"
+  title="Page not found"
+  description="This page doesn't exist on jsonversal.com. Browse the full list of free in-browser developer tools instead."
+>
+  {/* 404 不应被索引 —— 否则搜索引擎会收录无效 URL */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, follow" />
+  </Fragment>
+
+  <div class="nf">
+    <p class="nf-code" aria-hidden="true">404</p>
+    <h1>We couldn&rsquo;t find that page</h1>
+    <p class="nf-lead">
+      The address may be mistyped, or the page may have moved. Nothing is lost — every tool on
+      this site runs inside your browser, so there was never a server-side copy of your work.
+    </p>
+    <div class="nf-actions">
+      <a class="button button-primary" href="/tools/">Browse all 69 tools</a>
+      <a class="button button-ghost" href="/">Back to homepage</a>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <span class="overline">Pick a section</span>
+    <h2>Jump to a toolkit</h2>
+    <p>Sixty-nine tools across four areas — all free, no signup, no upload.</p>
+  </div>
+  <div class="grid">
+    {sections.map(s => <ToolCard title={s.title} description={s.description} href={s.href} />)}
+  </div>
+</BaseLayout>
+
+<style>
+  .nf {
+    text-align: center;
+    padding: 72px 0 56px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .nf-code {
+    margin: 0;
+    font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+    font-size: clamp(64px, 14vw, 128px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -.04em;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .nf h1 {
+    margin: 20px 0 0;
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+  }
+  .nf-lead {
+    margin: 14px 0 0;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
+  .nf-actions {
+    margin-top: 28px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>

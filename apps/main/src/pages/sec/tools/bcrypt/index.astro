@@ -13,9 +13,9 @@ const description = 'Generate bcrypt password hashes with a configurable cost fa
 
   <section class="card mt-1">
     <h2 style="margin-top:0;">Generate a hash</h2>
-    <label class="text-muted">Password</label>
+    <label class="text-muted" for="pw">Password</label>
     <input id="pw" type="text" placeholder="Enter the password to hash" />
-    <label class="text-muted" style="margin-top:12px;">Cost factor (4–15, default 10)</label>
+    <label class="text-muted" style="margin-top:12px;" for="cost">Cost factor (4–15, default 10)</label>
     <input id="cost" type="number" min="4" max="15" value="10" />
     <div class="row mt-2">
       <button class="primary" id="gen">Generate hash</button>
@@ -30,9 +30,9 @@ const description = 'Generate bcrypt password hashes with a configurable cost fa
 
   <section class="card mt-2">
     <h2 style="margin-top:0;">Verify a password</h2>
-    <label class="text-muted">Password</label>
+    <label class="text-muted" for="v-pw">Password</label>
     <input id="v-pw" type="text" placeholder="Plaintext password" />
-    <label class="text-muted" style="margin-top:12px;">bcrypt hash</label>
+    <label class="text-muted" style="margin-top:12px;" for="v-hash">bcrypt hash</label>
     <input id="v-hash" type="text" placeholder="$2b$10$... (paste a bcrypt hash)" />
     <div class="row mt-2">
       <button class="primary" id="verify">Verify</button>

@@ -136,8 +136,8 @@ message = client.messages.create(
         var div = document.createElement('div');
         div.className = 'field-row';
         div.innerHTML =
-          '<input type="text" placeholder="field_name" value="' + escHtml(f.name) + '" style="max-width:140px;" data-idx="' + idx + '" data-key="name" class="field-name" />' +
-          '<select data-idx="' + idx + '" data-key="type" class="field-type">' +
+          '<input type="text" aria-label="Field name" placeholder="field_name" value="' + escHtml(f.name) + '" style="max-width:140px;" data-idx="' + idx + '" data-key="name" class="field-name" />' +
+          '<select aria-label="Field type" data-idx="' + idx + '" data-key="type" class="field-type">' +
             '<option value="string"' + (f.type === 'string' ? ' selected' : '') + '>string</option>' +
             '<option value="number"' + (f.type === 'number' ? ' selected' : '') + '>number</option>' +
             '<option value="boolean"' + (f.type === 'boolean' ? ' selected' : '') + '>boolean</option>' +
@@ -145,10 +145,10 @@ message = client.messages.create(
             '<option value="object"' + (f.type === 'object' ? ' selected' : '') + '>object</option>' +
             '<option value="enum"' + (f.type === 'enum' ? ' selected' : '') + '>enum</option>' +
           '</select>' +
-          '<input type="text" placeholder="description (optional)" value="' + escHtml(f.desc || '') + '" style="max-width:200px;" data-idx="' + idx + '" data-key="desc" class="field-desc" />' +
-          '<input type="text" placeholder="enum: a,b,c" value="' + escHtml(f.enumVals || '') + '" style="max-width:140px;display:' + (f.type === 'enum' ? 'block' : 'none') + ';" data-idx="' + idx + '" data-key="enumVals" class="field-enum" />' +
+          '<input type="text" aria-label="Field description" placeholder="description (optional)" value="' + escHtml(f.desc || '') + '" style="max-width:200px;" data-idx="' + idx + '" data-key="desc" class="field-desc" />' +
+          '<input type="text" aria-label="Enum values" placeholder="enum: a,b,c" value="' + escHtml(f.enumVals || '') + '" style="max-width:140px;display:' + (f.type === 'enum' ? 'block' : 'none') + ';" data-idx="' + idx + '" data-key="enumVals" class="field-enum" />' +
           '<label style="min-width:auto;"><input type="checkbox" ' + (f.required ? 'checked' : '') + ' data-idx="' + idx + '" class="field-req" /> Required</label>' +
-          '<button class="ghost" style="padding:4px 8px;font-size:.8rem;" data-idx="' + idx + '" class="remove-btn">✕</button>';
+          '<button class="ghost" aria-label="Remove field" style="padding:4px 8px;font-size:.8rem;" data-idx="' + idx + '" class="remove-btn">✕</button>';
         list.appendChild(div);
       })(i);
     }

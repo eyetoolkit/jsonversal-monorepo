@@ -15,7 +15,7 @@ const description = 'Generate cryptographically secure random tokens in hex, bas
     <h2 style="margin-top:0;">Options</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
       <div>
-        <label class="text-muted">Encoding</label>
+        <label class="text-muted" for="enc">Encoding</label>
         <select id="enc">
           <option value="hex">Hex (lowercase)</option>
           <option value="hex-upper">Hex (uppercase)</option>
@@ -25,12 +25,12 @@ const description = 'Generate cryptographically secure random tokens in hex, bas
         </select>
       </div>
       <div>
-        <label class="text-muted">Length (bytes, 4–128)</label>
+        <label class="text-muted" for="len">Length (bytes, 4–128)</label>
         <input id="len" type="number" min="4" max="128" value="16" />
         <div class="text-dim" id="len-note" style="display:none;font-size:.85rem;margin-top:4px;">UUID format always uses 16 bytes.</div>
       </div>
       <div>
-        <label class="text-muted">Count (1–10)</label>
+        <label class="text-muted" for="count">Count (1–10)</label>
         <input id="count" type="number" min="1" max="10" value="1" />
       </div>
     </div>

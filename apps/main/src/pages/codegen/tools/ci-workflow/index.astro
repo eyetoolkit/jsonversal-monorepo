@@ -15,7 +15,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
     <h2 style="margin-top:0;">Workflow config</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
-        <label class="text-muted">Language</label>
+        <label class="text-muted" for="lang">Language</label>
         <select id="lang">
           <option value="node">Node.js</option>
           <option value="python">Python</option>
@@ -25,7 +25,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
         </select>
       </div>
       <div>
-        <label class="text-muted">Trigger</label>
+        <label class="text-muted" for="trigger">Trigger</label>
         <select id="trigger">
           <option value="push">Push to main</option>
           <option value="pr">Pull requests</option>
@@ -34,15 +34,15 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       </div>
     </div>
     <div id="node-opts" style="display:none;">
-      <label class="text-muted" style="margin-top:12px;">Node versions (comma-separated)</label>
+      <label class="text-muted" style="margin-top:12px;" for="node-versions">Node versions (comma-separated)</label>
       <input id="node-versions" type="text" value="18, 20, 22" />
     </div>
     <div id="py-opts" style="display:none;">
-      <label class="text-muted" style="margin-top:12px;">Python versions</label>
+      <label class="text-muted" style="margin-top:12px;" for="py-versions">Python versions</label>
       <input id="py-versions" type="text" value="3.10, 3.11, 3.12" />
     </div>
     <div id="go-opts" style="display:none;">
-      <label class="text-muted" style="margin-top:12px;">Go versions</label>
+      <label class="text-muted" style="margin-top:12px;" for="go-versions">Go versions</label>
       <input id="go-versions" type="text" value="1.21, 1.22, 1.23" />
     </div>
     <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
@@ -51,7 +51,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       <label style="display:flex;align-items:center;gap:6px;"><input id="build" type="checkbox" checked /> Build</label>
       <label style="display:flex;align-items:center;gap:6px;"><input id="cache" type="checkbox" checked /> Cache deps</label>
     </div>
-    <label class="text-muted" style="margin-top:12px;">Workflow name</label>
+    <label class="text-muted" style="margin-top:12px;" for="wfname">Workflow name</label>
     <input id="wfname" type="text" value="CI" />
     <button class="primary mt-2" id="gen">Generate workflow</button>
   </section>

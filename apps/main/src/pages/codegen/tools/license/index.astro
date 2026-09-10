@@ -13,7 +13,7 @@ const description = 'Pick a license, fill in year and name, generate the LICENSE
 
   <section class="card mt-1">
     <h2 style="margin-top:0;">Choose a license</h2>
-    <label class="text-muted">License type</label>
+    <label class="text-muted" for="type">License type</label>
     <select id="type" style="max-width:320px;">
       <option value="MIT">MIT — permissive, most popular</option>
       <option value="Apache-2.0">Apache 2.0 — permissive + patent grant</option>
@@ -25,11 +25,11 @@ const description = 'Pick a license, fill in year and name, generate the LICENSE
     </select>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
       <div>
-        <label class="text-muted">Year</label>
+        <label class="text-muted" for="year">Year</label>
         <input id="year" type="number" value={new Date().getFullYear()} />
       </div>
       <div>
-        <label class="text-muted">Name / Organization</label>
+        <label class="text-muted" for="name">Name / Organization</label>
         <input id="name" type="text" placeholder="Your name" />
       </div>
     </div>

@@ -15,14 +15,14 @@ const description = 'Encrypt and decrypt text with AES-GCM or AES-CBC using your
     <h2 style="margin-top:0;">Input</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
-        <label class="text-muted">Algorithm</label>
+        <label class="text-muted" for="algo">Algorithm</label>
         <select id="algo">
           <option value="AES-GCM">AES-GCM (authenticated, recommended)</option>
           <option value="AES-CBC">AES-CBC (needs IV)</option>
         </select>
       </div>
       <div>
-        <label class="text-muted">Key size</label>
+        <label class="text-muted" for="keysize">Key size</label>
         <select id="keysize">
           <option value="256">256-bit (most secure)</option>
           <option value="192">192-bit</option>
@@ -30,9 +30,9 @@ const description = 'Encrypt and decrypt text with AES-GCM or AES-CBC using your
         </select>
       </div>
     </div>
-    <label class="text-muted" style="margin-top:12px;">Passphrase (we derive a key with PBKDF2-SHA256)</label>
+    <label class="text-muted" style="margin-top:12px;" for="pass">Passphrase (we derive a key with PBKDF2-SHA256)</label>
     <input id="pass" type="text" placeholder="your-secret-passphrase" />
-    <label class="text-muted" style="margin-top:12px;">Plaintext / Ciphertext</label>
+    <label class="text-muted" style="margin-top:12px;" for="input">Plaintext / Ciphertext</label>
     <textarea id="input" placeholder="Text to encrypt, or base64 ciphertext to decrypt..." style="min-height:120px;"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px;">
       <button class="primary" id="encrypt">Encrypt</button>

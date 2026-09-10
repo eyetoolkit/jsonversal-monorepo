@@ -18,7 +18,7 @@ const description = 'Translate a crontab expression into human-readable schedule
   <p class="text-muted">{description}</p>
 
   <div class="card">
-    <label class="text-muted">Cron expression</label>
+    <label class="text-muted" for="expr">Cron expression</label>
     <input id="expr" type="text" value="0 9 * * *" style="margin-top:8px;font-family:var(--font-mono);" />
     <div class="text-muted" style="font-size:.8rem;margin-top:4px;">
       Format: <code>min hour dom month dow</code> (5-field) or <code>sec min hour dom month dow</code> (6-field).

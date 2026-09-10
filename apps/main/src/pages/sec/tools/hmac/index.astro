@@ -13,11 +13,11 @@ const description = 'Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures
 
   <section class="card mt-1">
     <h2 style="margin-top:0;">Input</h2>
-    <label class="text-muted">Message</label>
+    <label class="text-muted" for="msg">Message</label>
     <textarea id="msg" placeholder="Message to sign..." style="min-height:120px;"></textarea>
-    <label class="text-muted" style="margin-top:12px;">Secret key</label>
+    <label class="text-muted" style="margin-top:12px;" for="secret">Secret key</label>
     <input id="secret" type="text" placeholder="Shared secret key" />
-    <label class="text-muted" style="margin-top:12px;">Algorithm</label>
+    <label class="text-muted" style="margin-top:12px;" for="algo">Algorithm</label>
     <select id="algo">
       <option value="SHA-256">SHA-256 (recommended)</option>
       <option value="SHA-384">SHA-384</option>

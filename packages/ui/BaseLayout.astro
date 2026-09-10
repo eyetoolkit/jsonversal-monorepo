@@ -34,9 +34,6 @@ const pageKeywords = keywords?.join(', ') || seo.keywords;
 // 品牌 favicon —— 深色圆角底 + accent 色花括号（JSON 标识），按子站色彩差异化
 const faviconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='#0b0d12'/><text x='32' y='44' font-family='ui-monospace,Menlo,Consolas,monospace' font-size='30' font-weight='700' text-anchor='middle' fill='${t.accent}'>{ }</text></svg>`;
 const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
-
-// Cloudflare Web Analytics —— 通过 PUBLIC_CF_WEB_ANALYTICS_TOKEN 注入，未配置则不输出
-const cfAnalyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN;
 ---
 
 <!doctype html>
@@ -115,7 +112,7 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN;
       })();
     </script>
 
-    {/* Cloudflare Web Analytics —— 占位 id 由子站覆盖 */}
+    {/* 子站可插入额外的 <head> 内容（如页面级结构化数据） */}
     <slot name="head" />
   </head>
   <body class={`site-${site}`}>
@@ -125,11 +122,12 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN;
       <slot />
     </main>
     <Footer site={site} />
-    <ConsentBanner />
 
-    {/* Cloudflare Web Analytics beacon —— 配置 PUBLIC_CF_WEB_ANALYTICS_TOKEN 后自动注入 */}
-    {cfAnalyticsToken && (
-      <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={`{"token": "${cfAnalyticsToken}", "spa": true}`} />
-    )}
+    {/*
+      本站刻意不加载任何分析脚本：全站零 cookie、零第三方请求。
+      这一事实同时写在 /privacy/ 与 /licenses/ 上，属于对外法律声明。
+      若将来要接入分析（如 Cloudflare Web Analytics），必须先一并更新
+      这两页的披露（含法律依据与保留期限），再在此处注入信标。
+    */}
   </body>
 </html>

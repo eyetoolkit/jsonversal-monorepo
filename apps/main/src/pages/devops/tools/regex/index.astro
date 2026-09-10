@@ -19,8 +19,8 @@ const description = 'Test a regular expression against sample input, highlight m
 
   <div class="card">
     <div style="display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;">
-      <input id="pattern" type="text" value="(\w+)@(\w+\.\w+)" style="font-family:var(--font-mono);" />
-      <select id="flags">
+      <input id="pattern" aria-label="Regular expression" type="text" value="(\w+)@(\w+\.\w+)" style="font-family:var(--font-mono);" />
+      <select id="flags" aria-label="Flags">
         <option value="g">g (global)</option>
         <option value="gi">gi (global + case-insensitive)</option>
         <option value="gm">gm (global + multiline)</option>

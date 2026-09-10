@@ -15,8 +15,6 @@
     "./Header.astro": "./Header.astro",
     "./Footer": "./Footer.astro",
     "./Footer.astro": "./Footer.astro",
-    "./ConsentBanner": "./ConsentBanner.astro",
-    "./ConsentBanner.astro": "./ConsentBanner.astro",
     "./ToolCard": "./ToolCard.astro",
     "./ToolCard.astro": "./ToolCard.astro",
     "./Hero": "./Hero.astro",
