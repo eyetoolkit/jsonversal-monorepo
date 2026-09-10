@@ -75,10 +75,41 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 | 名称 | 权限（实测） | 能干什么 |
 |---|---|---|
 | `CF_TOKEN_PAGES`（`cfat_qFQP…`） | Pages 项目读 ✅、自定义域读 ✅、**POST 添加自定义域成功** ✅、Zone 读 ✅、账户读 ✅ | **修 www 用的就是这个** |
-| `CF_TOKEN_DNS_WRITE`（`cfat_6M3a…`） | Zone 读 ✅、DNS 记录读 ✅（7 个 zone 全可见）；写权限未单独验证 | DNS 操作 |
-| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | ✅ ListBuckets 200，可见 `mathduel-backup`、`md-quiz-bucket` | S3 兼容对象存储 |
+| `CF_TOKEN_DNS_WRITE`（`cfat_6M3a…`） | Zone 读 ✅（7 个 zone）、DNS 记录读 ✅、**DNS 写 ✅**（2026-09-10 用一次性 TXT 记录 POST 建 / DELETE 删均 200，事后确认 0 残留） | DNS 操作 |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | ✅ ListBuckets 200，可见 `mathduel-backup`、`md-quiz-bucket`；PUT/GET/DELETE 全链路通过 | S3 兼容对象存储 ⚠️ 见下方弱派生告警 |
 
-两个 token 的权限**互补**：DNS 那个没有 Pages 权限，Pages 那个没有 DNS 权限。要做完整 CF 运维需要同时用。
+两个 token 的权限**互补且都是最小权限**：DNS 那个没有 Pages 权限（403），Pages 那个没有 DNS 记录权限（403），但两者都能列 zone。要做完整 CF 运维需要同时用。
+
+### ⚠️⚠️ 安全告警：R2 秘密密钥是 CF token 的 SHA-256
+
+实测确认（**逐字节相等，已多路复现**）：
+
+```
+sha256(CF_TOKEN_PAGES)  ==  R2_SECRET_ACCESS_KEY
+```
+
+> ⚠️ **本文件不记录这两个值的明文。** 这里曾经直接写出完整令牌来"举例说明"，
+> 结果被 GitHub Push Protection 以 `GH013` 拦下推送——**在仓库里写明文密钥本身就是事故**。
+> 需要复核时请用本技能配套脚本 `verify_credentials.py`，它在本地从 `.env` 读取并当场计算，
+> 仓库内不留任何密钥。指纹仅供比对：秘密密钥前 8 位 `bd280fbc`、后 4 位 `654f3`。
+
+两套凭证**本身都完全可用**（Pages 能列 10 个项目；R2 跑通了 PUT/GET/DELETE/404 复查），所以只看"能不能用"永远发现不了这个问题。
+
+**危害**：R2 秘密密钥可由 `CF_TOKEN_PAGES` 直接算出。而 `cfat_` 令牌会出现在请求头、CI 变量、日志、报错里——**它一泄漏，R2 秘密密钥随即泄漏**；再配上同一文件里的 `R2_ACCESS_KEY_ID`，即可对 `mathduel-backup` / `md-quiz-bucket` 完整读写。
+
+**处置（待用户执行）**：到 Cloudflare 重新签发一个 R2 API 令牌，使其 secret 由服务器随机生成、不由任何其他凭证派生；替换 `.env` 后作废当前 AK。已在 `.env` 该段加显式告警注释。
+
+> 通用教训一：凭证盘点时**务必对密钥值两两做一次 `sha256(A) == B` 检查**。这类弱派生无法靠"验活"发现。
+> 通用教训二：**安全发现要写进文档时，只写关系和指纹，绝不写明文。** 否则"记录漏洞"这个动作本身就成了新的泄漏源。
+
+### 验证工具
+
+通用验活脚本（已沉淀到用户级技能，与本项目 skill 配套）：
+
+```bash
+python "C:/Users/刘先生/.workbuddy/skills/deploy-chain-audit/scripts/verify_credentials.py" --r2-full
+python "C:/Users/刘先生/.workbuddy/skills/deploy-chain-audit/scripts/verify_credentials.py" --dns-write
+```
 
 ### ⚠️ 重要：`/user/tokens/verify` 对细粒度 token 会误报
 
@@ -104,10 +135,14 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 |---|---|
 | `GH_TOKEN` / `GH_PAT` | ✅ 有效，`eyetoolkit`，admin/push（与注册表同值） |
 | `MINIMAX_API_KEY` | ✅ `/models` 200（base `https://token-plan-cn.xiaomimimo.com/v1`，model `mimo-v2.5-pro`） |
-| `MATHDUEL_R2_AK1` + `SK1` | ✅ SigV4 200，可列 `mathduel-backup` 对象 |
-| `MATHDUEL_R2_AK2` + `SK2` | ❌ HTTP 400 `Credential access key has length 64, should be 32`（AK2 值畸形，疑似 AK+SK 粘连） |
-| `MATHDUEL_R2_AK3` | ⚠️ 只有 AK，无 `SK3`，键名不配对 |
-| `R2_*`（新） | ✅ 见上表 |
+| `MATHDUEL_R2_AK1` + `SK1` | ❌ **2026-09-10 复测 401 Unauthorized**（早前轮次记的「✅ SigV4 200」基于当时版本的 `.env`，现版本已失效） |
+| `MATHDUEL_R2_AK2` + `SK2` | ❌ HTTP 400 `Credential access key has length 64, should be 32`（AK2 长度 64，是 SK 规格串填进了 AK 位） |
+| `MATHDUEL_R2_AK3` | ❌ 只有 AK、无 `SK3`；与 `SK1`/`SK2` 组合亦均 401 |
+| `AK1+SK2` / `AK3+SK2` | ❌ 401 —— 即整套旧 mathduel 密钥已全部作废 |
+| `R2_*`（新） | ✅ 见上表（⚠️ 弱派生告警另见上） |
+| `MATHDUEL_R2_ENDPOINT` / `MATHDUEL_R2_BUCKET` | ✅ 端点可达、bucket 名有效（`MATHDUEL_R2_BUCKET=mathduel-backup`）；`mathduel-backup` 请改用 `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` 访问 |
+
+> 2026-09-10 已把上面 5 行失效的 `MATHDUEL_R2_AK*/SK*` 从 `.env` **删除**（值已无用途，留着只会误导），仅保留端点与 bucket 名，并在原位留实测记录。
 
 > `.env` 原注释「注意本机网络对 r2.cloudflarestorage.com TLS 不可达」也已过期 —— 2026-09-10 实测 R2 端点 200 正常。
 
@@ -219,10 +254,18 @@ body: {"name": "www.jsonversal.com"}
 
 ### 剩余待修配置项（非阻塞）
 
-1. **`apps/main/wrangler.toml` 项目名不符**：写的是 `name = "jsonversal-main"`，实际 CF 项目为 `jsonversal-main-v2`；其 `[pages] build_config` 也不会被 CF Pages Git 集成读取（构建配置在 dashboard 里，实测为 `npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`，产物 `apps/main/dist`）。属易误导的死配置，建议改名或删除并加注释。
-2. **`~/.ssh/config` 缺 `Host github.com`**（见上）。
-3. **清理 7 个失效 CF token**：`CF_API_TOKEN`、`CLOUDFLARE_API_TOKEN`、`CF_TOKEN_MAIN`、`CF_TOKEN_A`~`D`。现已由 `CF_TOKEN_PAGES` + `CF_TOKEN_DNS_WRITE` 覆盖需求，建议在控制台删掉旧的，并顺手修正 `.env` 里过期的注释。
-4. **`.env` 里两个坏 R2 键**：`MATHDUEL_R2_AK2`/`SK2` 值畸形、`MATHDUEL_R2_AK3` 缺配对 SK，建议修掉或删除。
+**✅ 2026-09-10 已办结：**
+
+1. ~~`apps/main/wrangler.toml` 项目名不符~~ → **已改为 `name = "jsonversal-main-v2"`**，并加注释说明：必须与 CF 上项目名一致（否则 `wrangler pages deploy` 会打错项目），且线上构建实际由 CF Pages 的 Git 集成按 dashboard 配置执行，本文件不参与该流程。
+2. ~~`.env` 里坏 R2 键~~ → **5 行失效的 `MATHDUEL_R2_AK1/SK1/AK2/SK2/AK3` 已删除**（实测全部 401 或畸形），保留端点/bucket 名并留实测记录。
+3. ~~`.gitignore` 漏 `.workbuddy/`~~ → **已补**（并加注释说明 `.trae/` 是有意入库的，不要一并忽略）。
+4. ~~DNS 写权限未验证~~ → **已用一次性 TXT 探针验证：可读可写**。
+
+**⏳ 仍未办：**
+
+1. **`~/.ssh/config` 缺 `Host github.com`**（见上）。当前推送走 HTTPS+PAT，SSH 非必需。
+2. **清理 7 个失效 CF token**：`CF_API_TOKEN`、`CLOUDFLARE_API_TOKEN`、`CF_TOKEN_MAIN`、`CF_TOKEN_A`~`D`。现由 `CF_TOKEN_PAGES` + `CF_TOKEN_DNS_WRITE` 覆盖需求，建议在控制台删除。⚠️ 删之前先确认旧名 `CF_API_TOKEN`/`CLOUDFLARE_API_TOKEN` 没有被别的项目脚本引用——**不要直接覆盖这两个键**，会造成权限错配。
+3. **🔴 R2 弱派生轮换**（最高优先级）：重新签发 R2 API 令牌，替换 `R2_SECRET_ACCESS_KEY`（见上方安全告警）。
 
 ## 常用操作入口
 
@@ -268,7 +311,8 @@ Base：`https://api.cloudflare.com/client/v4`，Header：`Authorization: Bearer 
 - **推送通道可用**：`GH_TOKEN` + `http.extraheader`，**必须绕开沙箱代理**。
 - **Cloudflare API 可用**：`CF_TOKEN_PAGES` + `CF_TOKEN_DNS_WRITE`（权限互补），**修 www 就是用它做的**。
 - **原遗留项全部关闭**：推送断开 ✅ 修复、www 522 ✅ 修复、「待确认 CF 部署」✅ 用 check-runs 闭环。
-- 剩余仅为非阻塞清理项（wrangler.toml 注释、ssh config、失效 token 清理）。
+- **两枚 CF 令牌已同时写入用户级全局环境变量**（`setx CF_TOKEN_PAGES` / `setx CF_TOKEN_DNS_WRITE`，写入后用 sha256 比对校验无误）——新开终端即可直接读取，无需再手工从 `.env` 取值。
+- 剩余仅为非阻塞清理项（ssh config、失效 token 清理），外加一项**需用户到控制台处理的高优先级项：R2 弱派生密钥轮换**。
 
 ## 验证线上是否为最新（推荐方法，不依赖 CF 凭据）
 

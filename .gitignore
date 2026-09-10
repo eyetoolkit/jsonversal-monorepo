@@ -30,3 +30,7 @@ yarn-error.log*
 # IDE
 .vscode/
 .idea/
+
+# WorkBuddy 本地工作数据（会话记忆/日志，仅本机，不入库）
+# 注意：.trae/ 是有意保留入库的（内含项目级 skill 与文档），不要一并忽略
+.workbuddy/

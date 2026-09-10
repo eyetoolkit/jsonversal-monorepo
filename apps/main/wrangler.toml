@@ -1,4 +1,8 @@
-name = "jsonversal-main"
+# 必须与 Cloudflare 上的 Pages 项目名完全一致，否则 `wrangler pages deploy` 会打到错误的项目。
+# 2026-09-10 核实：账号 00cb5cd6be4881053e57a338ce62de2f 下实际项目名为 jsonversal-main-v2
+#                （子域 jsonversal-main-v2.pages.dev；自定义域 jsonversal.com / www.jsonversal.com 均 active）
+# 注意：线上构建由 CF Pages 的 GitHub 集成触发，构建命令/输出目录取自 Pages 项目设置，本文件不参与该流程。
+name = "jsonversal-main-v2"
 compatibility_date = "2026-09-08"
 
 [pages]
