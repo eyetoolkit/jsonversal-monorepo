@@ -68,12 +68,37 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 - 改 commit 消息：`git commit --amend` + `git push --force-with-lease origin main`，会改变 hash 并重部署；**用户本地需 `git fetch && git reset --hard origin/main` 对齐**（避免与远端分叉）。
 - commit 消息要语义准确，避免「查看部署状态」这类无关命名（曾因此返工改写）。
 
-## Cloudflare 认证（2026-09-10 第二轮实测）
+## Cloudflare 认证（2026-09-10 第三轮实测 · 结论：无任何可用凭据）
 
-- **用户级环境变量里的两个 CF token 均已失效**（实测 `GET /user/tokens/verify` 返回 `success:false` / code 1000 `Invalid API Token`）：`CF_API_TOKEN`（`cfat_y0i1…`）与 `CLOUDFLARE_API_TOKEN`（`cfat_qWDg…`）。印证旧记录「credentials.md 里两串 CF token 已失效」。**不要再用它们。**
-- `CF_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID` = `00cb5cd6be4881053e57a338ce62de2f`（与 CF 账号一致，本身不是密钥，可放心用）。
+**已穷尽所有来源，7 个 CF token 全部失效。** 实测 `GET /user/tokens/verify` 一律返回 `success:false` / code 1000 `Invalid API Token`：
+
+| 来源 | 名称 | 结果 |
+|---|---|---|
+| 用户级环境变量 | `CF_API_TOKEN`（`cfat_y0i1…`） | ❌ 失效 |
+| 用户级环境变量 | `CLOUDFLARE_API_TOKEN`（`cfat_qWDg…`） | ❌ 失效 |
+| 工作区 `.env` | `CF_API_TOKEN` / `CLOUDFLARE_API_TOKEN` | ❌ 失效（与上面同值） |
+| 工作区 `.env` | `CF_TOKEN_MAIN` | ❌ 失效 |
+| 工作区 `.env` | `CF_TOKEN_A` / `CF_TOKEN_B` / `CF_TOKEN_C` / `CF_TOKEN_D` | ❌ 全部失效 |
+
+- **`CF_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID` = `00cb5cd6be4881053e57a338ce62de2f`**（与 CF 账号一致，本身不是密钥，可放心用）。
+- `CF_ZONE_BOARDDUEL` / `_MATHDUEL` / `_MEMORYDUEL`（工作区 `.env` 与用户级环境变量均有）：tri-sites 的 zone id；**没有 jsonversal 的 zone id**（jsonversal 的 zone 为 `82591a57fa474a57fc21d26ea6e5c558`，仅见于旧 handoff 文档）。
 - **Trae 侧**：`mcp_trae-remote-official_plugin_cloudflare_cloudflare-api` 的 `execute` 无需自备 token——已预置认证与 `accountId`，脚本直接用 `accountId` 常量。授权失败先 `RequestAuthorization`（service `trae-remote-official:cloudflare::cloudflare-api`）。
-- **WorkBuddy 侧无 Cloudflare 连接器**（只有 agent-mail / github / wecom）。在 WorkBuddy 会话里需要确认 CF 构建状态时，走下方「check-runs 查法」，无需 CF 凭据。
+- **WorkBuddy 侧无 Cloudflare 连接器**（只有 agent-mail / github / wecom）。
+
+> **结论：在任何 Agent 会话里都改不了 Cloudflare 的 DNS / Pages 配置。** 遇到 CF 侧问题一律「出方案 → 用户去控制台操作」。
+> 确认 CF 构建状态不需要 CF 凭据，走 GitHub check-runs 即可（见下）。
+
+### 工作区 `.env`（2026-09-10 由用户放入，已被 `.gitignore` 第 16 行保护）
+
+含 27 个键：CF 系列 7 个 token（全失效）、`GH_TOKEN`/`GH_PAT`（✅ 有效，与注册表同值）、`MINIMAX_*`（✅ 有效）、`MATHDUEL_R2_*`（见下）、`VPS_*`。
+
+| R2 密钥 | 实测（SigV4 签名访问 `mathduel-backup`） |
+|---|---|
+| `MATHDUEL_R2_AK1` + `SK1` | ✅ **可用**，HTTP 200，可列出对象（如 `accounts/accounts-2026-09-02.json`） |
+| `MATHDUEL_R2_AK2` + `SK2` | ❌ HTTP 400 `Credential access key has length 64, should be 32` —— AK2 值疑似串了（把 AK+SK 粘在一起） |
+| `MATHDUEL_R2_AK3` | ⚠️ 只有 AK 没有对应的 `SK3`，键名不配对 |
+
+- MiniMax：`MINIMAX_BASE_URL=https://token-plan-cn.xiaomimimo.com/v1`、`MINIMAX_MODEL=mimo-v2.5-pro`，`/models` 返回 200 ✅ 有效。
 
 ## GitHub 认证（2026-09-10 第二轮实测修订）
 
@@ -147,7 +172,18 @@ Host github.com
 
 ### 待修配置项
 
-1. **`www.jsonversal.com` 522**：现 DNS 为 `www` CNAME → `jsonversal.com`（apex 本身也是橙云代理到 `pages.dev`），形成双重代理回源失败。修法：把 `www` 直接 CNAME 指向 `jsonversal-main-v2.pages.dev`（橙云代理），或在 CF Pages 项目里把 `www.jsonversal.com` 加为 Custom domain。**注意：两个 CF token 已失效，Agent 无法代改，需用户在控制台操作。**
+1. **`www.jsonversal.com` 522（双 CNAME 回源环路）** —— 诊断已精确到 IP：
+   - `jsonversal.com` → `172.67.191.163` / `104.21.60.47`
+   - `www.jsonversal.com` → **完全相同的两个 IP**（`172.67.191.163` / `104.21.60.47`）
+   - `jsonversal-main-v2.pages.dev` → `172.66.44.233` / `172.66.47.23`（另一组）
+
+   即 `www` 的 CNAME 指向 apex，而 apex 本身是橙云代理到 pages.dev → CF 解析 origin 时拿到自己的边缘 IP，回源打到自己身上 → 522 超时。**http 与 https 均 522，稳定复现。**
+
+   **修法（用户在 Cloudflare 控制台操作，二选一）：**
+   - **A（推荐）**：Pages → `jsonversal-main-v2` → Custom domains → Add `www.jsonversal.com`，CF 会自动建好正确记录。
+   - **B**：DNS 里把 `www` 记录的目标从 `jsonversal.com` 改成 `jsonversal-main-v2.pages.dev`，保持 Proxied 开启。
+
+   ⚠️ Agent 无有效 CF 凭据（7 个 token 全失效），**改不了，必须用户操作**。
 2. **`apps/main/wrangler.toml` 项目名不符**：写的是 `name = "jsonversal-main"`，实际 CF 项目为 `jsonversal-main-v2`；其 `[pages] build_config` 也不会被 CF Pages Git 集成读取（构建配置在 dashboard）。属易误导的死配置，建议改名或删除并加注释。
 3. **`~/.ssh/config` 缺 `Host github.com`**（见上）。
 4. **两个 Cloudflare token 需轮换或删除**：`CF_API_TOKEN` / `CLOUDFLARE_API_TOKEN` 均已失效，建议在 CF 控制台重新签发一个带 `Pages:Edit` + `Zone:DNS:Edit` 的 token 替换，以便后续自动化运维。
@@ -163,12 +199,12 @@ Host github.com
 
 ## DNS 记录（zone: 82591a57fa474a57fc21d26ea6e5c558）
 
-| 名称 | 类型 | 指向 |
-|---|---|---|
-| jsonversal.com | CNAME | `jsonversal-main-v2.pages.dev` |
-| www.jsonversal.com | CNAME | `jsonversal.com` |
+| 名称 | 类型 | 指向 | 实测解析 | 状态 |
+|---|---|---|---|---|
+| jsonversal.com | CNAME | `jsonversal-main-v2.pages.dev` | `172.67.191.163` / `104.21.60.47` | ✅ 200 |
+| www.jsonversal.com | CNAME | `jsonversal.com` ⚠️ | 与 apex **完全相同**的 IP | ❌ 522，需改为指向 `pages.dev` |
 
-（`sec/devops/codegen.jsonversal.com` 三条 CNAME 已删除。）
+（`sec/devops/codegen.jsonversal.com` 三条记录已删除，实测 NXDOMAIN + HTTP 000。用 `socket.gethostbyname_ex()` 判定最省事，比 `nslookup` 输出好解析。）
 
 ## 关键历史坑（避免重踩）
 
