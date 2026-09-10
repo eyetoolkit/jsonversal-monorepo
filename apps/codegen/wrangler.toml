@@ -1,7 +1,0 @@
-name = "jsonversal-codegen"
-compatibility_date = "2026-09-08"
-
-# Redirect-only project: 301 every path to the /codegen/ section of the main site.
-[pages]
-build_config.build_command = "echo noop"
-build_config.output_dir = "apps/codegen/public"
