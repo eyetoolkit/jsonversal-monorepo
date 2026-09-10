@@ -59,8 +59,7 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 2. **本地构建自检**：
    `npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`
 3. **提交**：`git add <具体文件> && git commit`（只针对本次改动文件，勿 `git add -A`）。
-4. **推送**：远端为 SSH，需确保 SSH key 可用；若走 https 则先让 `gh` 注入凭据（`gh auth setup-git`）。
-   注意：本机 Git Bash 里 `gh` 可能不在 PATH，需用绝对路径调用或改走 GitHub 插件 MCP。
+4. **推送**：⚠️ 当前 **SSH 通道不通、`gh` 未安装** —— 推送前先按下方「GitHub 认证」小节的修复方案 1 或 2 打通通道，否则 `git push` 必然失败。
 5. **核验线上**：调用 Cloudflare MCP 拉部署列表，确认最顶一条为 `github:push` + 目标 commit，状态由 `active` 轮询至 `success`。
 
 ### 注意事项
@@ -73,11 +72,61 @@ description: "固话 jsonversal 品牌矩阵（jsonversal.com + tools/sec/devops
 - **Cloudflare 插件 MCP**：`mcp_trae-remote-official_plugin_cloudflare_cloudflare-api` 的 `execute` 无需自备 token——已预置认证与 `accountId`（账号：19820393768@139.com），脚本直接用 `accountId` 常量，勿硬编码。
 - 授权失败：先 `RequestAuthorization`（service `trae-remote-official:cloudflare::cloudflare-api`）。
 
-## GitHub 认证（有效通道）
+## GitHub 认证（2026-09-10 实测修订）
 
-- **`gh` CLI 已认证**（account `eyetoolkit`，`GH_TOKEN`，协议 https）→ `gh auth setup-git` 后可用 `git push`。
-- 或走 GitHub 插件 MCP（`mcp_trae-remote-official_plugin_github_github`）。
+**当前状态：SSH 推送通道不通 —— 没有任何公钥注册到 GitHub 账号 `eyetoolkit`。**
+
+| 通道 | 实测结果 |
+|---|---|
+| SSH `git@github.com` | ❌ TCP/协议层通（返回 `Permission denied (publickey)`），但 `id_ed25519` 与 `github_ed25519` 均被拒 |
+| SSH over 443 `ssh.github.com:443` | ❌ 同上，可连但公钥被拒 |
+| HTTPS `git ls-remote` | ✅ 通（Git Credential Manager 存有 `x-access-token`），返回正确 HEAD |
+| HTTPS `git push` | ⚠️ 在沙箱代理（`http_proxy=127.0.0.1:59335`）下报 `CONNECT tunnel failed 502`；用户本机终端无此代理 |
+| `gh` CLI | ❌ **本机未安装**（旧版 skill 称"gh 已认证"为过期信息），`gh auth setup-git` 不可用 |
+| ssh-agent | ❌ 未运行（`ssh-add -l` 报无法连接认证代理） |
+| `~/.ssh/config` | ⚠️ 无 `Host github.com` 条目（只有 `volc` / `hk`） |
+
+**修复方案（二选一）：**
+
+1. **注册公钥（推荐）**：把 `C:/Users/刘先生/.ssh/github_ed25519.pub`（comment `local-windows-push`，指纹 `SHA256:m/zbKprP6JmTBn9e9g/RJE+rQ3hJhzUYN9iu+7Eey9c`）加到 GitHub → Settings → SSH and GPG keys。SSH 不经 HTTP 代理，注册后 `git push origin main` 立即可用。
+2. **改走 HTTPS**：`git remote set-url origin https://github.com/eyetoolkit/jsonversal-monorepo.git`，在**用户本机终端**（非 Agent 沙箱）推送。沙箱内因代理会 502。
+
+**建议同时给 `~/.ssh/config` 补一段**（避免中文用户名路径被 MSYS 转义成 `/c/Users/\301\365...`）：
+
+```
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile C:/Users/刘先生/.ssh/github_ed25519
+    UserKnownHostsFile C:/Users/刘先生/.ssh/known_hosts
+    IdentitiesOnly yes
+```
+
+- 或走 GitHub 插件 MCP（`mcp_trae-remote-official_plugin_github_github`）读仓库/提交，无需本地凭据。
 - 授权失败：`RequestAuthorization`（service `trae-remote-official:github::github`）。
+
+## 部署链路体检结论（2026-09-10）
+
+| 环节 | 状态 | 证据 |
+|---|---|---|
+| 本地构建 | ✅ | 79 页 / 12.9s / 0 报错 |
+| 本地 → GitHub 推送 | ❌ **断** | origin 为 SSH，公钥未注册 → `Permission denied (publickey)` |
+| GitHub 仓库 | ✅ | public，默认分支 main，HEAD `fd27c7d`，`pushed_at` 与本地一致 |
+| GitHub → Cloudflare Pages | ✅ **通** | 每个 commit 的 `Cloudflare Pages` check run 均为 `completed/success`（`fd27c7d`/`506af9a`/`8df6a6c` 三连验证） |
+| CF Pages → 站点 | ✅ | `jsonversal.com` 200、`jsonversal-main-v2.pages.dev` 200 |
+| 域名 apex | ✅ | 200 |
+| 域名 **www** | ❌ **522** | http/https 均 522（Cloudflare 回源超时），解析到 CF 代理 IP `104.21.60.47`/`172.67.191.163` |
+| 旧子域 sec/devops/codegen | ✅ | 无解析记录（NXDOMAIN）、HTTP 000，确认删净 |
+
+> **「GitHub → CF Pages 是否触发构建」的最优查法**：无需 Cloudflare 凭据，直接查 GitHub check-runs ——
+> `curl -s https://api.github.com/repos/eyetoolkit/jsonversal-monorepo/commits/<sha>/check-runs | grep -A2 '"name": "Cloudflare Pages"'`
+> 返回 `status: completed` + `conclusion: success` 即表示该 commit 的 CF 构建已成功。
+
+### 待修配置项
+
+1. **`www.jsonversal.com` 522**：现 DNS 为 `www` CNAME → `jsonversal.com`（apex 本身也是橙云代理到 `pages.dev`），形成双重代理回源失败。修法：把 `www` 直接 CNAME 指向 `jsonversal-main-v2.pages.dev`（橙云代理），或在 CF Pages 项目里把 `www.jsonversal.com` 加为 Custom domain。
+2. **`apps/main/wrangler.toml` 项目名不符**：写的是 `name = "jsonversal-main"`，实际 CF 项目为 `jsonversal-main-v2`；其 `[pages] build_config` 也不会被 CF Pages Git 集成读取（构建配置在 dashboard）。属易误导的死配置，建议改名或删除并加注释。
+3. **`~/.ssh/config` 缺 `Host github.com`**（见上）。
 
 ## 常用操作入口（Cloudflare execute 内调 cloudflare.request）
 
