@@ -13,19 +13,19 @@ const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and deco
   keywords={['UUIDv7', 'RFC 9562', 'timestamp decoder', 'UUID generator']}
   current="/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Generate</h2>
+    <h2 class="h2-card">Generate</h2>
     <label class="text-muted" for="count">Count</label>
-    <input id="count" type="number" value="5" min="1" max="100" style="max-width:120px;" />
+    <label for="count" class="sr-only">Count</label> <input id="count" type="number" value="5" min="1" max="100" style="max-width:120px;" />
 
     <label class="text-muted mt-2" style="display:block;" for="format">Format</label>
-    <select id="format">
+    <label for="format" class="sr-only">Format</label> <select id="format">
       <option value="standard">Standard (lowercase)</option>
       <option value="upper">UPPERCASE</option>
       <option value="no-hyphens">No hyphens</option>
@@ -39,7 +39,7 @@ const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and deco
   </section>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Decode timestamp from a UUID v7</h2>
+    <h2 class="h2-card">Decode timestamp from a UUID v7</h2>
     <input id="decode-input" type="text" placeholder="Paste a UUID v7, e.g. 018f5f4b-...-..." />
     <button class="primary mt-2" id="decode-btn">Decode timestamp</button>
     <pre id="decode-out" class="mt-2">—</pre>

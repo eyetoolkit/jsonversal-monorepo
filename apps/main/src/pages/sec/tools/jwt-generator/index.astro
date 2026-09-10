@@ -13,19 +13,21 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
   keywords={['JWT generator', 'JWT signer', 'HS256', 'JSON Web Token', 'jwt encoder', 'sign token']}
   current="/sec/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Header</h2>
+    <h2 class="h2-card">Header</h2>
+    <label for="header" class="sr-only">Header</label>
     <textarea id="header" aria-label="Header" spellcheck="false">&#123;"alg": "HS256", "typ": "JWT"&#125;</textarea>
     <label class="text-muted mt-2" for="payload">Payload</label>
+    <label for="payload" class="sr-only">Header</label>
     <textarea id="payload" spellcheck="false">&#123;&quot;sub&quot;: &quot;1234567890&quot;, &quot;name&quot;: &quot;Alice&quot;, &quot;iat&quot;: 1788800000, &quot;exp&quot;: 1810000000&#125;</textarea>
     <label class="text-muted mt-2" for="secret">Secret (never stored or transmitted)</label>
-    <input id="secret" type="password" placeholder="your-hmac-secret" autocomplete="off" />
+    <label for="secret" class="sr-only">Secret key</label> <input id="secret" type="password" placeholder="your-hmac-secret" autocomplete="off" />
     <div class="row mt-2">
       <button class="primary" id="sign">Sign JWT</button>
       <button class="ghost" id="now">Insert now</button>
@@ -35,7 +37,7 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
 
   <section class="card mt-2" id="out-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Signed JWT</h2>
+      <h2 class="h2-flat">Signed JWT</h2>
       <button class="ghost" id="copy">Copy</button>
     </div>
     <pre id="output" class="mt-1">—</pre>
@@ -43,7 +45,7 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 
@@ -82,7 +84,7 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
     const secret = $('secret').value;
     $('err-section').style.display = 'none';
     $('out-section').style.display = 'none';
-    if (!secret) { alert('Enter a secret to sign with.'); return; }
+    if (!secret) { showToast('Enter a secret to sign with.'); return; }
     try {
       const header = JSON.parse(headerRaw);
       const payload = JSON.parse(payloadRaw);
@@ -120,7 +122,7 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
       const p = JSON.parse($('payload').value);
       p.iat = now;
       $('payload').value = JSON.stringify(p, null, 2);
-    } catch { alert('Payload is not valid JSON.'); }
+    } catch { showToast('Payload is not valid JSON.'); }
   });
 
   $('exp').addEventListener('click', () => {
@@ -129,7 +131,7 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
       const p = JSON.parse($('payload').value);
       p.exp = exp;
       $('payload').value = JSON.stringify(p, null, 2);
-    } catch { alert('Payload is not valid JSON.'); }
+    } catch { showToast('Payload is not valid JSON.'); }
   });
 
   $('copy').addEventListener('click', async () => {

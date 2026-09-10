@@ -7,13 +7,13 @@ const description = 'Score any password and get actionable hints. Checks length,
   canonical="https://jsonversal.com/sec/tools/password-strength/"
   keywords={['password strength', 'password checker', 'entropy calculator']}
   current="/sec/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Enter a password</h2>
-    <input id="pwd" type="password" placeholder="Type or paste a password" />
+    <h2 class="h2-card">Enter a password</h2>
+    <label for="pwd" class="sr-only">Enter a password</label> <input id="pwd" type="password" placeholder="Type or paste a password" />
     <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.85rem;color:var(--text-muted);">
       <input id="show" type="checkbox" /> Show password (risky on shared devices)
     </label>

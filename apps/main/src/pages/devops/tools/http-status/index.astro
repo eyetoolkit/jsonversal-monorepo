@@ -10,15 +10,15 @@ const description = 'Quick reference for HTTP status codes grouped by class, wit
   keywords={['HTTP status codes', 'HTTP response codes', 'status code reference', 'REST API debugging', '1xx 2xx 3xx 4xx 5xx']}
   current="/devops/tools/">
 
-  <nav class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
 
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <div class="card">
-    <input id="search" type="search" placeholder="Search by code or name, e.g. 404, redirect, timeout, forbidden..." />
+    <label for="search" class="sr-only">Search</label> <input id="search" type="search" placeholder="Search by code or name, e.g. 404, redirect, timeout, forbidden..." />
     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
       <button class="primary" id="f-all" data-filter="all">All</button>
       <button class="ghost" id="f-1xx" data-filter="1xx">1xx</button>

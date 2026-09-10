@@ -13,14 +13,15 @@ const description = 'Generate Pydantic v2 BaseModel classes from a JSON sample. 
   keywords={['JSON to Pydantic', 'Pydantic model generator', 'Pydantic v2', 'Python model from JSON', 'Pydantic BaseModel']}
   current="/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Input JSON</h2>
+    <h2 class="h2-card">Input JSON</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" placeholder='&#123;&#10;  "id": 1,&#10;  "name": "Bob",&#10;  "email": "bob@example.com",&#10;  "age": null&#10;&#125;'></textarea>
     <div class="row mt-1">
       <button class="primary" id="generate">Generate Pydantic Model</button>
@@ -31,7 +32,7 @@ const description = 'Generate Pydantic v2 BaseModel classes from a JSON sample. 
 
   <section class="card mt-2" id="output-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Pydantic v2 Model</h2>
+      <h2 class="h2-flat">Pydantic v2 Model</h2>
       <button class="ghost" id="copy">Copy</button>
     </div>
     <pre id="output">—</pre>
@@ -41,7 +42,7 @@ const description = 'Generate Pydantic v2 BaseModel classes from a JSON sample. 
   </section>
 
   <section class="card mt-2" id="error-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 
@@ -165,7 +166,7 @@ print(user.name, user.address.city)</pre>
 
   $('generate').addEventListener('click', function () {
     const raw = input.value.trim();
-    if (!raw) { alert('Please paste some JSON first.'); return; }
+    if (!raw) { showToast('Please paste some JSON first.'); return; }
     try {
       const obj = JSON.parse(raw);
       const r = jsonToPy(obj, 'Root');

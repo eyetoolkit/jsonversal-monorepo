@@ -13,14 +13,15 @@ const description = 'Estimate token count and cost across GPT-4o, Claude 3.5, Ge
   keywords={['LLM token calculator', 'GPT pricing', 'Claude cost', 'token counter', 'AI pricing estimate']}
   current="/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Input</h2>
+    <h2 class="h2-card">Input</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" placeholder="Paste text, code, or JSON here to count tokens..."></textarea>
     <div class="row mt-1">
       <button class="primary" id="calc">Calculate</button>
@@ -31,14 +32,14 @@ const description = 'Estimate token count and cost across GPT-4o, Claude 3.5, Ge
 
   <section class="card mt-2" id="result-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Estimated token count</h2>
+      <h2 class="h2-flat">Estimated token count</h2>
       <span class="token-badge" id="token-count">—</span>
     </div>
     <p class="text-dim" style="font-size:.85rem;">Based on GPT-4 tokenizer approximation (cl100k_base).</p>
   </section>
 
   <section class="card mt-2" id="pricing-section" style="display:none;">
-    <h2 style="margin-top:0;">Estimated cost per 1M tokens</h2>
+    <h2 class="h2-card">Estimated cost per 1M tokens</h2>
     <div class="table-wrap">
     <table id="pricing-table">
       <thead>
@@ -141,7 +142,7 @@ const description = 'Estimate token count and cost across GPT-4o, Claude 3.5, Ge
 
   $('calc').addEventListener('click', function () {
     var text = $('input').value;
-    if (!text.trim()) { alert('Please enter some text first.'); return; }
+    if (!text.trim()) { showToast('Please enter some text first.'); return; }
     var tokens = estimateTokens(text);
     $('token-count').textContent = tokens.toLocaleString() + ' tokens';
     $('result-section').style.display = 'block';

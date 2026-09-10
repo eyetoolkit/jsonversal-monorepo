@@ -13,14 +13,14 @@ const description = 'Generate a ready-to-paste nginx server block — static sit
   keywords={['nginx config generator', 'server block', 'reverse proxy', 'ssl config', 'nginx conf']}
   current="/devops/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Site</h2>
+    <h2 class="h2-card">Site</h2>
     <div class="row">
       <label class="text-muted" for="server-name">server_name</label>
       <input id="server-name" type="text" value="example.com" style="max-width:220px;" />
@@ -48,7 +48,7 @@ const description = 'Generate a ready-to-paste nginx server block — static sit
 
     <div class="row mt-2">
       <label class="text-muted" for="mode">Mode</label>
-      <select id="mode" style="max-width:200px;">
+      <label for="mode" class="sr-only">Mode</label> <select id="mode" style="max-width:200px;">
         <option value="static">Static root</option>
         <option value="proxy">Reverse proxy</option>
       </select>
@@ -56,9 +56,9 @@ const description = 'Generate a ready-to-paste nginx server block — static sit
 
     <div id="static-fields" class="row mt-2">
       <label class="text-muted" for="root">root</label>
-      <input id="root" type="text" value="/var/www/example.com" style="max-width:240px;" />
+      <label for="root" class="sr-only">Root</label> <input id="root" type="text" value="/var/www/example.com" style="max-width:240px;" />
       <label class="text-muted" for="index">index</label>
-      <input id="index" type="text" value="index.html" style="max-width:140px;" />
+      <label for="index" class="sr-only">Index</label> <input id="index" type="text" value="index.html" style="max-width:140px;" />
     </div>
 
     <div id="proxy-fields" class="mt-2" style="display:none;">
@@ -85,12 +85,12 @@ const description = 'Generate a ready-to-paste nginx server block — static sit
   </section>
 
   <section class="card mt-2" id="out-section" style="display:none;">
-    <h2 style="margin-top:0;">nginx.conf</h2>
+    <h2 class="h2-card">nginx.conf</h2>
     <pre id="output" class="mt-1">—</pre>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin-top:0;">Error</h2>
+    <h2 class="h2-card">Error</h2>
     <pre id="err-out" style="color:var(--danger);">—</pre>
   </section>
 

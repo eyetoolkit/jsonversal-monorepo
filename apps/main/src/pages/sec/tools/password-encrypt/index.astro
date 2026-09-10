@@ -7,13 +7,13 @@ const description = 'Encrypt and decrypt text with a password using PBKDF2 key d
   canonical="https://jsonversal.com/sec/tools/password-encrypt/"
   keywords={['password-based encryption', 'PBKDF2', 'AES-GCM', 'encrypt text', 'decrypt text']}
   current="/sec/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <div class="row">
-      <h2 style="margin-top:0;margin-bottom:0;">Operation</h2>
+      <h2 class="h2-flat">Operation</h2>
       <select id="mode" aria-label="Operation">
         <option value="encrypt" selected>Encrypt</option>
         <option value="decrypt">Decrypt</option>
@@ -23,19 +23,20 @@ const description = 'Encrypt and decrypt text with a password using PBKDF2 key d
     <div class="row mt-2">
       <div style="flex:1;min-width:220px;">
         <label class="text-muted" for="pw">Password</label>
-        <input id="pw" type="password" autocomplete="off" placeholder="Passphrase used to derive the key" />
+        <label for="pw" class="sr-only">Operation</label> <input id="pw" type="password" autocomplete="off" placeholder="Passphrase used to derive the key" />
       </div>
       <div>
         <label class="text-muted" for="iters">Iterations (min 10000)</label>
-        <input id="iters" type="number" min="10000" step="10000" value="100000" />
+        <label for="iters" class="sr-only">Operation</label> <input id="iters" type="number" min="10000" step="10000" value="100000" />
       </div>
       <div style="flex:1;min-width:220px;">
         <label class="text-muted" id="salt-label" for="salt">Salt (optional — random 16 bytes if blank)</label>
-        <input id="salt" type="text" placeholder="Optional custom salt text" />
+        <label for="salt" class="sr-only">Salt</label> <input id="salt" type="text" placeholder="Optional custom salt text" />
       </div>
     </div>
 
     <label class="text-muted mt-2" id="data-label" for="data">Plaintext to encrypt</label>
+    <label for="data" class="sr-only">Data</label>
     <textarea id="data" placeholder="Type the message you want to encrypt…"></textarea>
 
     <div class="row mt-1">
@@ -48,6 +49,7 @@ const description = 'Encrypt and decrypt text with a password using PBKDF2 key d
 
   <section class="card mt-2">
     <label class="text-muted" for="result">Result</label>
+    <label for="result" class="sr-only">Result</label>
     <textarea id="result" readonly placeholder="Output appears here…"></textarea>
   </section>
 

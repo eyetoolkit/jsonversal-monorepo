@@ -10,8 +10,8 @@ const description = 'Convert between Unix timestamps and human-readable dates in
   keywords={['Unix timestamp', 'timestamp converter', 'epoch converter', 'UTC time', 'milliseconds']}
   current="/devops/tools/">
 
-  <nav class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
 
   <h1>{title}</h1>
@@ -20,7 +20,7 @@ const description = 'Convert between Unix timestamps and human-readable dates in
   <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
     <div class="card">
       <strong>Timestamp → Date</strong>
-      <input id="timestamp" type="number" placeholder="e.g. 1700000000 or 1700000000000" style="margin-top:12px;" />
+      <label for="timestamp" class="sr-only">Timestamp</label> <input id="timestamp" type="number" placeholder="e.g. 1700000000 or 1700000000000" style="margin-top:12px;" />
       <div style="margin-top:8px;display:flex;gap:8px;">
         <button class="primary" id="to-date">Convert</button>
       </div>

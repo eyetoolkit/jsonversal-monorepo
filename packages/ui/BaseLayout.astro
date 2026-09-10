@@ -61,6 +61,10 @@ const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
     {/* Theme color —— 随主题切换（由下方内联脚本同步更新） */}
     <meta name="theme-color" content="#0b0d12" id="meta-theme-color" />
 
+    {/* 搜索 & 浏览器提示 */}
+    <meta name="robots" content="index, follow" />
+    <meta name="color-scheme" content="dark light" />
+
     {/* favicon —— 品牌 SVG（按子站 accent 色） */}
     <link rel="icon" href={faviconHref} />
     <link rel="apple-touch-icon" href={faviconHref} />
@@ -117,6 +121,10 @@ const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
   </head>
   <body class={`site-${site}`}>
     <a class="skip-link" href="#main">Skip to content</a>
+
+    {/* Toast 容器 —— 非阻塞通知，替代原生 alert() */}
+    <div id="toast-container" role="region" aria-live="polite" aria-label="Notifications" class="toast-container"></div>
+
     <Header site={site} current={current} />
     <main class="container" id="main">
       <slot />
@@ -129,5 +137,76 @@ const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
       若将来要接入分析（如 Cloudflare Web Analytics），必须先一并更新
       这两页的披露（含法律依据与保留期限），再在此处注入信标。
     */}
+
+    {/* Toast 通知工具 —— 全局可用，替代 alert() / confirm()
+        用法：showToast('message') 或 showToast('message', { type: 'error' })
+        type: 'error' (default) | 'success' | 'info' | 'warning' */}
+    <script is:inline>
+    (function () {
+      var DEFAULT_DURATION = 2800;
+      var MAX_TOASTS = 3;
+
+      function ensureContainer() {
+        var c = document.getElementById('toast-container');
+        if (!c) {
+          c = document.createElement('div');
+          c.id = 'toast-container';
+          c.setAttribute('role', 'region');
+          c.setAttribute('aria-live', 'polite');
+          c.setAttribute('aria-label', 'Notifications');
+          document.body.appendChild(c);
+        }
+        return c;
+      }
+
+      function showToast(message, opts) {
+        opts = opts || {};
+        var type = opts.type || 'error';
+        var duration = opts.duration !== undefined ? opts.duration : DEFAULT_DURATION;
+
+        var container = ensureContainer();
+
+        // 限制同时显示的 toast 数量
+        while (container.children.length >= MAX_TOASTS) {
+          container.removeChild(container.firstChild);
+        }
+
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        toast.textContent = message;
+
+        var close = document.createElement('button');
+        close.className = 'toast-close';
+        close.setAttribute('aria-label', 'Dismiss notification');
+        close.innerHTML = '&times;';
+        close.addEventListener('click', function () { dismiss(toast); });
+        toast.appendChild(close);
+
+        container.appendChild(toast);
+
+        // 触发进入动画
+        requestAnimationFrame(function () {
+          toast.classList.add('toast-in');
+        });
+
+        var timer = setTimeout(function () { dismiss(toast); }, duration);
+        toast.addEventListener('mouseenter', function () { clearTimeout(timer); });
+        toast.addEventListener('mouseleave', function () {
+          timer = setTimeout(function () { dismiss(toast); }, 1500);
+        });
+      }
+
+      function dismiss(toast) {
+        if (!toast.parentNode || toast.classList.contains('toast-out')) return;
+        toast.classList.add('toast-out');
+        setTimeout(function () {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 220);
+      }
+
+      window.showToast = showToast;
+    })();
+    </script>
   </body>
 </html>

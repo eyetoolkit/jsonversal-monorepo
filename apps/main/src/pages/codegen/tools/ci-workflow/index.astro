@@ -7,16 +7,16 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
   canonical="https://jsonversal.com/codegen/tools/ci-workflow/"
   keywords={['github actions', 'ci workflow', 'github actions scaffold']}
   current="/codegen/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Workflow config</h2>
+    <h2 class="h2-card">Workflow config</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
         <label class="text-muted" for="lang">Language</label>
-        <select id="lang">
+        <label for="lang" class="sr-only">Workflow config</label> <select id="lang">
           <option value="node">Node.js</option>
           <option value="python">Python</option>
           <option value="go">Go</option>
@@ -26,7 +26,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       </div>
       <div>
         <label class="text-muted" for="trigger">Trigger</label>
-        <select id="trigger">
+        <label for="trigger" class="sr-only">Workflow config</label> <select id="trigger">
           <option value="push">Push to main</option>
           <option value="pr">Pull requests</option>
           <option value="both">Both push + PR</option>
@@ -52,7 +52,7 @@ const description = 'Scaffold a GitHub Actions CI workflow — pick language, no
       <label style="display:flex;align-items:center;gap:6px;"><input id="cache" type="checkbox" checked /> Cache deps</label>
     </div>
     <label class="text-muted" style="margin-top:12px;" for="wfname">Workflow name</label>
-    <input id="wfname" type="text" value="CI" />
+    <label for="wfname" class="sr-only">Wfname</label> <input id="wfname" type="text" value="CI" />
     <button class="primary mt-2" id="gen">Generate workflow</button>
   </section>
 

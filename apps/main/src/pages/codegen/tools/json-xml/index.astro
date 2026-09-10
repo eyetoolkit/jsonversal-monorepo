@@ -13,20 +13,21 @@ const description = 'Convert JSON to XML or XML to JSON with a single click. Han
   keywords={['JSON to XML', 'XML to JSON', 'JSON XML converter', 'XML parser', 'data conversion']}
   current="/codegen/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Input</h2>
+    <h2 class="h2-card">Input</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" aria-label="Input" spellcheck="false"></textarea>
     <div class="row mt-1">
       <button class="primary" id="to-xml">JSON → XML</button>
       <button class="primary" id="to-json">XML → JSON</button>
       <label class="text-muted" for="root">XML root tag</label>
-      <input id="root" type="text" value="root" style="max-width:120px;" />
+      <label for="root" class="sr-only">Input</label> <input id="root" type="text" value="root" style="max-width:120px;" />
       <button class="ghost" id="sample-json">Sample JSON</button>
       <button class="ghost" id="sample-xml">Sample XML</button>
     </div>
@@ -34,14 +35,14 @@ const description = 'Convert JSON to XML or XML to JSON with a single click. Han
 
   <section class="card mt-2" id="out-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Output</h2>
+      <h2 class="h2-flat">Output</h2>
       <button class="ghost" id="copy">Copy</button>
     </div>
     <pre id="output" class="mt-1">—</pre>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 
@@ -148,7 +149,7 @@ const description = 'Convert JSON to XML or XML to JSON with a single click. Han
 
   $('to-xml').addEventListener('click', () => {
     const raw = $('input').value.trim();
-    if (!raw) { alert('Paste JSON first.'); return; }
+    if (!raw) { showToast('Paste JSON first.'); return; }
     try {
       const obj = JSON.parse(raw);
       const root = $('root').value.trim() || 'root';
@@ -158,7 +159,7 @@ const description = 'Convert JSON to XML or XML to JSON with a single click. Han
 
   $('to-json').addEventListener('click', () => {
     const raw = $('input').value.trim();
-    if (!raw) { alert('Paste XML first.'); return; }
+    if (!raw) { showToast('Paste XML first.'); return; }
     try {
       showOut(JSON.stringify(xmlToJson(raw), null, 2), null);
     } catch (e) { showOut(null, e.message); }

@@ -13,22 +13,24 @@ const description = 'Compare two JSON documents and see exactly what changed —
   keywords={['JSON diff', 'compare JSON', 'JSON comparison tool', 'diff two JSON', 'JSON change detection']}
   current="/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Input</h2>
+    <h2 class="h2-card">Input</h2>
     <div class="diff-grid">
       <div>
         <label class="text-muted" for="a">Document A</label>
-        <textarea id="a" placeholder='&#123;&#10;  "name": "Alice",&#10;  "age": 30&#10;&#125;'></textarea>
+        <label for="a" class="sr-only">Input</label>
+    <textarea id="a" placeholder='&#123;&#10;  "name": "Alice",&#10;  "age": 30&#10;&#125;'></textarea>
       </div>
       <div>
         <label class="text-muted" for="b">Document B</label>
-        <textarea id="b" placeholder='&#123;&#10;  "name": "Alice",&#10;  "age": 31&#10;&#125;'></textarea>
+        <label for="b" class="sr-only">Input</label>
+    <textarea id="b" placeholder='&#123;&#10;  "name": "Alice",&#10;  "age": 31&#10;&#125;'></textarea>
       </div>
     </div>
     <div class="row mt-1">
@@ -40,14 +42,14 @@ const description = 'Compare two JSON documents and see exactly what changed —
 
   <section class="card mt-2" id="result-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Differences</h2>
+      <h2 class="h2-flat">Differences</h2>
       <span class="token-badge" id="summary">—</span>
     </div>
     <div id="result"></div>
   </section>
 
   <section class="card mt-2" id="error-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="error-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 
@@ -139,7 +141,7 @@ const description = 'Compare two JSON documents and see exactly what changed —
   $('compare').addEventListener('click', function () {
     const ra = $('a').value.trim();
     const rb = $('b').value.trim();
-    if (!ra || !rb) { alert('Please paste both JSON documents first.'); return; }
+    if (!ra || !rb) { showToast('Please paste both JSON documents first.'); return; }
     try {
       const a = JSON.parse(ra);
       const b = JSON.parse(rb);

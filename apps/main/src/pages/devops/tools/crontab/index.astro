@@ -10,8 +10,8 @@ const description = 'Translate a crontab expression into human-readable schedule
   keywords={['crontab', 'cron', 'cron schedule']}
   current="/devops/tools/">
 
-  <nav class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
 
   <h1>{title}</h1>
@@ -19,7 +19,7 @@ const description = 'Translate a crontab expression into human-readable schedule
 
   <div class="card">
     <label class="text-muted" for="expr">Cron expression</label>
-    <input id="expr" type="text" value="0 9 * * *" style="margin-top:8px;font-family:var(--font-mono);" />
+    <label for="expr" class="sr-only">Expression</label> <input id="expr" type="text" value="0 9 * * *" style="margin-top:8px;font-family:var(--font-mono);" />
     <div class="text-muted" style="font-size:.8rem;margin-top:4px;">
       Format: <code>min hour dom month dow</code> (5-field) or <code>sec min hour dom month dow</code> (6-field).
     </div>

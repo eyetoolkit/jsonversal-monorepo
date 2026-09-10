@@ -13,17 +13,17 @@ const description = 'Parse nginx, Apache, JSON, or custom-regex log lines into a
   keywords={['log parser', 'nginx log', 'apache log', 'log analysis', 'json lines']}
   current="/devops/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Input</h2>
+    <h2 class="h2-card">Input</h2>
     <div class="row">
       <label class="text-muted" for="format">Format</label>
-      <select id="format" style="max-width:220px;">
+      <label for="format" class="sr-only">Format</label> <select id="format" style="max-width:220px;">
         <option value="nginx">Nginx combined</option>
         <option value="apache">Apache combined</option>
         <option value="json">JSON lines</option>
@@ -44,14 +44,14 @@ const description = 'Parse nginx, Apache, JSON, or custom-regex log lines into a
   </section>
 
   <section class="card mt-2" id="out-section" style="display:none;">
-    <h2 style="margin-top:0;">Results</h2>
+    <h2 class="h2-card">Results</h2>
     <div id="stats" class="mt-1"></div>
     <div id="warnings" class="mt-1"></div>
     <div id="table-wrap" class="table-wrap mt-1"></div>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin-top:0;">Error</h2>
+    <h2 class="h2-card">Error</h2>
     <pre id="err-out" style="color:var(--danger);">—</pre>
   </section>
 

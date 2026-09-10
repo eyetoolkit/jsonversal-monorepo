@@ -13,23 +13,24 @@ const description = 'Generate CREATE TABLE and INSERT statements from a JSON arr
   keywords={['JSON to SQL', 'SQL generator', 'CREATE TABLE', 'INSERT statement', 'database dump']}
   current="/codegen/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">JSON array</h2>
+    <h2 class="h2-card">JSON array</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" aria-label="JSON array" spellcheck="false">[
   &#123; "id": 1, "name": "Ada Lovelace", "email": "ada@example.com", "active": true, "score": 98.5 &#125;,
   &#123; "id": 2, "name": "Grace Hopper", "email": "grace@example.com", "active": false, "score": 99.9 &#125;
 ]</textarea>
     <div class="row mt-1">
       <label class="text-muted" for="table">Table name</label>
-      <input id="table" type="text" value="users" style="max-width:160px;" spellcheck="false" />
+      <label for="table" class="sr-only">JSON array</label> <input id="table" type="text" value="users" style="max-width:160px;" spellcheck="false" />
       <label class="text-muted" for="dialect">Dialect</label>
-      <select id="dialect">
+      <label for="dialect" class="sr-only">Dialect</label> <select id="dialect">
         <option value="mysql">MySQL</option>
         <option value="sqlite">SQLite</option>
         <option value="postgres">PostgreSQL</option>
@@ -40,7 +41,7 @@ const description = 'Generate CREATE TABLE and INSERT statements from a JSON arr
 
   <section class="card mt-2" id="out-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">SQL</h2>
+      <h2 class="h2-flat">SQL</h2>
       <div class="row" style="gap:8px;">
         <span class="text-dim" id="meta" style="font-size:.85rem;"></span>
         <button class="ghost" id="copy">Copy</button>
@@ -50,7 +51,7 @@ const description = 'Generate CREATE TABLE and INSERT statements from a JSON arr
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 
@@ -114,7 +115,7 @@ const description = 'Generate CREATE TABLE and INSERT statements from a JSON arr
   $('gen').addEventListener('click', () => {
     const raw = $('input').value.trim();
     $('err-section').style.display = 'none';
-    if (!raw) { alert('Paste a JSON array first.'); return; }
+    if (!raw) { showToast('Paste a JSON array first.'); return; }
     try {
       const data = JSON.parse(raw);
       if (!Array.isArray(data) || !data.length) throw new Error('Input must be a non-empty JSON array of objects.');

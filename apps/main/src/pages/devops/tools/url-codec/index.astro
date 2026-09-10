@@ -10,8 +10,8 @@ const description = 'Encode or decode URL strings in both directions. Choose Com
   keywords={['URL encode', 'URL decode', 'encodeURIComponent', 'encodeURI', 'percent encoding']}
   current="/devops/tools/">
 
-  <nav class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
 
   <h1>{title}</h1>
@@ -21,18 +21,19 @@ const description = 'Encode or decode URL strings in both directions. Choose Com
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
       <strong>Input</strong>
       <label class="text-muted" style="font-size:.8rem;">Direction:
-        <select id="direction">
+        <label for="direction" class="sr-only">Direction</label> <select id="direction">
           <option value="encode">Encode</option>
           <option value="decode">Decode</option>
         </select>
       </label>
       <label class="text-muted" style="font-size:.8rem;">Mode:
-        <select id="mode">
+        <label for="mode" class="sr-only">Mode</label> <select id="mode">
           <option value="component">Component</option>
           <option value="full">Full URL</option>
         </select>
       </label>
     </div>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" placeholder="Text or URL to convert..." style="margin-top:12px;min-height:220px;"></textarea>
     <div style="margin-top:8px;display:flex;gap:8px;">
       <button class="primary" id="convert">Convert</button>

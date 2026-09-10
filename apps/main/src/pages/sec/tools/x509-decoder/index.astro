@@ -13,14 +13,15 @@ const description = 'Decode PEM X.509 certificates in your browser — subject, 
   keywords={['X.509 decoder', 'certificate decoder', 'PEM parser', 'DER ASN.1', 'subject alternative name', 'ssl certificate']}
   current="/sec/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">PEM certificate</h2>
+    <h2 class="h2-card">PEM certificate</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" spellcheck="false" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"></textarea>
     <div class="row mt-1">
       <button class="primary" id="decode">Decode</button>
@@ -30,12 +31,12 @@ const description = 'Decode PEM X.509 certificates in your browser — subject, 
   </section>
 
   <section class="card mt-2" id="out-section" style="display:none;">
-    <h2 style="margin-top:0;">Decoded certificate</h2>
+    <h2 class="h2-card">Decoded certificate</h2>
     <pre id="output" class="mt-1">—</pre>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 
@@ -412,7 +413,7 @@ hg==
 
   $('decode').addEventListener('click', () => {
     const pem = $('input').value.trim();
-    if (!pem) { alert('Paste a PEM certificate first.'); return; }
+    if (!pem) { showToast('Paste a PEM certificate first.'); return; }
     try {
       const der = pemToDer(pem);
       const decoded = decode(der);

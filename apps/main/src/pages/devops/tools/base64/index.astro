@@ -10,8 +10,8 @@ const description = 'Encode any text to Base64, or decode Base64 back to text. S
   keywords={['Base64 encode', 'Base64 decode', 'URL-safe Base64', 'base64 converter']}
   current="/devops/tools/">
 
-  <nav class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
 
   <h1>{title}</h1>
@@ -25,7 +25,8 @@ const description = 'Encode any text to Base64, or decode Base64 back to text. S
           <input type="checkbox" id="urlsafe" /> URL-safe
         </label>
       </div>
-      <textarea id="input" placeholder="Text or Base64..." style="margin-top:12px;min-height:260px;"></textarea>
+      <label for="input" class="sr-only">Input</label>
+    <textarea id="input" placeholder="Text or Base64..." style="margin-top:12px;min-height:260px;"></textarea>
       <div style="margin-top:8px;display:flex;gap:8px;">
         <button class="primary" id="encode">→ Encode</button>
         <button class="ghost" id="decode">← Decode</button>

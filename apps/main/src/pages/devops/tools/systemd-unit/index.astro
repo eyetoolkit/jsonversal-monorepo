@@ -13,19 +13,19 @@ const description = 'Build a valid systemd unit file — environment, restart po
   keywords={['systemd unit generator', 'service file', 'systemctl', 'hardening', 'unit file']}
   current="/devops/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Unit</h2>
+    <h2 class="h2-card">Unit</h2>
     <div class="row">
       <label class="text-muted" for="unit-name">Unit name</label>
       <input id="unit-name" type="text" value="myapp" style="max-width:180px;" />
       <label class="text-muted" for="description">Description</label>
-      <input id="description" type="text" value="My application service" style="max-width:280px;" />
+      <label for="description" class="sr-only">Unit</label> <input id="description" type="text" value="My application service" style="max-width:280px;" />
     </div>
     <div class="row mt-2">
       <label class="text-muted" for="exec-start">ExecStart</label>
@@ -33,15 +33,15 @@ const description = 'Build a valid systemd unit file — environment, restart po
     </div>
     <div class="row mt-2">
       <label class="text-muted" for="workdir">WorkingDirectory</label>
-      <input id="workdir" type="text" value="/srv/myapp" style="max-width:220px;" />
+      <label for="workdir" class="sr-only">Workdir</label> <input id="workdir" type="text" value="/srv/myapp" style="max-width:220px;" />
       <label class="text-muted" for="user">User</label>
-      <input id="user" type="text" value="myapp" style="max-width:140px;" />
+      <label for="user" class="sr-only">User</label> <input id="user" type="text" value="myapp" style="max-width:140px;" />
       <label class="text-muted" for="group">Group</label>
-      <input id="group" type="text" value="myapp" style="max-width:140px;" />
+      <label for="group" class="sr-only">Group</label> <input id="group" type="text" value="myapp" style="max-width:140px;" />
     </div>
     <div class="row mt-2">
       <label class="text-muted" for="restart">Restart</label>
-      <select id="restart" style="max-width:160px;">
+      <label for="restart" class="sr-only">Restart</label> <select id="restart" style="max-width:160px;">
         <option value="no">no</option>
         <option value="on-failure" selected>on-failure</option>
         <option value="always">always</option>
@@ -52,7 +52,8 @@ const description = 'Build a valid systemd unit file — environment, restart po
     </div>
     <div class="mt-2">
       <label class="text-muted" for="env">Environment (one KEY=value per line)</label>
-      <textarea id="env" rows="4" class="mt-1">PORT=3000
+      <label for="env" class="sr-only">Env</label>
+    <textarea id="env" rows="4" class="mt-1">PORT=3000
 NODE_ENV=production</textarea>
     </div>
     <div class="row mt-2">
@@ -72,13 +73,13 @@ NODE_ENV=production</textarea>
   </section>
 
   <section class="card mt-2" id="out-section" style="display:none;">
-    <h2 style="margin-top:0;">myapp.service</h2>
+    <h2 class="h2-card">myapp.service</h2>
     <pre id="output" class="mt-1">—</pre>
     <p class="text-muted mt-1" id="hint"></p>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin-top:0;">Error</h2>
+    <h2 class="h2-card">Error</h2>
     <pre id="err-out" style="color:var(--danger);">—</pre>
   </section>
 

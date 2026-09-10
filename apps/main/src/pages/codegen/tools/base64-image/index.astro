@@ -13,14 +13,14 @@ const description = 'Convert a base64 data URI into a viewable, downloadable ima
   keywords={['base64 image', 'data uri', 'image to base64', 'base64 decode', 'image viewer']}
   current="/codegen/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Mode</h2>
+    <h2 class="h2-card">Mode</h2>
     <select id="mode" aria-label="Mode">
       <option value="decode">Base64 → Image</option>
       <option value="encode">Image → Base64</option>
@@ -28,7 +28,8 @@ const description = 'Convert a base64 data URI into a viewable, downloadable ima
   </section>
 
   <section class="card mt-2" id="decode-section">
-    <h2 style="margin-top:0;">Base64 data</h2>
+    <h2 class="h2-card">Base64 data</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" spellcheck="false" placeholder="data:image/png;base64,iVBORw0KGgo..."></textarea>
     <div class="row mt-1">
       <button class="primary" id="gen">Preview</button>
@@ -38,9 +39,9 @@ const description = 'Convert a base64 data URI into a viewable, downloadable ima
   </section>
 
   <section class="card mt-2" id="encode-section" style="display:none;">
-    <h2 style="margin-top:0;">Image file</h2>
+    <h2 class="h2-card">Image file</h2>
     <div class="row mt-1">
-      <input type="file" id="file" accept="image/*" />
+      <label for="file" class="sr-only">Base64 data</label> <input type="file" id="file" accept="image/*" />
       <button class="ghost" id="clear-file">Clear</button>
     </div>
     <textarea id="data-uri" class="mt-1" readonly spellcheck="false" placeholder="The data URI will appear here after you pick a file."></textarea>
@@ -48,7 +49,7 @@ const description = 'Convert a base64 data URI into a viewable, downloadable ima
 
   <section class="card mt-2" id="out-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Preview</h2>
+      <h2 class="h2-flat">Preview</h2>
       <div class="row" style="gap:8px;">
         <span class="text-dim" id="meta" style="font-size:.85rem;"></span>
         <button class="ghost" id="download">Download</button>
@@ -61,7 +62,7 @@ const description = 'Convert a base64 data URI into a viewable, downloadable ima
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 

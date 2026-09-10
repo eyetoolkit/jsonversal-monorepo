@@ -7,16 +7,16 @@ const description = 'Generate time-based one-time passcodes (RFC 6238) from a Ba
   canonical="https://jsonversal.com/sec/tools/totp/"
   keywords={['totp', 'authenticator', 'one-time password', '2fa', 'rfc 6238', 'verification code']}
   current="/sec/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Generate code</h2>
+    <h2 class="h2-card">Generate code</h2>
     <label class="text-muted" for="secret">Base32 secret</label>
-    <input id="secret" type="text" placeholder="e.g. JBSWY3DPEHPK3PXP" />
+    <label for="secret" class="sr-only">Secret key</label> <input id="secret" type="text" placeholder="e.g. JBSWY3DPEHPK3PXP" />
     <label class="text-muted" style="margin-top:12px;" for="label">Issuer / account (optional)</label>
-    <input id="label" type="text" placeholder="e.g. GitHub (alice@example.com)" />
+    <label for="label" class="sr-only">Generate code</label> <input id="label" type="text" placeholder="e.g. GitHub (alice@example.com)" />
     <div class="row mt-2">
       <button class="primary" id="gen">Generate</button>
     </div>
@@ -150,7 +150,7 @@ const description = 'Generate time-based one-time passcodes (RFC 6238) from a Ba
     const secret = $('secret').value.trim();
     const err = $('err');
     err.style.display = 'none';
-    if (!secret) { alert('Please enter a Base32 secret.'); return; }
+    if (!secret) { showToast('Please enter a Base32 secret.'); return; }
 
     let bytes;
     try {
@@ -180,8 +180,8 @@ const description = 'Generate time-based one-time passcodes (RFC 6238) from a Ba
     err.style.display = 'none';
     vOut.style.display = 'none';
 
-    if (!secret) { alert('Please enter the Base32 secret first.'); return; }
-    if (!/^\d{6}$/.test(code)) { alert('Please enter a 6-digit verification code.'); return; }
+    if (!secret) { showToast('Please enter the Base32 secret first.'); return; }
+    if (!/^\d{6}$/.test(code)) { showToast('Please enter a 6-digit verification code.'); return; }
 
     let bytes;
     try {

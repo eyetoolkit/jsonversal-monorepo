@@ -13,16 +13,16 @@ const description = 'Calculate network address, broadcast, host ranges, masks, a
   keywords={['CIDR calculator', 'subnet calculator', 'subnet mask', 'network address', 'broadcast address', 'ipv4']}
   current="/devops/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Network</h2>
+    <h2 class="h2-card">Network</h2>
     <div class="row">
-      <input id="cidr" type="text" placeholder="192.168.1.0/24" style="max-width:260px;" spellcheck="false" />
+      <label for="cidr" class="sr-only">Network</label> <input id="cidr" type="text" placeholder="192.168.1.0/24" style="max-width:260px;" spellcheck="false" />
       <button class="primary" id="calc">Calculate</button>
       <button class="ghost" id="sample">Load sample</button>
     </div>
@@ -30,12 +30,12 @@ const description = 'Calculate network address, broadcast, host ranges, masks, a
   </section>
 
   <section class="card mt-2" id="out-section" style="display:none;">
-    <h2 style="margin-top:0;">Result</h2>
+    <h2 class="h2-card">Result</h2>
     <div id="out" class="mt-1"></div>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <div id="err" class="mt-1" style="color:var(--danger);">—</div>
   </section>
 
@@ -90,7 +90,7 @@ const description = 'Calculate network address, broadcast, host ranges, masks, a
   $('calc').addEventListener('click', () => {
     const raw = $('cidr').value.trim();
     $('err-section').style.display = 'none';
-    if (!raw) { alert('Enter an IP or CIDR first.'); return; }
+    if (!raw) { showToast('Enter an IP or CIDR first.'); return; }
     try {
       const parts = raw.split('/');
       const ip = ipToInt(parts[0]);

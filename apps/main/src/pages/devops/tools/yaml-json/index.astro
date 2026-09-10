@@ -10,8 +10,8 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
   keywords={['YAML to JSON', 'JSON to YAML', 'Kubernetes manifest']}
   current="/devops/tools/">
 
-  <nav class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
 
   <h1>{title}</h1>
@@ -26,7 +26,8 @@ const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, valida
           <option value="json">JSON</option>
         </select>
       </div>
-      <textarea id="input" placeholder="Paste YAML or JSON here..." style="margin-top:12px;min-height:280px;"></textarea>
+      <label for="input" class="sr-only">Input</label>
+    <textarea id="input" placeholder="Paste YAML or JSON here..." style="margin-top:12px;min-height:280px;"></textarea>
       <div style="margin-top:8px;display:flex;gap:8px;">
         <button class="primary" id="convert">Convert →</button>
         <button class="ghost" id="clear">Clear</button>

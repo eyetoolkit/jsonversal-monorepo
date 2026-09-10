@@ -13,19 +13,19 @@ const description = 'Scaffold a docker-compose.yml with services, ports, volumes
   keywords={['docker compose generator', 'docker-compose.yml', 'compose file', 'docker services', 'yaml generator']}
   current="/codegen/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Project</h2>
+    <h2 class="h2-card">Project</h2>
     <div class="row">
       <label class="text-muted" for="project">Project name</label>
-      <input id="project" type="text" value="myapp" style="max-width:180px;" spellcheck="false" />
+      <label for="project" class="sr-only">Project</label> <input id="project" type="text" value="myapp" style="max-width:180px;" spellcheck="false" />
       <label class="text-muted" for="version">Compose version</label>
-      <select id="version">
+      <label for="version" class="sr-only">Project</label> <select id="version">
         <option value="3.9">3.9</option>
         <option value="3.8">3.8</option>
         <option value="2.24">2.24</option>
@@ -42,12 +42,12 @@ const description = 'Scaffold a docker-compose.yml with services, ports, volumes
   </section>
 
   <section class="card mt-2" id="out-section" style="display:none;">
-    <h2 style="margin-top:0;">docker-compose.yml</h2>
+    <h2 class="h2-card">docker-compose.yml</h2>
     <pre id="output" class="mt-1">—</pre>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Error</h2>
+    <h2 class="h2-error">Error</h2>
     <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 

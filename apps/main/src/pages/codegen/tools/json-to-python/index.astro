@@ -7,12 +7,13 @@ const description = 'Convert a JSON sample into an equivalent Python dict litera
   canonical="https://jsonversal.com/codegen/tools/json-to-python/"
   keywords={['json to python', 'python dict literal', 'json converter']}
   current="/codegen/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Paste your JSON</h2>
+    <h2 class="h2-card">Paste your JSON</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" placeholder='{"name": "Alice", "api_key": "sk-123", "retry-count": 3, "enabled": true, "meta": null}'></textarea>
     <div style="margin-top:12px;display:flex;gap:8px;">
       <button class="primary" id="gen">Generate Python dict</button>

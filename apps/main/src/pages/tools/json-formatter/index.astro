@@ -13,18 +13,19 @@ const description = 'Pretty-print, validate, and minify JSON with configurable i
   keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
   current="/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Input JSON</h2>
+    <h2 class="h2-card">Input JSON</h2>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" spellcheck="false" placeholder='&#123;&#10;  "users": [&#10;    &#123; "id": 1, "name": "Ada", "active": true &#125;,&#10;    &#123; "id": 2, "name": "Grace", "active": false &#125;&#10;  ]&#10;&#125;'></textarea>
     <div class="row mt-1">
       <label class="text-muted" for="indent">Indent</label>
-      <select id="indent">
+      <label for="indent" class="sr-only">Indent</label> <select id="indent">
         <option value="2">2 spaces</option>
         <option value="4" selected>4 spaces</option>
         <option value="tab">Tab</option>
@@ -38,7 +39,7 @@ const description = 'Pretty-print, validate, and minify JSON with configurable i
 
   <section class="card mt-2" id="out-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Output</h2>
+      <h2 class="h2-flat">Output</h2>
       <div class="row" style="gap:8px;">
         <span class="text-dim" id="stats" style="font-size:.85rem;"></span>
         <button class="ghost" id="copy">Copy</button>
@@ -48,7 +49,7 @@ const description = 'Pretty-print, validate, and minify JSON with configurable i
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin:0;color:var(--danger);">Invalid JSON</h2>
+    <h2 class="h2-error">Invalid JSON</h2>
     <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
   </section>
 
@@ -101,7 +102,7 @@ const description = 'Pretty-print, validate, and minify JSON with configurable i
 
   function run(mode) {
     const raw = $('input').value;
-    if (!raw.trim()) { alert('Please paste some JSON first.'); return; }
+    if (!raw.trim()) { showToast('Please paste some JSON first.'); return; }
     try {
       const obj = JSON.parse(raw);
       let out;

@@ -7,16 +7,16 @@ const description = 'Generate cryptographically secure random tokens in hex, bas
   canonical="https://jsonversal.com/sec/tools/random-token/"
   keywords={['random token', 'token generator', 'api key', 'csprng', 'base64url', 'uuid']}
   current="/sec/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Options</h2>
+    <h2 class="h2-card">Options</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
       <div>
         <label class="text-muted" for="enc">Encoding</label>
-        <select id="enc">
+        <label for="enc" class="sr-only">Options</label> <select id="enc">
           <option value="hex">Hex (lowercase)</option>
           <option value="hex-upper">Hex (uppercase)</option>
           <option value="base64">Base64</option>
@@ -26,12 +26,12 @@ const description = 'Generate cryptographically secure random tokens in hex, bas
       </div>
       <div>
         <label class="text-muted" for="len">Length (bytes, 4–128)</label>
-        <input id="len" type="number" min="4" max="128" value="16" />
+        <label for="len" class="sr-only">Len</label> <input id="len" type="number" min="4" max="128" value="16" />
         <div class="text-dim" id="len-note" style="display:none;font-size:.85rem;margin-top:4px;">UUID format always uses 16 bytes.</div>
       </div>
       <div>
         <label class="text-muted" for="count">Count (1–10)</label>
-        <input id="count" type="number" min="1" max="10" value="1" />
+        <label for="count" class="sr-only">Count</label> <input id="count" type="number" min="1" max="10" value="1" />
       </div>
     </div>
     <div class="row mt-2">
@@ -118,8 +118,8 @@ const description = 'Generate cryptographically secure random tokens in hex, bas
     const isUuid = enc === 'uuid';
     const len = isUuid ? 16 : parseInt($('len').value, 10);
 
-    if (isNaN(count) || count < 1 || count > 10) { alert('Count must be a number between 1 and 10.'); return; }
-    if (!isUuid && (isNaN(len) || len < 4 || len > 128)) { alert('Length must be a number between 4 and 128 bytes.'); return; }
+    if (isNaN(count) || count < 1 || count > 10) { showToast('Count must be a number between 1 and 10.'); return; }
+    if (!isUuid && (isNaN(len) || len < 4 || len > 128)) { showToast('Length must be a number between 4 and 128 bytes.'); return; }
 
     tokens = [];
     for (let i = 0; i < count; i++) {

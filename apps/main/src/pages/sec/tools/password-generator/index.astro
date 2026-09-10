@@ -7,20 +7,20 @@ const description = 'Generate strong random passwords using the browser\'s crypt
   canonical="https://jsonversal.com/sec/tools/password-generator/"
   keywords={['password generator', 'random password', 'secure password', 'strong password', 'cspRng']}
   current="/sec/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Options</h2>
+    <h2 class="h2-card">Options</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
       <div>
         <label class="text-muted" for="len">Length (8–64)</label>
-        <input id="len" type="number" min="8" max="64" value="20" />
+        <label for="len" class="sr-only">Options</label> <input id="len" type="number" min="8" max="64" value="20" />
       </div>
       <div>
         <label class="text-muted" for="count">Count (1–10)</label>
-        <input id="count" type="number" min="1" max="10" value="3" />
+        <label for="count" class="sr-only">Count</label> <input id="count" type="number" min="1" max="10" value="3" />
       </div>
     </div>
     <div class="row mt-2">
@@ -108,10 +108,10 @@ const description = 'Generate strong random passwords using the browser\'s crypt
     err.style.display = 'none';
 
     const selected = Object.keys(SETS).filter(k => $(k).checked);
-    if (!selected.length) { alert('Please select at least one character set.'); return; }
-    if (isNaN(len) || len < 8 || len > 64) { alert('Length must be a number between 8 and 64.'); return; }
-    if (isNaN(count) || count < 1 || count > 10) { alert('Count must be a number between 1 and 10.'); return; }
-    if (len < selected.length) { alert('Length must be at least ' + selected.length + ' to include every selected character set.'); return; }
+    if (!selected.length) { showToast('Please select at least one character set.'); return; }
+    if (isNaN(len) || len < 8 || len > 64) { showToast('Length must be a number between 8 and 64.'); return; }
+    if (isNaN(count) || count < 1 || count > 10) { showToast('Count must be a number between 1 and 10.'); return; }
+    if (len < selected.length) { showToast('Length must be at least ' + selected.length + ' to include every selected character set.'); return; }
 
     const pools = selected.map(k => SETS[k]);
     const poolSize = pools.reduce((n, p) => n + p.length, 0);

@@ -13,26 +13,26 @@ const description = 'Convert between binary, octal, decimal, hex, and ASCII text
   keywords={['number base converter', 'binary hex octal', 'bigint converter', 'ascii to hex', '2 complement']}
   current="/devops/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Input</h2>
+    <h2 class="h2-card">Input</h2>
     <div class="row">
       <label class="text-muted" for="interpret">Interpret as</label>
-      <select id="interpret" style="max-width:180px;">
+      <label for="interpret" class="sr-only">Input</label> <select id="interpret" style="max-width:180px;">
         <option value="int">Integer</option>
         <option value="ascii">ASCII text</option>
       </select>
     </div>
     <div id="int-fields" class="row mt-2">
       <label class="text-muted" for="value">Value</label>
-      <input id="value" type="text" value="255" style="max-width:240px;" placeholder="e.g. 255, 0x1F, 0b11111111, 0o377" />
+      <label for="value" class="sr-only">Input</label> <input id="value" type="text" value="255" style="max-width:240px;" placeholder="e.g. 255, 0x1F, 0b11111111, 0o377" />
       <label class="text-muted" for="base">Source base</label>
-      <select id="base" style="max-width:140px;">
+      <label for="base" class="sr-only">Base encoding</label> <select id="base" style="max-width:140px;">
         <option value="2">Bin (2)</option>
         <option value="8">Oct (8)</option>
         <option value="10" selected>Dec (10)</option>
@@ -41,7 +41,7 @@ const description = 'Convert between binary, octal, decimal, hex, and ASCII text
     </div>
     <div id="ascii-fields" class="row mt-2" style="display:none;">
       <label class="text-muted" for="ascii">Text</label>
-      <input id="ascii" type="text" value="Hi" style="max-width:240px;" />
+      <label for="ascii" class="sr-only">Ascii</label> <input id="ascii" type="text" value="Hi" style="max-width:240px;" />
     </div>
     <div class="row mt-2">
       <label class="toggle"><input id="prefixes" type="checkbox" checked /> Show 0b / 0o / 0x prefixes</label>
@@ -52,12 +52,12 @@ const description = 'Convert between binary, octal, decimal, hex, and ASCII text
   </section>
 
   <section class="card mt-2" id="out-section" style="display:none;">
-    <h2 style="margin-top:0;">Results</h2>
+    <h2 class="h2-card">Results</h2>
     <div id="results" class="mt-1"></div>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
-    <h2 style="margin-top:0;">Error</h2>
+    <h2 class="h2-card">Error</h2>
     <pre id="err-out" style="color:var(--danger);">—</pre>
   </section>
 

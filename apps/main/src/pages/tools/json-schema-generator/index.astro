@@ -13,21 +13,21 @@ const description = 'Generate a strict JSON Schema for LLM structured output. Cr
   keywords={['JSON Schema generator', 'LLM structured output', 'JSON Schema draft-2020-12', 'schema validation']}
   current="/tools/"
 >
-  <nav aria-label="Breadcrumb" class="text-muted" style="font-size:.875rem;">
-    <a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Step 1 — Define fields</h2>
+    <h2 class="h2-card">Step 1 — Define fields</h2>
     <p class="text-dim" style="font-size:.875rem;">Add fields that the LLM should return. Each field becomes a JSON Schema property.</p>
     <div id="fields-list"></div>
     <button class="ghost mt-1" id="add-field">+ Add field</button>
   </section>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Step 2 — Preview &amp; generate</h2>
+    <h2 class="h2-card">Step 2 — Preview &amp; generate</h2>
     <div class="row">
       <label class="text-muted" for="schema-id" style="min-width:120px;">Schema ID</label>
       <input id="schema-id" type="text" value="user_schema" style="max-width:300px;" />
@@ -41,7 +41,7 @@ const description = 'Generate a strict JSON Schema for LLM structured output. Cr
 
   <section class="card mt-2" id="output-section" style="display:none;">
     <div class="row" style="margin-bottom:12px;">
-      <h2 style="margin:0;">Generated JSON Schema</h2>
+      <h2 class="h2-flat">Generated JSON Schema</h2>
       <div class="row" style="gap:8px;">
         <button class="ghost" id="copy">Copy</button>
         <button class="ghost" id="validate-btn">Validate sample</button>
@@ -51,7 +51,7 @@ const description = 'Generate a strict JSON Schema for LLM structured output. Cr
   </section>
 
   <section class="card mt-2" id="validate-section" style="display:none;">
-    <h2 style="margin-top:0;">Validate against schema</h2>
+    <h2 class="h2-card">Validate against schema</h2>
     <textarea id="sample-input" placeholder='&#123;&#10;  "fieldName": "value"&#10;&#125;' style="min-height:100px;"></textarea>
     <div class="row mt-1">
       <button class="primary" id="run-validate">Validate</button>

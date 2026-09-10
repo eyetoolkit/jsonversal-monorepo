@@ -7,12 +7,12 @@ const description = 'Generate a .gitignore file by selecting your language and f
   canonical="https://jsonversal.com/codegen/tools/gitignore/"
   keywords={['gitignore', '.gitignore generator', 'github gitignore templates']}
   current="/codegen/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Select templates</h2>
+    <h2 class="h2-card">Select templates</h2>
     <p class="text-muted" style="font-size:.85rem;">Choose one language/framework — templates are merged together. All templates bundled locally.</p>
     <div id="tpl-list" class="grid"></div>
     <div style="margin-top:12px;display:flex;gap:8px;">

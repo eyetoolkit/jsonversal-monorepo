@@ -7,14 +7,14 @@ const description = 'Pick a license, fill in year and name, generate the LICENSE
   canonical="https://jsonversal.com/codegen/tools/license/"
   keywords={['license generator', 'MIT license', 'Apache license', 'GPL license']}
   current="/codegen/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Choose a license</h2>
+    <h2 class="h2-card">Choose a license</h2>
     <label class="text-muted" for="type">License type</label>
-    <select id="type" style="max-width:320px;">
+    <label for="type" class="sr-only">Choose a license</label> <select id="type" style="max-width:320px;">
       <option value="MIT">MIT — permissive, most popular</option>
       <option value="Apache-2.0">Apache 2.0 — permissive + patent grant</option>
       <option value="BSD-3-Clause">BSD 3-Clause — similar to MIT</option>
@@ -26,11 +26,11 @@ const description = 'Pick a license, fill in year and name, generate the LICENSE
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
       <div>
         <label class="text-muted" for="year">Year</label>
-        <input id="year" type="number" value={new Date().getFullYear()} />
+        <label for="year" class="sr-only">Year</label> <input id="year" type="number" value={new Date().getFullYear()} />
       </div>
       <div>
         <label class="text-muted" for="name">Name / Organization</label>
-        <input id="name" type="text" placeholder="Your name" />
+        <label for="name" class="sr-only">Name</label> <input id="name" type="text" placeholder="Your name" />
       </div>
     </div>
     <button class="primary mt-2" id="gen">Generate LICENSE</button>

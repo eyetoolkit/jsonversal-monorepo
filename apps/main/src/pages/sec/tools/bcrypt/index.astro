@@ -7,16 +7,16 @@ const description = 'Generate bcrypt password hashes with a configurable cost fa
   canonical="https://jsonversal.com/sec/tools/bcrypt/"
   keywords={['bcrypt', 'bcrypt hash', 'bcrypt verify', 'password hashing', 'password hash']}
   current="/sec/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Generate a hash</h2>
+    <h2 class="h2-card">Generate a hash</h2>
     <label class="text-muted" for="pw">Password</label>
-    <input id="pw" type="text" placeholder="Enter the password to hash" />
+    <label for="pw" class="sr-only">Generate a hash</label> <input id="pw" type="text" placeholder="Enter the password to hash" />
     <label class="text-muted" style="margin-top:12px;" for="cost">Cost factor (4–15, default 10)</label>
-    <input id="cost" type="number" min="4" max="15" value="10" />
+    <label for="cost" class="sr-only">Generate a hash</label> <input id="cost" type="number" min="4" max="15" value="10" />
     <div class="row mt-2">
       <button class="primary" id="gen">Generate hash</button>
       <button class="ghost" id="copy-hash" disabled>Copy</button>
@@ -29,7 +29,7 @@ const description = 'Generate bcrypt password hashes with a configurable cost fa
   </section>
 
   <section class="card mt-2">
-    <h2 style="margin-top:0;">Verify a password</h2>
+    <h2 class="h2-card">Verify a password</h2>
     <label class="text-muted" for="v-pw">Password</label>
     <input id="v-pw" type="text" placeholder="Plaintext password" />
     <label class="text-muted" style="margin-top:12px;" for="v-hash">bcrypt hash</label>
@@ -87,8 +87,8 @@ const description = 'Generate bcrypt password hashes with a configurable cost fa
     $('gen').addEventListener('click', async () => {
       const pw = $('pw').value;
       const cost = parseInt($('cost').value, 10);
-      if (!pw) { alert('Please enter a password first.'); return; }
-      if (isNaN(cost) || cost < 4 || cost > 15) { alert('Cost factor must be a number between 4 and 15.'); return; }
+      if (!pw) { showToast('Please enter a password first.'); return; }
+      if (isNaN(cost) || cost < 4 || cost > 15) { showToast('Cost factor must be a number between 4 and 15.'); return; }
 
       const btn = $('gen');
       const orig = btn.textContent;
@@ -122,8 +122,8 @@ const description = 'Generate bcrypt password hashes with a configurable cost fa
       const out = $('v-result');
       const err = $('v-error');
       err.style.display = 'none';
-      if (!pw) { alert('Please enter the password to verify.'); return; }
-      if (!hash) { alert('Please paste a bcrypt hash.'); return; }
+      if (!pw) { showToast('Please enter the password to verify.'); return; }
+      if (!hash) { showToast('Please paste a bcrypt hash.'); return; }
 
       try {
         const match = await bcrypt.compare(pw, hash);

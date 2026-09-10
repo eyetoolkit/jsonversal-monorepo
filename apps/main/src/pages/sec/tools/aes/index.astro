@@ -7,23 +7,23 @@ const description = 'Encrypt and decrypt text with AES-GCM or AES-CBC using your
   canonical="https://jsonversal.com/sec/tools/aes/"
   keywords={['AES', 'AES encryption', 'AES decryption', 'AES-GCM', 'Web Crypto']}
   current="/sec/tools/">
-  <nav class="text-muted" style="font-size:.875rem;"><a href="/">Home</a> · <a href="/tools/">Tools</a> · {title}</nav>
+  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
-    <h2 style="margin-top:0;">Input</h2>
+    <h2 class="h2-card">Input</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
         <label class="text-muted" for="algo">Algorithm</label>
-        <select id="algo">
+        <label for="algo" class="sr-only">Input</label> <select id="algo">
           <option value="AES-GCM">AES-GCM (authenticated, recommended)</option>
           <option value="AES-CBC">AES-CBC (needs IV)</option>
         </select>
       </div>
       <div>
         <label class="text-muted" for="keysize">Key size</label>
-        <select id="keysize">
+        <label for="keysize" class="sr-only">Input</label> <select id="keysize">
           <option value="256">256-bit (most secure)</option>
           <option value="192">192-bit</option>
           <option value="128">128-bit</option>
@@ -31,8 +31,9 @@ const description = 'Encrypt and decrypt text with AES-GCM or AES-CBC using your
       </div>
     </div>
     <label class="text-muted" style="margin-top:12px;" for="pass">Passphrase (we derive a key with PBKDF2-SHA256)</label>
-    <input id="pass" type="text" placeholder="your-secret-passphrase" />
+    <label for="pass" class="sr-only">Pass</label> <input id="pass" type="text" placeholder="your-secret-passphrase" />
     <label class="text-muted" style="margin-top:12px;" for="input">Plaintext / Ciphertext</label>
+    <label for="input" class="sr-only">Input</label>
     <textarea id="input" placeholder="Text to encrypt, or base64 ciphertext to decrypt..." style="min-height:120px;"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px;">
       <button class="primary" id="encrypt">Encrypt</button>
