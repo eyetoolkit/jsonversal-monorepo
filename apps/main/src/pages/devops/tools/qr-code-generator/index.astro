@@ -130,228 +130,9 @@ const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more.
   input[type="text"], input[type="email"], select { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); }
 </style>
 
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script is:inline>
-// Minimal QR Code generator ( LGPL, see: https://github.com/nayuki/QR-Code-generator )
-// Compact implementation included inline for zero-dependency browser operation
-
 (function(){
-  // QR Code generation - Nayuki MIT implementation
-  var QRCode = (function(){
-    function QRCode(data, opts){
-      opts = opts||{};
-      var size = opts.size||200, ec = opts.ec||'M', fg = opts.fg||'#000', bg = opts.bg||'#fff';
-      var level = {'L':0,'M':1,'Q':2,'H':3}[ec]||1;
-      var qr = generateQR(data, level);
-      var canvas = document.createElement('canvas');
-      var cell = Math.floor(size / qr.length);
-      canvas.width = cell * qr.length;
-      canvas.height = cell * qr.length;
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle = fg;
-      for(var r=0;r<qr.length;r++)
-        for(var c=0;c<qr.length;c++)
-          if(qr[r][c]) ctx.fillRect(c*cell,r*cell,cell,cell);
-      return canvas;
-    }
-    // QR gen (simplified QR Code generator)
-    function generateQR(text, ecl) {
-      var ESCAPED = text.replace(/([\\"*+?^{}()|[\]])/g,"\\$1");
-      var bytes = unescape(encodeURIComponent(ESCAPED));
-      var capacity = [
-        [17,14,11,7],[32,26,20,14],[53,42,32,24],[78,62,46,34],
-        [106,84,60,44],[134,106,74,58],[154,122,86,64],[192,152,108,84],
-        [230,180,130,98],[271,213,151,119],[321,251,177,137],[367,287,203,155],
-        [425,331,241,177],[458,362,258,194],[520,412,292,220],[586,450,322,250]
-      ];
-      var version = 1;
-      var total = bytes.length;
-      for(var i=0;i<capacity.length;i++){
-        var entry = capacity[i];
-        if(entry[ecl] >= total + 3){ version = i+1; break; }
-      }
-      version = Math.min(version, 15);
-      var ecWords = [7,10,15,20,26,18,20,24,30,18,20,24,26,18,22,22][version-1]||20;
-      var dcWords = [0,19,34,55,80,108,138,156,194,234,270,300,360,450,530][version-1]||0;
-      var buffer = [];
-      buffer.push(4, version - 1, 3, ecl);
-      for(var i=0;i<bytes.length;i++) buffer.push(bytes.charCodeAt(i));
-      buffer.push(236,17);
-      while(buffer.length < dcWords) buffer.push(0);
-      // Use simple alphanumeric encoding with dummy bit padding
-      // For a production tool, integrate the full QR encoder library
-      var size = 17 + (version-1)*4;
-      var grid = [];
-      for(var r=0;r<size;r++){ grid[r]=[]; for(var c=0;c<size;c++) grid[r][c]=0; }
-      // Add finder patterns
-      addFinder(grid,0,0); addFinder(grid,size-7,0); addFinder(grid,0,size-7);
-      addTiming(grid, size);
-      return grid;
-    }
-    function addFinder(g,r,c){
-      for(var dr=-1;dr<=7;dr++)
-        for(var dc=-1;dc<=7;dc++){
-          var nr=r+dr, nc=c+dc;
-          if(nr<0||nc<0||nr>=g.length||nc>=g.length) continue;
-          if(dr===-1||dr===7||dc===-1||dc===7) g[nr][nc]=0;
-          else if(dr===0&&dc===0) g[nr][nc]=1;
-          else if(dr===0||dc===0) g[nr][nc]=1;
-          else g[nr][nc]=0;
-        }
-    }
-    function addTiming(g,size){
-      for(var i=8;i<size-8;i++){
-        g[6][i] = i%2===0?1:0;
-        g[i][6] = i%2===0?1:0;
-      }
-    }
-    return QRCode;
-  })();
-
-  // Generate a simple QR canvas using a basic encoding
-  // For full implementation, load qrcode-generator library
-  function makeSimpleQR(text, size) {
-    // Use the browser's native canvas + a minimal QR approach
-    // Fallback: encode text as a simple visual barcode pattern
-    // This creates a deterministic visual pattern from text
-    var hash = 0;
-    for(var i=0;i<text.length;i++){
-      var c = text.charCodeAt(i);
-      hash = ((hash<<5) - hash) + c;
-      hash = hash & hash;
-    }
-    var cellSize = Math.floor(size / 21);
-    var canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0,0,size,size);
-    ctx.fillStyle = '#000';
-    var random = function(n){ var x=Math.sin(hash+n*9999)*10000; return x-Math.floor(x); };
-    // Draw a simplified 2D pattern
-    var gridSize = 21;
-    for(var r=0;r<gridSize;r++){
-      for(var c=0;c<gridSize;c++){
-        if(r===0||r===gridSize-1||c===0||c===gridSize-1) continue;
-        if(c===6||r===6) continue;
-        if(random(r*gridSize+c) > 0.5){
-          ctx.fillRect(c*cellSize, r*cellSize, cellSize, cellSize);
-        }
-      }
-    }
-    // Finder corners
-    [[0,0],[gridSize-7,0],[0,gridSize-7]].forEach(function(p){
-      var pr = p[0], pc = p[1];
-      for(var dr=0;dr<7;dr++) for(var dc=0;dc<7;dc++){
-        var v = (dr===0||dr===6||dc===0||dc===6)?0:(dr===3&&dc===3)?1:0;
-        if(v) ctx.fillRect((pc+dc)*cellSize,(pr+dr)*cellSize,cellSize,cellSize);
-      }
-    });
-    ctx.fillStyle = '#000';
-    ctx.fillRect(7*cellSize,0,cellSize*2,cellSize);
-    ctx.fillRect(7*cellSize,(gridSize-2)*cellSize,cellSize*2,cellSize*2);
-    ctx.fillRect(0,7*cellSize,cellSize*2,cellSize);
-    return canvas;
-  }
-
-  // Full QR with qrcode.js-style encoding (inline)
-  // This is a proper QR Code generator using the standard algorithm
-  var QRCodeGen = (function(){
-    // Reed-Solomon GF(285)
-    var ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
-    function getAlphanumeric(c){ return ALPHABET.indexOf(c); }
-    function getByte(c){ return c.charCodeAt(0); }
-    function getNumeric(c){ return c.charCodeAt(0) - 48; }
-
-    var CAPACITY = [
-      [17,7,10,13,17,25],[15,10,16,22,28,44],[33,16,26,36,44,64],
-      [21,26,18,24,16,28],[25,18,24,16,12,16]
-    ];
-    var EC_LEVELS = [1,0,3,2];
-
-    function makeBytes(mode, data){
-      var buf = [];
-      var bitBuf = 0, bitLen = 0;
-      function addBits(n, len){
-        bitBuf = (bitBuf << len) | n;
-        bitLen += len;
-        while(bitLen >= 8){ buf.push((bitBuf >> (bitLen-8)) & 255); bitLen -= 8; }
-      }
-      addBits(mode, 4);
-      var str = String(data);
-      if(mode === 1){ // Numeric
-        addBits(str.length, 9);
-        for(var i=0;i<str.length;i+=3){
-          var v = parseInt(str.substr(i,3),10);
-          addBits(v, v<100?7:10);
-        }
-      } else if(mode === 2){ // Alphanumeric
-        addBits(str.length, 8);
-        for(var i=0;i<str.length;i+=2){
-          var v = (getAlphanumeric(str[i])||0)*45 + (getAlphanumeric(str[i+1])||0);
-          addBits(v, 11);
-        }
-      } else { // Byte
-        addBits(str.length, 8);
-        for(var i=0;i<str.length;i++) addBits(getByte(str[i]), 8);
-      }
-      addBits(0, bitLen > 0 ? (4-bitLen%4)%4 : 0);
-      while(buf.length < str.length + 3) buf.push(0);
-      return buf;
-    }
-
-    return { create: function(text, ecLevel){
-      ecLevel = ecLevel || 1;
-      var mode = /^\d+$/.test(text) ? 1 : /^[0-9A-Z $%*+-./:]+$/.test(text) ? 2 : 4;
-      var version = 5;
-      var total = mode===1?text.length:mode===2?Math.ceil(text.length*5.5):text.length+3;
-      for(var v=0;v<CAPACITY.length;v++){
-        if(CAPACITY[v][ecLevel] >= total){ version=v+1; break; }
-      }
-      var size = 17 + (version-1)*4;
-      var grid = [];
-      for(var r=0;r<size;r++){ grid[r]=new Array(size).fill(0); }
-      // Finder patterns
-      function addFinder(r,c){
-        for(var dr=-1;dr<=7;dr++) for(var dc=-1;dc<=7;dc++){
-          var nr=r+dr, nc=c+dc;
-          if(nr<0||nr>=size||nc<0||nc>=size) continue;
-          grid[nr][nc]= (dr>=0&&dr<=6&&(dc===0||dc===6))||(dc>=0&&dc<=6&&(dr===0||dr===6))||(dr>=2&&dr<=4&&dc>=2&&dc<=4) ? 1 : 0;
-        }
-      }
-      addFinder(0,0); addFinder(0,size-7); addFinder(size-7,0);
-      // Timing
-      for(var i=8;i<size-8;i++){
-        grid[6][i] = i%2===0?1:0;
-        grid[i][6] = i%2===0?1:0;
-      }
-      // Alignment pattern (version 2+)
-      if(version >= 2){
-        var al = [6, size-6];
-        for(var a1 of al) for(var a2 of al){
-          for(var dr=-2;dr<=2;dr++) for(var dc=-2;dc<=2;dc++)
-            grid[a1+dr][a2+dc] = (Math.abs(dr)===2||Math.abs(dc)===2)?1:(dr===0&&dc===0)?1:0;
-        }
-      }
-      // Format & version info (simplified - using hardcoded values for common cases)
-      // Reserved areas already marked by finders and timing
-
-      // Data encoding (simplified)
-      var dataBits = CAPACITY[version-1] ? CAPACITY[version-1][ecLevel] * 8 : 1000;
-      var bytes = makeBytes(mode, text);
-      for(var i=0;i<bytes.length && i<dataBits/8;i++){
-        var r = (size-1 - (i%size));
-        var c = (i<size) ? size-1 - Math.floor(i/size) - 1 : size-1 - Math.floor(i/size);
-        if(c < 0) c = 0;
-        if(r < 0 || c < 0) continue;
-        grid[r][c] = (i%2===0) ? 1 : 0;
-      }
-      return grid;
-    }};
-  })();
-
   var $ = function(id){ return document.getElementById(id); };
 
   function updateFields(){
@@ -359,23 +140,25 @@ const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more.
     $('wifi-fields').style.display = t==='wifi'?'block':'none';
     $('vcard-fields').style.display = t==='vcard'?'block':'none';
     $('qr-input').style.display = (t==='wifi'||t==='vcard')?'none':'block';
-    if(t==='wifi') $('qr-input').placeholder = 'Hidden (SSID shown in options)';
-    else if(t==='vcard') $('qr-input').placeholder = 'Hidden (fields below)';
+    if(t==='wifi') $('qr-input').placeholder = 'Hidden (SSID entered in options above)';
+    else if(t==='vcard') $('qr-input').placeholder = 'Hidden (contact details entered below)';
     else $('qr-input').placeholder = 'Enter text or URL here...';
   }
 
   function buildContent(){
     var t = $('qr-type').value;
     if(t==='wifi'){
-      var ssid = $('wifi-ssid').value || 'Network';
+      var ssid = $('wifi-ssid').value || 'MyNetwork';
       var pw = $('wifi-password').value;
       var hidden = $('wifi-hidden').checked;
-      var h = hidden ? 'H' : 'N';
-      return 'WIFI:T:WPA;S:'+ssid.replace(/[\\;,\:\"]/g,'') + ';P:'+pw.replace(/[\\;,\:\"]/g,'')+';H:'+h+';';
+      var ht = hidden ? 'H' : 'N';
+      // Escape special characters in SSID and password
+      var esc = function(s){ return s.replace(/([\\;,\:\"])/g, '\\$1'); };
+      return 'WIFI:T:WPA;S:'+esc(ssid)+';P:'+esc(pw)+';H:'+ht+';';
     }
     if(t==='vcard'){
       var n = $('vc-name').value, tel = $('vc-tel').value, em = $('vc-email').value;
-      return 'BEGIN:VCARD\nVERSION:3.0\nN:'+n+'\nTEL:'+tel+'\nEMAIL:'+em+'\nEND:VCARD';
+      return 'BEGIN:VCARD\nVERSION:3.0\nFN:'+n+'\nTEL:'+tel+'\nEMAIL:'+em+'\nEND:VCARD';
     }
     return $('qr-input').value;
   }
@@ -390,28 +173,31 @@ const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more.
     var ecLevel = {'L':0,'M':1,'Q':2,'H':3}[ec];
 
     try {
-      var grid = QRCodeGen.create(content, ecLevel);
-      var cellSize = Math.floor(size / grid.length);
-      var canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0,0,size,size);
-      ctx.fillStyle = fg;
-      for(var r=0;r<grid.length;r++)
-        for(var c=0;c<grid.length;c++)
-          if(grid[r][c])
-            ctx.fillRect(c*cellSize, r*cellSize, cellSize, cellSize);
+      var typeNumber = 0; // auto
+      var qr = qrcode(typeNumber, ecLevel);
+      qr.addData(content);
+      qr.make();
+      var moduleCount = qr.getModuleCount();
+      var cellSize = Math.floor(size / moduleCount);
+
       $('qr-canvas').width = size;
       $('qr-canvas').height = size;
-      var ctx2 = $('qr-canvas').getContext('2d');
-      ctx2.clearRect(0,0,size,size);
-      ctx2.drawImage(canvas,0,0);
-      $('qr-meta').textContent = content.length + ' chars · ' + grid.length + '×' + grid.length + ' modules · EC level ' + ec;
+      var ctx = $('qr-canvas').getContext('2d');
+      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = fg;
+      for(var r=0;r<moduleCount;r++){
+        for(var c=0;c<moduleCount;c++){
+          if(qr.isDark(r,c)){
+            ctx.fillRect(c*cellSize, r*cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      $('qr-meta').textContent = content.length + ' chars · ' + moduleCount + '×' + moduleCount + ' modules · EC level ' + ec + ' · ' + Math.round(size) + '×' + Math.round(size) + 'px';
       $('qr-output').style.display = 'block';
     } catch(e){
-      showToast('Could not generate QR code for this content.');
+      showToast('Error: ' + e.message);
     }
   }
 
@@ -425,46 +211,49 @@ const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more.
   });
 
   $('download-png').addEventListener('click', function(){
-    var canvas = $('qr-canvas');
-    var link = document.createElement('a');
-    link.download = 'qrcode.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    var a = document.createElement('a');
+    a.download = 'qrcode.png';
+    a.href = $('qr-canvas').toDataURL('image/png');
+    a.click();
   });
 
   $('download-svg').addEventListener('click', function(){
     var size = parseInt($('qr-size').value);
-    var cells = $('qr-canvas').width / size * $('qr-canvas').width;
+    var moduleCount = $('qr-canvas').toDataURL ? 21 : 21;
     var cellSize = Math.floor(size / 21);
     var fg = $('qr-fg').value;
     var bg = $('qr-bg').value;
+    var ctx = $('qr-canvas').getContext('2d');
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">';
     svg += '<rect width="'+size+'" height="'+size+'" fill="'+bg+'"/>';
-    var ctx = $('qr-canvas').getContext('2d');
-    for(var r=0;r<21;r++) for(var c=0;c<21;c++){
-      var px = (c*cellSize/($('qr-canvas').width/size))*size;
-      var py = (r*cellSize/($('qr-canvas').width/size))*size;
-      var x = c*cellSize, y = r*cellSize;
-      var imageData = ctx.getImageData(x,y,cellSize,cellSize);
-      var isBlack = false;
-      for(var i=0;i<imageData.data.length;i+=4)
-        if(imageData.data[i] < 128){ isBlack = true; break; }
-      if(isBlack) svg += '<rect x="'+x+'" y="'+y+'" width="'+cellSize+'" height="'+cellSize+'" fill="'+fg+'"/>';
+    var imgData = ctx.getImageData(0, 0, size, size);
+    var sz = Math.round(size / 21);
+    for(var r=0;r<21;r++){
+      for(var c=0;c<21;c++){
+        var x = c*sz, y = r*sz;
+        var idx = (Math.floor(y)*size + Math.floor(x))*4;
+        if(imgData.data[idx] < 128){
+          svg += '<rect x="'+x+'" y="'+y+'" width="'+sz+'" height="'+sz+'" fill="'+fg+'"/>';
+        }
+      }
     }
     svg += '</svg>';
     var blob = new Blob([svg], {type:'image/svg+xml'});
-    var link = document.createElement('a');
-    link.download = 'qrcode.svg';
-    link.href = URL.createObjectURL(blob);
-    link.click();
+    var a = document.createElement('a');
+    a.download = 'qrcode.svg';
+    a.href = URL.createObjectURL(blob);
+    a.click();
   });
 
   $('copy-btn').addEventListener('click', function(){
-    var canvas = $('qr-canvas');
-    canvas.toBlob(function(blob){
-      navigator.clipboard.write && navigator.clipboard.write([new ClipboardItem({'image/png': blob})]).then(function(){
-        showToast('QR code copied!');
-      }).catch(function(){ showToast('Copy not supported in this browser.'); });
+    $('qr-canvas').toBlob(function(blob){
+      if(navigator.clipboard && navigator.clipboard.write){
+        navigator.clipboard.write([new ClipboardItem({'image/png': blob})]).then(function(){
+          showToast('QR code copied to clipboard!');
+        }).catch(function(){ showToast('Copy failed — try downloading instead.'); });
+      } else {
+        showToast('Copy not supported in this browser.');
+      }
     });
   });
 })();
