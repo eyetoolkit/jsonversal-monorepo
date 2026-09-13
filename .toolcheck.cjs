@@ -124,14 +124,19 @@ for (const section of SECTIONS) {
         const d0 = new JSDOM(html);
         const all = [...d0.window.document.querySelectorAll('script')];
         d0.window.close();
-        for (const s of all) { const t = s.textContent.trim(); if (t) scripts.push(t); }
+        for (const s of all) {
+          // Skip non-JS scripts (ld+json, json, etc.) — they're not parsed as JS
+          const type = (s.getAttribute('type') || '').toLowerCase();
+          if (type && !type.includes('javascript')) continue;
+          const t = s.textContent.trim();
+          if (t) scripts.push(t);
+        }
       } catch (e) { scripts.push(html + ' /* jsdom-parse-fail */'); }
     })();
     let parseErr = null;
     for (const code of scripts) {
       try { new Function(code); } catch (e) { parseErr = e.message; break; }
     }
-
     const samples = SAMPLES[name] || [];
     const out = { section, name, samples, parse: parseErr ? 'SYNTAX-ERR' : 'ok', load: 'ok', compute: 'untested', detail: '', snippet: '' };
     results.push(out);
