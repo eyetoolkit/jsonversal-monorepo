@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '@versal/ui/BaseLayout';
 
-const title = 'JSON Formatter — Free Online JSON Beautifier & Validator';
-const description = 'Free JSON formatter online: beautify, minify, and validate JSON with syntax highlighting and detailed error positions. No signup, no ads — works entirely in your browser.';
+const title = 'JSON Formatter & Validator';
+const description = 'Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.';
 ---
 
 <BaseLayout
@@ -10,15 +10,8 @@ const description = 'Free JSON formatter online: beautify, minify, and validate 
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-formatter/"
-  keywords={['JSON formatter', 'JSON formatter online', 'JSON beautifier', 'pretty print JSON', 'format JSON', 'JSON minifier', 'JSON validator', 'JSON lint', 'JSON validator online', 'JSON prettifier']}
-  current="/tools/json-formatter/"
-  faqs={[
-    {"question":"What is JSON Formatter?","answer":"JSON Formatter is a free online tool that beautifies (prettifies) and validates JSON data. It adds proper indentation and syntax highlighting to make JSON easy to read and debug. It can also minify JSON to the smallest possible size."},
-    {"question":"How to format JSON online for free?","answer":"Paste your JSON into the input box, choose your preferred indentation (2 spaces, 4 spaces, or Tab), and click Format. The formatted result appears instantly with syntax highlighting. No signup or installation required."},
-    {"question":"Is my data safe when using this tool?","answer":"100% safe. All processing happens entirely in your browser — nothing is uploaded, sent to a server, or stored anywhere. Your JSON, API keys, passwords, and configuration data never leave your device."},
-    {"question":"Will formatting change my JSON data?","answer":"No — formatting only changes whitespace and indentation. The parsed value is re-serialized with pretty printing, so keys, values, types, and structure remain identical. The output is guaranteed valid JSON."},
-    {"question":"How do I minify JSON?","answer":"Click the Minify button to remove all unnecessary whitespace from your JSON. This produces the smallest possible valid JSON representation, useful for API payloads, URL parameters, or log entries."}
-  ]}
+  keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
+  current="/tools/"
 >
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>

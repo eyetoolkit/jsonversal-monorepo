@@ -4,13 +4,10 @@ const title = 'Random Password Generator';
 const description = 'Generate strong random passwords using the browser\'s cryptographically secure random source, with adjustable length, character sets, and count.';
 ---
 <BaseLayout site="sec" title={title} description={description}
-  canonical="https://jsonversal.com/sec/tools/password-generator/"
-  keywords={['password generator', 'random password', 'secure password', 'strong password', 'cspRng']}
-  current="/sec/tools/password-generator/"
-  faqs={[{question:"Is my data safe when using this tool?",answer:"100% safe. All processing happens entirely in your browser — nothing is uploaded, sent to a server, or stored anywhere."},{question:"Do I need to sign up?",answer:"No signup. All tools are free with no registration, no cookies, no tracking."},{question:"Algorithm?",answer:"crypto.getRandomValues() for generation. bcrypt/scrypt/argon2 for hashing."}]}
-  faqs={[{question:"Is my data safe when using this tool?",answer:"100% safe. All processing happens entirely in your browser — nothing is uploaded, sent to a server, or stored anywhere."},{question:"Do I need to sign up or create an account?",answer:"No signup required. All tools are completely free with no registration, no email, no cookies, and no tracking."},{question:"How strong are the generated passwords?",answer:"You configure the length, character set, and entropy level. By default we generate cryptographically strong passwords using your browser's crypto.getRandomValues()."}]}
-  faqs={[{question:"Is my data safe when using this tool?",answer:"100% safe. All processing happens entirely in your browser — nothing is uploaded, sent to a server, or stored anywhere. Your JSON, API keys, passwords, and configuration data never leave your device."},{question:"Do I need to sign up or create an account?",answer:"No signup required. All tools are completely free to use with no registration, no email, no cookies, and no tracking. Open the page and start using it immediately."},{question:"How strong are the generated passwords?",answer:"You configure the length, character set, and entropy level. By default we generate cryptographically strong passwords using your browser's crypto.getRandomValues() — not Math.random()."}]}
-  faqs={[{question:"Is my data safe when using this tool?",answer:"100% safe. All processing happens entirely in your browser — nothing is uploaded, sent to a server, or stored anywhere. Your JSON, API keys, passwords, and configuration data never leave your device."},{question:"Do I need to sign up or create an account?",answer:"No signup required. All tools are completely free to use with no registration, no email, no cookies, and no tracking. Open the page and start using it immediately."},{question:"How strong are the generated passwords?",answer:"You configure the length, character set, and entropy level. By default we generate cryptographically strong passwords using your browser's crypto.getRandomValues() — not Math.random()."}]}>
+  canonical="https://jsonversal.com/sec/password-generator/"
+  keywords={['password generator', 'random password generator', 'secure password generator', '密码生成器', 'password maker', 'password-generator', 'password-generator']}
+  current="/sec/password-generator/"
+>
   <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>

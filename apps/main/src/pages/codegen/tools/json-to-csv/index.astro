@@ -2,20 +2,11 @@
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'JSON to CSV Converter';
 const description = 'Convert a JSON array of objects into CSV — columns are the union of all keys in first-appearance order, missing values stay blank, and rows use CRLF line endings per RFC 4180.';
-const keywords = ['JSON to CSV', 'JSON to CSV converter', 'convert JSON to CSV', 'JSON export CSV', 'JSON array to CSV', 'JSON to Excel'];
-const faqs = [
-  {question:"What is JSON to CSV Converter?","answer":"JSON to CSV Converter is a free online tool that converts a JSON array of objects into a CSV file. Paste your JSON array, download a properly RFC 4180-compliant CSV — no signup, no ads."},
-  {question:"How to convert JSON to CSV?","answer":"Paste a JSON array (e.g. [{'name':'Alice','age':30}]) into the input and click 'Convert to CSV'. The tool auto-detects all keys across objects to build the header row, handles missing values, and produces a downloadable .csv file."},
-  {question:"Is my data safe?","answer":"100% safe. All processing happens entirely in your browser — nothing is uploaded, sent to a server, or stored anywhere."},
-  {question:"Does it handle nested objects or arrays?","answer":"Nested objects and arrays are serialized as JSON strings inside the CSV cell. For deeply nested data, consider flattening it first or using a JSON to SQL converter."},
-  {question:"What CSV standard does it follow?","answer":"The output follows RFC 4180: commas as delimiters, double-quotes for cells containing commas/quotes/newlines, CRLF line endings, and a trailing newline."}
-];
 ---
 <BaseLayout site="codegen" title={title} description={description}
   canonical="https://jsonversal.com/codegen/tools/json-to-csv/"
-  keywords={keywords}
+  keywords={['Json To Csv', 'Json To Csv online', 'free json to csv', 'Json To Csv tool', 'Json To Csv generator', 'online json to csv', 'best json to csv']}
   current="/codegen/tools/json-to-csv/"
-  faqs={faqs}
 >
   <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>

@@ -10,15 +10,8 @@ const description = 'Infer a Zod validation schema from any JSON sample. Paste y
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-to-zod/"
-  keywords={['JSON to Zod', 'JSON to Zod schema', 'Zod schema generator', 'generate Zod from JSON', 'Zod schema from JSON', 'TypeScript validation schema', 'JSON schema to Zod', 'Zod validator online']}
-  current="/tools/json-to-zod/"
-  faqs={[
-    {question:"What is JSON to Zod Schema?","answer":"JSON to Zod Schema is a free online tool that generates a TypeScript Zod validation schema from any JSON sample. Paste your JSON, get a ready-to-use Zod schema — no signup required."},
-    {question:"How to generate Zod schema from JSON?","answer":"Paste a sample JSON object representing your expected data shape, click 'Generate Zod Schema', and copy the output. The schema includes string/number/boolean/array/object validators with proper null handling. Use it for runtime validation in TypeScript projects."},
-    {question:"Is my data safe when using this tool?","answer":"100% safe. All processing happens entirely in your browser — nothing is uploaded to any server. Your JSON data never leaves your device."},
-    {question:"Does this work with nested JSON objects?","answer":"Yes. The tool handles arbitrarily nested objects, arrays of objects, optional fields (null), and common patterns like dates, emails, and URLs — generating z.string(), z.number(), z.boolean(), z.array(), and z.object() as appropriate."},
-    {question:"How do I use the generated Zod schema?","answer":"Copy the schema into your TypeScript project, install Zod with 'npm install zod', then use userSchema.safeParse(data) for runtime validation. The schema also infers TypeScript types automatically via Zod's type inference."}
-  ]}
+  keywords={['JSON to Zod', 'Zod schema', 'schema inference', 'TypeScript validation']}
+  current="/tools/"
 >
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
