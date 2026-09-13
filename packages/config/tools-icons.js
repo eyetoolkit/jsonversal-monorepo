@@ -74,6 +74,7 @@ const ICONS = {
   'nginx-config': '🚀',
   'systemd-unit': '🖥️',
   'log-parser': '📊',
+  'qr-code-generator': '📱',
   'number-base': '🔢',
 
   // codegen
@@ -95,6 +96,7 @@ const ICONS = {
   'curl-to-python': '🐾',
   'base64-image': '🖼️',
   'sql-formatter': '🧹',
+  'sql-validator': '📋',
 };
 
 // 从 href（如 /sec/tools/hash/）解析出 section + slug
