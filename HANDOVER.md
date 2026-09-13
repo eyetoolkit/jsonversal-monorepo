@@ -11,10 +11,10 @@
 | **VPS 备份** | `root@101.96.194.237:/opt/jsonversal` |
 | **SSH 快捷入口** | `ssh -F /root/.ssh_config vps` |
 | **生产分支** | `main` |
-| **当前 HEAD** | `3c94a33 fix: qr-code-generator — replace broken custom QR algorithm with cdnjs qrcode-generator library` |
+| **当前 HEAD** | `caf525a chore: remove sandbox temp files from git + add .gitignore` |
 | **GitHub 地址** | `https://github.com/eyetoolkit/jsonversal-monorepo` |
 | **CF Pages 项目** | `jsonversal-main-v2` |
-| **构建** | ✅ 65 页面 / 2.4M / ~4.6s |
+| **构建** | ✅ 65 页面 / sitemap.xml 自动生成 / ~4.5s |
 | **线上域名** | `jsonversal.com` + `www.jsonversal.com`（CF Pages active） |
 | **Remote（VPS 配置）** | `https://eyetoolkit:***@ghfast.top/https://github.com/eyetoolkit/jsonversal-monorepo.git` |
 
@@ -136,6 +136,7 @@ git push origin main                                      # CF Pages 自动构�
 
 ## 注意事项
 
+- **sitemap.xml 自动生成**：`apps/main/public/sitemap.xml` 已删除！现在通过 `apps/main/scripts/generate-sitemap.cjs` 在 build 后自动扫描 `dist/` 生成（build 命令已包含此调用）。**不要手动编辑 sitemap.xml**，新增/删除工具后自动正确。
 - **不要碰 pnpm-lock.yaml**，除非明确加/删依赖
 - **canonical URL 格式**：`/sec/tools/{slug}/` 必须带中间 `/tools/`，tools 栏目不带
 - **共享配置改了**（packages/config/*），记得重跑 build

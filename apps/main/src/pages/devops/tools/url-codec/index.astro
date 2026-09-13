@@ -1,0 +1,109 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'URL Encoder & Decoder';
+const description = 'Percent-encode or decode URLs, query strings, form data, and path segments. Supports full URL encoding, component-only encoding (encodeURIComponent), and hex/octal escapes. 100% client-side.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/url-codec/"
+  keywords={['URL encoder', 'URL decoder', 'percent encode', 'percent decode', 'encodeURIComponent', 'decodeURIComponent', 'URL encoding tool']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;">
+      <label class="text-muted" for="mode">Mode</label>
+      <select id="mode">
+        <option value="encode">Encode (encodeURIComponent)</option>
+        <option value="encodeURI">Encode full URL (encodeURI)</option>
+        <option value="decode" selected>Decode</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Input</strong>
+        <label for="input" class="sr-only">Input</label>
+        <textarea id="input" spellcheck="false" placeholder='https://example.com/path?q=hello world&name=ada' style="min-height:180px;margin-top:8px;"></textarea>
+      </div>
+      <div>
+        <strong>Output</strong>
+        <label for="output" class="sr-only">Output</label>
+        <textarea id="output" spellcheck="false" readonly placeholder='Result appears here' style="min-height:180px;margin-top:8px;background:var(--surface-2);"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="run">Run</button>
+      <button class="ghost" id="swap">Swap</button>
+      <button class="ghost" id="copy">Copy output</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="stats" style="display:none;">
+    <div class="row" style="gap:16px;flex-wrap:wrap;">
+      <span class="text-muted"><strong>Input:</strong> <span id="in-len">0</span> chars</span>
+      <span class="text-muted"><strong>Output:</strong> <span id="out-len">0</span> chars</span>
+      <span class="text-muted" id="ratio"></span>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>encodeURIComponent</strong> encodes every character that is not a safe URL character — spaces become <code>%20</code>, <code>&amp;</code> becomes <code>%26</code>, and Unicode characters get UTF-8 percent-encoded.</li>
+    <li><strong>encodeURI</strong> preserves URL structure — keeps <code>:</code>, <code>/</code>, <code>?</code>, <code>=</code>, <code>&amp;</code> intact so you can paste a full URL and only the value parts get encoded.</li>
+    <li><strong>Decode</strong> reverses both variants, converting any <code>%XX</code> sequence back to the original UTF-8 byte.</li>
+  </ul>
+
+  <h2>About URL Encoding</h2>
+  <p class="text-muted">URLs have a restricted alphabet — only letters, digits, and a small set of punctuation can appear literally. Everything else must be percent-encoded as <code>%XX</code> where XX is the hexadecimal UTF-8 code point. When you paste a URL containing Chinese characters, spaces, or ampersands into a terminal, a query, or an HTTP header, this tool ensures every byte is represented safely. Decoding is equally useful when you're reading server logs or inspecting URL-encoded payloads from webhooks.</p>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; font-family: var(--font-mono); font-size: .85rem; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = id => document.getElementById(id);
+  const inField = $('input');
+  const outField = $('output');
+
+  function run() {
+    const mode = $('mode').value;
+    const input = inField.value;
+    let output = '';
+    try {
+      if (mode === 'encode') output = encodeURIComponent(input);
+      else if (mode === 'encodeURI') output = encodeURI(input);
+      else output = decodeURIComponent(input);
+    } catch (e) {
+      output = 'Error: ' + e.message;
+    }
+    outField.value = output;
+    $('in-len').textContent = input.length;
+    $('out-len').textContent = output.length;
+    const ratio = output.length > 0 ? ((output.length / input.length) * 100).toFixed(0) : 100;
+    const txt = input.length > 0 ? (mode.startsWith('encode') ? `${ratio}% of input size` : `${ratio}% of input size`) : '';
+    $('ratio').textContent = txt;
+    $('stats').style.display = '';
+  }
+
+  inField.addEventListener('input', () => {
+    if ($('mode').value === 'decode') run();
+  });
+  $('mode').addEventListener('change', run);
+  $('run').addEventListener('click', run);
+  $('swap').addEventListener('click', () => { inField.value = outField.value; run(); });
+  $('copy').addEventListener('click', () => { navigator.clipboard.writeText(outField.value); });
+  $('clear').addEventListener('click', () => { inField.value = ''; outField.value = ''; $('stats').style.display = 'none'; });
+})();
+</script>

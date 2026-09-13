@@ -1,0 +1,191 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Regex Tester — Test & Explain Regular Expressions';
+const description = 'Test any JavaScript or Python-flavored regular expression against sample text with real-time match highlighting. View full match details: groups, indices, captured values, match count. Includes common pattern presets and explanations.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/regex-advanced/"
+  keywords={['regex tester', 'regex online', 'regular expression test', 'regex playground', 'regex match counter', 'regex visualizer', 'regex101 alternative', 'regex patterns']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Regex</label>
+      <input id="pattern" type="text" value="\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}\b" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);min-width:200px;" />
+      <label class="text-muted">Flags</label>
+      <input id="flags" type="text" value="gi" style="width:60px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);" />
+    </div>
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <span class="text-muted">Presets:</span>
+      <button class="ghost" data-preset="email">Email</button>
+      <button class="ghost" data-preset="phone">Phone</button>
+      <button class="ghost" data-preset="url">URL</button>
+      <button class="ghost" data-preset="ipv4">IPv4</button>
+      <button class="ghost" data-preset="uuid">UUID</button>
+      <button class="ghost" data-preset="date">ISO Date</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Test Text</strong>
+        <textarea id="text" spellcheck="false" placeholder='Paste text to test against' style="min-height:200px;margin-top:8px;font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+      <div>
+        <strong>Matches</strong>
+        <div id="matches" style="min-height:200px;margin-top:8px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:.85rem;overflow:auto;"></div>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="test">Test</button>
+      <button class="ghost" id="explain">Explain pattern</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="explainBox" style="display:none;">
+    <strong>Explanation</strong>
+    <div id="explainContent" style="margin-top:8px;font-size:.85rem;"></div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Type or paste a regex pattern and flags — the tool uses JavaScript's native <code>RegExp</code>, so any valid JS regex works.</li>
+    <li>Click <strong>Test</strong> to highlight every match in the test text and list each capture group with its start and end indices.</li>
+    <li>Click <strong>Explain</strong> to get a human-readable breakdown of what each token in your regex does.</li>
+    <li>Pick a preset to instantly load a common pattern like email, URL, or IP address matching.</li>
+  </ul>
+</BaseLayout>
+
+<style>
+  textarea, input[type=text] { width: 100%; box-sizing: border-box; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .match-row { padding: 6px 10px; border-left: 3px solid var(--accent); margin-bottom: 4px; background: var(--surface); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .match-row .groups { color: var(--accent-text); font-size: .8rem; margin-top: 2px; }
+  .err { color: var(--danger); padding: 6px 10px; background: var(--surface); border-radius: var(--radius-sm); }
+  .explain-item { display: flex; gap: 8px; margin-bottom: 4px; font-family: var(--font-mono); font-size: .82rem; }
+  .explain-token { color: var(--accent-text); min-width: 120px; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  const PRESETS = {
+    email: ['\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,}\\b', 'gi'],
+    phone: ['\\+?\\d{1,3}[-.\\s]?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}', 'g'],
+    url: ['https?:\\/\\/[\\w\\-._~:/?#[\\]@!$&\'()*+,;=%]+', 'gi'],
+    ipv4: ['\\b(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\b', 'g'],
+    uuid: ['[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', 'gi'],
+    date: ['\\d{4}-\\d{2}-\\d{2}', 'g']
+  };
+
+  function testRegex() {
+    $('explainBox').style.display = 'none';
+    const pattern = $('pattern').value;
+    const flags = $('flags').value;
+    const text = $('text').value;
+    const box = $('matches');
+
+    let re;
+    try { re = new RegExp(pattern, flags); }
+    catch (e) { box.innerHTML = `<div class="err">Invalid regex: ${e.message}</div>`; return; }
+
+    if (!re.global) re = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g');
+
+    const matches = [];
+    let m;
+    try {
+      while ((m = re.exec(text)) !== null) {
+        matches.push({
+          full: m[0],
+          index: m.index,
+          end: m.index + m[0].length,
+          groups: m.slice(1)
+        });
+        if (m[0].length === 0) re.lastIndex++;
+        if (matches.length > 200) break;
+      }
+    } catch (e) { box.innerHTML = `<div class="err">Match error: ${e.message}</div>`; return; }
+
+    if (matches.length === 0) { box.innerHTML = '<span class="text-muted">No matches found</span>'; return; }
+
+    box.innerHTML = `<strong>${matches.length}</strong> match${matches.length > 1 ? 'es' : ''} found:<hr style="border:none;border-top:1px solid var(--border);margin:8px 0;">` +
+      matches.map((match, i) => {
+        let html = `<div class="match-row"><span class="text-dim">#${i+1}</span> <code>${escapeHtml(match.full)}</code> <span class="text-dim">[${match.index}..${match.end}]</span>`;
+        if (match.groups.length > 0) {
+          html += `<div class="groups">${match.groups.map((g, gi) => `$${gi+1}: ${escapeHtml(g ?? '(undefined)')}`).join(' · ')}</div>`;
+        }
+        html += '</div>';
+        return html;
+      }).join('');
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+  }
+
+  function explainRegex() {
+    const pattern = $('pattern').value;
+    const box = $('explainContent');
+    const expl = [];
+    let i = 0;
+    while (i < pattern.length) {
+      const c = pattern[i];
+      if (c === '\\') {
+        const next = pattern[i+1] || '';
+        const map = { d: 'Any digit (0-9)', D: 'Any non-digit', w: 'Word char (letters, digits, _)', W: 'Non-word char', s: 'Whitespace', S: 'Non-whitespace', b: 'Word boundary', B: 'Non-boundary', n: 'Newline', r: 'Carriage return', t: 'Tab', '.': 'Literal dot' };
+        expl.push({ token: '\\' + next, desc: map[next] || 'Escape sequence' });
+        i += 2; continue;
+      }
+      if (c === '.') { expl.push({ token: '.', desc: 'Any character except newline' }); i++; continue; }
+      if (c === '^') { expl.push({ token: '^', desc: 'Start of string/line' }); i++; continue; }
+      if (c === '$') { expl.push({ token: '$', desc: 'End of string/line' }); i++; continue; }
+      if (c === '*') { expl.push({ token: '*', desc: '0 or more (greedy)' }); i++; continue; }
+      if (c === '+') { expl.push({ token: '+', desc: '1 or more (greedy)' }); i++; continue; }
+      if (c === '?') { expl.push({ token: '?', desc: '0 or 1, or makes quantifier non-greedy' }); i++; continue; }
+      if (c === '(') { expl.push({ token: '(', desc: 'Start group' }); i++; continue; }
+      if (c === ')') { expl.push({ token: ')', desc: 'End group' }); i++; continue; }
+      if (c === '[') {
+        let j = i + 1; let body = ''; while (j < pattern.length && pattern[j] !== ']') { body += pattern[j]; j++; }
+        expl.push({ token: '[' + body + ']', desc: 'Character class matching one of: ' + body });
+        i = j + 1; continue;
+      }
+      if (c === '{') {
+        let j = i + 1; let body = ''; while (j < pattern.length && pattern[j] !== '}') { body += pattern[j]; j++; }
+        const [a, b] = body.split(',').map(x => x.trim());
+        let desc = `Exactly ${a} times`;
+        if (body.includes(',')) { desc = b ? `${a} to ${b} times` : `${a} or more times`; }
+        expl.push({ token: '{' + body + '}', desc });
+        i = j + 1; continue;
+      }
+      expl.push({ token: c, desc: 'Literal character "' + c + '"' });
+      i++;
+    }
+    box.innerHTML = expl.map(e => `<div class="explain-item"><span class="explain-token"><code>${escapeHtml(e.token)}</code></span><span>${e.desc}</span></div>`).join('');
+    $('explainBox').style.display = '';
+  }
+
+  $('test').addEventListener('click', testRegex);
+  $('explain').addEventListener('click', explainRegex);
+  document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [p, f] = PRESETS[btn.dataset.preset];
+      $('pattern').value = p; $('flags').value = f;
+      $('test').click();
+    });
+  });
+
+  // default test text
+  $('text').value = 'Contact us at support@example.com or sales@demo.org for help.\nPhone: +1-555-123-4567, 555.987.6543\nVisit https://jsonversal.com/tools or jsonversal.com.\nServer: 192.168.1.100, Gateway: 10.0.0.1\nRequest ID: 550e8400-e29b-41d4-a716-446655440000';
+  setTimeout(testRegex, 100);
+})();
+</script>

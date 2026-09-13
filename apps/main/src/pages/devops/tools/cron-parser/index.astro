@@ -1,0 +1,214 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Crontab Parser — Explain cron expressions';
+const description = 'Translate any crontab expression (5-field standard or 6-field with seconds) into plain English. Preview the next 10 scheduled run times. Perfect for understanding Linux cron, Kubernetes CronJobs, and CI schedulers.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/cron-parser/"
+  keywords={['cron parser', 'crontab explainer', 'cron expression to english', 'cron syntax', 'kubernetes cronjob parser', 'cron schedule explainer', 'cron expression tester']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Expression</label>
+      <input id="expr" type="text" value="0 2 * * *" placeholder="e.g. 0 2 * * * (runs at 2am daily)" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);width:200px;" />
+      <button class="primary" id="parse">Parse</button>
+      <button class="ghost" id="secondsBtn" style="margin-left:auto;">Toggle seconds field (6-field)</button>
+    </div>
+    <div id="explain" style="padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);min-height:40px;"></div>
+  </div>
+
+  <div class="card mt-2">
+    <strong>Next 10 runs</strong>
+    <div id="nextRuns" style="font-family:var(--font-mono);font-size:.85rem;margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;"></div>
+  </div>
+
+  <h2>Crontab Syntax</h2>
+  <pre style="background:var(--surface-2);padding:12px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:.8rem;overflow:auto;">┌───────────── minute (0 - 59)
+│ ┌───────────── hour (0 - 23)
+│ │ ┌───────────── day of month (1 - 31)
+│ │ │ ┌───────────── month (1 - 12)
+│ │ │ │ ┌───────────── day of week (0 - 6) (0=Sun)
+│ │ │ │ │
+│ │ │ │ │
+* * * * *
+</pre>
+  <ul>
+    <li><code>*</code> — every minute/hour/day/month</li>
+    <li><code>,</code> — list: <code>1,3,5</code> = 1, 3, and 5</li>
+    <li><code>-</code> — range: <code>9-17</code> = every hour from 9 to 17</li>
+    <li><code>/</code> — step: <code>*/15</code> = every 15 minutes; <code>0-59/5</code> = every 5 minutes</li>
+    <li><code>@yearly</code> / <code>@annually</code> — 0 0 1 1 *</li>
+    <li><code>@monthly</code> — 0 0 1 * *</li>
+    <li><code>@weekly</code> — 0 0 * * 0</li>
+    <li><code>@daily</code> / <code>@midnight</code> — 0 0 * * *</li>
+    <li><code>@hourly</code> — 0 * * * *</li>
+  </ul>
+
+  <h2>How it works</h2>
+  <p class="text-muted">Type any crontab expression — the parser expands each field into a set of integer values, then converts that set into human-readable English ("At 02:00 every day" / "Every 15 minutes between 09:00 and 17:00 on weekdays"). It then walks forward from now to list the next ten concrete dates and times the scheduler would fire. Kubernetes CronJobs use the same syntax plus an optional leading seconds field; toggle the switch to parse 6-field expressions.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .err { color: var(--danger); }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = id => document.getElementById(id);
+  let hasSeconds = false;
+
+  const PRESETS = {
+    '@yearly': '0 0 1 1 *', '@annually': '0 0 1 1 *', '@monthly': '0 0 1 * *',
+    '@weekly': '0 0 * * 0', '@daily': '0 0 * * *', '@midnight': '0 0 * * *',
+    '@hourly': '0 * * * *', '@reboot': '0 0 0 1 1 0'
+  };
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  function expandField(token, min, max, names) {
+    const namesLower = names ? names.map(n => n.toLowerCase()) : null;
+    const result = new Set();
+    for (const part of token.split(',')) {
+      let p = part.trim();
+      if (namesLower) {
+        const idx = namesLower.findIndex(n => n === p.toLowerCase());
+        if (idx >= 0) p = String(idx + (min === 0 ? 0 : min === 1 ? 1 : min));
+      }
+      let step = 1;
+      if (p.includes('/')) {
+        const [base, stepStr] = p.split('/');
+        step = parseInt(stepStr);
+        p = base === '*' ? String(min) : base;
+      }
+      if (p === '*') {
+        for (let i = min; i <= max; i += step) result.add(i);
+      } else if (p.includes('-')) {
+        const [a, b] = p.split('-').map(Number);
+        for (let i = a; i <= b; i += step) result.add(i);
+      } else {
+        const n = parseInt(p);
+        if (!isNaN(n)) result.add(n);
+      }
+    }
+    return Array.from(result).sort((a,b) => a-b);
+  }
+
+  function parseCron(expr) {
+    let fields = expr.trim().split(/\s+/);
+    if (fields.length === 1 && PRESETS[fields[0]]) fields = PRESETS[fields[0]].split(/\s+/);
+    if (fields.length < 5) return { error: 'Need at least 5 fields (min hour dom month dow).' };
+
+    let seconds = [], minutes, hours, dom, month, dow;
+    let offset = 0;
+
+    if (fields.length === 6) { hasSeconds = true; seconds = expandField(fields[0], 0, 59); offset = 1; }
+    minutes = expandField(fields[offset], 0, 59);
+    hours = expandField(fields[offset+1], 0, 23);
+    dom = expandField(fields[offset+2], 1, 31);
+    month = expandField(fields[offset+3], 1, 12, MONTHS);
+    dow = expandField(fields[offset+4], 0, 6, DAYS);
+
+    return { seconds, minutes, hours, dom, month, dow, hasSeconds };
+  }
+
+  function explain(parsed) {
+    if (parsed.error) return parsed.error;
+    const { minutes, hours, dom, month, dow, hasSeconds } = parsed;
+    let parts = [];
+
+    function describe(arr, unit, singular) {
+      if (arr.length === (unit === 'hour' ? 24 : unit === 'minute' ? 60 : unit === 'month' ? 12 : unit === 'dow' ? 7 : unit === 'dom' ? 31 : 60)) return null;
+      if (arr.length === 1) return `${arr[0]}`;
+      if (arr.length <= 40) return arr.join(', ');
+      // ranges
+      let ranges = []; let start = arr[0], prev = arr[0];
+      for (let i = 1; i < arr.length; i++) {
+        if (arr[i] === prev + 1) prev = arr[i];
+        else { ranges.push(start === prev ? String(start) : `${start}-${prev}`); start = prev = arr[i]; }
+      }
+      ranges.push(start === prev ? String(start) : `${start}-${prev}`);
+      return ranges.join(', ');
+    }
+
+    // hour + minute
+    if (hours.length === 1 && minutes.length === 1) parts.push(`At ${hours[0].toString().padStart(2,'0')}:${minutes[0].toString().padStart(2,'0')}`);
+    else if (hours.length === 24) {
+      if (minutes.length === 60) parts.push('Every minute');
+      else parts.push(`At minute ${describe(minutes, 'minute', 'minute')} of every hour`);
+    } else {
+      parts.push(`At minute ${describe(minutes,'minute','minute')} of hour ${describe(hours,'hour','hour')}`);
+    }
+
+    if (dom.length === 31) { /* any */ }
+    else if (dom.length === 1) parts.push(`on day ${dom[0]}`);
+    else parts.push(`on days ${describe(dom,'dom','day')}`);
+
+    if (month.length === 12) { /* any */ }
+    else if (month.length === 1) parts.push(`in ${MONTHS[month[0]-1]}`);
+    else parts.push(`in ${describe(month,'month','month').split(',').map(m=>MONTHS[parseInt(m)-1]||m).join(', ')}`);
+
+    if (dow.length === 7) { /* any */ }
+    else parts.push(`on ${describe(dow,'dow','day').split(',').map(d=>DAYS[parseInt(d)]||d).join(', ')}`);
+
+    if (hasSeconds) parts.unshift('(6-field with seconds)');
+
+    return parts.join(', ') + '.';
+  }
+
+  function nextRuns(parsed, count = 10) {
+    const runs = [];
+    let d = new Date(); d.setSeconds(0, 0);
+    const max = 100000;
+    for (let i = 0; runs.length < count && i < max; i++) {
+      d.setMinutes(d.getMinutes() + 1);
+      if (!parsed.month.includes(d.getMonth() + 1)) continue;
+      if (!parsed.dom.includes(d.getDate())) continue;
+      if (!parsed.dow.includes(d.getDay())) continue;
+      if (!parsed.hours.includes(d.getHours())) continue;
+      if (!parsed.minutes.includes(d.getMinutes())) continue;
+      runs.push(new Date(d));
+    }
+    return runs;
+  }
+
+  function run() {
+    const parsed = parseCron($('expr').value);
+    if (parsed.error) {
+      $('explain').innerHTML = `<span class="err">${parsed.error}</span>`;
+      $('nextRuns').innerHTML = '';
+      return;
+    }
+    $('explain').textContent = explain(parsed);
+    const runs = nextRuns(parsed, 10);
+    if (runs.length === 0) { $('nextRuns').textContent = 'No runs found in the next million minutes — check your expression.'; return; }
+    $('nextRuns').innerHTML = runs.map(r =>
+      `<div>${r.toLocaleString()}</div><div class="text-dim" style="text-align:right;">${r.toISOString()}</div>`
+    ).join('');
+  }
+
+  $('parse').addEventListener('click', run);
+  $('expr').addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+  $('secondsBtn').addEventListener('click', () => {
+    const v = $('expr').value.trim();
+    const f = v.split(/\s+/).filter(Boolean);
+    if (f.length === 5) $('expr').value = '0 ' + v;
+    else if (f.length === 6) $('expr').value = f.slice(1).join(' ');
+    run();
+  });
+  run();
+})();
+</script>

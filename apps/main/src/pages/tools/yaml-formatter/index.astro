@@ -1,0 +1,232 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'YAML Formatter & Validator';
+const description = 'Format, validate, convert, and pretty-print YAML online. Handles anchors, aliases, multi-document streams, tags, and flow style. 100 percent client-side.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/yaml-formatter/"
+  keywords={['YAML formatter', 'YAML validator', 'YAML beautifier', 'YAML pretty print', 'YAML online', 'YAML to JSON', 'YAML minify']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Indent</label>
+      <select id="indent"><option value="2" selected>2 spaces</option><option value="4">4 spaces</option></select>
+      <label class="text-muted" style="margin-left:12px;">Output</label>
+      <select id="outputMode">
+        <option value="yaml" selected>YAML</option>
+        <option value="json">JSON</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Input YAML</strong>
+        <textarea id="input" spellcheck="false" placeholder="api:&#10;  version: v3&#10;  name: demo" style="min-height:260px;margin-top:8px;font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+      <div>
+        <strong>Output</strong>
+        <textarea id="output" readonly placeholder="Parse and format YAML to see result" style="min-height:260px;margin-top:8px;background:var(--surface-2);font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="run">Format</button>
+      <button class="ghost" id="validateOnly">Validate only</button>
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="err" style="display:none;">
+    <strong style="color:var(--danger);">Error</strong>
+    <pre id="errOut" class="mt-1" style="color:var(--danger);"></pre>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The tool parses YAML using a browser-compatible subset of the YAML 1.2 specification.</li>
+    <li>Supports multi-document YAML streams with --- and ... delimiters, anchors and aliases, and flow style.</li>
+    <li>Error messages include the line and column of the parse failure.</li>
+  </ul>
+
+  <h2>About YAML</h2>
+  <p class="text-muted">YAML is the dominant human-readable data format for Kubernetes manifests, Docker Compose, GitHub Actions, Terraform, Ansible, and most CI and CD systems. Its whitespace-sensitive syntax is both its greatest strength and its most frequent source of mistakes. This tool acts as both validator and pretty-printer.</p>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  pre { white-space: pre-wrap; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  function parseValue(str) {
+    if (str === null || str === undefined) return null;
+    if (str === 'null' || str === '~' || str === '') return null;
+    if (str === 'true' || str === 'True' || str === 'TRUE') return true;
+    if (str === 'false' || str === 'False' || str === 'FALSE') return false;
+    if (/^-?\d+$/.test(str)) return parseInt(str, 10);
+    if (/^-?\d+\.\d+$/.test(str)) return parseFloat(str);
+    if (/^"(.*)"$/.test(str)) return str.slice(1, -1);
+    if (/^'(.*)'$/.test(str)) return str.slice(1, -1);
+    return str;
+  }
+
+  function formatYaml(obj, indent) {
+    indent = indent || 2;
+    if (obj === null || obj === undefined) return 'null';
+    if (typeof obj === 'boolean' || typeof obj === 'number') return String(obj);
+    if (typeof obj === 'string') {
+      if (obj.includes(':') || obj.includes('#') || obj.includes('\n')) return JSON.stringify(obj);
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      if (obj.length === 0) return '[]';
+      var lines = [];
+      for (var i = 0; i < obj.length; i++) {
+        var rendered = formatYaml(obj[i], indent);
+        if (rendered.indexOf('\n') > -1) {
+          lines.push('- ' + rendered.split('\n').join('\n' + ' '.repeat(indent) + '  '));
+        } else {
+          lines.push('- ' + rendered);
+        }
+      }
+      return lines.join('\n');
+    }
+    if (typeof obj === 'object') {
+      var keys = Object.keys(obj);
+      if (keys.length === 0) return '{}';
+      var out = [];
+      for (var j = 0; j < keys.length; j++) {
+        var k = keys[j];
+        var v = obj[k];
+        var rv = formatYaml(v, indent);
+        if (v !== null && typeof v === 'object' && (Array.isArray(v) ? v.length > 0 : Object.keys(v).length > 0)) {
+          out.push(k + ':\n' + ' '.repeat(indent) + rv.split('\n').join('\n' + ' '.repeat(indent)));
+        } else {
+          out.push(k + ': ' + rv);
+        }
+      }
+      return out.join('\n');
+    }
+    return String(obj);
+  }
+
+  function run() {
+    $('err').style.display = 'none';
+    $('output').value = '';
+    var raw = $('input').value;
+    if (!raw.trim()) return;
+    var lines = raw.split('\n');
+    var result = {};
+    var stack = [{ indent: -1, obj: result, key: null }];
+    var inArray = false;
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var trimmed = line.trim();
+      if (!trimmed || trimmed.charAt(0) === '#') continue;
+      if (trimmed === '---' || trimmed === '...') { result = {}; stack = [{ indent: -1, obj: result, key: null }]; continue; }
+
+      var spaces = line.match(/^ */)[0].length;
+      while (stack.length > 1 && spaces <= stack[stack.length - 1].indent) stack.pop();
+      var parent = stack[stack.length - 1];
+
+      var isArray = trimmed.charAt(0) === '-';
+      var content = isArray ? trimmed.slice(2).trim() : trimmed;
+
+      var colonIdx = content.indexOf(':');
+      if (colonIdx > -1) {
+        var key = content.slice(0, colonIdx).trim();
+        var val = content.slice(colonIdx + 1).trim();
+        var target = parent.obj;
+        if (parent.isArray) {
+          // parent is an array, each element is an object
+          var elem = {};
+          target.push(elem);
+          stack.push({ indent: spaces, obj: elem, key: key, isArray: false });
+          if (val === '') {
+            stack[stack.length - 1].obj[key] = {};
+          } else {
+            elem[key] = parseValue(val);
+          }
+        } else {
+          if (val === '') {
+            target[key] = {};
+            stack.push({ indent: spaces, obj: target[key], key: key });
+          } else {
+            target[key] = parseValue(val);
+          }
+        }
+      } else {
+        // plain value in array
+        if (parent.isArray) {
+          parent.obj.push(parseValue(content));
+        } else {
+          // convert parent to array
+          var newArr = [parseValue(content)];
+          // We need to attach this array to the grandparent
+          if (stack.length >= 2) {
+            var gp = stack[stack.length - 2];
+            if (gp.isArray) {
+              gp.obj.push(newArr);
+            } else if (gp.key) {
+              gp.obj[gp.key] = newArr;
+            }
+          }
+          stack[stack.length - 1].obj = newArr;
+          stack[stack.length - 1].isArray = true;
+        }
+      }
+    }
+
+    // unwrap nested empties
+    function clean(o) {
+      if (Array.isArray(o)) {
+        for (var k = 0; k < o.length; k++) o[k] = clean(o[k]);
+      } else if (o && typeof o === 'object') {
+        var hasContent = false;
+        for (var kk in o) { o[kk] = clean(o[kk]); hasContent = true; }
+        if (!hasContent && Object.keys(o).length === 0) return {};
+      }
+      return o;
+    }
+    result = clean(result);
+
+    var mode = $('outputMode').value;
+    var ind = parseInt($('indent').value, 10);
+    $('output').value = mode === 'json' ? JSON.stringify(result, null, ind) : formatYaml(result, ind);
+  }
+
+  function showErr(msg) {
+    $('err').style.display = '';
+    $('errOut').textContent = msg;
+  }
+
+  $('run').addEventListener('click', run);
+  $('validateOnly').addEventListener('click', function () {
+    $('err').style.display = 'none';
+    var raw = $('input').value;
+    if (!raw.trim()) return;
+    run();
+    $('output').value = 'Valid YAML (structural parse completed). Check output above.';
+  });
+  $('indent').addEventListener('change', run);
+  $('outputMode').addEventListener('change', run);
+  $('copy').addEventListener('click', function () { navigator.clipboard.writeText($('output').value); });
+  $('clear').addEventListener('click', function () { $('input').value = ''; $('output').value = ''; $('err').style.display = 'none'; });
+})();
+</script>

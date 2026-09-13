@@ -1,0 +1,133 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'UUID v4 Generator';
+const description = 'Generate RFC 4122 UUID v4 (random) identifiers — single or bulk, uppercase, no-hyphen, or URN format. Validate any UUID version and variant. 100% client-side using crypto.randomUUID where available.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/uuid-generator/"
+  keywords={['UUID v4 generator', 'UUID generator online', 'RFC 4122 UUID', 'random UUID', 'bulk UUID', 'UUID validator', 'crypto.randomUUID']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Count</label>
+      <input id="count" type="number" value="1" min="1" max="1000" style="width:80px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);" />
+      <label class="text-muted" style="margin-left:12px;">Format</label>
+      <select id="format">
+        <option value="hyphenated" selected>Hyphenated (standard)</option>
+        <option value="nohyphen">No hyphens</option>
+        <option value="uppercase">Uppercase</option>
+        <option value="urn">URN (urn:uuid:...)</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Generated</strong>
+        <textarea id="output" readonly placeholder='UUID(s) appear here' style="min-height:200px;margin-top:8px;background:var(--surface-2);font-family:var(--font-mono);"></textarea>
+      </div>
+      <div>
+        <strong>Validate UUID</strong>
+        <input id="validateInput" type="text" placeholder="Paste any UUID to validate" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);margin-top:8px;" />
+        <div id="validateResult" style="margin-top:8px;min-height:40px;"></div>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="gen">Generate</button>
+      <button class="ghost" id="copy">Copy all</button>
+      <button class="ghost" id="download">Download</button>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Single-click generates a cryptographically random UUID v4 using the browser's <code>crypto.randomUUID()</code> (modern browsers) or a <code>crypto.getRandomValues()</code> fallback.</li>
+    <li>Batch mode produces up to 1000 UUIDs at once for test data, migration scripts, or seed files.</li>
+    <li>The validator accepts any UUID string and reports the version (v1 timestamp-based, v4 random, v7 sortable) and variant (RFC 4122 vs Microsoft vs NCS backward compatibility).</li>
+  </ul>
+
+  <h2>About UUID v4</h2>
+  <p class="text-muted">A UUID v4 is 122 bits of randomness formatted as 36 characters with hyphens: <code>xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx</code>. The leading <code>4</code> identifies the version; the <code>y</code> nibble encodes the variant. Since every browser, every runtime, and every operating system can generate these independently without a central registry, UUIDs are the standard way to assign globally unique identifiers to database rows, API keys, correlation IDs, event streams, and ephemeral tokens.</p>
+</BaseLayout>
+
+<style>
+  textarea, input[type=text] { width: 100%; box-sizing: border-box; }
+  .v-ok { color: #22c55e; }
+  .v-bad { color: var(--danger); }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function genOne() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    const b = new Uint8Array(16);
+    crypto.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b).map(x => x.toString(16).padStart(2,'0')).join('');
+    return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+  }
+
+  function applyFormat(uuid) {
+    const f = $('format').value;
+    if (f === 'hyphenated') return uuid;
+    if (f === 'nohyphen') return uuid.replace(/-/g, '');
+    if (f === 'uppercase') return uuid.toUpperCase();
+    if (f === 'urn') return 'urn:uuid:' + uuid;
+    return uuid;
+  }
+
+  $('gen').addEventListener('click', () => {
+    const n = Math.max(1, Math.min(1000, parseInt($('count').value) || 1));
+    const out = [];
+    for (let i = 0; i < n; i++) out.push(applyFormat(genOne()));
+    $('output').value = out.join('\n');
+  });
+  $('format').addEventListener('change', () => {
+    const n = parseInt($('count').value) || 1;
+    const out = [];
+    for (let i = 0; i < n; i++) out.push(applyFormat(genOne()));
+    $('output').value = out.join('\n');
+  });
+  $('copy').addEventListener('click', () => navigator.clipboard.writeText($('output').value));
+  $('download').addEventListener('click', () => {
+    const blob = new Blob([$('output').value], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'uuids.txt';
+    a.click();
+  });
+
+  const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-([0-9a-fA-F])[0-9a-fA-F]{3}-([89a-fA-F])[0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+  $('validateInput').addEventListener('input', () => {
+    const u = $('validateInput').value.trim();
+    const r = $('validateResult');
+    if (!u) { r.textContent = ''; return; }
+    if (!UUID_RE.test(u)) { r.innerHTML = '<span class="v-bad">✗ Not a valid UUID format</span>'; return; }
+    const m = u.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-([0-9a-fA-F])[0-9a-fA-F]{3}-([0-9a-fA-F])[0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/);
+    const version = m[1];
+    const variantByte = parseInt(m[2], 16);
+    let variant = 'RFC 4122';
+    if (variantByte >= 0 && variantByte <= 3) variant = 'NCS backward compatibility';
+    else if (variantByte >= 8 && variantByte <= 9) variant = 'RFC 4122 / IETF';
+    else if (variantByte >= 10 && variantByte <= 11) variant = 'Microsoft (COM)';
+    r.innerHTML = `<span class="v-ok">✓ Valid UUID</span> — version <strong>${version}</strong>, variant <strong>${variant}</strong>`;
+  });
+
+  // seed a default
+  $('count').value = 5;
+  $('gen').click();
+})();
+</script>

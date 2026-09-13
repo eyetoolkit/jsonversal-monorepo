@@ -1,0 +1,116 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Minify & Compress';
+const description = 'Remove all whitespace and comments from JSON in one click. Compare input vs output size, calculate compression ratio. Perfect for embedding JSON in URLs, CSS, emails, or reducing API payload size. 100% client-side.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-minify/"
+  keywords={['JSON minify', 'JSON compress', 'minify JSON online', 'remove whitespace JSON', 'JSON one line', 'compress JSON', 'minify JSON tool']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Input JSON</strong>
+        <textarea id="input" spellcheck="false" placeholder='Paste pretty-printed or messy JSON' style="min-height:260px;margin-top:8px;font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+      <div>
+        <strong>Minified Output</strong>
+        <textarea id="output" readonly placeholder='Click Minify to compress' style="min-height:260px;margin-top:8px;background:var(--surface-2);font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;margin-top:8px;">
+      <button class="primary" id="run">Minify</button>
+      <button class="ghost" id="pretty">Pretty-print</button>
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="stats" style="display:none;">
+    <div class="row" style="gap:24px;flex-wrap:wrap;font-size:.9rem;">
+      <div><span class="text-muted">Input</span> <strong id="inBytes">0</strong> B</div>
+      <div><span class="text-muted">Output</span> <strong id="outBytes">0</strong> B</div>
+      <div><span class="text-muted">Savings</span> <strong id="saved">0%</strong></div>
+      <div><span class="text-muted">Gzip estimate</span> <strong id="gzip">0</strong> B</div>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The minifier parses your JSON with strict <code>JSON.parse</code>, which naturally strips every comment, trailing comma, and inconsistent indentation — then re-serializes with zero whitespace.</li>
+    <li>If your input is not valid JSON (trailing commas, JavaScript object literals), the tool tries a lenient fallback parser that accepts common browser-style JSON.</li>
+    <li>Statistics show the input size, compressed size, savings percentage, and an estimated gzipped output — useful when comparing payload sizes for API responses.</li>
+  </ul>
+
+  <h2>About Minifying JSON</h2>
+  <p class="text-muted">Minifying JSON removes all spaces, tabs, and newlines between tokens. For typical real-world payloads this saves 30–60% of the byte size, which matters when embedding JSON in URL query strings (where there is a 2048-character soft limit), HTML data attributes, CSS <code>--var</code> declarations, email templates, or any bandwidth-sensitive transport. The output is <em>byte-identical</em> to the input for the parser — any program that accepts the pretty version will accept the minified version.</p>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function lenientParse(src) {
+    // Strip comments, trailing commas, single quotes
+    let s = src.trim();
+    s = s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+    s = s.replace(/,\s*([}\]])/g, '$1');
+    s = s.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '{"$1"}');
+    return JSON.parse(s);
+  }
+
+  function gzipSize(str) {
+    try {
+      // Rough estimate using simple byte counting — actual gzip varies
+      const enc = new TextEncoder().encode(str);
+      // Heuristic: gzip typically achieves 50-70% on JSON
+      return Math.round(enc.length * 0.35);
+    } catch { return 0; }
+  }
+
+  function doRun(pretty) {
+    const raw = $('input').value;
+    let obj;
+    try { obj = JSON.parse(raw); }
+    catch (e) {
+      try { obj = lenientParse(raw); }
+      catch (e2) {
+        $('output').value = 'Error: ' + e.message;
+        $('stats').style.display = 'none';
+        return;
+      }
+    }
+    const out = pretty ? JSON.stringify(obj, null, 2) : JSON.stringify(obj);
+    $('output').value = out;
+    const inLen = new TextEncoder().encode(raw).length;
+    const outLen = new TextEncoder().encode(out).length;
+    $('inBytes').textContent = inLen;
+    $('outBytes').textContent = outLen;
+    $('saved').textContent = inLen > 0 ? Math.round((1 - outLen / inLen) * 100) + '%' : '0%';
+    $('gzip').textContent = gzipSize(out);
+    $('stats').style.display = '';
+  }
+
+  $('run').addEventListener('click', () => doRun(false));
+  $('pretty').addEventListener('click', () => doRun(true));
+  $('copy').addEventListener('click', () => navigator.clipboard.writeText($('output').value));
+  $('clear').addEventListener('click', () => { $('input').value = ''; $('output').value = ''; $('stats').style.display = 'none'; });
+})();
+</script>

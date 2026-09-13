@@ -1,0 +1,143 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Unix Timestamp Converter';
+const description = 'Convert between Unix timestamps (seconds or milliseconds) and human-readable local or UTC dates. Auto-detects seconds vs milliseconds. Shows ISO 8601, RFC 2822, and more. Add/subtract offsets in seconds, minutes, hours, days.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/timestamp/"
+  keywords={['unix timestamp converter', 'epoch to date', 'timestamp generator', 'unix time', 'epoch converter', 'seconds to date', 'milliseconds converter', 'epoch calculator']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Now</label>
+      <button class="ghost" id="nowSec">Second</button>
+      <button class="ghost" id="nowMs">Millisecond</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Convert Unix → Date</strong>
+        <label for="tsInput" class="sr-only">Timestamp</label>
+        <input id="tsInput" type="text" placeholder="e.g. 1700000000 or 1700000000000" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);margin-top:8px;" />
+        <div id="tsOut" style="margin-top:8px;font-family:var(--font-mono);"></div>
+      </div>
+      <div>
+        <strong>Convert Date → Unix</strong>
+        <label for="dateInput" class="sr-only">Date</label>
+        <input id="dateInput" type="datetime-local" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);margin-top:8px;" />
+        <div id="dateOut" style="margin-top:8px;font-family:var(--font-mono);"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-2">
+    <strong>Common Timestamps</strong>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px;font-family:var(--font-mono);font-size:.85rem;">
+      <div class="row"><span class="text-muted">Today 00:00 local</span><code id="t-today" style="margin-left:auto;"></code></div>
+      <div class="row"><span class="text-muted">Today 00:00 UTC</span><code id="t-todayUTC" style="margin-left:auto;"></code></div>
+      <div class="row"><span class="text-muted">Tomorrow 00:00 local</span><code id="t-tomorrow" style="margin-left:auto;"></code></div>
+      <div class="row"><span class="text-muted">Next Monday 00:00</span><code id="t-nextMon" style="margin-left:auto;"></code></div>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Type any timestamp — the tool auto-detects seconds (10 digits) or milliseconds (13 digits). You can paste from logs, JSON, or HTTP headers.</li>
+    <li>Every conversion shows local time, UTC time, ISO 8601, and RFC 2822 — the formats developers need across languages and APIs.</li>
+    <li>The <strong>Common Timestamps</strong> section gives you one-click values for daily batch jobs, cron schedules, and event planning.</li>
+  </ul>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  code { padding: 2px 6px; background: var(--surface-2); border-radius: 4px; cursor: pointer; }
+  code:hover { background: color-mix(in srgb, var(--accent-icon) 20%, var(--surface-2)); }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function fmt(d) {
+    return {
+      local: d.toLocaleString(),
+      utc: d.toISOString().replace('T', ' ').replace('.000Z', ' UTC'),
+      iso: d.toISOString(),
+      rfc: d.toUTCString()
+    };
+  }
+
+  function parseTs(val) {
+    const n = parseInt(val);
+    if (isNaN(n)) return null;
+    const ms = String(val).length > 10 ? n : n * 1000;
+    return new Date(ms);
+  }
+
+  function renderTs() {
+    const val = $('tsInput').value.trim();
+    if (!val) { $('tsOut').textContent = ''; return; }
+    const d = parseTs(val);
+    if (!d || isNaN(d.getTime())) { $('tsOut').innerHTML = '<span style="color:var(--danger)">Not a valid timestamp</span>'; return; }
+    const f = fmt(d);
+    $('tsOut').innerHTML = `
+      <div><strong>Local:</strong> ${f.local}</div>
+      <div><strong>UTC:</strong> ${f.utc}</div>
+      <div><strong>ISO 8601:</strong> ${f.iso}</div>
+      <div><strong>RFC 2822:</strong> ${f.rfc}</div>
+      <div class="row" style="margin-top:6px;"><span class="text-muted">Day of week:</span> ${d.toLocaleDateString(undefined,{weekday:'long'})} · <span class="text-muted">Year day:</span> ${Math.floor((d - new Date(d.getFullYear(),0,0))/86400000)}</div>
+    `;
+  }
+
+  function renderDate() {
+    const val = $('dateInput').value;
+    if (!val) { $('dateOut').textContent = ''; return; }
+    const d = new Date(val);
+    if (isNaN(d.getTime())) { $('dateOut').innerHTML = '<span style="color:var(--danger)">Invalid date</span>'; return; }
+    $('dateOut').innerHTML = `
+      <div>Second: <code>${Math.floor(d.getTime()/1000)}</code></div>
+      <div>Millisecond: <code>${d.getTime()}</code></div>
+    `;
+  }
+
+  function populatePresets() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const utcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const tomorrow = new Date(today.getTime() + 86400000);
+    const nextMon = new Date(today);
+    nextMon.setDate(today.getDate() + ((8 - today.getDay()) % 7 || 7));
+    nextMon.setHours(0,0,0,0);
+
+    $('t-today').textContent = Math.floor(today.getTime()/1000);
+    $('t-todayUTC').textContent = Math.floor(utcMidnight.getTime()/1000);
+    $('t-tomorrow').textContent = Math.floor(tomorrow.getTime()/1000);
+    $('t-nextMon').textContent = Math.floor(nextMon.getTime()/1000);
+
+    document.querySelectorAll('#tsOut code, #t-today, #t-todayUTC, #t-tomorrow, #t-nextMon').forEach(c => {
+      c.addEventListener('click', () => {
+        $('tsInput').value = c.textContent; renderTs();
+      });
+    });
+  }
+
+  $('tsInput').addEventListener('input', renderTs);
+  $('dateInput').addEventListener('input', renderDate);
+  $('nowSec').addEventListener('click', () => { $('tsInput').value = Math.floor(Date.now()/1000); renderTs(); });
+  $('nowMs').addEventListener('click', () => { $('tsInput').value = Date.now(); renderTs(); });
+  populatePresets();
+  $('dateInput').value = new Date().toISOString().slice(0,16);
+  renderDate();
+})();
+</script>

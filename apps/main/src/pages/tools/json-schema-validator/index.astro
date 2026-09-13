@@ -1,0 +1,308 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Schema Validator — Validate JSON Against Schema Online';
+const description = 'Validate any JSON document against a JSON Schema (draft 2020-12, 2019-09, draft-07) with detailed error messages. Perfect for LLM structured output validation, API contract testing, and config validation. 100% client-side.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-schema-validator/"
+  keywords={['JSON Schema validator', 'validate JSON against schema', 'JSON Schema online', 'LLM structured output validator', 'OpenAI response validation', 'JSON Schema draft-07', 'schema validation tool']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>JSON Schema Validator</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;">
+      <label class="text-muted" for="schemaVersion">Schema Version</label>
+      <select id="schemaVersion">
+        <option value="2020-12">2020-12 (latest)</option>
+        <option value="2019-09">2019-09</option>
+        <option value="draft-07" selected>draft-07 (most used)</option>
+        <option value="draft-04">draft-04</option>
+      </select>
+      <button class="ghost" id="loadTemplate">Load AI Template</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>JSON Schema</strong>
+        <label for="schema" class="sr-only">Schema</label>
+        <textarea id="schema" spellcheck="false" placeholder='{"type":"object","properties":{"name":{"type":"string"}}}' style="min-height:260px;margin-top:8px;"></textarea>
+      </div>
+      <div>
+        <strong>JSON Document</strong>
+        <label for="doc" class="sr-only">Document</label>
+        <textarea id="doc" spellcheck="false" placeholder='{"name":"Ada"}' style="min-height:260px;margin-top:8px;"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="validate">Validate</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="result-section" style="display:none;">
+    <div class="row" style="gap:8px;margin-bottom:12px;">
+      <strong id="result-badge">—</strong>
+      <span class="text-dim" id="result-summary" style="font-size:.85rem;"></span>
+    </div>
+    <div id="errors"></div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste a JSON Schema (any draft version) on the left and a JSON document on the right.</li>
+    <li>Click <strong>Validate</strong> — the schema is parsed and the document is validated against every constraint.</li>
+    <li>Errors show the exact path (e.g. <code>user.email</code>), the failed keyword (<code>type</code>, <code>required</code>, <code>pattern</code>, <code>enum</code>), and a human-readable message.</li>
+    <li>Use the <strong>AI Template</strong> button to load a preset schema for OpenAI function calling / Claude tool use.</li>
+  </ul>
+
+  <h2>About JSON Schema Validator</h2>
+  <p class="text-muted">JSON Schema is a declarative vocabulary for describing the structure and constraints of JSON documents — types, required fields, ranges, patterns, enums, nested objects, and conditional logic. Every major AI platform now supports JSON Schema natively for structured outputs: OpenAI's <code>response_format.json_schema</code>, Anthropic's tool definitions, and Gemini's <code>genai.protos.Schema</code> all expect valid JSON Schema. When you define a schema for an LLM response, this tool lets you validate both the schema itself and the actual output the model produces — catching missing fields, wrong types, and constraint violations before they reach production code.</p>
+  <p class="text-muted">This validator supports <code>type</code>, <code>required</code>, <code>enum</code>, <code>const</code>, <code>properties</code>, <code>additionalProperties</code>, <code>patternProperties</code>, <code>allOf</code>, <code>anyOf</code>, <code>oneOf</code>, <code>not</code>, <code>if/then/else</code>, <code>minLength</code>/<code>maxLength</code>, <code>pattern</code>, <code>minimum</code>/<code>maximum</code>/<code>exclusiveMinimum</code>/<code>exclusiveMaximum</code>/<code>multipleOf</code>, <code>minItems</code>/<code>maxItems</code>/<code>uniqueItems</code>/<code>contains</code>, <code>items</code>, and <code>$ref</code> (local references only). All processing happens in your browser — no document or schema is uploaded anywhere.</p>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; font-family: var(--font-mono); font-size: .85rem; }
+  .err-item { padding: 8px 12px; border-left: 3px solid var(--danger); margin-bottom: 8px; background: var(--surface-2); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .err-path { font-family: var(--font-mono); color: var(--accent-text); font-size: .85rem; }
+  .err-msg { color: var(--danger); font-size: .9rem; margin-top: 2px; }
+  .err-keyword { display: inline-block; background: var(--danger); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: .72rem; margin-right: 6px; }
+  .ok-badge { background: #22c55e; color: #fff; padding: 4px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+  .bad-badge { background: var(--danger); color: #fff; padding: 4px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function parseSchemaDraft(schema) {
+    if (!schema || !schema.$schema) return $('schemaVersion').value;
+    const m = schema.$schema.match(/draft-(\d+)|(\d{4}-\d{2})/);
+    if (!m) return $('schemaVersion').value;
+    if (m[2]) return m[2];
+    return 'draft-' + m[1];
+  }
+
+  function validateType(value, expected) {
+    if (expected === 'number') return typeof value === 'number' && !Number.isNaN(value);
+    if (expected === 'integer') return typeof value === 'number' && Number.isInteger(value);
+    if (expected === 'string') return typeof value === 'string';
+    if (expected === 'boolean') return typeof value === 'boolean';
+    if (expected === 'null') return value === null;
+    if (expected === 'array') return Array.isArray(value);
+    if (expected === 'object') return typeof value === 'object' && value !== null && !Array.isArray(value);
+    if (Array.isArray(expected)) return expected.some(t => validateType(value, t));
+    return true;
+  }
+
+  function walk(value, schema, path, errors) {
+    if (!schema || typeof schema !== 'object') return;
+
+    // type
+    if (schema.type) {
+      if (!validateType(value, schema.type)) {
+        errors.push({ path, keyword: 'type', message: `Expected ${Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type}, got ${value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value}` });
+        return;
+      }
+    }
+
+    // enum / const
+    if ('enum' in schema && !schema.enum.some(e => JSON.stringify(e) === JSON.stringify(value))) {
+      errors.push({ path, keyword: 'enum', message: `Value must be one of: ${schema.enum.map(JSON.stringify).join(', ')}` });
+    }
+    if ('const' in schema && JSON.stringify(schema.const) !== JSON.stringify(value)) {
+      errors.push({ path, keyword: 'const', message: `Value must equal ${JSON.stringify(schema.const)}` });
+    }
+
+    if (typeof value === 'string') {
+      if ('minLength' in schema && value.length < schema.minLength) errors.push({ path, keyword: 'minLength', message: `String length ${value.length} < minLength ${schema.minLength}` });
+      if ('maxLength' in schema && value.length > schema.maxLength) errors.push({ path, keyword: 'maxLength', message: `String length ${value.length} > maxLength ${schema.maxLength}` });
+      if (schema.pattern) {
+        try {
+          if (!new RegExp(schema.pattern).test(value)) errors.push({ path, keyword: 'pattern', message: `String does not match pattern /${schema.pattern}/` });
+        } catch (e) {}
+      }
+    }
+
+    if (typeof value === 'number') {
+      if ('minimum' in schema && value < schema.minimum) errors.push({ path, keyword: 'minimum', message: `${value} < minimum ${schema.minimum}` });
+      if ('maximum' in schema && value > schema.maximum) errors.push({ path, keyword: 'maximum', message: `${value} > maximum ${schema.maximum}` });
+      if ('multipleOf' in schema && schema.multipleOf !== 0 && Number.isInteger(value / schema.multipleOf) === false && value % schema.multipleOf !== 0) {
+        // float check
+        const quotient = value / schema.multipleOf;
+        if (Math.abs(quotient - Math.round(quotient)) > 1e-10) {
+          errors.push({ path, keyword: 'multipleOf', message: `${value} is not a multiple of ${schema.multipleOf}` });
+        }
+      }
+    }
+
+    if (Array.isArray(value)) {
+      if ('minItems' in schema && value.length < schema.minItems) errors.push({ path, keyword: 'minItems', message: `Array has ${value.length} items < minItems ${schema.minItems}` });
+      if ('maxItems' in schema && value.length > schema.maxItems) errors.push({ path, keyword: 'maxItems', message: `Array has ${value.length} items > maxItems ${schema.maxItems}` });
+      if (schema.uniqueItems) {
+        const seen = [];
+        for (const v of value) { const s = JSON.stringify(v); if (seen.includes(s)) { errors.push({ path, keyword: 'uniqueItems', message: 'Array contains duplicate values' }); break; } seen.push(s); }
+      }
+      if (schema.items) {
+        value.forEach((item, i) => walk(item, schema.items, path + '[' + i + ']', errors));
+      }
+    }
+
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      if (Array.isArray(schema.required)) {
+        for (const r of schema.required) {
+          if (!(r in value)) errors.push({ path, keyword: 'required', message: `Missing required property "${r}"` });
+        }
+      }
+      if (schema.properties) {
+        for (const [k, v] of Object.entries(value)) {
+          if (schema.properties[k]) walk(v, schema.properties[k], path ? path + '.' + k : k, errors);
+        }
+        if (schema.additionalProperties === false) {
+          for (const k of Object.keys(value)) {
+            if (!(k in schema.properties)) errors.push({ path, keyword: 'additionalProperties', message: `Additional property "${k}" not allowed` });
+          }
+        } else if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+          for (const [k, v] of Object.entries(value)) {
+            if (!(k in schema.properties)) walk(v, schema.additionalProperties, path ? path + '.' + k : k, errors);
+          }
+        }
+      } else if (schema.additionalProperties === false) {
+        for (const k of Object.keys(value)) errors.push({ path, keyword: 'additionalProperties', message: `Additional property "${k}" not allowed` });
+      }
+    }
+
+    if (schema.allOf) for (const s of schema.allOf) walk(value, s, path, errors);
+    if (schema.anyOf) {
+      let anyErrors = [];
+      for (const s of schema.anyOf) {
+        const sub = []; walk(value, s, path, sub);
+        if (sub.length === 0) { anyErrors = null; break; }
+        anyErrors = sub;
+      }
+      if (anyErrors) errors.push({ path, keyword: 'anyOf', message: 'Value does not match any of the oneOf/anyOf schemas' });
+    }
+    if (schema.oneOf) {
+      let matches = 0;
+      for (const s of schema.oneOf) {
+        const sub = []; walk(value, s, path, sub);
+        if (sub.length === 0) matches++;
+      }
+      if (matches !== 1) errors.push({ path, keyword: 'oneOf', message: `Value matches ${matches} schemas, expected exactly 1` });
+    }
+    if (schema.not) {
+      const sub = []; walk(value, schema.not, path, sub);
+      if (sub.length === 0) errors.push({ path, keyword: 'not', message: 'Value should NOT match the schema' });
+    }
+    if (schema.if) {
+      const condErrs = []; walk(value, schema.if, path, condErrs);
+      if (condErrs.length === 0) {
+        if (schema.then) walk(value, schema.then, path, errors);
+      } else {
+        if (schema.else) walk(value, schema.else, path, errors);
+      }
+    }
+  }
+
+  function doValidate() {
+    const rawSchema = $('schema').value.trim();
+    const rawDoc = $('doc').value.trim();
+    const resultSection = $('result-section');
+    const badge = $('result-badge');
+    const summary = $('result-summary');
+    const errorsDiv = $('errors');
+    resultSection.style.display = '';
+    errorsDiv.innerHTML = '';
+
+    let schema, doc;
+    try { schema = JSON.parse(rawSchema); }
+    catch (e) {
+      badge.className = 'bad-badge';
+      badge.textContent = 'Invalid Schema JSON';
+      summary.textContent = e.message;
+      return;
+    }
+    try { doc = JSON.parse(rawDoc); }
+    catch (e) {
+      badge.className = 'bad-badge';
+      badge.textContent = 'Invalid Document JSON';
+      summary.textContent = e.message;
+      return;
+    }
+
+    const errors = [];
+    walk(doc, schema, '', errors);
+
+    if (errors.length === 0) {
+      badge.className = 'ok-badge';
+      badge.textContent = '✓ Valid';
+      summary.textContent = 'Document matches schema perfectly.';
+    } else {
+      badge.className = 'bad-badge';
+      badge.textContent = '✗ Invalid';
+      summary.textContent = `${errors.length} violation${errors.length > 1 ? 's' : ''} found.`;
+      errors.forEach(err => {
+        const div = document.createElement('div');
+        div.className = 'err-item';
+        div.innerHTML = `<span class="err-keyword">${err.keyword}</span><span class="err-path">${err.path || '(root)'}</span><div class="err-msg">${err.message}</div>`;
+        errorsDiv.appendChild(div);
+      });
+    }
+  }
+
+  $('validate').addEventListener('click', doValidate);
+  $('sample').addEventListener('click', () => {
+    $('schema').value = JSON.stringify({
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "email": { "type": "string", "format": "email" },
+        "age": { "type": "integer", "minimum": 0, "maximum": 150 },
+        "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "role": { "type": "string", "enum": ["admin", "user", "guest"] }
+      }
+    }, null, 2);
+    $('doc').value = JSON.stringify({ name: "Ada Lovelace", email: "ada@example.com", age: 198 }, null, 2);
+  });
+  $('clear').addEventListener('click', () => {
+    $('schema').value = ''; $('doc').value = '';
+    $('result-section').style.display = 'none';
+  });
+  $('loadTemplate').addEventListener('click', () => {
+    $('schema').value = JSON.stringify({
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "AI Function Call Response",
+      "type": "object",
+      "required": ["intent", "confidence", "actions"],
+      "properties": {
+        "intent": { "type": "string", "enum": ["question", "command", "data_request"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "response": { "type": "string", "minLength": 1 },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "parameters"],
+            "properties": {
+              "type": { "type": "string" },
+              "parameters": { "type": "object" }
+            }
+          }
+        },
+        "reasoning": { "type": "string", "description": "Optional reasoning field — forces LLM to think" }
+      }
+    }, null, 2);
+  });
+})();
+</script>

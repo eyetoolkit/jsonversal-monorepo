@@ -97,6 +97,18 @@ const ICONS = {
   'base64-image': '🖼️',
   'sql-formatter': '🧹',
   'sql-validator': '📋',
+  // NEW Phase 1 tools
+  'json-schema-validator': '✅',
+  'yaml-formatter': '📋',
+  'xml-formatter': '📝',
+  'json-minify': '🗜️',
+  'url-codec': '🔗',
+  'timestamp': '⏱️',
+  'uuid-generator': '🪪',
+  'regex-advanced': '🔎',
+  'cron-parser': '⏰',
+  'hash-generator': '🔐',
+
 };
 
 // 从 href（如 /sec/tools/hash/）解析出 section + slug
