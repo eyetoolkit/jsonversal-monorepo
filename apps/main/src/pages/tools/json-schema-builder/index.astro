@@ -2,7 +2,7 @@
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Builder — Visual Schema Editor';
-const description = 'Build JSON Schemas visually — click to add properties, choose types, set constraints, and see the schema update in real time. Supports objects, arrays, nested schemas, enums, allOf/anyOf/oneOf, and required fields. Export to draft-07 or 2020-12. 100 percent client-side.';
+const description = 'Build JSON Schemas visually — drag types from the palette, reorder properties by dragging, nest objects inside objects, and see the schema update in real time. Supports constraints, enums, required fields, allOf/anyOf/oneOf. Export to draft-07 or 2020-12. 100 percent client-side.';
 ---
 
 <BaseLayout
@@ -37,20 +37,40 @@ const description = 'Build JSON Schemas visually — click to add properties, ch
       </select>
       <button class="ghost" id="loadSample" style="margin-left:auto;">Load sample</button>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+    <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:12px;">
+      <!-- LEFT: Type palette -->
+      <div>
+        <strong>Drag types</strong>
+        <div class="palette" id="palette" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+          <div class="palette-item" draggable="true" data-type="string"><span class="palette-emoji">📝</span> string</div>
+          <div class="palette-item" draggable="true" data-type="number"><span class="palette-emoji">🔢</span> number</div>
+          <div class="palette-item" draggable="true" data-type="integer"><span class="palette-emoji">🔢</span> integer</div>
+          <div class="palette-item" draggable="true" data-type="boolean"><span class="palette-emoji">✅</span> boolean</div>
+          <div class="palette-item" draggable="true" data-type="object"><span class="palette-emoji">📦</span> object</div>
+          <div class="palette-item" draggable="true" data-type="array"><span class="palette-emoji">📋</span> array</div>
+          <div class="palette-item" draggable="true" data-type="null"><span class="palette-emoji">⚠️</span> null</div>
+        </div>
+        <div class="palette-hint" style="margin-top:10px;font-size:.78rem;color:var(--text-dim);line-height:1.5;">
+          Drag a type into the editor to add a property. Drag existing properties up/down to reorder. Drag onto an object property to nest inside it.
+        </div>
+      </div>
+
+      <!-- CENTER: Visual Editor -->
       <div>
         <strong>Visual Editor</strong>
-        <div id="editor" style="min-height:240px;margin-top:8px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);"></div>
+        <div id="editor" class="drop-root" data-path="" style="min-height:320px;margin-top:8px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);"></div>
       </div>
+
+      <!-- RIGHT: Schema Output -->
       <div>
         <strong>Generated JSON Schema</strong>
-        <textarea id="output" readonly placeholder='Schema appears here as you build' style="min-height:240px;margin-top:8px;background:var(--surface-2);font-family:var(--font-mono);font-size:.82rem;"></textarea>
+        <textarea id="output" readonly placeholder='Schema appears here as you build' style="min-height:320px;margin-top:8px;background:var(--surface-2);font-family:var(--font-mono);font-size:.82rem;"></textarea>
       </div>
     </div>
+
     <div class="row mt-1" style="gap:8px;">
       <button class="ghost" id="addProp">+ Add property</button>
-      <button class="ghost" id="addRequired">Toggle required</button>
-      <button class="ghost" id="addEnum">Add enum</button>
       <button class="ghost" id="clearAll">Reset</button>
       <button class="ghost" id="copySchema" style="margin-left:auto;">Copy schema</button>
       <button class="primary" id="exportMd">Export with $schema</button>
@@ -59,215 +79,817 @@ const description = 'Build JSON Schemas visually — click to add properties, ch
 
   <h2>How it works</h2>
   <ul>
-    <li>Start from an object, array, or primitive — add properties with one click, choose the type for each, and set constraints (min/max, minLength/maxLength, pattern, enum).</li>
-    <li>Toggle which properties are required. Add nested objects and arrays recursively.</li>
-    <li>The schema JSON updates in real time on the right pane. Export it with or without the <code>$schema</code> metadata.</li>
+    <li><strong>Drag types</strong> from the left palette into the editor to add properties instantly. No clicking through menus.</li>
+    <li><strong>Reorder</strong> properties by dragging them up or down within the same object.</li>
+    <li><strong>Nest</strong> structures by dragging a property onto an object-type property — it becomes a child schema.</li>
+    <li>Set constraints (min/max, minLength/maxLength, pattern, enum, format), toggle required, and the schema JSON updates in real time.</li>
   </ul>
 
   <h2>About JSON Schema Builder</h2>
-  <p class="text-muted">Writing JSON Schema by hand is tedious and error-prone — every type, constraint, and nested structure is just a few characters away from a typo. This visual builder lets you think in <em>structure</em> rather than <em>syntax</em>: pick a type and the tool shows you the constraints that apply, hides irrelevant ones, and keeps the JSON valid as you build. When you're done, export the schema and feed it directly to an LLM's structured output endpoint or your API validation layer.</p>
+  <p class="text-muted">Writing JSON Schema by hand is tedious and error-prone. This visual builder lets you think in structure rather than syntax — drag types to build, reorder with a swipe, see nested schemas grow organically. The schema JSON stays valid as you work, ready to feed into an LLM's structured output endpoint or your API validation layer.</p>
 </BaseLayout>
 
 <style>
   textarea { width: 100%; box-sizing: border-box; }
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .prop-block { border-left: 2px solid var(--accent); padding-left: 12px; margin-bottom: 12px; }
-  .prop-header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
-  .prop-name { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-family: var(--font-mono); font-size: .85rem; }
-  .prop-type { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-size: .82rem; }
-  .prop-controls { margin-left: auto; display: flex; gap: 4px; }
-  .mini-btn { padding: 2px 8px; font-size: .78rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); cursor: pointer; }
+
+  /* Type palette */
+  .palette-item {
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: .85rem;
+    font-weight: 500;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    transition: transform .12s, box-shadow .12s, border-color .12s;
+    font-family: var(--font-mono);
+  }
+  .palette-item:hover { border-color: var(--accent); transform: translateX(2px); }
+  .palette-item:active { cursor: grabbing; }
+  .palette-item.dragging { opacity: .4; }
+  .palette-emoji { font-size: 1rem; }
+
+  /* Property blocks */
+  .prop-block {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: var(--surface);
+    cursor: grab;
+    transition: border-color .12s, box-shadow .12s, opacity .15s, transform .08s;
+  }
+  .prop-block:hover { border-color: var(--accent); box-shadow: 0 1px 4px rgba(99,102,241,.1); }
+  .prop-block.dragging { opacity: .35; cursor: grabbing; }
+  .prop-block.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  .prop-block.drag-over-before { border-top: 3px dashed var(--accent); }
+  .prop-block.drag-over-after { border-bottom: 3px dashed var(--accent); }
+  .prop-block.drag-over-inside { border-color: var(--accent); background: rgba(99,102,241,.08); }
+
+  .prop-header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .prop-drag-handle {
+    color: var(--text-dim);
+    font-size: .9rem;
+    cursor: grab;
+    padding: 0 2px;
+    user-select: none;
+  }
+  .prop-name {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface-2);
+    font-family: var(--font-mono);
+    font-size: .85rem;
+    min-width: 100px;
+  }
+  .prop-type {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface-2);
+    font-size: .82rem;
+  }
+  .prop-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+  }
+  .mini-btn {
+    padding: 2px 8px;
+    font-size: .78rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface-2);
+    cursor: pointer;
+  }
   .mini-btn:hover { border-color: var(--accent); }
   .mini-btn.del { color: var(--danger); }
-  .constraint-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; font-size: .8rem; }
+
+  .constraint-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: .8rem;
+  }
   .constraint-row label { color: var(--text-muted); min-width: 70px; }
-  .constraint-row input { padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); width: 100px; font-family: var(--font-mono); font-size: .8rem; }
-  .empty-hint { color: var(--text-dim); padding: 20px; text-align: center; font-size: .85rem; }
+  .constraint-row input {
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface-2);
+    width: 100px;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+  }
+
+  .prop-children {
+    margin-top: 8px;
+    margin-left: 14px;
+    padding-left: 10px;
+    border-left: 1px dashed var(--border);
+  }
+  .nested-drop-tip {
+    color: var(--text-dim);
+    font-size: .78rem;
+    padding: 4px 0;
+  }
+
+  .empty-hint {
+    color: var(--text-dim);
+    padding: 30px 20px;
+    text-align: center;
+    font-size: .85rem;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+  }
+  .drop-root.drag-active {
+    border: 2px dashed var(--accent);
+    background: rgba(99,102,241,.05);
+  }
+
+  .type-tag {
+    display: inline-block;
+    font-size: .72rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-mono);
+  }
+  .type-tag.t-object { background: #8b5cf6; }
+  .type-tag.t-array { background: #06b6d4; }
+  .type-tag.t-string { background: #22c55e; }
+  .type-tag.t-number, .type-tag.t-integer { background: #f59e0b; }
+  .type-tag.t-boolean { background: #ec4899; }
 </style>
 
 <script is:inline client:load>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var state = { type: 'object', properties: [], required: [], enum: null };
   var uidCounter = 0;
 
-  function newProp() {
-    return { id: ++uidCounter, name: 'field' + uidCounter, type: 'string', constraints: {}, enum: null, children: null };
+  // =====================================================
+  // TREE STATE
+  // Root is an object node with properties[] and required[]
+  // Each property: {id, name, type, constraints, enum, properties[], required[]}
+  // =====================================================
+  function newId() { return 'n' + (++uidCounter); }
+
+  function newPropNode(name, type) {
+    name = name || ('field' + (uidCounter + 1));
+    type = type || 'string';
+    var node = {
+      id: newId(),
+      name: name,
+      type: type,
+      constraints: {},
+      enum: null
+    };
+    if (type === 'object') { node.properties = []; node.required = []; }
+    if (type === 'array') { node.items = null; }
+    return node;
   }
 
+  // root state
+  var root = {
+    type: 'object',
+    properties: [],
+    required: []
+  };
+
+  // Reset to sample state (also used as initial)
+  function resetState() {
+    uidCounter = 0;
+    root = { type: 'object', properties: [], required: [] };
+  }
+
+  // Find a node by path array of ids; returns {parent, node, index}
+  // path like [] = root; [p1] = root.properties[p1]; [p1, p2] = root.properties[p1].properties[p2]
+  function resolvePath(path) {
+    if (!path.length) return { parent: null, node: root, index: -1, key: null };
+    var parent = root;
+    for (var i = 0; i < path.length - 1; i++) {
+      parent = parent.properties[path[i]];
+    }
+    var idx = path[path.length - 1];
+    return { parent: parent, node: parent.properties[idx], index: idx, key: idx };
+  }
+
+  // Remove a node at path (also cleans up required arrays)
+  function removeAtPath(path) {
+    if (!path.length) return null;
+    var target = resolvePath(path);
+    var parent = target.parent;
+    var removed = parent.properties.splice(target.index, 1)[0];
+    // clean required
+    if (Array.isArray(parent.required)) {
+      parent.required = parent.required.filter(function (n) { return n !== removed.name; });
+    }
+    // adjust parent paths if any stored indices later than this
+    return removed;
+  }
+
+  // Insert node into parent at path, at given index
+  function insertAtPath(parentPath, index, node) {
+    var target;
+    if (!parentPath.length) {
+      target = { parent: null, node: root };
+    } else {
+      target = resolvePath(parentPath);
+    }
+    var parent = target.node;
+    if (!Array.isArray(parent.properties)) parent.properties = [];
+    if (index == null || index < 0 || index > parent.properties.length) index = parent.properties.length;
+    parent.properties.splice(index, 0, node);
+    return node;
+  }
+
+  // =====================================================
+  // DRAG & DROP STATE
+  // =====================================================
+  var dragState = {
+    kind: null,          // 'palette' | 'node'
+    sourcePath: null,    // for node drag: path of dragged node
+    newType: null,       // for palette drag: the type string
+    overEl: null,
+    overPosition: null   // 'before' | 'after' | 'inside'
+  };
+
+  // =====================================================
+  // RECURSIVE RENDER
+  // =====================================================
   function renderEditor() {
     var editor = $('editor');
-    var html = '';
+    editor.classList.remove('drag-active');
+    // attach root drop zone markers
+    editor.dataset.path = '';
 
-    if (state.type === 'object' && state.properties.length === 0) {
-      html = '<div class="empty-hint">Click "+ Add property" to start building your object schema.</div>';
-    }
-
-    if (state.type === 'object') {
-      state.properties.forEach(function (prop, idx) {
-        var isReq = state.required.indexOf(prop.name) > -1;
-        html += '<div class="prop-block" data-idx="' + idx + '">';
-        html += '<div class="prop-header">';
-        html += '<input class="prop-name" data-role="name" value="' + prop.name.replace(/"/g, '&quot;') + '" />';
-        html += '<select class="prop-type" data-role="type">';
-        ['string','number','integer','boolean','object','array','null'].forEach(function(t){ html += '<option value="'+t+'"' + (t===prop.type?' selected':'') + '>' + t + '</option>'; });
-        html += '</select>';
-        html += '<label><input type="checkbox" data-role="required" ' + (isReq ? 'checked' : '') + ' /> required</label>';
-        html += '<div class="prop-controls">';
-        html += '<button class="mini-btn" data-role="addConstraint">+ constraint</button>';
-        html += '<button class="mini-btn del" data-role="delProp">✕</button>';
-        html += '</div></div>';
-
-        // constraints
-        var strings = prop.type === 'string' || prop.type === 'number' || prop.type === 'integer' || prop.type === 'array';
-        if (strings) {
-          html += '<div class="constraint-row"><label>minLength</label><input data-role="minLength" value="' + (prop.constraints.minLength || '') + '" placeholder="optional" /></div>';
-          html += '<div class="constraint-row"><label>maxLength</label><input data-role="maxLength" value="' + (prop.constraints.maxLength || '') + '" placeholder="optional" /></div>';
-          if (prop.type === 'string') {
-            html += '<div class="constraint-row"><label>pattern</label><input data-role="pattern" value="' + (prop.constraints.pattern || '') + '" placeholder="regex" /></div>';
-            html += '<div class="constraint-row"><label>format</label><select data-role="format"><option value="">—</option>';
-            ['email','date','date-time','uri','uuid'].forEach(function(f){ html += '<option value="'+f+'"' + (prop.constraints.format===f?' selected':'') + '>' + f + '</option>'; });
-            html += '</select></div>';
-          }
-          if (prop.type === 'number' || prop.type === 'integer') {
-            html += '<div class="constraint-row"><label>minimum</label><input data-role="minimum" value="' + (prop.constraints.minimum || '') + '" placeholder="optional" /></div>';
-            html += '<div class="constraint-row"><label>maximum</label><input data-role="maximum" value="' + (prop.constraints.maximum || '') + '" placeholder="optional" /></div>';
-          }
-          if (prop.type === 'array') {
-            html += '<div class="constraint-row"><label>minItems</label><input data-role="minItems" value="' + (prop.constraints.minItems || '') + '" placeholder="optional" /></div>';
-            html += '<div class="constraint-row"><label>maxItems</label><input data-role="maxItems" value="' + (prop.constraints.maxItems || '') + '" placeholder="optional" /></div>';
-          }
-        }
-
-        // enum
-        html += '<div class="constraint-row"><label>enum values</label><input data-role="enum" value="' + (prop.enum ? prop.enum.join(', ') : '') + '" placeholder="comma-separated, e.g. red,green,blue" /></div>';
-
-        html += '</div>';
-      });
-    }
-
-    if (state.type === 'array') {
-      html += '<div class="empty-hint">Arrays require an "items" schema. Add constraint below.</div>';
-      html += '<div class="constraint-row"><label>items type</label><select id="arrItemsType"><option value="string">string</option><option value="number">number</option><option value="integer">integer</option><option value="boolean">boolean</option><option value="object">object</option></select></div>';
-    }
-
+    var html = renderNodeBody(root, [], true);
     editor.innerHTML = html;
 
-    // bind events
-    editor.querySelectorAll('[data-idx]').forEach(function (block) {
-      var idx = parseInt(block.dataset.idx, 10);
-      block.querySelectorAll('[data-role="name"]').forEach(function (el) {
-        el.addEventListener('input', function () {
-          var old = state.properties[idx].name;
-          state.properties[idx].name = el.value;
-          var reqIdx = state.required.indexOf(old);
-          if (reqIdx > -1) { state.required[reqIdx] = el.value; }
+    // bind everything
+    bindEditorEvents();
+    bindPropBlockDnD();
+  }
+
+  // Render the body of a node's property list (recursive)
+  function renderNodeBody(node, path, isRoot) {
+    var html = '';
+    var props = node.properties || [];
+
+    if (isRoot && props.length === 0) {
+      html += '<div class="empty-hint drop-root" data-path="">';
+      html += 'Drag a type from the left palette into this area, or click "+ Add property" below.';
+      html += '</div>';
+      return html;
+    }
+
+    props.forEach(function (prop, idx) {
+      var childPath = path.concat([idx]);
+      html += renderPropBlock(prop, childPath, node.required);
+    });
+
+    if (!isRoot && props.length === 0) {
+      html += '<div class="empty-hint" style="padding:12px;font-size:.78rem;">Drop properties here to nest them</div>';
+    }
+
+    return html;
+  }
+
+  function renderPropBlock(prop, path, requiredList) {
+    var isReq = Array.isArray(requiredList) && requiredList.indexOf(prop.name) > -1;
+    var typeTagClass = 't-' + prop.type;
+    var html = '';
+
+    html += '<div class="prop-block" data-path="' + path.join('.') + '" draggable="true">';
+    html += '<div class="prop-header">';
+    html += '<span class="prop-drag-handle" title="Drag to reorder or nest">⠿</span>';
+    html += '<input class="prop-name" data-role="name" value="' + prop.name.replace(/"/g, '&quot;') + '" />';
+    html += '<select class="prop-type" data-role="type">';
+    ['string','number','integer','boolean','object','array','null'].forEach(function(t){
+      html += '<option value="'+t+'"' + (t===prop.type?' selected':'') + '>' + t + '</option>';
+    });
+    html += '</select>';
+    html += '<span class="type-tag ' + typeTagClass + '">' + prop.type + '</span>';
+    html += '<label style="font-size:.8rem;"><input type="checkbox" data-role="required" ' + (isReq ? 'checked' : '') + ' /> required</label>';
+    html += '<div class="prop-controls">';
+    html += '<button class="mini-btn del" data-role="delProp" title="Delete property">✕</button>';
+    html += '</div></div>';
+
+    // constraints per type
+    html += renderConstraints(prop);
+
+    // enum
+    html += '<div class="constraint-row"><label>enum</label><input data-role="enum" value="' + (prop.enum ? prop.enum.join(', ') : '') + '" placeholder="comma-separated" /></div>';
+
+    // children for object type
+    if (prop.type === 'object') {
+      html += '<div class="prop-children">';
+      html += renderNodeBody(prop, path, false);
+      html += '</div>';
+    }
+    // items for array type
+    if (prop.type === 'array') {
+      html += '<div class="constraint-row"><label>items type</label>';
+      html += '<select data-role="arrItems">';
+      ['string','number','integer','boolean','object','array'].forEach(function(t){
+        html += '<option value="'+t+'"' + ((prop.items||'string')===t?' selected':'') + '>' + t + '</option>';
+      });
+      html += '</select></div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderConstraints(prop) {
+    var html = '';
+    var c = prop.constraints;
+    if (prop.type === 'string') {
+      html += '<div class="constraint-row"><label>minLength</label><input data-role="minLength" value="' + (c.minLength != null ? c.minLength : '') + '" placeholder="—" /></div>';
+      html += '<div class="constraint-row"><label>maxLength</label><input data-role="maxLength" value="' + (c.maxLength != null ? c.maxLength : '') + '" placeholder="—" /></div>';
+      html += '<div class="constraint-row"><label>pattern</label><input data-role="pattern" value="' + (c.pattern || '') + '" placeholder="regex" /></div>';
+      html += '<div class="constraint-row"><label>format</label><select data-role="format"><option value="">—</option>';
+      ['email','date','date-time','uri','uuid'].forEach(function(f){
+        html += '<option value="'+f+'"' + (c.format===f?' selected':'') + '>' + f + '</option>';
+      });
+      html += '</select></div>';
+    }
+    if (prop.type === 'number' || prop.type === 'integer') {
+      html += '<div class="constraint-row"><label>minimum</label><input data-role="minimum" value="' + (c.minimum != null ? c.minimum : '') + '" placeholder="—" /></div>';
+      html += '<div class="constraint-row"><label>maximum</label><input data-role="maximum" value="' + (c.maximum != null ? c.maximum : '') + '" placeholder="—" /></div>';
+      if (prop.type === 'number') {
+        html += '<div class="constraint-row"><label>multipleOf</label><input data-role="multipleOf" value="' + (c.multipleOf != null ? c.multipleOf : '') + '" placeholder="—" /></div>';
+      }
+    }
+    if (prop.type === 'array') {
+      html += '<div class="constraint-row"><label>minItems</label><input data-role="minItems" value="' + (c.minItems != null ? c.minItems : '') + '" placeholder="—" /></div>';
+      html += '<div class="constraint-row"><label>maxItems</label><input data-role="maxItems" value="' + (c.maxItems != null ? c.maxItems : '') + '" placeholder="—" /></div>';
+    }
+    return html;
+  }
+
+  // =====================================================
+  // EVENT BINDING (editing values — names, types, constraints)
+  // =====================================================
+  function bindEditorEvents() {
+    var editor = $('editor');
+
+    // Type switch -> reset children if leaving object/array
+    editor.querySelectorAll('.prop-block').forEach(function (block) {
+      var path = block.dataset.path ? block.dataset.path.split('.').map(Number) : [];
+      var info = resolvePath(path);
+      var prop = info.node;
+
+      if (!prop) return;
+
+      // name
+      var nameInput = block.querySelector('[data-role="name"]');
+      if (nameInput) {
+        nameInput.addEventListener('input', function () {
+          var old = prop.name;
+          prop.name = nameInput.value;
+          // rename in required arrays up the chain
+          renameRequired(root, path, old, prop.name);
           generate();
         });
-      });
-      block.querySelectorAll('[data-role="type"]').forEach(function (el) {
-        el.addEventListener('change', function () {
-          state.properties[idx].type = el.value;
+      }
+
+      // type change
+      var typeSel = block.querySelector('[data-role="type"]');
+      if (typeSel) {
+        typeSel.addEventListener('change', function () {
+          var oldType = prop.type;
+          var newType = typeSel.value;
+          prop.type = newType;
+          if (newType === 'object') {
+            if (oldType !== 'object') { prop.properties = []; prop.required = []; }
+          } else if (newType === 'array') {
+            if (oldType !== 'array') { prop.items = 'string'; }
+          } else {
+            // leaving object/array — clean up
+            if (prop.properties) { delete prop.properties; delete prop.required; }
+            if (prop.items) { delete prop.items; }
+          }
           renderEditor();
           generate();
         });
-      });
-      block.querySelectorAll('[data-role="required"]').forEach(function (el) {
-        el.addEventListener('change', function () {
-          var name = state.properties[idx].name;
-          if (el.checked && state.required.indexOf(name) === -1) state.required.push(name);
-          else if (!el.checked) state.required = state.required.filter(function (n) { return n !== name; });
+      }
+
+      // required checkbox
+      var reqChk = block.querySelector('[data-role="required"]');
+      if (reqChk) {
+        reqChk.addEventListener('change', function () {
+          var info2 = resolvePath(path);
+          var parent = info2.parent || root;
+          var list = parent.required;
+          if (reqChk.checked) {
+            if (list.indexOf(prop.name) === -1) list.push(prop.name);
+          } else {
+            parent.required = list.filter(function (n) { return n !== prop.name; });
+          }
           generate();
         });
-      });
-      block.querySelectorAll('[data-role="delProp"]').forEach(function (el) {
-        el.addEventListener('click', function () {
-          var removed = state.properties[idx].name;
-          state.properties.splice(idx, 1);
-          state.required = state.required.filter(function (n) { return n !== removed; });
+      }
+
+      // delete
+      var delBtn = block.querySelector('[data-role="delProp"]');
+      if (delBtn) {
+        delBtn.addEventListener('click', function () {
+          removeAtPath(path);
           renderEditor();
           generate();
         });
-      });
-      block.querySelectorAll('[data-role^="minLength"], [data-role^="maxLength"], [data-role="pattern"], [data-role="format"], [data-role="minimum"], [data-role="maximum"], [data-role="minItems"], [data-role="maxItems"]').forEach(function (el) {
+      }
+
+      // constraints inputs
+      block.querySelectorAll('[data-role^="minLength"], [data-role^="maxLength"], [data-role="pattern"], [data-role="format"], [data-role="minimum"], [data-role="maximum"], [data-role="multipleOf"], [data-role="minItems"], [data-role="maxItems"]').forEach(function (el) {
         el.addEventListener('input', function () {
           var key = el.dataset.role;
           var val = el.value;
-          var type = state.properties[idx].type;
-          if (val === '') delete state.properties[idx].constraints[key];
+          if (val === '') delete prop.constraints[key];
           else {
-            if (key === 'pattern') state.properties[idx].constraints[key] = val;
-            else if (key === 'format') { if (val) state.properties[idx].constraints[key] = val; else delete state.properties[idx].constraints[key]; }
-            else state.properties[idx].constraints[key] = type === 'string' ? val : parseFloat(val);
+            if (key === 'pattern') prop.constraints[key] = val;
+            else if (key === 'format') { if (val) prop.constraints[key] = val; else delete prop.constraints[key]; }
+            else if (key === 'multipleOf') prop.constraints[key] = parseFloat(val);
+            else prop.constraints[key] = typeof prop.type === 'string' ? val : parseFloat(val);
           }
           generate();
         });
       });
-      block.querySelectorAll('[data-role="enum"]').forEach(function (el) {
-        el.addEventListener('input', function () {
-          var v = el.value.trim();
-          if (v) state.properties[idx].enum = v.split(',').map(function (s) { return s.trim(); });
-          else state.properties[idx].enum = null;
+
+      // enum
+      var enumInput = block.querySelector('[data-role="enum"]');
+      if (enumInput) {
+        enumInput.addEventListener('input', function () {
+          var v = enumInput.value.trim();
+          prop.enum = v ? v.split(',').map(function (s) { return s.trim(); }) : null;
           generate();
         });
+      }
+
+      // array items
+      var itemsSel = block.querySelector('[data-role="arrItems"]');
+      if (itemsSel) {
+        itemsSel.addEventListener('change', function () {
+          prop.items = itemsSel.value;
+          generate();
+        });
+      }
+    });
+  }
+
+  function renameRequired(node, path, oldName, newName) {
+    if (Array.isArray(node.required)) {
+      var idx = node.required.indexOf(oldName);
+      if (idx > -1) node.required[idx] = newName;
+    }
+    // recurse into properties
+    if (path.length > 0) return; // only root
+    // we only need to update root; nested object handles its own
+  }
+
+  // =====================================================
+  // DRAG & DROP
+  // =====================================================
+
+  // Bind palette items ONCE (they live outside editor, never recreated)
+  function bindPaletteDnD() {
+    document.querySelectorAll('.palette-item').forEach(function (el) {
+      el.addEventListener('dragstart', function (e) {
+        dragState.kind = 'palette';
+        dragState.newType = el.dataset.type;
+        dragState.sourcePath = null;
+        el.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', 'jsonversal-drag:' + dragState.kind + ':' + dragState.newType);
+      });
+      el.addEventListener('dragend', function () {
+        el.classList.remove('dragging');
+        clearDragHighlights();
+        dragState = { kind: null, sourcePath: null, newType: null, overEl: null, overPosition: null };
       });
     });
   }
 
+  // Bind the editor root as a drop target ONCE
+  function bindEditorRootDrop() {
+    var editor = $('editor');
+    editor.addEventListener('dragover', function (e) {
+      if (!dragState.kind) return;
+      if (e.target.closest('.prop-block')) return; // handled by block
+      e.preventDefault();
+      editor.classList.add('drag-active');
+    });
+    editor.addEventListener('dragleave', function (e) {
+      if (!editor.contains(e.relatedTarget)) editor.classList.remove('drag-active');
+    });
+    editor.addEventListener('drop', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      editor.classList.remove('drag-active');
+      if (e.target.closest('.prop-block')) return;
+      handleDropOnRoot();
+    });
+  }
+
+  // Bind prop blocks — called every render (blocks are recreated)
+  function bindPropBlockDnD() {
+    var editor = $('editor');
+    editor.querySelectorAll('.prop-block').forEach(function (block) {
+      block.addEventListener('dragstart', function (e) {
+        var path = block.dataset.path ? block.dataset.path.split('.').map(Number) : [];
+        dragState.kind = 'node';
+        dragState.sourcePath = path;
+        dragState.newType = null;
+        block.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'jsonversal-drag:node');
+      });
+      block.addEventListener('dragend', function () {
+        block.classList.remove('dragging');
+        clearDragHighlights();
+        dragState = { kind: null, sourcePath: null, newType: null, overEl: null, overPosition: null };
+      });
+
+      block.addEventListener('dragover', function (e) {
+        if (!dragState.kind) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = dragState.kind === 'palette' ? 'copy' : 'move';
+
+        var rect = block.getBoundingClientRect();
+        var y = e.clientY - rect.top;
+        var h = rect.height;
+        var pos;
+        if (y < h * 0.25) pos = 'before';
+        else if (y > h * 0.75) pos = 'after';
+        else pos = 'inside';
+
+        if (dragState.kind === 'node') {
+          var srcPath = dragState.sourcePath;
+          var tgtPath = block.dataset.path.split('.').map(Number);
+          if (isPathPrefix(srcPath, tgtPath)) return;
+          if (pathEqual(srcPath, tgtPath)) return;
+        }
+
+        clearDragHighlights();
+        dragState.overEl = block;
+        dragState.overPosition = pos;
+        if (pos === 'before') block.classList.add('drag-over-before');
+        else if (pos === 'after') block.classList.add('drag-over-after');
+        else block.classList.add('drag-over-inside');
+      });
+
+      block.addEventListener('dragleave', function (e) {
+        if (!block.contains(e.relatedTarget)) {
+          block.classList.remove('drag-over-before', 'drag-over-after', 'drag-over-inside');
+          if (dragState.overEl === block) dragState.overEl = null;
+        }
+      });
+
+      block.addEventListener('drop', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDropOnBlock(block);
+      });
+    });
+  }
+
+  function clearDragHighlights() {
+    document.querySelectorAll('.drag-over, .drag-over-before, .drag-over-after, .drag-over-inside').forEach(function (el) {
+      el.classList.remove('drag-over', 'drag-over-before', 'drag-over-after', 'drag-over-inside');
+    });
+    var ed = $('editor');
+    if (ed) ed.classList.remove('drag-active');
+  }
+
+  function pathEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  }
+  function isPathPrefix(prefix, full) {
+    if (prefix.length >= full.length) return false;
+    for (var i = 0; i < prefix.length; i++) if (prefix[i] !== full[i]) return false;
+    return true;
+  }
+
+  function handleDropOnRoot() {
+    if (dragState.kind === 'palette') {
+      if (root.type !== 'object') { toast('Add properties only when root is "object"'); return; }
+      var newNode = newPropNode(pickName(dragState.newType), dragState.newType);
+      insertAtPath([], root.properties.length, newNode);
+    } else if (dragState.kind === 'node') {
+      // move to end of root
+      var removed = removeAtPath(dragState.sourcePath);
+      if (!removed) return;
+      insertAtPath([], root.properties.length, removed);
+    }
+    renderEditor(); generate();
+  }
+
+  function handleDropOnBlock(block) {
+    var tgtPath = block.dataset.path.split('.').map(Number);
+    var tgtInfo = resolvePath(tgtPath);
+    var tgtNode = tgtInfo.node;
+    var pos = dragState.overPosition || 'after';
+
+    if (dragState.kind === 'palette') {
+      if (pos === 'inside') {
+        // drop as child of target — target must be object
+        if (tgtNode.type !== 'object') { toast('Can only nest inside an object-type property'); return; }
+        var childNode = newPropNode(pickName(dragState.newType), dragState.newType);
+        insertAtPath(tgtPath, tgtNode.properties.length, childNode);
+      } else {
+        // insert before or after target
+        var newNode = newPropNode(pickName(dragState.newType), dragState.newType);
+        var parentPath = tgtPath.slice(0, -1);
+        var insertIdx = tgtInfo.index + (pos === 'after' ? 1 : 0);
+        insertAtPath(parentPath, insertIdx, newNode);
+      }
+    } else if (dragState.kind === 'node') {
+      // move existing node
+      var srcPath = dragState.sourcePath;
+
+      // Check dropping on itself
+      if (pathEqual(srcPath, tgtPath)) return;
+      // Check dropping inside own subtree
+      if (isPathPrefix(srcPath, tgtPath)) { toast('Cannot nest a property inside itself'); return; }
+
+      // Determine parent path and index accounting for source removal
+      var srcRemovalAffectsTarget = !pathEqual(srcPath.slice(0, -1), tgtPath.slice(0, -1))
+        ? false
+        : srcPath[srcPath.length - 1] < tgtInfo.index;
+
+      var removed = removeAtPath(srcPath);
+      if (!removed) return;
+
+      if (pos === 'inside') {
+        if (tgtNode.type !== 'object') {
+          toast('Can only nest inside an object-type property');
+          // restore
+          insertAtPath(srcPath.slice(0, -1), srcPath[srcPath.length - 1], removed);
+          return;
+        }
+        insertAtPath(tgtPath, tgtNode.properties.length, removed);
+      } else {
+        var parentPath = tgtPath.slice(0, -1);
+        var rawIdx = tgtInfo.index;
+        if (srcRemovalAffectsTarget) rawIdx--;
+        var insertIdx = rawIdx + (pos === 'after' ? 1 : 0);
+        insertAtPath(parentPath, insertIdx, removed);
+      }
+    }
+
+    clearDragHighlights();
+    renderEditor();
+    generate();
+  }
+
+  function pickName(type) {
+    var names = {
+      string: ['name','label','title','text','description','value'],
+      number: ['count','total','amount','value','price','score'],
+      integer: ['count','index','id','age','limit','size'],
+      boolean: ['enabled','active','required','isValid','checked'],
+      object: ['config','settings','profile','details','metadata','info'],
+      array: ['items','list','tags','results','children','options'],
+      null: ['unknown','placeholder']
+    };
+    var arr = names[type] || ['field'];
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  // Tiny toast
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--danger);color:#fff;padding:8px 16px;border-radius:6px;font-size:.85rem;z-index:999;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:opacity .3s;';
+    document.body.appendChild(t);
+    setTimeout(function () { t.style.opacity = '0'; }, 1800);
+    setTimeout(function () { t.remove(); }, 2200);
+  }
+
+  // =====================================================
+  // GENERATE SCHEMA JSON (recursive)
+  // =====================================================
   function propToSchema(prop) {
-    var s = { type: prop.type };
-    if (prop.enum) s.enum = prop.enum;
+    var s = {};
+    if (prop.enum) { s.enum = prop.enum; return s; }
+    s.type = prop.type;
     var c = prop.constraints;
-    for (var k in c) { if (c.hasOwnProperty(k)) s[k] = c[k]; }
-    if (prop.type === 'object' && prop.children) s.properties = {};
+    for (var k in c) { if (c.hasOwnProperty(k) && c[k] !== '' && c[k] != null) s[k] = c[k]; }
+
+    if (prop.type === 'object') {
+      if (Array.isArray(prop.required) && prop.required.length) s.required = prop.required.slice();
+      s.properties = {};
+      if (Array.isArray(prop.properties)) {
+        prop.properties.forEach(function (child) {
+          s.properties[child.name] = propToSchema(child);
+        });
+      }
+      if (Object.keys(s.properties).length === 0) delete s.properties;
+    }
+    if (prop.type === 'array') {
+      s.items = { type: prop.items || 'string' };
+    }
     return s;
   }
 
   function generate() {
-    var schema = { type: state.type };
-    if (state.enum) schema.enum = state.enum;
-    if (state.type === 'object') {
-      if (state.required.length) schema.required = state.required;
+    var schema = {};
+    if (Array.isArray(root.required) && root.required.length) schema.required = root.required.slice();
+    schema.type = root.type;
+    if (root.type === 'object') {
       schema.properties = {};
-      state.properties.forEach(function (p) { schema.properties[p.name] = propToSchema(p); });
-      if (!Object.keys(schema.properties).length) delete schema.properties;
+      root.properties.forEach(function (p) {
+        schema.properties[p.name] = propToSchema(p);
+      });
+      if (Object.keys(schema.properties).length === 0) delete schema.properties;
     }
     $('output').value = JSON.stringify(schema, null, 2);
   }
 
+  // =====================================================
+  // TOP-LEVEL BUTTONS
+  // =====================================================
   $('addProp').addEventListener('click', function () {
-    if (state.type === 'object') { state.properties.push(newProp()); renderEditor(); generate(); }
-  });
-  $('clearAll').addEventListener('click', function () {
-    state = { type: 'object', properties: [], required: [], enum: null };
-    renderEditor(); generate();
-  });
-  $('copySchema').addEventListener('click', function () { navigator.clipboard.writeText($('output').value); });
-  $('exportMd').addEventListener('click', function () {
-    var s = JSON.parse($('output').value);
-    var draft = $('draft').value;
-    s.$schema = 'https://json-schema.org/draft/' + draft + '/schema';
-    $('output').value = JSON.stringify(s, null, 2);
-  });
-  $('rootType').addEventListener('change', function () {
-    state.type = $('rootType').value;
-    if (state.type !== 'object') { state.properties = []; state.required = []; }
-    renderEditor(); generate();
-  });
-  $('loadSample').addEventListener('click', function () {
-    state = { type: 'object', properties: [], required: [], enum: null };
-    var reqKeys = ['name', 'email', 'intent', 'confidence'];
-    var p1 = newProp(); p1.name = 'name'; p1.type = 'string'; p1.constraints.minLength = 1;
-    var p2 = newProp(); p2.name = 'email'; p2.type = 'string'; p2.constraints.format = 'email';
-    var p3 = newProp(); p3.name = 'age'; p3.type = 'integer'; p3.constraints.minimum = 0; p3.constraints.maximum = 150;
-    var p4 = newProp(); p4.name = 'intent'; p4.type = 'string'; p4.enum = ['question', 'command', 'data_request', 'other'];
-    var p5 = newProp(); p5.name = 'confidence'; p5.type = 'number'; p5.constraints.minimum = 0; p5.constraints.maximum = 1;
-    var p6 = newProp(); p6.name = 'metadata'; p6.type = 'object';
-    state.properties = [p1, p2, p3, p4, p5, p6];
-    state.required = reqKeys;
+    if (root.type !== 'object') { toast('Add properties only when root type is "object"'); return; }
+    var t = pickName(root.properties.length ? root.properties[root.properties.length - 1].type || 'string' : 'string');
+    var p = newPropNode('field' + (root.properties.length + 1), t);
+    root.properties.push(p);
     renderEditor(); generate();
   });
 
+  $('clearAll').addEventListener('click', function () {
+    resetState();
+    renderEditor(); generate();
+  });
+
+  $('copySchema').addEventListener('click', function () { navigator.clipboard.writeText($('output').value); });
+
+  $('exportMd').addEventListener('click', function () {
+    try {
+      var s = JSON.parse($('output').value);
+      var draft = $('draft').value;
+      s.$schema = 'https://json-schema.org/draft/' + draft + '/schema';
+      $('output').value = JSON.stringify(s, null, 2);
+    } catch (e) { toast('Invalid schema: ' + e.message); }
+  });
+
+  $('rootType').addEventListener('change', function () {
+    root.type = $('rootType').value;
+    if (root.type === 'object') {
+      if (!root.properties) root.properties = [];
+      if (!root.required) root.required = [];
+    } else {
+      root.properties = []; root.required = [];
+    }
+    renderEditor(); generate();
+  });
+
+  $('loadSample').addEventListener('click', function () {
+    resetState();
+    root.type = 'object';
+
+    var p1 = newPropNode('name', 'string'); p1.constraints.minLength = 1;
+    var p2 = newPropNode('email', 'string'); p2.constraints.format = 'email';
+    var p3 = newPropNode('age', 'integer'); p3.constraints.minimum = 0; p3.constraints.maximum = 150;
+    var p4 = newPropNode('intent', 'string'); p4.enum = ['question', 'command', 'data_request', 'other'];
+    var p5 = newPropNode('confidence', 'number'); p5.constraints.minimum = 0; p5.constraints.maximum = 1;
+
+    // nested object: metadata with createdAt, updatedAt
+    var meta = newPropNode('metadata', 'object');
+    var c1 = newPropNode('createdAt', 'string'); c1.constraints.format = 'date-time';
+    var c2 = newPropNode('updatedAt', 'string'); c2.constraints.format = 'date-time';
+    meta.properties = [c1, c2]; meta.required = ['createdAt'];
+
+    // array: tags
+    var p6 = newPropNode('tags', 'array'); p6.items = 'string';
+
+    root.properties = [p1, p2, p3, p4, p5, meta, p6];
+    root.required = ['name', 'email', 'intent', 'confidence', 'metadata'];
+    renderEditor(); generate();
+  });
+
+  // initial bind + render
+  bindPaletteDnD();
+  bindEditorRootDrop();
   renderEditor(); generate();
 })();
 </script>
