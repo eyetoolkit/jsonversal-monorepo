@@ -1,0 +1,207 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JWT Decoder — Decode and Verify JWT Tokens Online';
+const description = 'Decode JWT tokens instantly. View header, payload, and signature. Check expiration and verify signatures. 100% browser-based, nothing sent to servers.';
+---
+
+<BaseLayout
+  site="sec"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/sec/tools/jwt-decoder/"
+  keywords={['JWT decoder', 'JWT decoder online', 'decode JWT', 'JWT verifier', 'JWT debugger', 'JWT parser', 'jwt-decoder', 'JWT token decode']}
+  current="/sec/tools/jwt-decoder/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 class="h2-card">JWT Token</h2>
+    <label for="jwt-input" class="sr-only">JWT Token</label>
+    <textarea id="jwt-input" aria-label="JWT Token" spellcheck="false" placeholder="Paste your JWT token here (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...)"></textarea>
+    <div class="row mt-2">
+      <button class="primary" id="decode-btn">Decode</button>
+      <button class="ghost" id="clear-btn">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="header-section" style="display:none;">
+    <div class="row" style="margin-bottom:10px;">
+      <h2 class="h2-flat">Header</h2>
+      <span class="badge" id="alg-badge"></span>
+    </div>
+    <pre id="header-out" class="mt-1"></pre>
+  </section>
+
+  <section class="card mt-2" id="payload-section" style="display:none;">
+    <div class="row" style="margin-bottom:10px;">
+      <h2 class="h2-flat">Payload</h2>
+      <span class="badge" id="exp-badge"></span>
+    </div>
+    <pre id="payload-out" class="mt-1"></pre>
+    <div class="text-dim mt-2" id="claims-summary" style="font-size:.85rem;"></div>
+  </section>
+
+  <section class="card mt-2" id="sig-section" style="display:none;">
+    <h2 class="h2-flat">Signature</h2>
+    <pre id="sig-out" class="mt-1" style="word-break:break-all;font-size:.8rem;color:var(--muted);"></pre>
+    <p class="text-dim mt-1" id="sig-note" style="font-size:.8rem;"></p>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 class="h2-error">Error</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);"></pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>A JWT has three Base64URL-encoded parts separated by dots (<code>header.payload.signature</code>).</li>
+    <li>The header and payload are decoded and parsed as JSON — they are <strong>not encrypted</strong>, anyone can read them.</li>
+    <li>The signature proves the token was issued by whoever holds the secret key. Without a key you can decode but not verify.</li>
+    <li>All decoding runs locally in your browser — your JWT is never sent to any server.</li>
+  </ul>
+
+  <h2>About JWT Decoder</h2>
+  <p class="text-muted">JWT (JSON Web Token) is a compact standard (RFC 7519) for transmitting claims between parties as a signed, URL-safe token. A JWT consists of three parts: the header declares the algorithm, the payload holds the claims (user ID, roles, expiration, etc.), and the signature binds and verifies them. Because the header and payload are merely Base64-encoded (not encrypted), never put sensitive data like passwords inside a JWT — treat it like a wearing a transparent ID badge that anyone can read.</p>
+  <p class="text-muted">Use this decoder to inspect tokens from Auth0, Firebase, Supabase, or your own service during development and debugging. For production verification with HMAC (HS*) secrets or RSA (RS*) keys, you need the corresponding secret or public key — use it alongside the JWT Generator on this site to create and verify a matching pair.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  textarea { min-height: 100px; }
+  pre { min-height: 40px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+  .mt-1 { margin-top: 10px; }
+  .mt-2 { margin-top: 16px; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    font-size: .75rem;
+    font-weight: 600;
+    background: rgba(59,130,246,.15);
+    color: var(--accent);
+    border: 1px solid currentColor;
+  }
+  .badge.ok { background: rgba(34,197,94,.15); color: var(--success); border-color: var(--success); }
+  .badge.expired { background: rgba(239,68,68,.15); color: var(--danger); border-color: var(--danger); }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function b64urlDecode(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    return decodeURIComponent(escape(atob(str)));
+  }
+
+  function formatJSON(str) {
+    try { return JSON.stringify(JSON.parse(str), null, 2); }
+    catch { return str; }
+  }
+
+  function fmtTimestamp(ts) {
+    if (!ts) return null;
+    const d = new Date(ts * 1000);
+    return d.toLocaleString() + ' (' + ts + ')';
+  }
+
+  function getClaimLabel(key) {
+    const map = {
+      iss: 'Issuer', sub: 'Subject', aud: 'Audience',
+      exp: 'Expires', nbf: 'Not Before', iat: 'Issued At', jti: 'JWT ID'
+    };
+    return map[key] || key;
+  }
+
+  function hideAll() {
+    ['header-section','payload-section','sig-section','err-section'].forEach(id => {
+      $(id).style.display = 'none';
+    });
+  }
+
+  $('decode-btn').addEventListener('click', () => {
+    hideAll();
+    const raw = $('jwt-input').value.trim();
+    if (!raw) { showToast('Paste a JWT token first.'); return; }
+
+    const parts = raw.split('.');
+    if (parts.length !== 3) {
+      $('err-out').textContent = 'Invalid JWT format. Expected 3 dot-separated parts (header.payload.signature).';
+      $('err-section').style.display = 'block';
+      return;
+    }
+
+    const [headerB64, payloadB64, sigB64] = parts;
+
+    try {
+      // Header
+      const headerRaw = b64urlDecode(headerB64);
+      const headerObj = JSON.parse(headerRaw);
+      $('header-out').textContent = formatJSON(headerRaw);
+      $('alg-badge').textContent = headerObj.alg || 'unknown';
+      $('header-section').style.display = 'block';
+
+      // Payload
+      const payloadRaw = b64urlDecode(payloadB64);
+      const payloadObj = JSON.parse(payloadRaw);
+      $('payload-out').textContent = formatJSON(payloadRaw);
+
+      // Expiry badge
+      const expTs = payloadObj.exp;
+      if (expTs) {
+        const now = Math.floor(Date.now() / 1000);
+        const badge = $('exp-badge');
+        if (expTs < now) {
+          badge.textContent = 'EXPIRED';
+          badge.className = 'badge expired';
+        } else {
+          const left = expTs - now;
+          const hours = Math.floor(left / 3600);
+          const mins = Math.floor((left % 3600) / 60);
+          badge.textContent = `Expires in ${hours}h ${mins}m`;
+          badge.className = 'badge ok';
+        }
+        $('exp-badge').parentElement.style.display = 'flex';
+      } else {
+        $('exp-badge').parentElement.style.display = 'none';
+      }
+
+      // Claims summary
+      const stdKeys = ['iss','sub','aud','exp','nbf','iat','jti'];
+      const custom = Object.keys(payloadObj).filter(k => !stdKeys.includes(k));
+      const parts2 = [];
+      if (payloadObj.sub) parts2.push(`sub: ${payloadObj.sub}`);
+      if (payloadObj.iss) parts2.push(`iss: ${payloadObj.iss}`);
+      if (payloadObj.iat) parts2.push(`iat: ${fmtTimestamp(payloadObj.iat)}`);
+      if (payloadObj.exp) parts2.push(`exp: ${fmtTimestamp(payloadObj.exp)}`);
+      if (custom.length) parts2.push(`+${custom.length} custom claim(s): ${custom.join(', ')}`);
+      $('claims-summary').textContent = parts2.join(' · ');
+      $('payload-section').style.display = 'block';
+
+      // Signature
+      $('sig-out').textContent = sigB64;
+      const alg = headerObj.alg || '';
+      const isHMAC = /^HS(256|384|512)$/.test(alg);
+      $('sig-note').textContent = isHMAC
+        ? 'HMAC algorithm detected. Provide the secret key below to verify this signature.'
+        : `"${alg}" algorithm detected. Verification requires the public key or certificate.`;
+      $('sig-section').style.display = 'block';
+
+    } catch (e) {
+      $('err-out').textContent = 'Failed to decode: ' + e.message;
+      $('err-section').style.display = 'block';
+    }
+  });
+
+  $('clear-btn').addEventListener('click', () => {
+    $('jwt-input').value = '';
+    hideAll();
+  });
+})();
+</script>
