@@ -104,7 +104,7 @@ const description = 'Analyze any JSON document: total keys, max depth, type dist
     try { parsed = JSON.parse(raw); }
     catch (e) { $('stats').innerHTML = '<span style="color:var(--danger)">Invalid JSON: ' + e.message + '</span>'; return; }
 
-    var stats = { types: {}, totalNodes: 0, maxDepth: 0, totalKeys: 0, objectCount: 0, arrayCount: 0, stringLengths: [], numberValues: [], arrayLengths: [], objectKeyCounts: [] };
+    var stats = { types: { null: 0, object: 0, array: 0, string: 0, number: 0, boolean: 0 }, totalNodes: 0, maxDepth: 0, totalKeys: 0, objectCount: 0, arrayCount: 0, stringLengths: [], numberValues: [], arrayLengths: [], objectKeyCounts: [] };
     analyze(parsed, stats, 0);
 
     var html = '';
@@ -118,11 +118,12 @@ const description = 'Analyze any JSON document: total keys, max depth, type dist
 
     // Type distribution
     var types = Object.keys(stats.types);
-    var maxT = 0; for (var i = 0; i < types.length; i++) if (stats.types[types[i]] > maxT) maxT = stats.types[types[i]];
+    var maxT = 0; for (var i = 0; i < types.length; i++) { var c = stats.types[types[i]] || 0; if (c > maxT) maxT = c; }
     html += '<div class="stat-section"><h4>Type Distribution</h4>';
     for (var j = 0; j < types.length; j++) {
-      var pct = stats.types[types[j]] / maxT * 100;
-      html += '<div class="type-bar"><span class="type-name">' + types[j] + '</span><div class="type-bg"><div class="type-fill" style="width:' + pct + '%"></div></div><span class="type-count">' + fmt(stats.types[types[j]]) + '</span></div>';
+      var count = stats.types[types[j]] || 0;
+      var pct = maxT > 0 ? (count / maxT * 100) : 0;
+      html += '<div class="type-bar"><span class="type-name">' + types[j] + '</span><div class="type-bg"><div class="type-fill" style="width:' + pct + '%"></div></div><span class="type-count">' + fmt(count) + '</span></div>';
     }
     html += '</div>';
 

@@ -117,8 +117,14 @@ const description = 'Generate realistic fake JSON data from a sample or JSON Sch
     if (typeof sample === 'boolean') return Math.random() > 0.5;
     if (typeof sample === 'number') {
       var isInt = Number.isInteger(sample);
-      var range = Math.max(Math.abs(sample), 1);
-      return isInt ? randInt(-range, range) : randFloat(-range, range);
+      // Generate numbers near the sample value, not symmetrically around zero
+      var s = sample;
+      var spread = Math.max(Math.abs(s) * 0.5, 1);
+      var lo, hi;
+      if (s >= 0) { lo = Math.max(0, s - spread); hi = s + spread; }
+      else { lo = s - spread; hi = Math.min(0, s + spread); }
+      if (isInt) { lo = Math.floor(lo); hi = Math.ceil(hi); if (lo === hi) hi = lo + 1; return randInt(lo, hi); }
+      return randFloat(lo, hi);
     }
     if (typeof sample === 'string') {
       var kind = detectStringKind(sample);
