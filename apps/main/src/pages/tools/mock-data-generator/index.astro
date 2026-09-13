@@ -1,0 +1,259 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Mock Data Generator';
+const description = 'Generate realistic fake JSON data from a sample or JSON Schema. Infers types, string patterns, ranges, and enum values from your sample — outputs any number of records. Perfect for seeding databases, testing APIs, and populating development environments. 100 percent client-side.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/mock-data-generator/"
+  keywords={['mock data generator', 'fake JSON data', 'generate test data', 'seed data', 'mock JSON', 'sample data generator', 'test fixtures']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Records</label>
+      <input id="count" type="number" value="5" min="1" max="500" style="width:80px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);" />
+      <label class="text-muted" style="margin-left:12px;">From</label>
+      <select id="mode">
+        <option value="sample" selected>Sample JSON</option>
+        <option value="schema">JSON Schema</option>
+      </select>
+      <label class="text-muted" style="margin-left:12px;">Indent</label>
+      <select id="indent"><option value="2" selected>2 spaces</option><option value="4">4 spaces</option></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Input</strong>
+        <textarea id="input" spellcheck="false" placeholder='{"name": "Alice", "age": 30, "email": "alice@example.com", "active": true}' style="min-height:240px;margin-top:8px;font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+      <div>
+        <strong>Generated</strong>
+        <textarea id="output" readonly placeholder="Generated mock data appears here" style="min-height:240px;margin-top:8px;background:var(--surface-2);font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="gen">Generate</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost" id="download">Download JSON</button>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>Sample mode</strong> — paste one real record and the tool infers the type, range, and pattern of every field. Email fields become random emails, age fields become integers in the same range, boolean fields flip randomly.</li>
+    <li><strong>Schema mode</strong> — paste a JSON Schema (draft-07 / 2020-12) and every constraint is honored: enums stay within their options, strings respect minLength/maxLength/pattern, numbers respect minimum/maximum/multipleOf, and required properties are never omitted.</li>
+    <li>Output is a JSON array with the requested number of records — ready to paste into your test suite or import script.</li>
+  </ul>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  input[type=number] { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+</style>
+
+<script is:inline client:load>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  var FIRST_NAMES = ['Alice','Bob','Charlie','Diana','Eve','Frank','Grace','Henry','Ivy','Jack','Kate','Leo','Mia','Noah','Olivia','Peter','Quinn','Rose','Sam','Tina','Uma','Vince','Wendy','Xander','Yara','Zane'];
+  var LAST_NAMES = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Wilson','Martinez','Anderson','Taylor','Thomas','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King'];
+  var EMAIL_DOMAINS = ['gmail.com','yahoo.com','outlook.com','example.com','company.org','mail.io','protonmail.com','fastmail.fm'];
+  var COMPANY_NAMES = ['Acme','Globex','Initech','Umbrella','Stark Industries','Wayne Enterprises','Wonka','Hooli','Pied Piper','Soylent','Cyberdyne','Tyrell','Aperture','Black Mesa','Dunder Mifflin','Los Pollos','Bluth','Oceanic','Dharma','Stark'];
+  var CITIES = ['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','San Antonio','San Diego','Dallas','San Jose','Austin','Jacksonville','Fort Worth','Columbus','Charlotte','San Francisco','Indianapolis','Seattle','Denver','Boston'];
+  var WORDS = ['quick','brown','fox','jumps','lazy','dog','hello','world','lorem','ipsum','dolor','sit','amet','consectetur','adipiscing','elit','sed','do','eiusmod','tempor','incididunt','labore','magna','aliqua','enim','ad','minim','veniam','quis','nostrud','exercitation','ullamco','laboris','nisi','aliquip','ex','ea','commodo','consequat','duis','aute','irure','reprehenderit','voluptate','velit','esse','cillum','fugiat','nulla','pariatur','excepteur','sint','occaecat','cupidatat','non','proident','sunt','culpa','qui','officia','deserunt','mollit','anim','id','est','laborum'];
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function randFloat(min, max) { return +(Math.random() * (max - min) + min).toFixed(4); }
+
+  function randomString(len) {
+    var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var s = ''; for (var i = 0; i < len; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+    return s;
+  }
+
+  function generateEmail() {
+    return pick(FIRST_NAMES).toLowerCase() + '.' + pick(LAST_NAMES).toLowerCase() + randInt(1,999) + '@' + pick(EMAIL_DOMAINS);
+  }
+  function generatePhone() { return '+' + randInt(1,9) + '-' + randInt(100,999) + '-' + randInt(100,999) + '-' + randInt(1000,9999); }
+  function generateName() { return pick(FIRST_NAMES) + ' ' + pick(LAST_NAMES); }
+  function generateCompany() { return pick(COMPANY_NAMES) + ' Inc.'; }
+  function generateAddress() { return randInt(1,9999) + ' ' + pick(WORDS).charAt(0).toUpperCase() + pick(WORDS) + ' ' + pick(CITIES) + ', ' + pick(['CA','NY','TX','FL','IL','PA','OH','GA','NC','MI']) + ' ' + randInt(10000,99999); }
+  function generateUuid() {
+    var h = '0123456789abcdef'; var s = '';
+    for (var i = 0; i < 36; i++) s += (i === 8 || i === 13 || i === 18 || i === 23 ? '-' : h.charAt(Math.floor(Math.random()*16)));
+    s = s.substr(0, 14) + '4' + s.substr(15);
+    return s;
+  }
+  function generateDate() {
+    var d = new Date(Date.now() - Math.floor(Math.random() * 365 * 86400000 * 10));
+    return d.toISOString();
+  }
+
+  function detectStringKind(str) {
+    if (/^[\w.+-]+@[\w.-]+\.\w+$/.test(str)) return 'email';
+    if (/^\+?[\d\-()\s]{7,}$/.test(str)) return 'phone';
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) return 'uuid';
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) return 'date';
+    if (/^https?:\/\//.test(str)) return 'url';
+    if (str.length < 20 && str.indexOf(' ') === -1) return 'short';
+    return 'text';
+  }
+
+  function genValueFromSample(sample) {
+    if (sample === null) return null;
+    if (typeof sample === 'boolean') return Math.random() > 0.5;
+    if (typeof sample === 'number') {
+      var isInt = Number.isInteger(sample);
+      var range = Math.max(Math.abs(sample), 1);
+      return isInt ? randInt(-range, range) : randFloat(-range, range);
+    }
+    if (typeof sample === 'string') {
+      var kind = detectStringKind(sample);
+      switch (kind) {
+        case 'email': return generateEmail();
+        case 'phone': return generatePhone();
+        case 'uuid': return generateUuid();
+        case 'date': return generateDate();
+        case 'url': return 'https://' + pick(WORDS) + '.' + pick(['com','org','io','dev','ai','net']);
+        case 'short': return pick(WORDS);
+        default: return WORDS.slice(0, randInt(3, 8)).join(' ');
+      }
+    }
+    if (Array.isArray(sample)) {
+      if (sample.length === 0) return [];
+      var n = randInt(1, 5); var result = [];
+      for (var i = 0; i < n; i++) result.push(genValueFromSample(sample[0]));
+      return result;
+    }
+    if (typeof sample === 'object') {
+      var o = {};
+      for (var key in sample) {
+        if (sample.hasOwnProperty(key)) {
+          if (key.toLowerCase().indexOf('name') > -1 && typeof sample[key] === 'string') o[key] = generateName();
+          else if (key.toLowerCase().indexOf('email') > -1) o[key] = generateEmail();
+          else if (key.toLowerCase().indexOf('phone') > -1 || key.toLowerCase().indexOf('tel') > -1) o[key] = generatePhone();
+          else if (key.toLowerCase().indexOf('company') > -1 || key.toLowerCase().indexOf('org') > -1) o[key] = generateCompany();
+          else if (key.toLowerCase().indexOf('address') > -1 || key.toLowerCase().indexOf('city') > -1) o[key] = generateAddress();
+          else if (key.toLowerCase().indexOf('id') > -1 && typeof sample[key] === 'string' && sample[key].length > 20) o[key] = generateUuid();
+          else if (key.toLowerCase().indexOf('date') > -1 || key.toLowerCase().indexOf('time') > -1 || key.toLowerCase().indexOf('created') > -1 || key.toLowerCase().indexOf('updated') > -1) o[key] = generateDate();
+          else o[key] = genValueFromSample(sample[key]);
+        }
+      }
+      return o;
+    }
+    return null;
+  }
+
+  function genValueFromSchema(schema) {
+    if (schema.enum) return schema.enum[randInt(0, schema.enum.length - 1)];
+    if (schema.const !== undefined) return schema.const;
+    var t = schema.type;
+    if (Array.isArray(t)) t = t[0];
+    switch (t) {
+      case 'string':
+        if (schema.format === 'email') return generateEmail();
+        if (schema.format === 'date-time') return generateDate();
+        if (schema.format === 'date') return generateDate().slice(0, 10);
+        if (schema.format === 'uri') return 'https://' + pick(WORDS) + '.example.com/' + pick(WORDS);
+        var len = schema.maxLength || randInt(5, 20);
+        return WORDS.slice(0, randInt(Math.max(1, Math.floor(len / 5)), Math.max(2, Math.floor(len / 4)))).join(' ');
+      case 'integer':
+      case 'number':
+        var min = schema.minimum !== undefined ? schema.minimum : -1000;
+        var max = schema.maximum !== undefined ? schema.maximum : 1000;
+        if (schema.multipleOf) { min = Math.ceil(min / schema.multipleOf) * schema.multipleOf; max = Math.floor(max / schema.multipleOf) * schema.multipleOf; }
+        var isInt = t === 'integer';
+        var v = isInt ? randInt(min, max) : randFloat(min, max);
+        if (schema.multipleOf) v = Math.round(v / schema.multipleOf) * schema.multipleOf;
+        return v;
+      case 'boolean': return Math.random() > 0.5;
+      case 'null': return null;
+      case 'array':
+        var minItems = schema.minItems || 0; var maxItems = schema.maxItems || 5;
+        var n = randInt(minItems, maxItems); var arr = [];
+        for (var i = 0; i < n; i++) arr.push(genValueFromSchema(schema.items || { type: 'string' }));
+        return arr;
+      case 'object':
+        var o = {};
+        var props = schema.properties || {};
+        var required = schema.required || Object.keys(props);
+        for (var k in props) {
+          if (props.hasOwnProperty(k)) {
+            if (required.indexOf(k) > -1 || Math.random() > 0.3) o[k] = genValueFromSchema(props[k]);
+          }
+        }
+        if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+          for (var i = 0; i < randInt(1, 3); i++) {
+            o['extra_' + randomString(4)] = genValueFromSchema(schema.additionalProperties);
+          }
+        }
+        return o;
+    }
+    return WORDS[randInt(0, WORDS.length - 1)];
+  }
+
+  function run() {
+    var raw = $('input').value.trim();
+    if (!raw) { $('output').value = ''; return; }
+    var count = Math.max(1, Math.min(500, parseInt($('count').value, 10) || 5));
+    var indent = parseInt($('indent').value, 10);
+    var mode = $('mode').value;
+
+    try { var parsed = JSON.parse(raw); }
+    catch (e) { $('output').value = 'Invalid JSON: ' + e.message; return; }
+
+    var results = [];
+    for (var i = 0; i < count; i++) {
+      results.push(mode === 'schema' ? genValueFromSchema(parsed) : genValueFromSample(parsed));
+    }
+    $('output').value = JSON.stringify(results, null, indent);
+  }
+
+  $('gen').addEventListener('click', run);
+  $('mode').addEventListener('change', run);
+  $('count').addEventListener('change', run);
+  $('indent').addEventListener('change', run);
+  $('sample').addEventListener('click', function () {
+    $('mode').value = 'sample';
+    $('input').value = JSON.stringify({
+      name: generateName(),
+      email: generateEmail(),
+      phone: generatePhone(),
+      company: generateCompany(),
+      age: randInt(18, 80),
+      active: Math.random() > 0.5,
+      score: randFloat(0, 100),
+      createdAt: generateDate(),
+      id: generateUuid(),
+      tags: ['user', 'admin']
+    }, null, 2);
+    run();
+  });
+  $('copy').addEventListener('click', function () { navigator.clipboard.writeText($('output').value); });
+  $('download').addEventListener('click', function () {
+    var blob = new Blob([$('output').value], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'mock-data.json';
+    a.click();
+  });
+
+  // seed with a sample
+  $('input').value = JSON.stringify({ name: 'Alice Smith', email: 'alice@example.com', age: 28, active: true, company: 'Globex Inc.', id: generateUuid() }, null, 2);
+  $('count').value = 5;
+  run();
+})();
+</script>

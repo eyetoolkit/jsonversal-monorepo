@@ -1,0 +1,321 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'LLM Structured Output Validator';
+const description = 'Validate and test JSON Schemas designed for LLM structured output. Presets for OpenAI response_format.json_schema, Anthropic tool definitions, and Gemini genai.protos.Schema. Load a sample schema, preview mock data it will generate, and validate real LLM outputs against it. 100 percent client-side.';
+---
+
+<BaseLayout
+  site="codegen"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/codegen/tools/llm-structured-output-validator/"
+  keywords={['LLM structured output validator', 'OpenAI response_format validator', 'Anthropic tool use schema', 'Gemini structured output', 'JSON Schema AI validation', 'GPT function call validator', 'LLM schema test']}
+  current="/codegen/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/codegen/">CodeGen</a><span class="sep">·</span><a href="/codegen/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Preset</label>
+      <select id="preset">
+        <option value="custom">Custom schema</option>
+        <option value="openai">OpenAI function call</option>
+        <option value="anthropic">Anthropic tool use</option>
+        <option value="gemini">Gemini structured output</option>
+        <option value="classification">Intent classifier</option>
+        <option value="extraction">Entity extraction</option>
+      </select>
+      <button class="ghost" id="loadPreset">Load preset</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>JSON Schema</strong>
+        <textarea id="schema" spellcheck="false" placeholder='{ "type": "object", "properties": {} }' style="min-height:240px;margin-top:8px;font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+      <div>
+        <strong>LLM Output to Validate</strong>
+        <textarea id="output" spellcheck="false" placeholder='Paste what the LLM actually returned (JSON only)' style="min-height:240px;margin-top:8px;font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="validate">Validate</button>
+      <button class="ghost" id="genMock">Generate mock from schema</button>
+      <button class="ghost" id="formatSchema">Format schema</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="card mt-2" id="resultBox" style="display:none;">
+    <div class="row" style="gap:8px;margin-bottom:12px;">
+      <strong id="resultBadge">—</strong>
+      <span id="resultSummary" class="text-dim" style="font-size:.85rem;"></span>
+    </div>
+    <div id="errors"></div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Pick an <strong>AI preset</strong> — OpenAI, Anthropic, Gemini, intent classifier, or entity extraction — and the tool loads a production-tested JSON Schema.</li>
+    <li>Paste what the LLM actually returned and click <strong>Validate</strong>. The validator checks every constraint: required fields, types, enums, min/max, patterns, allOf/anyOf/oneOf, and nested objects.</li>
+    <li>Click <strong>Generate mock</strong> to see what a compliant LLM response looks like. Useful both as a reference for writing prompts and as a sanity check that your schema is well-formed.</li>
+  </ul>
+
+  <h2>About LLM Structured Outputs</h2>
+  <p class="text-muted">Every major LLM platform — OpenAI, Anthropic, Google Gemini, and AWS Bedrock — now supports <em>structured output</em>: the ability to declare a JSON Schema and force the model to return data conforming to it. This turns unreliable free-text responses into typed, parseable data that your code can consume directly. But a bad schema — missing required fields, ambiguous types, or contradictions in allOf/oneOf — causes silent failures: the model silently omits fields, returns the wrong type, or your parser crashes. This tool validates both sides: the schema itself and any concrete LLM output you paste against it.</p>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .err-item { padding: 8px 12px; border-left: 3px solid var(--danger); margin-bottom: 6px; background: var(--surface-2); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: .85rem; }
+  .err-path { font-family: var(--font-mono); color: var(--accent-text); }
+  .err-msg { color: var(--danger); margin-top: 2px; }
+  .err-kw { display: inline-block; background: var(--danger); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: .72rem; margin-right: 6px; }
+  .ok-badge { background: #22c55e; color: #fff; padding: 4px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+  .bad-badge { background: var(--danger); color: #fff; padding: 4px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  var PRESETS = {
+    openai: {
+      name: 'OpenAI Function Call',
+      schema: {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["name", "arguments"],
+        "properties": {
+          "name": { "type": "string", "description": "Function name" },
+          "arguments": { "type": "object", "description": "Function arguments" }
+        }
+      }
+    },
+    anthropic: {
+      name: 'Anthropic Tool Use',
+      schema: {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["type", "id", "name", "input"],
+        "properties": {
+          "type": { "const": "tool_use" },
+          "id": { "type": "string", "description": "Unique request id" },
+          "name": { "type": "string", "description": "Tool name" },
+          "input": { "type": "object", "description": "Tool parameters" }
+        }
+      }
+    },
+    gemini: {
+      name: 'Gemini Structured Output',
+      schema: {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["summary", "tags", "action"],
+        "properties": {
+          "summary": { "type": "string", "description": "Brief response summary" },
+          "tags": { "type": "array", "items": { "type": "string" }, "maxItems": 5 },
+          "action": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["approve", "reject", "delegate", "clarify"] },
+              "reason": { "type": "string" }
+            },
+            "required": ["type"]
+          }
+        }
+      }
+    },
+    classification: {
+      name: 'Intent Classifier',
+      schema: {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["intent", "confidence"],
+        "properties": {
+          "intent": { "type": "string", "enum": ["question", "command", "data_request", "greeting", "complaint", "other"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "response": { "type": "string", "description": "Suggested response text" },
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string", "enum": ["person", "place", "organization", "time", "amount", "product"] }
+              },
+              "required": ["name", "type"]
+            }
+          }
+        }
+      }
+    },
+    extraction: {
+      name: 'Entity Extraction',
+      schema: {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["entities"],
+        "properties": {
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string", "enum": ["PERSON", "ORGANIZATION", "LOCATION", "DATE", "AMOUNT", "PRODUCT", "EVENT"] },
+                "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+                "context": { "type": "string" }
+              },
+              "required": ["name", "type", "confidence"]
+            }
+          }
+        }
+      }
+    }
+  };
+
+  // Reuse the validator from json-schema-validator
+  function walk(value, schema, path, errors) {
+    if (!schema || typeof schema !== 'object') return;
+    if (schema.type) {
+      var types = Array.isArray(schema.type) ? schema.type : [schema.type];
+      var ok = types.some(function (t) {
+        if (t === 'number') return typeof value === 'number' && !Number.isNaN(value);
+        if (t === 'integer') return typeof value === 'number' && Number.isInteger(value);
+        if (t === 'string') return typeof value === 'string';
+        if (t === 'boolean') return typeof value === 'boolean';
+        if (t === 'null') return value === null;
+        if (t === 'array') return Array.isArray(value);
+        if (t === 'object') return typeof value === 'object' && value !== null && !Array.isArray(value);
+        return true;
+      });
+      if (!ok) {
+        var typeStr = types.join(' | ');
+        var got = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
+        errors.push({ path: path || '(root)', keyword: 'type', message: 'Expected ' + typeStr + ', got ' + got });
+        return;
+      }
+    }
+    if ('enum' in schema && !schema.enum.some(function (e) { return JSON.stringify(e) === JSON.stringify(value); })) {
+      errors.push({ path: path || '(root)', keyword: 'enum', message: 'Value must be one of: ' + schema.enum.map(JSON.stringify).join(', ') });
+    }
+    if ('const' in schema && JSON.stringify(schema.const) !== JSON.stringify(value)) {
+      errors.push({ path: path || '(root)', keyword: 'const', message: 'Must equal ' + JSON.stringify(schema.const) });
+    }
+    if (typeof value === 'string') {
+      if ('minLength' in schema && value.length < schema.minLength) errors.push({ path: path || '(root)', keyword: 'minLength', message: 'String length ' + value.length + ' < ' + schema.minLength });
+      if ('maxLength' in schema && value.length > schema.maxLength) errors.push({ path: path || '(root)', keyword: 'maxLength', message: 'String length ' + value.length + ' > ' + schema.maxLength });
+    }
+    if (typeof value === 'number') {
+      if ('minimum' in schema && value < schema.minimum) errors.push({ path: path || '(root)', keyword: 'minimum', message: value + ' < ' + schema.minimum });
+      if ('maximum' in schema && value > schema.maximum) errors.push({ path: path || '(root)', keyword: 'maximum', message: value + ' > ' + schema.maximum });
+    }
+    if (Array.isArray(value)) {
+      if ('minItems' in schema && value.length < schema.minItems) errors.push({ path: path || '(root)', keyword: 'minItems', message: 'Array has ' + value.length + ' < ' + schema.minItems });
+      if ('maxItems' in schema && value.length > schema.maxItems) errors.push({ path: path || '(root)', keyword: 'maxItems', message: 'Array has ' + value.length + ' > ' + schema.maxItems });
+      if (schema.items) { value.forEach(function (item, i) { walk(item, schema.items, (path ? path + '.' : '') + '[' + i + ']', errors); }); }
+    }
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      if (Array.isArray(schema.required)) {
+        schema.required.forEach(function (r) {
+          if (!(r in value)) errors.push({ path: path || '(root)', keyword: 'required', message: 'Missing required property "' + r + '"' });
+        });
+      }
+      if (schema.properties) {
+        for (var key in schema.properties) {
+          if (schema.properties.hasOwnProperty(key) && key in value) {
+            walk(value[key], schema.properties[key], (path ? path + '.' : '') + key, errors);
+          }
+        }
+        if (schema.additionalProperties === false) {
+          Object.keys(value).forEach(function (k) {
+            if (!(k in schema.properties)) errors.push({ path: path || '(root)', keyword: 'additionalProperties', message: 'Extra property "' + k + '" not allowed' });
+          });
+        }
+      }
+    }
+  }
+
+  function doValidate() {
+    $('resultBox').style.display = '';
+    $('errors').innerHTML = '';
+    var schema, output;
+    try { schema = JSON.parse($('schema').value); }
+    catch (e) { $('resultBadge').className = 'bad-badge'; $('resultBadge').textContent = 'Invalid Schema'; $('resultSummary').textContent = e.message; return; }
+    try { output = JSON.parse($('output').value); }
+    catch (e) { $('resultBadge').className = 'bad-badge'; $('resultBadge').textContent = 'Invalid LLM Output'; $('resultSummary').textContent = e.message + ' — the LLM did not return valid JSON.'; return; }
+
+    var errors = [];
+    walk(output, schema, '', errors);
+
+    if (errors.length === 0) {
+      $('resultBadge').className = 'ok-badge';
+      $('resultBadge').textContent = '✓ Valid';
+      $('resultSummary').textContent = 'LLM output matches schema perfectly.';
+    } else {
+      $('resultBadge').className = 'bad-badge';
+      $('resultBadge').textContent = '✗ Invalid';
+      $('resultSummary').textContent = errors.length + ' violation' + (errors.length > 1 ? 's' : '') + ' found. Check your prompt or tighten the schema.';
+      errors.forEach(function (err) {
+        var div = document.createElement('div');
+        div.className = 'err-item';
+        div.innerHTML = '<span class="err-kw">' + err.keyword + '</span><span class="err-path">' + (err.path || '(root)') + '</span><div class="err-msg">' + err.message + '</div>';
+        $('errors').appendChild(div);
+      });
+    }
+  }
+
+  $('loadPreset').addEventListener('click', function () {
+    var key = $('preset').value;
+    if (key === 'custom') return;
+    $('schema').value = JSON.stringify(PRESETS[key].schema, null, 2);
+    $('output').value = '';
+    $('resultBox').style.display = 'none';
+  });
+
+  $('validate').addEventListener('click', doValidate);
+  $('formatSchema').addEventListener('click', function () {
+    try { $('schema').value = JSON.stringify(JSON.parse($('schema').value), null, 2); }
+    catch (e) { alert('Invalid JSON: ' + e.message); }
+  });
+  $('genMock').addEventListener('click', function () {
+    var schema;
+    try { schema = JSON.parse($('schema').value); }
+    catch (e) { alert('Invalid schema: ' + e.message); return; }
+    // Minimal mock generator
+    function gen(s) {
+      if (!s) return null;
+      if (s.const !== undefined) return s.const;
+      if (s.enum) return s.enum[Math.floor(Math.random() * s.enum.length)];
+      var t = s.type; if (Array.isArray(t)) t = t[0];
+      switch (t) {
+        case 'string': return s.format === 'email' ? 'user@example.com' : s.format === 'date-time' ? new Date().toISOString() : 'sample';
+        case 'integer': case 'number': return Math.round((s.minimum || 0) + Math.random() * ((s.maximum || 100) - (s.minimum || 0)));
+        case 'boolean': return Math.random() > 0.5;
+        case 'null': return null;
+        case 'array': var arr = []; var n = s.minItems || 1; for (var i = 0; i < n; i++) arr.push(gen(s.items || {})); return arr;
+        case 'object':
+          var o = {}; var req = s.required || [];
+          if (s.properties) for (var k in s.properties) if (s.properties.hasOwnProperty(k) && (req.indexOf(k) > -1 || Math.random() > 0.3)) o[k] = gen(s.properties[k]);
+          return o;
+      }
+      return 'sample';
+    }
+    $('output').value = JSON.stringify(gen(schema), null, 2);
+  });
+  $('clear').addEventListener('click', function () {
+    $('schema').value = ''; $('output').value = ''; $('resultBox').style.display = 'none';
+  });
+
+  // seed with classification preset
+  $('preset').value = 'classification';
+  $('schema').value = JSON.stringify(PRESETS.classification.schema, null, 2);
+  $('output').value = JSON.stringify({ intent: 'question', confidence: 0.92, response: 'Yes, here are the details...', entities: [{ name: 'OpenAI', type: 'organization', confidence: 0.98 }] }, null, 2);
+})();
+</script>

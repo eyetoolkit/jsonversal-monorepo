@@ -1,0 +1,143 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'Basic Auth Header Generator';
+const description = 'Generate HTTP Basic Authentication header values. Paste any username and password to produce the Base64-encoded Authorization header for curl, Postman, or any API client. Decode existing Basic auth strings back to credentials. 100 percent client-side.';
+---
+
+<BaseLayout
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/basic-auth-generator/"
+  keywords={['basic auth generator', 'Authorization header', 'Basic auth encode', 'Basic auth decode', 'Base64 auth header', 'HTTP authentication', 'curl basic auth']}
+  current="/devops/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;">
+      <label class="text-muted">Mode</label>
+      <select id="mode">
+        <option value="encode" selected>Generate (Encode)</option>
+        <option value="decode">Decode Basic auth</option>
+      </select>
+    </div>
+
+    <div id="encode-mode">
+      <div class="row" style="gap:12px;align-items:flex-start;">
+        <div style="flex:1;min-width:200px;">
+          <label class="text-muted">Username</label>
+          <input id="username" type="text" placeholder="myuser" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);margin-top:4px;" />
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <label class="text-muted">Password</label>
+          <input id="password" type="password" placeholder="secret" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);margin-top:4px;" />
+        </div>
+      </div>
+    </div>
+
+    <div id="decode-mode" style="display:none;">
+      <label class="text-muted">Basic auth string (e.g. Basic dXNlcjpwYXNz)</label>
+      <input id="authInput" type="text" placeholder="Basic dXNlcjpwYXNz or dXNlcjpwYXNz" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-family:var(--font-mono);margin-top:4px;" />
+    </div>
+
+    <div id="result" style="margin-top:16px;">
+      <div class="row" style="gap:8px;margin-bottom:12px;">
+        <button class="primary" id="run">Run</button>
+        <button class="ghost" id="copyAuth">Copy Authorization</button>
+        <button class="ghost" id="copyCurl">Copy curl</button>
+      </div>
+
+      <div id="output" style="background:var(--surface-2);padding:12px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:.85rem;min-height:40px;white-space:pre-wrap;"></div>
+
+      <div id="curl" style="margin-top:8px;background:var(--surface-2);padding:12px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted);white-space:pre-wrap;"></div>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>HTTP Basic auth</strong> encodes <code>username:password</code> in Base64 and sends it as an <code>Authorization: Basic &lt;base64&gt;</code> header on every request.</li>
+    <li>This tool handles non-ASCII credentials using UTF-8 encoding, and can decode any existing Basic auth header back to plain credentials.</li>
+    <li>All encoding happens in your browser — your password never leaves your device.</li>
+  </ul>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  function encodeAuth(user, pass) {
+    var str = user + ':' + pass;
+    var bytes = new TextEncoder().encode(str);
+    var binary = ''; for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+
+  function decodeAuth(raw) {
+    var b64 = raw.trim();
+    if (b64.toLowerCase().indexOf('basic ') === 0) b64 = b64.slice(6).trim();
+    try {
+      var binary = atob(b64);
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      var decoded = new TextDecoder().decode(bytes);
+      var idx = decoded.indexOf(':');
+      if (idx === -1) return { error: 'Invalid format: no colon separator' };
+      return { username: decoded.slice(0, idx), password: decoded.slice(idx + 1) };
+    } catch (e) { return { error: 'Invalid Base64: ' + e.message }; }
+  }
+
+  function run() {
+    var mode = $('mode').value;
+    if (mode === 'encode') {
+      var user = $('username').value; var pass = $('password').value;
+      if (!user && !pass) { $('output').textContent = ''; $('curl').textContent = ''; return; }
+      var b64 = encodeAuth(user, pass);
+      $('output').textContent = 'Authorization: Basic ' + b64;
+      $('curl').textContent = 'curl -H "Authorization: Basic ' + b64 + '" https://api.example.com/';
+    } else {
+      var input = $('authInput').value.trim();
+      if (!input) { $('output').textContent = ''; $('curl').textContent = ''; return; }
+      var r = decodeAuth(input);
+      if (r.error) { $('output').innerHTML = '<span style="color:var(--danger)">' + r.error + '</span>'; $('curl').textContent = ''; return; }
+      $('output').textContent = 'Username: ' + r.username + '\nPassword: ' + r.password;
+      $('curl').textContent = '';
+    }
+  }
+
+  $('mode').addEventListener('change', function () {
+    var mode = $('mode').value;
+    $('encode-mode').style.display = mode === 'encode' ? '' : 'none';
+    $('decode-mode').style.display = mode === 'decode' ? '' : 'none';
+    run();
+  });
+  $('username').addEventListener('input', run);
+  $('password').addEventListener('input', run);
+  $('authInput').addEventListener('input', run);
+  $('run').addEventListener('click', run);
+  $('copyAuth').addEventListener('click', function () {
+    var mode = $('mode').value;
+    if (mode === 'encode') {
+      var user = $('username').value; var pass = $('password').value;
+      navigator.clipboard.writeText('Authorization: Basic ' + encodeAuth(user, pass));
+    } else {
+      navigator.clipboard.writeText($('authInput').value.trim());
+    }
+  });
+  $('copyCurl').addEventListener('click', function () { navigator.clipboard.writeText($('curl').textContent); });
+
+  // seed
+  $('username').value = 'api-user';
+  $('password').value = 's3cret-p@ss';
+  run();
+})();
+</script>

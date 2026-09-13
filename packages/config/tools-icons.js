@@ -109,6 +109,14 @@ const ICONS = {
   'cron-parser': '⏰',
   'hash-generator': '🔐',
 
+  // Phase 2 tools
+  'mock-data-generator': '🎲',
+  'json-statistics': '📊',
+  'json-schema-builder': '🏗️',
+  'llm-structured-output-validator': '🤖',
+  'basic-auth-generator': '🔑',
+
+
 };
 
 // 从 href（如 /sec/tools/hash/）解析出 section + slug

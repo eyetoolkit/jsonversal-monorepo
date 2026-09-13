@@ -11,10 +11,10 @@
 | **VPS 备份** | `root@101.96.194.237:/opt/jsonversal` |
 | **SSH 快捷入口** | `ssh -F /root/.ssh_config vps` |
 | **生产分支** | `main` |
-| **当前 HEAD** | `caf525a chore: remove sandbox temp files from git + add .gitignore` |
+| **当前 HEAD** | `a936a34 chore: remove sandbox temp files from git + add .gitignore` |
 | **GitHub 地址** | `https://github.com/eyetoolkit/jsonversal-monorepo` |
 | **CF Pages 项目** | `jsonversal-main-v2` |
-| **构建** | ✅ 65 页面 / sitemap.xml 自动生成 / ~4.5s |
+| **构建** | ✅ 76 页面 / sitemap.xml 自动生成 / 75 URLs / ~4.5s |
 | **线上域名** | `jsonversal.com` + `www.jsonversal.com`（CF Pages active） |
 | **Remote（VPS 配置）** | `https://eyetoolkit:***@ghfast.top/https://github.com/eyetoolkit/jsonversal-monorepo.git` |
 

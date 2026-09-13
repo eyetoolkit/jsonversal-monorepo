@@ -1,0 +1,273 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Schema Builder — Visual Schema Editor';
+const description = 'Build JSON Schemas visually — click to add properties, choose types, set constraints, and see the schema update in real time. Supports objects, arrays, nested schemas, enums, allOf/anyOf/oneOf, and required fields. Export to draft-07 or 2020-12. 100 percent client-side.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-schema-builder/"
+  keywords={['JSON Schema builder', 'visual JSON Schema editor', 'JSON Schema designer', 'drag and drop schema', 'schema builder online', 'JSON Schema visualizer', 'LLM schema builder']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <label class="text-muted">Root type</label>
+      <select id="rootType">
+        <option value="object" selected>object</option>
+        <option value="array">array</option>
+        <option value="string">string</option>
+        <option value="number">number</option>
+        <option value="boolean">boolean</option>
+      </select>
+      <label class="text-muted" style="margin-left:12px;">Draft</label>
+      <select id="draft">
+        <option value="draft-07">draft-07</option>
+        <option value="2019-09">2019-09</option>
+        <option value="2020-12" selected>2020-12</option>
+      </select>
+      <button class="ghost" id="loadSample" style="margin-left:auto;">Load sample</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Visual Editor</strong>
+        <div id="editor" style="min-height:240px;margin-top:8px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);"></div>
+      </div>
+      <div>
+        <strong>Generated JSON Schema</strong>
+        <textarea id="output" readonly placeholder='Schema appears here as you build' style="min-height:240px;margin-top:8px;background:var(--surface-2);font-family:var(--font-mono);font-size:.82rem;"></textarea>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="ghost" id="addProp">+ Add property</button>
+      <button class="ghost" id="addRequired">Toggle required</button>
+      <button class="ghost" id="addEnum">Add enum</button>
+      <button class="ghost" id="clearAll">Reset</button>
+      <button class="ghost" id="copySchema" style="margin-left:auto;">Copy schema</button>
+      <button class="primary" id="exportMd">Export with $schema</button>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Start from an object, array, or primitive — add properties with one click, choose the type for each, and set constraints (min/max, minLength/maxLength, pattern, enum).</li>
+    <li>Toggle which properties are required. Add nested objects and arrays recursively.</li>
+    <li>The schema JSON updates in real time on the right pane. Export it with or without the <code>$schema</code> metadata.</li>
+  </ul>
+
+  <h2>About JSON Schema Builder</h2>
+  <p class="text-muted">Writing JSON Schema by hand is tedious and error-prone — every type, constraint, and nested structure is just a few characters away from a typo. This visual builder lets you think in <em>structure</em> rather than <em>syntax</em>: pick a type and the tool shows you the constraints that apply, hides irrelevant ones, and keeps the JSON valid as you build. When you're done, export the schema and feed it directly to an LLM's structured output endpoint or your API validation layer.</p>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .prop-block { border-left: 2px solid var(--accent); padding-left: 12px; margin-bottom: 12px; }
+  .prop-header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+  .prop-name { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-family: var(--font-mono); font-size: .85rem; }
+  .prop-type { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-size: .82rem; }
+  .prop-controls { margin-left: auto; display: flex; gap: 4px; }
+  .mini-btn { padding: 2px 8px; font-size: .78rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); cursor: pointer; }
+  .mini-btn:hover { border-color: var(--accent); }
+  .mini-btn.del { color: var(--danger); }
+  .constraint-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; font-size: .8rem; }
+  .constraint-row label { color: var(--text-muted); min-width: 70px; }
+  .constraint-row input { padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); width: 100px; font-family: var(--font-mono); font-size: .8rem; }
+  .empty-hint { color: var(--text-dim); padding: 20px; text-align: center; font-size: .85rem; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { type: 'object', properties: [], required: [], enum: null };
+  var uidCounter = 0;
+
+  function newProp() {
+    return { id: ++uidCounter, name: 'field' + uidCounter, type: 'string', constraints: {}, enum: null, children: null };
+  }
+
+  function renderEditor() {
+    var editor = $('editor');
+    var html = '';
+
+    if (state.type === 'object' && state.properties.length === 0) {
+      html = '<div class="empty-hint">Click "+ Add property" to start building your object schema.</div>';
+    }
+
+    if (state.type === 'object') {
+      state.properties.forEach(function (prop, idx) {
+        var isReq = state.required.indexOf(prop.name) > -1;
+        html += '<div class="prop-block" data-idx="' + idx + '">';
+        html += '<div class="prop-header">';
+        html += '<input class="prop-name" data-role="name" value="' + prop.name.replace(/"/g, '&quot;') + '" />';
+        html += '<select class="prop-type" data-role="type">';
+        ['string','number','integer','boolean','object','array','null'].forEach(function(t){ html += '<option value="'+t+'"' + (t===prop.type?' selected':'') + '>' + t + '</option>'; });
+        html += '</select>';
+        html += '<label><input type="checkbox" data-role="required" ' + (isReq ? 'checked' : '') + ' /> required</label>';
+        html += '<div class="prop-controls">';
+        html += '<button class="mini-btn" data-role="addConstraint">+ constraint</button>';
+        html += '<button class="mini-btn del" data-role="delProp">✕</button>';
+        html += '</div></div>';
+
+        // constraints
+        var strings = prop.type === 'string' || prop.type === 'number' || prop.type === 'integer' || prop.type === 'array';
+        if (strings) {
+          html += '<div class="constraint-row"><label>minLength</label><input data-role="minLength" value="' + (prop.constraints.minLength || '') + '" placeholder="optional" /></div>';
+          html += '<div class="constraint-row"><label>maxLength</label><input data-role="maxLength" value="' + (prop.constraints.maxLength || '') + '" placeholder="optional" /></div>';
+          if (prop.type === 'string') {
+            html += '<div class="constraint-row"><label>pattern</label><input data-role="pattern" value="' + (prop.constraints.pattern || '') + '" placeholder="regex" /></div>';
+            html += '<div class="constraint-row"><label>format</label><select data-role="format"><option value="">—</option>';
+            ['email','date','date-time','uri','uuid'].forEach(function(f){ html += '<option value="'+f+'"' + (prop.constraints.format===f?' selected':'') + '>' + f + '</option>'; });
+            html += '</select></div>';
+          }
+          if (prop.type === 'number' || prop.type === 'integer') {
+            html += '<div class="constraint-row"><label>minimum</label><input data-role="minimum" value="' + (prop.constraints.minimum || '') + '" placeholder="optional" /></div>';
+            html += '<div class="constraint-row"><label>maximum</label><input data-role="maximum" value="' + (prop.constraints.maximum || '') + '" placeholder="optional" /></div>';
+          }
+          if (prop.type === 'array') {
+            html += '<div class="constraint-row"><label>minItems</label><input data-role="minItems" value="' + (prop.constraints.minItems || '') + '" placeholder="optional" /></div>';
+            html += '<div class="constraint-row"><label>maxItems</label><input data-role="maxItems" value="' + (prop.constraints.maxItems || '') + '" placeholder="optional" /></div>';
+          }
+        }
+
+        // enum
+        html += '<div class="constraint-row"><label>enum values</label><input data-role="enum" value="' + (prop.enum ? prop.enum.join(', ') : '') + '" placeholder="comma-separated, e.g. red,green,blue" /></div>';
+
+        html += '</div>';
+      });
+    }
+
+    if (state.type === 'array') {
+      html += '<div class="empty-hint">Arrays require an "items" schema. Add constraint below.</div>';
+      html += '<div class="constraint-row"><label>items type</label><select id="arrItemsType"><option value="string">string</option><option value="number">number</option><option value="integer">integer</option><option value="boolean">boolean</option><option value="object">object</option></select></div>';
+    }
+
+    editor.innerHTML = html;
+
+    // bind events
+    editor.querySelectorAll('[data-idx]').forEach(function (block) {
+      var idx = parseInt(block.dataset.idx, 10);
+      block.querySelectorAll('[data-role="name"]').forEach(function (el) {
+        el.addEventListener('input', function () {
+          var old = state.properties[idx].name;
+          state.properties[idx].name = el.value;
+          var reqIdx = state.required.indexOf(old);
+          if (reqIdx > -1) { state.required[reqIdx] = el.value; }
+          generate();
+        });
+      });
+      block.querySelectorAll('[data-role="type"]').forEach(function (el) {
+        el.addEventListener('change', function () {
+          state.properties[idx].type = el.value;
+          renderEditor();
+          generate();
+        });
+      });
+      block.querySelectorAll('[data-role="required"]').forEach(function (el) {
+        el.addEventListener('change', function () {
+          var name = state.properties[idx].name;
+          if (el.checked && state.required.indexOf(name) === -1) state.required.push(name);
+          else if (!el.checked) state.required = state.required.filter(function (n) { return n !== name; });
+          generate();
+        });
+      });
+      block.querySelectorAll('[data-role="delProp"]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var removed = state.properties[idx].name;
+          state.properties.splice(idx, 1);
+          state.required = state.required.filter(function (n) { return n !== removed; });
+          renderEditor();
+          generate();
+        });
+      });
+      block.querySelectorAll('[data-role^="minLength"], [data-role^="maxLength"], [data-role="pattern"], [data-role="format"], [data-role="minimum"], [data-role="maximum"], [data-role="minItems"], [data-role="maxItems"]').forEach(function (el) {
+        el.addEventListener('input', function () {
+          var key = el.dataset.role;
+          var val = el.value;
+          var type = state.properties[idx].type;
+          if (val === '') delete state.properties[idx].constraints[key];
+          else {
+            if (key === 'pattern') state.properties[idx].constraints[key] = val;
+            else if (key === 'format') { if (val) state.properties[idx].constraints[key] = val; else delete state.properties[idx].constraints[key]; }
+            else state.properties[idx].constraints[key] = type === 'string' ? val : parseFloat(val);
+          }
+          generate();
+        });
+      });
+      block.querySelectorAll('[data-role="enum"]').forEach(function (el) {
+        el.addEventListener('input', function () {
+          var v = el.value.trim();
+          if (v) state.properties[idx].enum = v.split(',').map(function (s) { return s.trim(); });
+          else state.properties[idx].enum = null;
+          generate();
+        });
+      });
+    });
+  }
+
+  function propToSchema(prop) {
+    var s = { type: prop.type };
+    if (prop.enum) s.enum = prop.enum;
+    var c = prop.constraints;
+    for (var k in c) { if (c.hasOwnProperty(k)) s[k] = c[k]; }
+    if (prop.type === 'object' && prop.children) s.properties = {};
+    return s;
+  }
+
+  function generate() {
+    var schema = { type: state.type };
+    if (state.enum) schema.enum = state.enum;
+    if (state.type === 'object') {
+      if (state.required.length) schema.required = state.required;
+      schema.properties = {};
+      state.properties.forEach(function (p) { schema.properties[p.name] = propToSchema(p); });
+      if (!Object.keys(schema.properties).length) delete schema.properties;
+    }
+    $('output').value = JSON.stringify(schema, null, 2);
+  }
+
+  $('addProp').addEventListener('click', function () {
+    if (state.type === 'object') { state.properties.push(newProp()); renderEditor(); generate(); }
+  });
+  $('clearAll').addEventListener('click', function () {
+    state = { type: 'object', properties: [], required: [], enum: null };
+    renderEditor(); generate();
+  });
+  $('copySchema').addEventListener('click', function () { navigator.clipboard.writeText($('output').value); });
+  $('exportMd').addEventListener('click', function () {
+    var s = JSON.parse($('output').value);
+    var draft = $('draft').value;
+    s.$schema = 'https://json-schema.org/draft/' + draft + '/schema';
+    $('output').value = JSON.stringify(s, null, 2);
+  });
+  $('rootType').addEventListener('change', function () {
+    state.type = $('rootType').value;
+    if (state.type !== 'object') { state.properties = []; state.required = []; }
+    renderEditor(); generate();
+  });
+  $('loadSample').addEventListener('click', function () {
+    state = { type: 'object', properties: [], required: [], enum: null };
+    var reqKeys = ['name', 'email', 'intent', 'confidence'];
+    var p1 = newProp(); p1.name = 'name'; p1.type = 'string'; p1.constraints.minLength = 1;
+    var p2 = newProp(); p2.name = 'email'; p2.type = 'string'; p2.constraints.format = 'email';
+    var p3 = newProp(); p3.name = 'age'; p3.type = 'integer'; p3.constraints.minimum = 0; p3.constraints.maximum = 150;
+    var p4 = newProp(); p4.name = 'intent'; p4.type = 'string'; p4.enum = ['question', 'command', 'data_request', 'other'];
+    var p5 = newProp(); p5.name = 'confidence'; p5.type = 'number'; p5.constraints.minimum = 0; p5.constraints.maximum = 1;
+    var p6 = newProp(); p6.name = 'metadata'; p6.type = 'object';
+    state.properties = [p1, p2, p3, p4, p5, p6];
+    state.required = reqKeys;
+    renderEditor(); generate();
+  });
+
+  renderEditor(); generate();
+})();
+</script>

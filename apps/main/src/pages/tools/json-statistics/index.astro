@@ -1,0 +1,175 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Statistics & Structure Analyzer';
+const description = 'Analyze any JSON document: total keys, max depth, type distribution, array lengths, string lengths, number ranges, null/boolean/string/number/object/array breakdown. Great for understanding payload shapes and validating schema compliance. 100 percent client-side.';
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-statistics/"
+  keywords={['JSON statistics', 'JSON structure analyzer', 'JSON depth counter', 'JSON key count', 'JSON type distribution', 'JSON schema analyzer', 'JSON data analysis tool']}
+  current="/tools/"
+>
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <div class="card mt-2">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <strong>Input JSON</strong>
+        <textarea id="input" spellcheck="false" placeholder='Paste JSON to analyze' style="min-height:240px;margin-top:8px;font-family:var(--font-mono);font-size:.85rem;"></textarea>
+      </div>
+      <div>
+        <strong>Statistics</strong>
+        <div id="stats" style="min-height:240px;margin-top:8px;padding:16px;background:var(--surface-2);border-radius:var(--radius-sm);font-size:.85rem;"></div>
+      </div>
+    </div>
+    <div class="row mt-1" style="gap:8px;">
+      <button class="primary" id="run">Analyze</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The analyzer walks every node in your JSON, counting keys, tracking depth, recording the type of every value, and measuring array and string sizes.</li>
+    <li>It reports the maximum nesting depth, the number of keys at each level, the distribution of types across the document, and min/max/avg of numbers, arrays, and strings.</li>
+    <li>Useful when you're schema-designing an API response, debugging a deeply nested document, or understanding the structure of third-party webhooks.</li>
+  </ul>
+</BaseLayout>
+
+<style>
+  textarea { width: 100%; box-sizing: border-box; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--border); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--text-muted); }
+  .stat-value { font-family: var(--font-mono); font-weight: 600; color: var(--accent-text); }
+  .stat-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .stat-section:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+  .stat-section h4 { margin: 0 0 8px; font-size: .9rem; color: var(--text); }
+  .type-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-family: var(--font-mono); font-size: .82rem; }
+  .type-name { width: 60px; }
+  .type-bg { flex: 1; height: 12px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+  .type-fill { height: 100%; background: var(--accent-gradient); border-radius: 4px; transition: width .3s; }
+  .type-count { width: 80px; text-align: right; }
+</style>
+
+<script is:inline client:load>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  function analyze(obj, stats, depth) {
+    depth = depth || 0;
+    stats.totalNodes++;
+    stats.maxDepth = Math.max(stats.maxDepth, depth);
+
+    if (obj === null) { stats.types.null++; return; }
+    var t = Array.isArray(obj) ? 'array' : typeof obj;
+    stats.types[t] = (stats.types[t] || 0) + 1;
+
+    if (t === 'array') {
+      stats.arrayCount++;
+      stats.arrayLengths.push(obj.length);
+      for (var i = 0; i < obj.length; i++) analyze(obj[i], stats, depth + 1);
+    } else if (t === 'object') {
+      stats.objectCount++;
+      var keys = Object.keys(obj);
+      stats.totalKeys += keys.length;
+      stats.objectKeyCounts.push(keys.length);
+      for (var i = 0; i < keys.length; i++) analyze(obj[keys[i]], stats, depth + 1);
+    } else if (t === 'string') {
+      stats.stringLengths.push(obj.length);
+    } else if (t === 'number') {
+      stats.numberValues.push(obj);
+    }
+  }
+
+  function fmt(n) { return n.toLocaleString(); }
+  function avg(arr) { if (!arr.length) return 0; return (arr.reduce(function(a,b){ return a+b; }, 0) / arr.length).toFixed(1); }
+  function min(arr) { if (!arr.length) return 0; return Math.min.apply(null, arr); }
+  function max(arr) { if (!arr.length) return 0; return Math.max.apply(null, arr); }
+
+  function run() {
+    var raw = $('input').value.trim();
+    if (!raw) { $('stats').textContent = ''; return; }
+    var parsed;
+    try { parsed = JSON.parse(raw); }
+    catch (e) { $('stats').innerHTML = '<span style="color:var(--danger)">Invalid JSON: ' + e.message + '</span>'; return; }
+
+    var stats = { types: {}, totalNodes: 0, maxDepth: 0, totalKeys: 0, objectCount: 0, arrayCount: 0, stringLengths: [], numberValues: [], arrayLengths: [], objectKeyCounts: [] };
+    analyze(parsed, stats, 0);
+
+    var html = '';
+    html += '<div class="stat-section"><h4>Overview</h4>';
+    html += '<div class="stat-row"><span class="stat-label">Total nodes</span><span class="stat-value">' + fmt(stats.totalNodes) + '</span></div>';
+    html += '<div class="stat-row"><span class="stat-label">Total keys</span><span class="stat-value">' + fmt(stats.totalKeys) + '</span></div>';
+    html += '<div class="stat-row"><span class="stat-label">Max depth</span><span class="stat-value">' + stats.maxDepth + '</span></div>';
+    html += '<div class="stat-row"><span class="stat-label">Objects</span><span class="stat-value">' + fmt(stats.objectCount) + '</span></div>';
+    html += '<div class="stat-row"><span class="stat-label">Arrays</span><span class="stat-value">' + fmt(stats.arrayCount) + '</span></div>';
+    html += '</div>';
+
+    // Type distribution
+    var types = Object.keys(stats.types);
+    var maxT = 0; for (var i = 0; i < types.length; i++) if (stats.types[types[i]] > maxT) maxT = stats.types[types[i]];
+    html += '<div class="stat-section"><h4>Type Distribution</h4>';
+    for (var j = 0; j < types.length; j++) {
+      var pct = stats.types[types[j]] / maxT * 100;
+      html += '<div class="type-bar"><span class="type-name">' + types[j] + '</span><div class="type-bg"><div class="type-fill" style="width:' + pct + '%"></div></div><span class="type-count">' + fmt(stats.types[types[j]]) + '</span></div>';
+    }
+    html += '</div>';
+
+    // Numbers
+    if (stats.numberValues.length) {
+      html += '<div class="stat-section"><h4>Numbers (' + fmt(stats.numberValues.length) + ')</h4>';
+      html += '<div class="stat-row"><span class="stat-label">Min</span><span class="stat-value">' + min(stats.numberValues) + '</span></div>';
+      html += '<div class="stat-row"><span class="stat-label">Max</span><span class="stat-value">' + max(stats.numberValues) + '</span></div>';
+      html += '<div class="stat-row"><span class="stat-label">Average</span><span class="stat-value">' + avg(stats.numberValues) + '</span></div>';
+      html += '</div>';
+    }
+
+    // Arrays
+    if (stats.arrayLengths.length) {
+      html += '<div class="stat-section"><h4>Arrays (' + fmt(stats.arrayLengths.length) + ')</h4>';
+      html += '<div class="stat-row"><span class="stat-label">Length min</span><span class="stat-value">' + min(stats.arrayLengths) + '</span></div>';
+      html += '<div class="stat-row"><span class="stat-label">Length max</span><span class="stat-value">' + max(stats.arrayLengths) + '</span></div>';
+      html += '<div class="stat-row"><span class="stat-label">Length avg</span><span class="stat-value">' + avg(stats.arrayLengths) + '</span></div>';
+      html += '</div>';
+    }
+
+    // Strings
+    if (stats.stringLengths.length) {
+      html += '<div class="stat-section"><h4>Strings (' + fmt(stats.stringLengths.length) + ')</h4>';
+      html += '<div class="stat-row"><span class="stat-label">Length min</span><span class="stat-value">' + min(stats.stringLengths) + '</span></div>';
+      html += '<div class="stat-row"><span class="stat-label">Length max</span><span class="stat-value">' + max(stats.stringLengths) + '</span></div>';
+      html += '<div class="stat-row"><span class="stat-label">Length avg</span><span class="stat-value">' + avg(stats.stringLengths) + '</span></div>';
+      html += '</div>';
+    }
+
+    $('stats').innerHTML = html;
+  }
+
+  $('run').addEventListener('click', run);
+  $('sample').addEventListener('click', function () {
+    $('input').value = JSON.stringify({
+      users: [
+        { name: 'Alice', age: 28, email: 'alice@example.com', active: true, scores: [95, 87, 92], tags: ['admin', 'premium'], metadata: { createdAt: '2024-01-15', updatedAt: '2024-06-20' } },
+        { name: 'Bob', age: 34, email: 'bob@company.org', active: false, scores: [78, 81], tags: ['user'], metadata: { createdAt: '2023-11-01' } }
+      ],
+      total: 2,
+      filters: { active: null, ageRange: { min: 18, max: 100 } }
+    }, null, 2);
+    run();
+  });
+  $('clear').addEventListener('click', function () { $('input').value = ''; $('stats').textContent = ''; });
+
+  $('sample').click();
+})();
+</script>
