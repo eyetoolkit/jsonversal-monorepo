@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Statistics & Structure Analyzer';
 const description = 'Analyze any JSON document: total keys, max depth, type distribution, array lengths, string lengths, number ranges, null/boolean/string/number/object/array breakdown. Great for understanding payload shapes and validating schema compliance. 100 percent client-side.';
+const faqs = [
+  {
+    "question": "How do I analyse JSON statistics?",
+    "answer": "Paste any JSON document into the input and click Analyse. The tool computes statistics: total keys and values, data type distribution, string length distributions, array sizes, nesting depth, and most frequent key names."
+  },
+  {
+    "question": "Does it handle large JSON files?",
+    "answer": "Yes. The statistics engine processes JSON incrementally in the browser, so large documents (10MB+) are handled without freezing the UI. The analysis runs entirely locally."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Analyze any JSON document: total keys, max depth, type dist
   canonical="https://jsonversal.com/tools/json-statistics/"
   keywords={['JSON statistics', 'JSON structure analyzer', 'JSON depth counter', 'JSON key count', 'JSON type distribution', 'JSON schema analyzer', 'JSON data analysis tool']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

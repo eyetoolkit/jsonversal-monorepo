@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = '.env Template Generator';
 const description = 'Generate a .env template from a JSON object or "key: value" text — keys become UPPER_SNAKE_CASE, values are serialized without quotes.';
+const faqs = [
+  {
+    "question": "How do I generate a .env file?",
+    "answer": "Select the frameworks and services your project uses (Node.js, Python, Docker, etc.) and the tool generates a starter .env file with commonly required environment variables for each selection. You can edit and add variables before copying."
+  },
+  {
+    "question": "What variables are included?",
+    "answer": "Variables include DATABASE_URL, API_KEY, SECRET_KEY, PORT, NODE_ENV, and service-specific keys for AWS, Stripe, SendGrid, Firebase, and more \u2014 depending on your selections."
+  }
+];
 ---
 <BaseLayout site="codegen" title={title} description={description}
   canonical="https://jsonversal.com/codegen/tools/env-generator/"
   keywords={['.env generator', 'environment variables template', 'dotenv generator', 'env template generator', 'generate .env', 'env-generator', 'env-generator']}
   current="/codegen/tools/env-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

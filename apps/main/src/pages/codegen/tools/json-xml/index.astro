@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON ↔ XML Converter';
 const description = 'Convert JSON to XML or XML to JSON with a single click. Handles nested objects, arrays, attributes, and text nodes. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert JSON to XML?",
+    "answer": "Paste your JSON into the input and click Convert. The tool maps JSON objects to XML elements, arrays to repeated elements, and primitives to text nodes. A root <root> element wraps the result."
+  },
+  {
+    "question": "Can I customise the XML element names?",
+    "answer": "Yes. By default, keys become element names. For custom element names or attribute-based XML, adjust your JSON structure before converting or use a post-processing step."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert JSON to XML or XML to JSON with a single click. Han
   canonical="https://jsonversal.com/codegen/tools/json-xml/"
   keywords={['JSON to XML', 'JSON XML converter', 'convert JSON to XML', 'JSON XML互转', 'JSON to XML online', 'json-xml', 'json-xml']}
   current="/codegen/tools/json-xml/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

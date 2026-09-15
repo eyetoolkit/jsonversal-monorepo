@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'Passphrase Generator (Diceware-style)';
 const description = 'Generate memorable passphrases from a 256-word diceware-style word list, with separators, digits, symbols, and live entropy estimates. All randomness comes from the browser\'s CSPRNG.';
+const faqs = [
+  {
+    "question": "How do I generate a secure passphrase?",
+    "answer": "Choose the number of words (4\u20138), the separator character, and whether to include a number or symbol. Click Generate and a cryptographically random passphrase is created entirely in your browser using the Web Crypto API."
+  },
+  {
+    "question": "How strong is a passphrase versus a random password?",
+    "answer": "A 4-word passphrase (e.g. correct-horse-battery-staple) has entropy around 40\u201350 bits, making it strong and easier to remember than a random 12-character password. Use 6+ words for high-security applications."
+  }
+];
 ---
 <BaseLayout site="sec" title={title} description={description}
   canonical="https://jsonversal.com/sec/tools/passphrase-generator/"
   keywords={['passphrase generator', 'diceware password', 'random passphrase', 'passphrase generator online', 'passphrase', 'passphrase-generator', 'passphrase-generator']}
   current="/sec/tools/passphrase-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

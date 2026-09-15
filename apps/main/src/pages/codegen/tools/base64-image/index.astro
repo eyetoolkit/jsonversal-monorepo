@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Base64 Image Viewer';
 const description = 'Convert a base64 data URI into a viewable, downloadable image — or turn an image file on disk into a base64 data URI. Detects PNG, JPEG, GIF, WebP and SVG automatically. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert an image to Base64?",
+    "answer": "Click Choose File to select an image (PNG, JPG, GIF, WebP, SVG). The tool reads the file, encodes it as a Base64 data URL, and displays both the full data URL and an HTML img tag you can copy directly into your code."
+  },
+  {
+    "question": "What image formats are supported?",
+    "answer": "PNG, JPEG, GIF, WebP, and SVG are all supported. Very large images (>5MB) may take longer to encode. The encoding happens entirely in your browser \u2014 the image is never uploaded."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert a base64 data URI into a viewable, downloadable ima
   canonical="https://jsonversal.com/codegen/tools/base64-image/"
   keywords={['Base64 image viewer', 'decode Base64 image', 'Base64图片查看', 'image to Base64', 'Base64 image decoder', 'base64-image', 'base64-image']}
   current="/codegen/tools/base64-image/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

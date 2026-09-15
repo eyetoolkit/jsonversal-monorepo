@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema to TypeScript';
 const description = 'Convert a JSON Schema (draft-07) into TypeScript interfaces and type aliases — properties, required, enums, unions, $refs and nested objects included. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert JSON Schema to TypeScript?",
+    "answer": "Paste a JSON Schema document into the input and click Convert. The tool maps each schema type to the closest TypeScript equivalent: string \u2192 string, integer \u2192 number, boolean \u2192 boolean, object \u2192 interface, array \u2192 T[], and enum \u2192 union type."
+  },
+  {
+    "question": "Are all JSON Schema keywords supported?",
+    "answer": "Core keywords are supported: type, required, properties, patternProperties, additionalProperties, enum, const, format, minimum, maximum, minLength, maxLength, pattern, $ref, allOf, anyOf, oneOf, and if/then/else."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert a JSON Schema (draft-07) into TypeScript interfaces
   canonical="https://jsonversal.com/codegen/tools/schema-to-typescript/"
   keywords={['JSON Schema to TypeScript', 'generate TypeScript from JSON Schema', 'JSON Schema types', 'TypeScript from JSON Schema', 'schema-to-typescript', 'schema-to-typescript', 'schema-to-typescript']}
   current="/codegen/tools/schema-to-typescript/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

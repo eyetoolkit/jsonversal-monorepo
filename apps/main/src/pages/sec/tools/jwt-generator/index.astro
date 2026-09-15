@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JWT Generator & Signer';
 const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your browser. Edit header and payload, supply a secret, and get a ready-to-use token. Nothing is uploaded.';
+const faqs = [
+  {
+    "question": "How do I create a JWT token?",
+    "answer": "Enter the header and payload as JSON objects, paste your secret key, and click Generate. The tool constructs the JWT, base64url-encodes the header and payload, and computes the HMAC signature using the specified algorithm (HS256, HS384, or HS512)."
+  },
+  {
+    "question": "Can I sign with RSA or ECDSA?",
+    "answer": "The current version uses HMAC (symmetric) signing. For RSA/ECDSA signatures, use the RS256 algorithm with an RSA private key. The tool accepts RS256, RS384, and RS512 algorithms."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Build and sign JWTs with HS256, HS384, or HS512 in your bro
   canonical="https://jsonversal.com/sec/tools/jwt-generator/"
   keywords={['JWT generator', 'JWT token generator', 'create JWT', 'JWT signer', 'JWT token online', 'jwt-generator', 'jwt-generator']}
   current="/sec/tools/jwt-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

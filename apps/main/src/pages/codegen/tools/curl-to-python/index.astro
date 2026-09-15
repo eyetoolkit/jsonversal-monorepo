@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'cURL to Python (requests)';
 const description = 'Parse a curl command (from the browser "Copy as cURL") and generate an equivalent runnable Python script using requests or httpx — method, headers, JSON/form bodies, cookies, basic auth and TLS options included.';
+const faqs = [
+  {
+    "question": "How do I convert a curl command to Python?",
+    "answer": "Paste a curl command into the input and click Convert. The tool parses the URL, headers, method, and body, then outputs an equivalent Python requests or httpx script. Select your preferred HTTP library."
+  },
+  {
+    "question": "Which Python libraries are supported?",
+    "answer": "The tool generates code for the requests library (most common), httpx (async support), and urllib.request (stdlib, no dependency). Select your preferred library before converting."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Parse a curl command (from the browser "Copy as cURL") and 
   canonical="https://jsonversal.com/codegen/tools/curl-to-python/"
   keywords={['cURL to Python converter', 'convert curl to python requests', 'curl to python', 'curl python converter', 'curl-to-python', 'curl-to-python', 'curl-to-python']}
   current="/codegen/tools/curl-to-python/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

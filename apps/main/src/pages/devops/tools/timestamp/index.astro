@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Unix Timestamp Converter';
 const description = 'Convert between Unix timestamps (seconds or milliseconds) and human-readable local or UTC dates. Auto-detects seconds vs milliseconds. Shows ISO 8601, RFC 2822, and more. Add/subtract offsets in seconds, minutes, hours, days.';
+const faqs = [
+  {
+    "question": "How do I convert between Unix timestamps and dates?",
+    "answer": "Enter a Unix timestamp (seconds or milliseconds) or a date/time string and the tool instantly shows the conversion in all major formats: Unix, ISO 8601, UTC, local time, and over 20 timezone-specific formats."
+  },
+  {
+    "question": "Can I convert timestamps in bulk?",
+    "answer": "Yes. Enter multiple timestamps (one per line) and the tool converts all of them simultaneously, displaying results in a table with all format columns."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert between Unix timestamps (seconds or milliseconds) a
   canonical="https://jsonversal.com/devops/tools/timestamp/"
   keywords={['unix timestamp converter', 'epoch to date', 'timestamp generator', 'unix time', 'epoch converter', 'seconds to date', 'milliseconds converter', 'epoch calculator']}
   current="/devops/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

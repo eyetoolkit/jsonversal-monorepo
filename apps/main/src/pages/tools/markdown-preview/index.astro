@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Markdown Editor & Live Preview';
 const description = 'Write Markdown and see a rendered HTML preview as you type. A safe, CommonMark-style subset parser with headings, lists, tables, task lists and code blocks — all in your browser.';
+const faqs = [
+  {
+    "question": "How do I preview Markdown online?",
+    "answer": "Type or paste your Markdown into the editor on the left and the rendered HTML appears on the right in real time. The preview updates as you type with no delay."
+  },
+  {
+    "question": "Does it support GFM (GitHub Flavored Markdown)?",
+    "answer": "Yes. Tables, task lists, strikethrough, autolinks, and fenced code blocks with syntax highlighting are all supported. The preview matches how GitHub renders Markdown."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Write Markdown and see a rendered HTML preview as you type.
   canonical="https://jsonversal.com/tools/markdown-preview/"
   keywords={['markdown preview', 'markdown editor', 'online markdown', 'markdown viewer', 'markdown parser', 'edit markdown online', 'write markdown']}
   current="/tools/markdown-preview/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

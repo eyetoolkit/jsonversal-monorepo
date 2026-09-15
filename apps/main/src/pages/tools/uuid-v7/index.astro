@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'UUID v7 Generator & Timestamp Decoder';
 const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and decode the embedded millisecond timestamp back to a readable date. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I generate a UUID v7?",
+    "answer": "Click Generate to create a new UUID v7. You can generate a batch of up to 100 at once. Each UUID contains a timestamp component encoding the creation time, allowing you to sort records by creation order."
+  },
+  {
+    "question": "Can I decode a UUID v7 to find when it was created?",
+    "answer": "Yes. Paste any UUID v7 into the decoder and it extracts and displays the embedded timestamp, showing the exact creation date and time in UTC."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and deco
   canonical="https://jsonversal.com/tools/uuid-v7/"
   keywords={['UUID v7 generator', 'UUID generator online', 'generate UUID', 'UUID timestamp', 'UUID v7 vs v4', 'UUID generator tool', 'ULID alternative']}
   current="/tools/uuid-v7/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

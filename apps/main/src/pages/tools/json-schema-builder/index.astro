@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Builder — Visual Schema Editor';
 const description = 'Build JSON Schemas visually — drag types from the palette, reorder properties by dragging, nest objects inside objects, and see the schema update in real time. Supports constraints, enums, required fields, allOf/anyOf/oneOf. Export to draft-07 or 2020-12. 100 percent client-side.';
+const faqs = [
+  {
+    "question": "How do I build a JSON Schema interactively?",
+    "answer": "Add properties one by one using the form: enter the field name, select the type (string, number, boolean, array, object), and set constraints like required, minLength, pattern, enum values, and more. The schema updates live as you add each field."
+  },
+  {
+    "question": "Can I add nested objects and arrays?",
+    "answer": "Yes. When adding a property, select type 'object' or 'array' to create a nested structure. You can add sub-properties to any object, and set array item types for any array."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Build JSON Schemas visually — drag types from the palette
   canonical="https://jsonversal.com/tools/json-schema-builder/"
   keywords={['JSON Schema builder', 'visual JSON Schema editor', 'JSON Schema designer', 'drag and drop schema', 'schema builder online', 'JSON Schema visualizer', 'LLM schema builder']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Number Base Converter';
 const description = 'Convert between binary, octal, decimal, hex, and ASCII text with exact 64-bit BigInt math. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert between number bases?",
+    "answer": "Enter a number in any base (binary, octal, decimal, hexadecimal, or base-36 to base-64), select the input base, and the tool shows the equivalent value in all other bases simultaneously."
+  },
+  {
+    "question": "What bases are supported?",
+    "answer": "Binary (base-2), octal (base-8), decimal (base-10), hex (base-16), and custom bases from 2 to 64 using RFC 4648 alphabet. You can also use custom digit alphabets."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert between binary, octal, decimal, hex, and ASCII text
   canonical="https://jsonversal.com/devops/tools/number-base/"
   keywords={['number base converter', 'hex decimal binary converter', '进制转换器', 'base converter', 'hex to decimal', 'number-base', 'number-base']}
   current="/devops/tools/number-base/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

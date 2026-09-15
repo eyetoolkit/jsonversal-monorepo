@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Mock Data Generator';
 const description = 'Generate realistic fake JSON data from a sample or JSON Schema. Infers types, string patterns, ranges, and enum values from your sample — outputs any number of records. Perfect for seeding databases, testing APIs, and populating development environments. 100 percent client-side.';
+const faqs = [
+  {
+    "question": "How do I generate mock JSON data?",
+    "answer": "Define your data structure: add fields with names, types (name, email, address, phone, date, etc.), and constraints like min/max values or array lengths. Click Generate and the tool produces realistic fake data matching your schema."
+  },
+  {
+    "question": "What types of mock data are available?",
+    "answer": "The tool generates realistic fake data including names, emails, phone numbers, addresses, dates, UUIDs, credit card numbers, URLs, lorem ipsum text, and more. All generated data is structurally consistent with your schema."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate realistic fake JSON data from a sample or JSON Sch
   canonical="https://jsonversal.com/tools/mock-data-generator/"
   keywords={['mock data generator', 'fake JSON data', 'generate test data', 'seed data', 'mock JSON', 'sample data generator', 'test fixtures']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

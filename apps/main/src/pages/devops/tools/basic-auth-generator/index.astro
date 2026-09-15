@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Basic Auth Header Generator';
 const description = 'Generate HTTP Basic Authentication header values. Paste any username and password to produce the Base64-encoded Authorization header for curl, Postman, or any API client. Decode existing Basic auth strings back to credentials. 100 percent client-side.';
+const faqs = [
+  {
+    "question": "How do I generate HTTP Basic Auth credentials?",
+    "answer": "Enter a username and password, then click Generate. The tool encodes them as a Base64 Authorization header value in the format username:password. Copy the header value and add it to your HTTP requests."
+  },
+  {
+    "question": "Is Basic Auth secure?",
+    "answer": "Basic Auth transmits credentials with every request. Always use HTTPS to encrypt the connection. For better security, consider using OAuth 2.0 or API keys with proper scoping instead."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate HTTP Basic Authentication header values. Paste any
   canonical="https://jsonversal.com/devops/tools/basic-auth-generator/"
   keywords={['basic auth generator', 'Authorization header', 'Basic auth encode', 'Basic auth decode', 'Base64 auth header', 'HTTP authentication', 'curl basic auth']}
   current="/devops/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

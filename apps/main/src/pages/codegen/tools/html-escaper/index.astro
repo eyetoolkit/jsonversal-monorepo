@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'HTML Entity Escaper';
 const description = 'Escape text or code into HTML entities (&amp;, &lt;, &gt;, &quot;, &#39;) or unescape entities back into plain text — useful before pasting code into &lt;pre&gt;/&lt;code&gt; blocks.';
+const faqs = [
+  {
+    "question": "How do I escape HTML special characters?",
+    "answer": "Paste your HTML or JavaScript into the input and click Escape. The tool converts special characters (<, >, &, \", ') to their HTML entity equivalents (&lt;, &gt;, &amp;, &quot;, &#39;). Click Unescape to reverse the process."
+  },
+  {
+    "question": "When do I need to escape HTML?",
+    "answer": "Escape HTML when inserting user-generated content into a web page to prevent XSS attacks, or when displaying code snippets that contain HTML characters. Always escape before rendering untrusted content."
+  }
+];
 ---
 <BaseLayout site="codegen" title={title} description={description}
   canonical="https://jsonversal.com/codegen/tools/html-escaper/"
   keywords={['HTML entity escaper', 'escape HTML', 'HTML special characters', 'HTML转义', 'HTML entity encoder', 'html-escaper', 'html-escaper']}
   current="/codegen/tools/html-escaper/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

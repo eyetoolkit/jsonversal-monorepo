@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON to SQL Generator';
 const description = 'Generate CREATE TABLE and INSERT statements from a JSON array. Infers column types and safely escapes string values. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I generate SQL from natural language?",
+    "answer": "Describe what you want in plain English (e.g. 'list all users who signed up in the last 30 days with more than 5 orders') and click Generate. The tool produces a SQL query for your selected dialect."
+  },
+  {
+    "question": "Which SQL dialects are supported?",
+    "answer": "MySQL, PostgreSQL, SQLite, and SQL Server are supported. The generated SQL is tailored to the selected dialect's syntax and feature set."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate CREATE TABLE and INSERT statements from a JSON arr
   canonical="https://jsonversal.com/codegen/tools/sql-generator/"
   keywords={['JSON to SQL generator', 'generate SQL from JSON', 'JSON to INSERT', 'SQL from JSON', 'JSON SQL converter', 'sql-generator', 'sql-generator']}
   current="/codegen/tools/sql-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

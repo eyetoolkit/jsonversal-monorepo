@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Kubernetes YAML Generator';
 const description = 'Scaffold Kubernetes Deployment, Service, and Ingress manifests from a small form. Copy the YAML straight into kubectl. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I generate Kubernetes manifests?",
+    "answer": "Select the resource type (Deployment, Service, ConfigMap, Secret, Ingress, PVC), fill in the form fields (name, port, image, labels, replicas), and click Generate. The tool outputs a complete YAML manifest ready to apply with kubectl."
+  },
+  {
+    "question": "Can I generate multiple resources at once?",
+    "answer": "Yes. The tool can generate a full multi-resource bundle: Deployment + Service + ConfigMap + Ingress together as separate documents in one YAML file, ready for kubectl apply -f."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Scaffold Kubernetes Deployment, Service, and Ingress manife
   canonical="https://jsonversal.com/devops/tools/k8s-generator/"
   keywords={['Kubernetes YAML generator', 'k8s manifest generator', 'Kubernetes config generator', 'K8s YAML', 'kubectl generator', 'k8s-generator', 'k8s-generator']}
   current="/devops/tools/k8s-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

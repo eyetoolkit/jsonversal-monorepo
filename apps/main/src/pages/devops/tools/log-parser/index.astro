@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Log Line Parser';
 const description = 'Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I parse log files online?",
+    "answer": "Paste your log file content (any format: Apache, Nginx, syslog, JSON, or custom) into the input and click Parse. The tool detects the log format automatically and structures it into fields. You can then filter and search the parsed entries."
+  },
+  {
+    "question": "What log formats are supported?",
+    "answer": "Apache combined/logformat, Nginx error/access logs, syslog (RFC 3164/5424), JSON Lines, and common custom formats with timestamps, levels, and messages. Auto-detection selects the most likely format."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Parse nginx, Apache, JSON, or custom-regex log lines into a
   canonical="https://jsonversal.com/devops/tools/log-parser/"
   keywords={['log parser', 'JSON log analyzer', 'parse log file', 'log分析', 'structured log parser', 'log-parser', 'log-parser']}
   current="/devops/tools/log-parser/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

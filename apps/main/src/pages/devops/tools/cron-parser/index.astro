@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Crontab Parser — Explain cron expressions';
 const description = 'Translate any crontab expression (5-field standard or 6-field with seconds) into plain English. Preview the next 10 scheduled run times. Perfect for understanding Linux cron, Kubernetes CronJobs, and CI schedulers.';
+const faqs = [
+  {
+    "question": "How do I parse a cron expression?",
+    "answer": "Enter a cron expression (e.g. 0 9 * * 1-5) in the input. The tool immediately shows the next 5 execution times and a human-readable description of when the job runs. It validates the expression and reports syntax errors."
+  },
+  {
+    "question": "What cron format is supported?",
+    "answer": "Standard 5-field cron: minute (0-59), hour (0-23), day of month (1-31), month (1-12), day of week (0-6). It supports ranges, steps, lists, and special strings (@hourly, @daily, @weekly, @monthly, @yearly/@annually)."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Translate any crontab expression (5-field standard or 6-fie
   canonical="https://jsonversal.com/devops/tools/cron-parser/"
   keywords={['cron parser', 'crontab explainer', 'cron expression to english', 'cron syntax', 'kubernetes cronjob parser', 'cron schedule explainer', 'cron expression tester']}
   current="/devops/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

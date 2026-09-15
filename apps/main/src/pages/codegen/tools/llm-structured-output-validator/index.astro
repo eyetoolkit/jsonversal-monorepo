@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'LLM Structured Output Validator';
 const description = 'Validate and test JSON Schemas designed for LLM structured output. Presets for OpenAI response_format.json_schema, Anthropic tool definitions, and Gemini genai.protos.Schema. Load a sample schema, preview mock data it will generate, and validate real LLM outputs against it. 100 percent client-side.';
+const faqs = [
+  {
+    "question": "How do I validate LLM structured output?",
+    "answer": "Paste an LLM response (JSON or text) and a JSON Schema describing the expected format. The tool validates whether the response conforms to the schema and reports all validation errors with JSON paths to the problematic fields."
+  },
+  {
+    "question": "Can I check multiple responses at once?",
+    "answer": "Yes. Paste multiple JSON objects (one per line or as a JSON array) and the tool validates each one, reporting which responses passed and which failed with specific error messages."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Validate and test JSON Schemas designed for LLM structured 
   canonical="https://jsonversal.com/codegen/tools/llm-structured-output-validator/"
   keywords={['LLM structured output validator', 'OpenAI response_format validator', 'Anthropic tool use schema', 'Gemini structured output', 'JSON Schema AI validation', 'GPT function call validator', 'LLM schema test']}
   current="/codegen/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

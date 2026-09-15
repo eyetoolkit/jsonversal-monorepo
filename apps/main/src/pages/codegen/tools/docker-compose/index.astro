@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Docker Compose Generator';
 const description = 'Scaffold a docker-compose.yml with services, ports, volumes, and environment variables from a simple form. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I generate a docker-compose.yml?",
+    "answer": "Select the services you need (PostgreSQL, Redis, Nginx, etc.), configure ports, volumes, and environment variables through the form, and click Generate. The tool produces a complete docker-compose.yml with all selected services."
+  },
+  {
+    "question": "Can I add custom services?",
+    "answer": "Yes. The generated file is fully editable. Add custom services or modify the generated ones before copying the final docker-compose.yml to your project."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Scaffold a docker-compose.yml with services, ports, volumes
   canonical="https://jsonversal.com/codegen/tools/docker-compose/"
   keywords={['Docker Compose generator', 'docker-compose.yml generator', 'docker compose template', 'docker-compose template', 'generate docker compose', 'docker-compose', 'docker-compose']}
   current="/codegen/tools/docker-compose/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

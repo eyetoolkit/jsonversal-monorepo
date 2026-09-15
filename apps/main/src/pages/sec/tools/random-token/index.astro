@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'Random Token Generator';
 const description = 'Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser\'s CSPRNG.';
+const faqs = [
+  {
+    "question": "How do I generate a random token?",
+    "answer": "Choose the token length (8\u2013128 characters) and character set (alphanumeric, hex, URL-safe, or custom). Click Generate and a cryptographically random token is produced using crypto.getRandomValues()."
+  },
+  {
+    "question": "What is the difference between token types?",
+    "answer": "Alphanumeric uses a-z, A-Z, 0-9. Hex uses 0-9, a-f. URL-safe replaces + and / with - and _. Custom lets you define exactly which characters to use."
+  }
+];
 ---
 <BaseLayout site="sec" title={title} description={description}
   canonical="https://jsonversal.com/sec/tools/random-token/"
   keywords={['random token generator', 'API token generator', 'random string generator', 'random token', 'secure token', 'random-token', 'random-token']}
   current="/sec/tools/random-token/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

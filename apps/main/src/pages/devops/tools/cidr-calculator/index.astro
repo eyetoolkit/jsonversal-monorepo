@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'CIDR / Subnet Calculator';
 const description = 'Calculate network address, broadcast, host ranges, masks, and address counts for any CIDR block. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I calculate CIDR subnets?",
+    "answer": "Enter a CIDR notation (e.g. 192.168.1.0/24) and the tool calculates the network address, broadcast address, usable host range, total hosts, and subnet mask \u2014 for both IPv4 and IPv6."
+  },
+  {
+    "question": "Can I supernet or subnet a network?",
+    "answer": "Yes. Given a CIDR block, the tool can show all subnets at a given prefix length, or aggregate multiple CIDR blocks into the smallest possible supernet that contains them all."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Calculate network address, broadcast, host ranges, masks, a
   canonical="https://jsonversal.com/devops/tools/cidr-calculator/"
   keywords={['CIDR calculator', 'subnet calculator', 'CIDR notation', '子网计算器', 'IP subnet calculator', 'cidr-calculator', 'cidr-calculator']}
   current="/devops/tools/cidr-calculator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

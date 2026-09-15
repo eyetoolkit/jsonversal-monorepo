@@ -4,12 +4,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Tree Viewer';
 const description = 'Paste any JSON and explore it as a collapsible, color-coded tree — objects, arrays, keys, and values at a glance.';
+const faqs = [
+  {
+    "question": "How do I view JSON in a tree format?",
+    "answer": "Paste your JSON into the input and click View. The tool renders it as an interactive collapsible tree: click any arrow to expand or collapse objects and arrays. Nodes show key names, types (colour-coded), and array indices."
+  },
+  {
+    "question": "Can I search within the JSON tree?",
+    "answer": "Yes. Use Ctrl+F or the search box to highlight keys or values matching your query. Matching nodes are expanded automatically so you can locate the data quickly."
+  }
+];
 ---
 
 <BaseLayout site="devops" title={title} description={description}
   canonical="https://jsonversal.com/devops/tools/json-viewer/"
   keywords={['JSON viewer', 'JSON tree viewer', 'visualize JSON', 'JSON structure viewer', 'JSON可视化', 'json-viewer', 'json-viewer']}
   current="/devops/tools/json-viewer/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

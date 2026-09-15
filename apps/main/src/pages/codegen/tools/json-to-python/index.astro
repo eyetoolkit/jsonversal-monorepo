@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'JSON to Python Dict';
 const description = 'Convert a JSON sample into an equivalent Python dict literal — valid identifier keys stay bare, invalid keys get quoted, and true/false/null become True/False/None.';
+const faqs = [
+  {
+    "question": "How do I convert JSON to Python?",
+    "answer": "Paste a JSON sample into the input and click Generate. The tool outputs a Python dictionary literal matching your JSON structure. For complex schemas, it produces dataclass or Pydantic model definitions."
+  },
+  {
+    "question": "Is the output valid Python?",
+    "answer": "Yes. The output is valid Python 3 code using standard dict literals or dataclass decorators. It can be copied directly into your project and used immediately."
+  }
+];
 ---
 <BaseLayout site="codegen" title={title} description={description}
   canonical="https://jsonversal.com/codegen/tools/json-to-python/"
   keywords={['JSON to Python', 'JSON to Python dict', 'convert JSON to Python', 'JSON Python converter', 'JSON to Python online', 'json-to-python', 'json-to-python']}
   current="/codegen/tools/json-to-python/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 
