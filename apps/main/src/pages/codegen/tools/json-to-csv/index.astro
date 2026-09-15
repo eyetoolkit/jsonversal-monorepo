@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'JSON to CSV Converter';
 const description = 'Convert a JSON array of objects into CSV — columns are the union of all keys in first-appearance order, missing values stay blank, and rows use CRLF line endings per RFC 4180.';
+const faqs = [
+  {
+    "question": "How do I convert JSON to CSV?",
+    "answer": "Paste a JSON array of objects (where each object has the same keys) into the input. Click Convert and the tool outputs CSV with a header row and one row per object. You can choose the separator: comma, tab, or semicolon."
+  },
+  {
+    "question": "What if my JSON objects have different keys?",
+    "answer": "The tool uses the union of all keys found across all objects. Objects missing a key get an empty value in that column. For best results, ensure all objects share the same schema."
+  }
+];
 ---
 <BaseLayout site="codegen" title={title} description={description}
   canonical="https://jsonversal.com/codegen/tools/json-to-csv/"
   keywords={['Json To Csv', 'Json To Csv online', 'free json to csv', 'Json To Csv tool', 'Json To Csv generator', 'online json to csv', 'best json to csv']}
   current="/codegen/tools/json-to-csv/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

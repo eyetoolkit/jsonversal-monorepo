@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'CSV to JSON Converter';
 const description = 'Convert CSV (or TSV / semicolon-separated) into JSON with optional type inference. Handles quoted fields, embedded commas, and newlines. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert CSV to JSON?",
+    "answer": "Paste your CSV data (with or without a header row) into the input. If the first row is headers, enable the Header Row option. Click Convert and the tool outputs a JSON array of objects, where each CSV row becomes an object with keys from the header."
+  },
+  {
+    "question": "Can I convert JSON back to CSV?",
+    "answer": "Yes. Use the JSON to CSV tool which takes a JSON array of objects and converts it back to CSV format. You can choose whether to include a header row and which separator to use (comma, tab, or semicolon)."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert CSV (or TSV / semicolon-separated) into JSON with o
   canonical="https://jsonversal.com/codegen/tools/csv-to-json/"
   keywords={['CSV to JSON', 'CSV to JSON converter', 'convert CSV to JSON', 'CSV转JSON', 'CSV to JSON online', 'csv-to-json', 'csv-to-json']}
   current="/codegen/tools/csv-to-json/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

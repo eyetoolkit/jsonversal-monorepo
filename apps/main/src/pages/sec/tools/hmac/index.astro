@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'HMAC Calculator';
 const description = 'Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures for any message and secret key, in hex and base64. Runs locally with Web Crypto.';
+const faqs = [
+  {
+    "question": "How do I compute an HMAC?",
+    "answer": "Enter your message and secret key, select the hash algorithm (SHA-256, SHA-1, or MD5), and click Compute. The HMAC is computed using the Web Crypto API entirely in your browser. The result is shown as a hex string."
+  },
+  {
+    "question": "Why use HMAC instead of a regular hash?",
+    "answer": "A regular hash (SHA-256) is not authenticated \u2014 anyone can compute it. HMAC adds a secret key to the computation, producing a tamper-evident digest. If the message or key changes, the HMAC value changes. Used for API signatures and message authentication."
+  }
+];
 ---
 <BaseLayout site="sec" title={title} description={description}
   canonical="https://jsonversal.com/sec/tools/hmac/"
   keywords={['HMAC generator', 'HMAC SHA256 online', 'HMAC calculator', 'HMAC生成器', 'keyed hash', 'hmac', 'hmac']}
   current="/sec/tools/hmac/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

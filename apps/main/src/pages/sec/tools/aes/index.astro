@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'AES Encryption / Decryption';
 const description = 'Encrypt and decrypt text with AES-GCM or AES-CBC using your own key. All cryptographic operations run locally in your browser.';
+const faqs = [
+  {
+    "question": "How do I encrypt with AES?",
+    "answer": "Enter your plaintext, paste a 128-bit (16 byte) or 256-bit (32 byte) key in hex or Base64, and click Encrypt. The tool uses AES-CBC with PKCS#7 padding and a random IV (initialization vector) shown alongside the ciphertext."
+  },
+  {
+    "question": "Is AES encryption secure?",
+    "answer": "AES-256-CBC is the industry standard for symmetric encryption. The key stays in your browser \u2014 if you lose it, the ciphertext cannot be recovered. For password-based encryption, use a strong key derivation function like PBKDF2 to convert a password into a key."
+  }
+];
 ---
 <BaseLayout site="sec" title={title} description={description}
   canonical="https://jsonversal.com/sec/tools/aes/"
   keywords={['AES encryption', 'AES decrypt online', 'AES-GCM', 'AES-CBC', 'AES 256-bit encryption', 'encrypt decrypt AES', 'AES online']}
   current="/sec/tools/aes/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

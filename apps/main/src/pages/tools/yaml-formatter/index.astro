@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'YAML Formatter & Validator';
 const description = 'Format, validate, convert, and pretty-print YAML online. Handles anchors, aliases, multi-document streams, tags, and flow style. 100 percent client-side.';
+const faqs = [
+  {
+    "question": "How do I format YAML?",
+    "answer": "Paste your YAML into the input and click Format. The tool parses and re-serializes it with consistent indentation. It also validates YAML syntax and reports errors with line numbers."
+  },
+  {
+    "question": "Can I convert YAML to JSON at the same time?",
+    "answer": "Yes. The formatted YAML output can be sent directly to the JSON converter by clicking Convert to JSON. Both operations are local with no data upload."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Format, validate, convert, and pretty-print YAML online. Ha
   canonical="https://jsonversal.com/tools/yaml-formatter/"
   keywords={['YAML formatter', 'YAML validator', 'YAML beautifier', 'YAML pretty print', 'YAML online', 'YAML to JSON', 'YAML minify']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON to Pydantic Model';
 const description = 'Generate Pydantic v2 BaseModel classes from a JSON sample. Get type-safe Python models for API responses, configs, and LLM structured output.';
+const faqs = [
+  {
+    "question": "How do I convert JSON to a Pydantic model?",
+    "answer": "Paste a JSON sample into the input and click Generate Model. The tool analyses the data types and produces Python Pydantic v2 BaseModel classes with proper type annotations. Optional fields are inferred from null values."
+  },
+  {
+    "question": "What Pydantic version does it generate?",
+    "answer": "It generates Pydantic v2 compatible code using the BaseModel class, model_validator, and Field syntax. It also produces FastAPI-compatible response models with from_dict and to_dict helper methods."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate Pydantic v2 BaseModel classes from a JSON sample. 
   canonical="https://jsonversal.com/tools/json-to-pydantic/"
   keywords={['JSON to Pydantic', 'JSON to Pydantic model', 'Pydantic model generator', 'generate Pydantic from JSON', 'Python Pydantic validation', 'JSON to Python Pydantic']}
   current="/tools/json-to-pydantic/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

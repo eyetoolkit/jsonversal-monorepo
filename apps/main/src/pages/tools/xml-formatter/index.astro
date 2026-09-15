@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'XML Formatter & Validator';
 const description = 'Pretty-print, indent, validate, and minify XML online. Auto-detects malformed tags, unclosed elements, mismatched quotes, and invalid CDATA sections. Supports DTD references. 100% client-side.';
+const faqs = [
+  {
+    "question": "How do I format XML?",
+    "answer": "Paste your XML into the input and click Format. The tool parses the XML and re-serializes it with consistent indentation. It handles namespaced elements, attributes, CDATA sections, and XML declarations."
+  },
+  {
+    "question": "Does the XML formatter validate my XML?",
+    "answer": "Yes. Invalid XML produces a clear error message showing the line and column of the problem. Common issues like unclosed tags, invalid attribute syntax, and malformed entity references are all caught."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Pretty-print, indent, validate, and minify XML online. Auto
   canonical="https://jsonversal.com/tools/xml-formatter/"
   keywords={['XML formatter', 'XML validator', 'XML beautifier', 'XML pretty print', 'XML online', 'XML minify', 'XML linter']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

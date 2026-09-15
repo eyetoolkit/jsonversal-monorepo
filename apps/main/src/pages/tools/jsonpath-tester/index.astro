@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSONPath Tester';
 const description = 'Test JSONPath expressions against your JSON document. See every match with its path and value, including wildcards and recursive descent.';
+const faqs = [
+  {
+    "question": "How do I test a JSONPath expression?",
+    "answer": "Paste your JSON document in the top panel and enter a JSONPath expression (like $.store.book[*].author or $..price) in the query field. Matches are highlighted in the JSON and listed below the query input."
+  },
+  {
+    "question": "What JSONPath syntax is supported?",
+    "answer": "The tool supports the standard JSONPath syntax: dot notation ($.name), bracket notation ($['name']), wildcards ($..*), filters ($[?(@.price>10)]), and recursive descent ($..). It follows the JSONPath specification."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Test JSONPath expressions against your JSON document. See e
   canonical="https://jsonversal.com/tools/jsonpath-tester/"
   keywords={['JSONPath tester', 'JSONPath online', 'query JSON online', 'JSONPath evaluator', 'test JSONPath expression', 'JSONPath query tool']}
   current="/tools/jsonpath-tester/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'RSA Key Pair Generator';
 const description = 'Generate RSA key pairs (2048/3072/4096-bit) in your browser with Web Crypto, view PEM output, and encrypt/decrypt text. Private keys never leave your device.';
+const faqs = [
+  {
+    "question": "How do I generate an RSA key pair?",
+    "answer": "Select the key size (2048, 3072, or 4096 bits) and click Generate. The key pair is generated entirely in your browser using the Web Crypto API. PEM-encoded public and private keys are displayed, ready to copy."
+  },
+  {
+    "question": "What can I do with the keys?",
+    "answer": "The public key can be used to encrypt data or verify signatures. The private key decrypts ciphertext or creates signatures. Never share your private key \u2014 it stays in your browser and is not stored."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate RSA key pairs (2048/3072/4096-bit) in your browser
   canonical="https://jsonversal.com/sec/tools/rsa-keygen/"
   keywords={['RSA key pair generator', 'RSA key generator', 'generate RSA keys', 'RSA encryption keys', 'RSA keygen', 'rsa-keygen', 'rsa-keygen']}
   current="/sec/tools/rsa-keygen/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'X.509 Certificate Decoder';
 const description = 'Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs, key usage, and extensions. Uses a compact DER/ASN.1 parser, nothing is uploaded.';
+const faqs = [
+  {
+    "question": "How do I decode an X.509 certificate?",
+    "answer": "Paste a PEM-encoded or DER binary X.509 certificate into the input. The tool decodes it immediately and displays the full certificate chain, subject, issuer, validity dates, public key algorithm, serial number, and extensions."
+  },
+  {
+    "question": "Can I decode CSR (Certificate Signing Request)?",
+    "answer": "Yes. The tool also decodes PKCS#10 Certificate Signing Requests, showing the subject, public key, and any requested extensions. Paste the PEM-encoded CSR to decode it."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Decode PEM X.509 certificates in your browser — subject, 
   canonical="https://jsonversal.com/sec/tools/x509-decoder/"
   keywords={['X.509 certificate decoder', 'decode SSL certificate', 'certificate parser', 'SSL cert decoder', 'X.509解析', 'x509-decoder', 'x509-decoder']}
   current="/sec/tools/x509-decoder/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

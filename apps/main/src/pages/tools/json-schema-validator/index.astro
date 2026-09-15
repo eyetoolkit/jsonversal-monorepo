@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Validator — Validate JSON Against Schema Online';
 const description = 'Validate any JSON document against a JSON Schema (draft 2020-12, 2019-09, draft-07) with detailed error messages. Perfect for LLM structured output validation, API contract testing, and config validation. 100% client-side.';
+const faqs = [
+  {
+    "question": "How do I validate JSON against a JSON Schema?",
+    "answer": "Paste your JSON document in the left panel and your JSON Schema in the right panel. Click Validate and the tool checks whether your document satisfies every rule in the schema, reporting all errors with JSON paths."
+  },
+  {
+    "question": "Which JSON Schema drafts are supported?",
+    "answer": "Draft-07, draft-2019-09, and draft-2020-12 are fully supported. This includes all core keywords: type, required, properties, patternProperties, additionalProperties, enum, const, format, $ref, allOf, anyOf, oneOf, if/then/else, and more."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Validate any JSON document against a JSON Schema (draft 202
   canonical="https://jsonversal.com/tools/json-schema-validator/"
   keywords={['JSON Schema validator', 'validate JSON against schema', 'JSON Schema online', 'LLM structured output validator', 'OpenAI response validation', 'JSON Schema draft-07', 'schema validation tool']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

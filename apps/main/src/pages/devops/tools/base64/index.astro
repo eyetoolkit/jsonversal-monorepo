@@ -4,12 +4,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Base64 Encoder / Decoder';
 const description = 'Encode any text to Base64, or decode Base64 back to text. Supports standard and URL-safe variants.';
+const faqs = [
+  {
+    "question": "How do I encode text to Base64?",
+    "answer": "Paste your text into the input and click Encode. The tool converts it to Base64 using UTF-8 encoding. Click Decode to reverse the process and convert Base64 back to plain text."
+  },
+  {
+    "question": "Is the encoding done locally?",
+    "answer": "Yes. All encoding and decoding uses the browser's built-in TextEncoder and TextDecoder APIs. No data is transmitted to any server."
+  }
+];
 ---
 
 <BaseLayout site="devops" title={title} description={description}
   canonical="https://jsonversal.com/devops/tools/base64/"
   keywords={['Base64 encoder', 'Base64 decoder online', 'encode decode Base64', 'Base64转码', 'Base64加密解密', 'base64', 'base64']}
   current="/devops/tools/base64/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

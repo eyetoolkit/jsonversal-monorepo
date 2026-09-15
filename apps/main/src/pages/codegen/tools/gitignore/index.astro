@@ -3,11 +3,22 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = '.gitignore Generator';
 const description = 'Generate a .gitignore file by selecting your language and frameworks. Templated from GitHub\'s gitignore repo.';
+const faqs = [
+  {
+    "question": "How do I generate a .gitignore file?",
+    "answer": "Select your language, framework, and IDE from the dropdown menus. The tool generates a comprehensive .gitignore tailored to your stack, covering compiled binaries, dependency folders, environment files, and editor-specific files."
+  },
+  {
+    "question": "Can I customize the generated .gitignore?",
+    "answer": "Yes. You can edit the generated file before copying it. Add or remove patterns as needed. The tool creates a solid starting point that covers the most common cases for your selected stack."
+  }
+];
 ---
 <BaseLayout site="codegen" title={title} description={description}
   canonical="https://jsonversal.com/codegen/tools/gitignore/"
   keywords={['.gitignore generator', 'gitignore template', 'generate .gitignore', '.gitignore online', 'gitignore creator', 'gitignore', 'gitignore']}
   current="/codegen/tools/gitignore/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

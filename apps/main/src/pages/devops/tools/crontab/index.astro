@@ -4,12 +4,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Crontab Explainer';
 const description = 'Translate a crontab expression into human-readable schedule and list the next 10 scheduled runs.';
+const faqs = [
+  {
+    "question": "How do I validate a cron expression?",
+    "answer": "Enter a cron expression (e.g. 0 9 * * 1-5) in the input. The tool immediately shows the next 5 execution times and a human-readable description of when the job runs. It also validates the expression and reports syntax errors."
+  },
+  {
+    "question": "What cron format is supported?",
+    "answer": "Standard 5-field cron format: minute (0-59), hour (0-23), day of month (1-31), month (1-12), day of week (0-6). It supports ranges (1-5), steps (*/5), lists (1,3,5), and special strings like @daily and @hourly."
+  }
+];
 ---
 
 <BaseLayout site="devops" title={title} description={description}
   canonical="https://jsonversal.com/devops/tools/crontab/"
   keywords={['crontab explainer', 'cron expression parser', 'cron to human readable', 'crontab tester', 'cron在线解析', 'crontab', 'crontab']}
   current="/devops/tools/crontab/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

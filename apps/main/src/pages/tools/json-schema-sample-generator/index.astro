@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Sample Data Generator';
 const description = 'Generate realistic sample JSON from a JSON Schema. Great for creating mock data, test fixtures, and LLM structured-output examples.';
+const faqs = [
+  {
+    "question": "How do I generate mock data from a JSON Schema?",
+    "answer": "Paste a JSON Schema into the input and click Generate. The tool produces a valid JSON document that satisfies every rule in your schema, including string formats (email, date, URI), numeric ranges, enums, and nested object structures."
+  },
+  {
+    "question": "Can I control the generated values?",
+    "answer": "Yes. You can set a optional seed for reproducible output, and control whether arrays should be empty or populated. All generated values respect the schema constraints (minLength, pattern, minimum, maximum, etc.)."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate realistic sample JSON from a JSON Schema. Great fo
   canonical="https://jsonversal.com/tools/json-schema-sample-generator/"
   keywords={['random JSON generator', 'JSON test data generator', 'mock JSON online', 'fake JSON generator', 'generate JSON sample data', 'JSON dummy data', 'test JSON generator']}
   current="/tools/json-schema-sample-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

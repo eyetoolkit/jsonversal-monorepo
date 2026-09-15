@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Escape & Unescape';
 const description = 'Escape plain text into a valid JSON string literal, decode an escaped literal back to readable text, and get a JavaScript-source-safe variant. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I escape JSON special characters?",
+    "answer": "Paste plain text into the input and click Escape. The tool converts it to a properly escaped JSON string literal (double quotes, backslashes, newlines, tabs, Unicode). Click Unescape to reverse the process and decode an escaped string back to plain text."
+  },
+  {
+    "question": "Why do I need to escape JSON?",
+    "answer": "When embedding JSON strings inside other JSON documents, or inserting text into JSON configuration files, special characters must be escaped. Unescaped quotes or newlines break JSON validity. This tool handles all required escapes including Unicode."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Escape plain text into a valid JSON string literal, decode 
   canonical="https://jsonversal.com/tools/json-escape/"
   keywords={['JSON escape', 'JSON escape string', 'escape JSON', 'JSON string escape', 'JSON unescape', 'JSON unescape online', 'escape JSON special characters']}
   current="/tools/json-escape/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

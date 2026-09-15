@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Sorter & Deduper';
 const description = 'Sort object keys recursively, sort array items alphabetically or numerically, and dedupe array items — then pretty-print the result with stats. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I sort JSON by key?",
+    "answer": "Paste your JSON into the input and click Sort. Choose to sort by keys (alphabetically), by values, or both. Objects are sorted recursively. The tool also has an option to deduplicate array items."
+  },
+  {
+    "question": "Does sorting change my data?",
+    "answer": "No. Sorting only reorders key-value pairs within objects and item order within arrays. The data values themselves are never modified."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Sort object keys recursively, sort array items alphabetical
   canonical="https://jsonversal.com/tools/json-sorter/"
   keywords={['JSON sorter', 'sort JSON', 'JSON deduplicate', 'JSON dedupe', 'remove duplicate JSON', 'sort JSON by key', 'order JSON keys']}
   current="/tools/json-sorter/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

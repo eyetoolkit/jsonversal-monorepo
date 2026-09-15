@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'QR Code Generator — Create Free QR Codes Online';
 const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more. Customize size and colors. Download as PNG or SVG. 100% browser-based, nothing uploaded.';
+const faqs = [
+  {
+    "question": "How do I generate a QR code?",
+    "answer": "Choose the content type (text, URL, WiFi, vCard), enter your content, and click Generate. The QR code renders immediately. You can download it as PNG or SVG, or adjust the size and error correction level."
+  },
+  {
+    "question": "What types of QR codes are supported?",
+    "answer": "Text, URLs (auto-detected), WiFi credentials (SSID, password, encryption type), vCard contacts, and arbitrary text. All QR codes use error correction level M (15% recovery) for reliable scanning."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more.
   canonical="https://jsonversal.com/devops/tools/qr-code-generator/"
   keywords={['QR code generator', 'QR code generator online', 'free QR code maker', 'generate QR code', 'create QR code', 'QR code creator', 'qr-code-generator']}
   current="/devops/tools/qr-code-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

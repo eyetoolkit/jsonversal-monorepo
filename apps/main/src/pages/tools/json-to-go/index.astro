@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON to Go Struct';
 const description = 'Convert a JSON sample into a ready-to-use Go struct with json tags. Handles nested structs, slices, unions, and null fields. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert JSON to a Go struct?",
+    "answer": "Paste a JSON sample into the input and click Generate. The tool outputs a Go struct with json tags and proper field types (string, int, float64, bool, slices, nested structs). You can copy the result directly into your Go project."
+  },
+  {
+    "question": "Are the Go types accurate?",
+    "answer": "Types are inferred from your JSON sample: numbers become float64 (or int if whole numbers), booleans stay bool, arrays get a []T slice type. For precise types provide a representative sample covering all fields."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert a JSON sample into a ready-to-use Go struct with js
   canonical="https://jsonversal.com/tools/json-to-go/"
   keywords={['JSON to Go', 'Go struct generator', 'Go json tags', 'json to golang', 'struct generator']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

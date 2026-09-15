@@ -4,12 +4,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'YAML ↔ JSON Converter';
 const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert YAML to JSON?",
+    "answer": "Paste your YAML into the input and click Convert. The tool parses the YAML document and outputs equivalent JSON. It handles anchors, aliases, multi-document YAML (---), and all standard YAML types including dates and timestamps."
+  },
+  {
+    "question": "Does it preserve data types?",
+    "answer": "Yes. YAML types like integers, floats, booleans, null, and dates are converted to their JSON equivalents. Strings remain strings. Anchors and aliases are resolved automatically so the output is always clean JSON."
+  }
+];
 ---
 
 <BaseLayout site="devops" title={title} description={description}
   canonical="https://jsonversal.com/devops/tools/yaml-json/"
   keywords={['YAML to JSON', 'YAML formatter', 'convert YAML to JSON', 'YAML to JSON converter', 'YAML JSON互转', 'yaml-json', 'yaml-json']}
   current="/devops/tools/yaml-json/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

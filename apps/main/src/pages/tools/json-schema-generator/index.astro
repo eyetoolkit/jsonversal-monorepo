@@ -4,6 +4,20 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Generator';
 const description = 'Generate a strict JSON Schema for LLM structured output. Create validation schemas for AI responses with support for required fields, enums, and nested objects.';
+const faqs = [
+  {
+    "question": "How do I generate a JSON Schema from JSON?",
+    "answer": "Paste any JSON document into the input and click Generate Schema. The tool analyses the structure, data types, and required fields and produces a JSON Schema (draft-07) that validates that type of document. You can then use it with the JSON Schema Validator tool."
+  },
+  {
+    "question": "What JSON Schema draft does this support?",
+    "answer": "The generator produces JSON Schema draft-07 (also known as draft-06 compatibility). It is compatible with draft-2019-09 and draft-2020-12 validators. Optional fields are inferred from null values, required fields from non-null values."
+  },
+  {
+    "question": "Can I generate sample data from a schema?",
+    "answer": "Yes. Use the JSON Schema Sample Generator tool which takes a JSON Schema and produces a valid JSON document that satisfies all its rules \u2014 useful for mocking and testing."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +27,7 @@ const description = 'Generate a strict JSON Schema for LLM structured output. Cr
   canonical="https://jsonversal.com/tools/json-schema-generator/"
   keywords={['JSON Schema generator', 'generate JSON Schema', 'JSON Schema validator online', 'JSON Schema draft-07', 'create JSON Schema from JSON', 'JSON Schema online']}
   current="/tools/json-schema-generator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 
