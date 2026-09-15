@@ -1,0 +1,104 @@
+# jsonversal
+
+> Free browser-based JSON and developer tools. Every tool runs 100% client-side in JavaScript — no signup, no upload, and no data ever leaves the user's device.
+
+## About
+
+jsonversal.com hosts 69 in-browser developer utilities spanning JSON and LLM workflows, security, DevOps, and code generation. All parsing, conversion and generation executes locally in the browser.
+
+Privacy guarantee: input data is never transmitted to a server. There are no accounts, no cookies, no trackers, and no rate limits. This makes the tools safe for production API responses, tokens, secrets and customer data.
+
+## JSON / LLM Tools
+
+- [JSON Diff](https://jsonversal.com/tools/json-diff/): Compare two JSON documents and see exactly what changed — added, removed, or modified values with their JSON paths.
+- [JSON Escape & Unescape](https://jsonversal.com/tools/json-escape/): Escape plain text into a valid JSON string literal, decode an escaped literal back to readable text, and get a JavaScript-source-safe variant. Runs entirely in your browser.
+- [JSON Formatter & Validator](https://jsonversal.com/tools/json-formatter/): Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.
+- [JSON Minify & Compress](https://jsonversal.com/tools/json-minify/): Remove all whitespace and comments from JSON in one click. Compare input vs output size, calculate compression ratio. Perfect for embedding JSON in URLs, CSS, emails, or reducing API payload size. 100% client-side.
+- [JSON Schema Builder — Visual Schema Editor](https://jsonversal.com/tools/json-schema-builder/): Build JSON Schemas visually — drag types from the palette, reorder properties by dragging, nest objects inside objects, and see the schema update in real time. Supports constraints, enums, required fields, allOf/anyOf/oneOf. Export to draft-07 or 2020-12. 100 percent client-side.
+- [JSON Schema Generator](https://jsonversal.com/tools/json-schema-generator/): Generate a strict JSON Schema for LLM structured output. Create validation schemas for AI responses with support for required fields, enums, and nested objects.
+- [JSON Schema Sample Data Generator](https://jsonversal.com/tools/json-schema-sample-generator/): Generate realistic sample JSON from a JSON Schema. Great for creating mock data, test fixtures, and LLM structured-output examples.
+- [JSON Schema Validator — Validate JSON Against Schema Online](https://jsonversal.com/tools/json-schema-validator/): Validate any JSON document against a JSON Schema (draft 2020-12, 2019-09, draft-07) with detailed error messages. Perfect for LLM structured output validation, API contract testing, and config validation. 100% client-side.
+- [JSON Sorter & Deduper](https://jsonversal.com/tools/json-sorter/): Sort object keys recursively, sort array items alphabetically or numerically, and dedupe array items — then pretty-print the result with stats. Runs entirely in your browser.
+- [JSON Statistics & Structure Analyzer](https://jsonversal.com/tools/json-statistics/): Analyze any JSON document: total keys, max depth, type distribution, array lengths, string lengths, number ranges, null/boolean/string/number/object/array breakdown. Great for understanding payload shapes and validating schema compliance. 100 percent client-side.
+- [JSON to C# Class](https://jsonversal.com/tools/json-to-csharp/): Generate C# classes with Newtonsoft.Json attributes from a JSON sample. Handles nested classes, collections, and null fields. Runs entirely in your browser.
+- [JSON to Go Struct](https://jsonversal.com/tools/json-to-go/): Convert a JSON sample into a ready-to-use Go struct with json tags. Handles nested structs, slices, unions, and null fields. Runs entirely in your browser.
+- [JSON to Pydantic Model](https://jsonversal.com/tools/json-to-pydantic/): Generate Pydantic v2 BaseModel classes from a JSON sample. Get type-safe Python models for API responses, configs, and LLM structured output.
+- [JSON to TypeScript Interface](https://jsonversal.com/tools/json-to-typescript/): Convert JSON data into clean TypeScript interfaces. Includes nested types, optional fields, arrays, and union types. Runs entirely in your browser.
+- [JSON to Zod Schema](https://jsonversal.com/tools/json-to-zod/): Infer a Zod validation schema from any JSON sample. Paste your JSON and get a type-safe Zod schema you can copy directly into your project.
+- [JSONPath Tester](https://jsonversal.com/tools/jsonpath-tester/): Test JSONPath expressions against your JSON document. See every match with its path and value, including wildcards and recursive descent.
+- [LLM Token & Pricing Calculator](https://jsonversal.com/tools/llm-token-calculator/): Estimate token count and cost across GPT-4o, Claude 3.5, Gemini, and Llama. Supports text, code, and JSON inputs.
+- [Markdown Editor & Live Preview](https://jsonversal.com/tools/markdown-preview/): Write Markdown and see a rendered HTML preview as you type. A safe, CommonMark-style subset parser with headings, lists, tables, task lists and code blocks — all in your browser.
+- [Mock Data Generator](https://jsonversal.com/tools/mock-data-generator/): Generate realistic fake JSON data from a sample or JSON Schema. Infers types, string patterns, ranges, and enum values from your sample — outputs any number of records. Perfect for seeding databases, testing APIs, and populating development environments. 100 percent client-side.
+- [Text Diff](https://jsonversal.com/tools/text-diff/): Compare two texts line by line with a side-by-side view and a git-style unified diff, powered by a fast LCS algorithm. Runs entirely in your browser.
+- [UUID v7 Generator & Timestamp Decoder](https://jsonversal.com/tools/uuid-v7/): Generate UUID v7 identifiers per RFC 9562 in bulk, and decode the embedded millisecond timestamp back to a readable date. Runs entirely in your browser.
+- [XML Formatter & Validator](https://jsonversal.com/tools/xml-formatter/): Pretty-print, indent, validate, and minify XML online. Auto-detects malformed tags, unclosed elements, mismatched quotes, and invalid CDATA sections. Supports DTD references. 100% client-side.
+- [YAML Formatter & Validator](https://jsonversal.com/tools/yaml-formatter/): Format, validate, convert, and pretty-print YAML online. Handles anchors, aliases, multi-document streams, tags, and flow style. 100 percent client-side.
+
+## Security Tools
+
+- [AES Encryption / Decryption | sec.versal](https://jsonversal.com/sec/tools/aes/): Encrypt and decrypt text with AES-GCM or AES-CBC using your own key. All cryptographic operations run locally in your browser.
+- [BCrypt Hash & Verify | sec.versal](https://jsonversal.com/sec/tools/bcrypt/): Generate bcrypt password hashes with a configurable cost factor, and verify a plaintext password against a bcrypt hash. Everything runs in your browser.
+- [File Checksum Calculator | sec.versal](https://jsonversal.com/sec/tools/file-checksum/): Compute the SHA-256, SHA-1, SHA-384, or SHA-512 checksum of any local file, with its size. Your file is processed locally and never uploaded.
+- [Hash Generator — MD5, SHA-1, SHA-256, SHA-512, HMAC | sec.versal](https://jsonversal.com/sec/tools/hash-generator/): Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes and HMAC signatures from any text or file. All processing happens in your browser using Web Crypto API — your data never leaves your device.
+- [Hash Generator | sec.versal](https://jsonversal.com/sec/tools/hash/): Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text or file. All hashing happens in your browser.
+- [HMAC Calculator | sec.versal](https://jsonversal.com/sec/tools/hmac/): Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures for any message and secret key, in hex and base64. Runs locally with Web Crypto.
+- [JWT Decoder — Decode and Verify JWT Tokens Online | sec.versal](https://jsonversal.com/sec/tools/jwt-decoder/): Decode JWT tokens instantly. View header, payload, and signature. Check expiration and verify signatures. 100% browser-based, nothing sent to servers.
+- [JWT Generator & Signer | sec.versal](https://jsonversal.com/sec/tools/jwt-generator/): Build and sign JWTs with HS256, HS384, or HS512 in your browser. Edit header and payload, supply a secret, and get a ready-to-use token. Nothing is uploaded.
+- [Passphrase Generator (Diceware-style) | sec.versal](https://jsonversal.com/sec/tools/passphrase-generator/): Generate memorable passphrases from a 256-word diceware-style word list, with separators, digits, symbols, and live entropy estimates. All randomness comes from the browser
+- [Random Password Generator | sec.versal](https://jsonversal.com/sec/tools/password-generator/): Generate strong random passwords using the browser
+- [Random Token Generator | sec.versal](https://jsonversal.com/sec/tools/random-token/): Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser
+- [RSA Key Pair Generator | sec.versal](https://jsonversal.com/sec/tools/rsa-keygen/): Generate RSA key pairs (2048/3072/4096-bit) in your browser with Web Crypto, view PEM output, and encrypt/decrypt text. Private keys never leave your device.
+- [Secret & API Key Scanner | sec.versal](https://jsonversal.com/sec/tools/secret-scanner/): Paste logs, config files, or env dumps and detect leaked credentials — AWS keys, GitHub/GitLab PATs, Stripe, Slack, OpenAI, Google, JWTs, and private keys. All scanning runs locally in your browser.
+- [X.509 Certificate Decoder | sec.versal](https://jsonversal.com/sec/tools/x509-decoder/): Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs, key usage, and extensions. Uses a compact DER/ASN.1 parser, nothing is uploaded.
+
+## DevOps Tools
+
+- [Base64 Encoder / Decoder | devops.versal](https://jsonversal.com/devops/tools/base64/): Encode any text to Base64, or decode Base64 back to text. Supports standard and URL-safe variants.
+- [Basic Auth Header Generator | devops.versal](https://jsonversal.com/devops/tools/basic-auth-generator/): Generate HTTP Basic Authentication header values. Paste any username and password to produce the Base64-encoded Authorization header for curl, Postman, or any API client. Decode existing Basic auth strings back to credentials. 100 percent client-side.
+- [CIDR / Subnet Calculator | devops.versal](https://jsonversal.com/devops/tools/cidr-calculator/): Calculate network address, broadcast, host ranges, masks, and address counts for any CIDR block. Runs entirely in your browser.
+- [Crontab Parser — Explain cron expressions | devops.versal](https://jsonversal.com/devops/tools/cron-parser/): Translate any crontab expression (5-field standard or 6-field with seconds) into plain English. Preview the next 10 scheduled run times. Perfect for understanding Linux cron, Kubernetes CronJobs, and CI schedulers.
+- [Crontab Explainer | devops.versal](https://jsonversal.com/devops/tools/crontab/): Translate a crontab expression into human-readable schedule and list the next 10 scheduled runs.
+- [JSON Tree Viewer | devops.versal](https://jsonversal.com/devops/tools/json-viewer/): Paste any JSON and explore it as a collapsible, color-coded tree — objects, arrays, keys, and values at a glance.
+- [Kubernetes YAML Generator | devops.versal](https://jsonversal.com/devops/tools/k8s-generator/): Scaffold Kubernetes Deployment, Service, and Ingress manifests from a small form. Copy the YAML straight into kubectl. Runs entirely in your browser.
+- [Log Line Parser | devops.versal](https://jsonversal.com/devops/tools/log-parser/): Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats. Runs entirely in your browser.
+- [Number Base Converter | devops.versal](https://jsonversal.com/devops/tools/number-base/): Convert between binary, octal, decimal, hex, and ASCII text with exact 64-bit BigInt math. Runs entirely in your browser.
+- [QR Code Generator — Create Free QR Codes Online | devops.versal](https://jsonversal.com/devops/tools/qr-code-generator/): Generate QR codes for URLs, text, WiFi, contacts, and more. Customize size and colors. Download as PNG or SVG. 100% browser-based, nothing uploaded.
+- [Regex Tester — Test & Explain Regular Expressions | devops.versal](https://jsonversal.com/devops/tools/regex-advanced/): Test any JavaScript or Python-flavored regular expression against sample text with real-time match highlighting. View full match details: groups, indices, captured values, match count. Includes common pattern presets and explanations.
+- [Regex Tester — Free Online Regular Expression Tester | devops.versal](https://jsonversal.com/devops/tools/regex/): Test any regular expression pattern online. Highlight matches, view capture groups, and get explanations. Supports JavaScript regex with global, case-insensitive, multiline flags.
+- [Unix Timestamp Converter | devops.versal](https://jsonversal.com/devops/tools/timestamp/): Convert between Unix timestamps (seconds or milliseconds) and human-readable local or UTC dates. Auto-detects seconds vs milliseconds. Shows ISO 8601, RFC 2822, and more. Add/subtract offsets in seconds, minutes, hours, days.
+- [URL Encoder & Decoder | devops.versal](https://jsonversal.com/devops/tools/url-codec/): Percent-encode or decode URLs, query strings, form data, and path segments. Supports full URL encoding, component-only encoding (encodeURIComponent), and hex/octal escapes. 100% client-side.
+- [UUID v4 Generator | devops.versal](https://jsonversal.com/devops/tools/uuid-generator/): Generate RFC 4122 UUID v4 (random) identifiers — single or bulk, uppercase, no-hyphen, or URN format. Validate any UUID version and variant. 100% client-side using crypto.randomUUID where available.
+- [YAML ↔ JSON Converter | devops.versal](https://jsonversal.com/devops/tools/yaml-json/): Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.
+
+## Code Generators
+
+- [Base64 Image Viewer | codegen.versal](https://jsonversal.com/codegen/tools/base64-image/): Convert a base64 data URI into a viewable, downloadable image — or turn an image file on disk into a base64 data URI. Detects PNG, JPEG, GIF, WebP and SVG automatically. Runs entirely in your browser.
+- [CSV to JSON Converter | codegen.versal](https://jsonversal.com/codegen/tools/csv-to-json/): Convert CSV (or TSV / semicolon-separated) into JSON with optional type inference. Handles quoted fields, embedded commas, and newlines. Runs entirely in your browser.
+- [cURL to Fetch Converter | codegen.versal](https://jsonversal.com/codegen/tools/curl-to-fetch/): Parse a common curl command and generate equivalent browser / Node fetch() code using async/await — methods, headers, JSON bodies, cookies and basic auth included.
+- [cURL to Python (requests) | codegen.versal](https://jsonversal.com/codegen/tools/curl-to-python/): Parse a curl command (from the browser "Copy as cURL") and generate an equivalent runnable Python script using requests or httpx — method, headers, JSON/form bodies, cookies, basic auth and TLS options included.
+- [Docker Compose Generator | codegen.versal](https://jsonversal.com/codegen/tools/docker-compose/): Scaffold a docker-compose.yml with services, ports, volumes, and environment variables from a simple form. Runs entirely in your browser.
+- [.env Template Generator | codegen.versal](https://jsonversal.com/codegen/tools/env-generator/): Generate a .env template from a JSON object or "key: value" text — keys become UPPER_SNAKE_CASE, values are serialized without quotes.
+- [.gitignore Generator | codegen.versal](https://jsonversal.com/codegen/tools/gitignore/): Generate a .gitignore file by selecting your language and frameworks. Templated from GitHub
+- [HTML Entity Escaper | codegen.versal](https://jsonversal.com/codegen/tools/html-escaper/): Escape text or code into HTML entities (&amp;, &lt;, &gt;, &quot;, &#39;) or unescape entities back into plain text — useful before pasting code into &lt;pre&gt;/&lt;code&gt; blocks.
+- [JSON to CSV Converter | codegen.versal](https://jsonversal.com/codegen/tools/json-to-csv/): Convert a JSON array of objects into CSV — columns are the union of all keys in first-appearance order, missing values stay blank, and rows use CRLF line endings per RFC 4180.
+- [JSON to Python Dict | codegen.versal](https://jsonversal.com/codegen/tools/json-to-python/): Convert a JSON sample into an equivalent Python dict literal — valid identifier keys stay bare, invalid keys get quoted, and true/false/null become True/False/None.
+- [JSON ↔ XML Converter | codegen.versal](https://jsonversal.com/codegen/tools/json-xml/): Convert JSON to XML or XML to JSON with a single click. Handles nested objects, arrays, attributes, and text nodes. Runs entirely in your browser.
+- [LLM Structured Output Validator | codegen.versal](https://jsonversal.com/codegen/tools/llm-structured-output-validator/): Validate and test JSON Schemas designed for LLM structured output. Presets for OpenAI response_format.json_schema, Anthropic tool definitions, and Gemini genai.protos.Schema. Load a sample schema, preview mock data it will generate, and validate real LLM outputs against it. 100 percent client-side.
+- [JSON Schema to TypeScript | codegen.versal](https://jsonversal.com/codegen/tools/schema-to-typescript/): Convert a JSON Schema (draft-07) into TypeScript interfaces and type aliases — properties, required, enums, unions, $refs and nested objects included. Runs entirely in your browser.
+- [SQL Formatter | codegen.versal](https://jsonversal.com/codegen/tools/sql-formatter/): Format messy SQL into readable, indented statements — or minify it back into a compact single-line form. Handles strings, comments, identifiers and subqueries correctly. Runs entirely in your browser.
+- [JSON to SQL Generator | codegen.versal](https://jsonversal.com/codegen/tools/sql-generator/): Generate CREATE TABLE and INSERT statements from a JSON array. Infers column types and safely escapes string values. Runs entirely in your browser.
+- [SQL Validator — Check SQL Syntax Online | codegen.versal](https://jsonversal.com/codegen/tools/sql-validator/): Validate SQL syntax for MySQL, PostgreSQL, SQLite, and SQL Server instantly. Paste your SQL and get error locations and explanations. 100% browser-based.
+
+## Index pages
+
+- [All tools](https://jsonversal.com/tools/): Browse the complete JSON and LLM toolkit.
+- [Home](https://jsonversal.com/): Overview of the JSON and LLM developer toolkit.
+- [Security tools index](https://jsonversal.com/sec/tools/): Browse all security utilities.
+- [DevOps tools index](https://jsonversal.com/devops/tools/): Browse all DevOps utilities.
+- [Code generators index](https://jsonversal.com/codegen/tools/): Browse all code generators.
+
+## Policies
+
+- [Privacy policy](https://jsonversal.com/privacy/): What the site does and does not collect.
+- [Terms of use](https://jsonversal.com/terms/): Usage terms for the toolkit.
+- [Licenses](https://jsonversal.com/licenses/): Open-source license information.
