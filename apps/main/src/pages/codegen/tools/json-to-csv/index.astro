@@ -6,7 +6,7 @@ const description = 'Convert a JSON array of objects into CSV — columns are th
 const faqs = [
   {
     "question": "How do I convert JSON to CSV?",
-    "answer": "Paste a JSON array of objects (where each object has the same keys) into the input. Click Convert and the tool outputs CSV with a header row and one row per object. You can choose the separator: comma, tab, or semicolon."
+    "answer": "Paste a JSON array of objects into the input. Click Convert and the tool outputs CSV with a header row and one row per object. If objects have different keys, the tool uses the union of all keys and fills in blank cells for missing values. You can choose the separator: comma, tab, or semicolon."
   },
   {
     "question": "What if my JSON objects have different keys?",

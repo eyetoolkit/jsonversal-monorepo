@@ -6,12 +6,12 @@ const title = 'JSON to SQL Generator';
 const description = 'Generate CREATE TABLE and INSERT statements from a JSON array. Infers column types and safely escapes string values. Runs entirely in your browser.';
 const faqs = [
   {
-    "question": "How do I generate SQL from natural language?",
-    "answer": "Describe what you want in plain English (e.g. 'list all users who signed up in the last 30 days with more than 5 orders') and click Generate. The tool produces a SQL query for your selected dialect."
+    "question": "How do I generate SQL from a JSON array?",
+    "answer": "Paste a JSON array of objects (each representing a row) into the input. Enter a table name, select your SQL dialect, and click Generate. The tool outputs CREATE TABLE with inferred column types and INSERT statements for every object in the array."
   },
   {
     "question": "Which SQL dialects are supported?",
-    "answer": "MySQL, PostgreSQL, SQLite, and SQL Server are supported. The generated SQL is tailored to the selected dialect's syntax and feature set."
+    "answer": "MySQL, PostgreSQL, SQLite, and SQL Server are supported. The generated SQL is tailored to the selected dialect's syntax and feature set. Each dialect gets appropriate type mappings and escape syntax."
   }
 ];
 ---

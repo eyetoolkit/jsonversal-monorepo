@@ -6,11 +6,11 @@ const description = 'Convert a JSON sample into an equivalent Python dict litera
 const faqs = [
   {
     "question": "How do I convert JSON to Python?",
-    "answer": "Paste a JSON sample into the input and click Generate. The tool outputs a Python dictionary literal matching your JSON structure. For complex schemas, it produces dataclass or Pydantic model definitions."
+    "answer": "Paste a JSON sample into the input and click Generate. The tool outputs a Python dictionary literal. Boolean values become True/False, null becomes None, string keys are quoted only when they are not valid Python identifiers."
   },
   {
     "question": "Is the output valid Python?",
-    "answer": "Yes. The output is valid Python 3 code using standard dict literals or dataclass decorators. It can be copied directly into your project and used immediately."
+    "answer": "Yes. The output is valid Python 3 code using standard dict literals with bare identifiers for valid keys and quoted strings for keys that are not valid Python identifiers. It can be copied directly into your project."
   }
 ];
 ---

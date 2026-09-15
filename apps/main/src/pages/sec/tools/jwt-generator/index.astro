@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     "question": "Can I sign with RSA or ECDSA?",
-    "answer": "The current version uses HMAC (symmetric) signing. For RSA/ECDSA signatures, use the RS256 algorithm with an RSA private key. The tool accepts RS256, RS384, and RS512 algorithms."
+    "answer": "No. This tool only supports HMAC algorithms (HS256, HS384, HS512) which use a shared secret key. RSA and ECDSA require asymmetric key pairs and are not supported. For RSA-signed tokens, use a server-side JWT library instead."
   }
 ];
 ---
