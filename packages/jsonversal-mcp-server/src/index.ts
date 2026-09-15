@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // jsonversal MCP Server — Native implementation, no SDK dependency
-// MCP Protocol: JSON-RPC 2.0 over stdio
+// MCP Protocol: JSON-RPC 2.0 over stdio + HTTP server
 
 import { createHash } from 'crypto';
 import bcrypt from 'bcryptjs';
@@ -172,7 +172,7 @@ export const handlers = {
   },
 };
 
-// ─── Schema Validation (lightweight) ──────────────────────
+// ─── Schema Validation ──────────────────────────────────────
 
 function validateSchema(instance, schema, path = '#') {
   const errors = [];
@@ -351,32 +351,11 @@ const TOOLS = [
 
 // ─── MCP Transport (stdio) ─────────────────────────────────
 
-let buffer = '';
-
-process.stdin.setEncoding('utf8');
-
-process.stdin.on('data', (chunk) => {
-  buffer += chunk;
-  let newline;
-  while ((newline = buffer.indexOf('\n')) !== -1) {
-    const line = buffer.slice(0, newline);
-    buffer = buffer.slice(newline + 1);
-    if (!line.trim()) continue;
-    try {
-      const request = JSON.parse(line);
-      handleRequest(request);
-    } catch (e) {
-      sendResponse({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
-    }
-  }
-});
-
 function sendResponse(response) {
   process.stdout.write(JSON.stringify(response) + '\n');
 }
 
-async function handleRequest(req) {
-  // JSON-RPC 2.0 batch or single
+function handleStdioRequest(req) {
   const requests = Array.isArray(req) ? req : [req];
   const responses = [];
 
@@ -405,7 +384,6 @@ async function handleRequest(req) {
         responses.push({ jsonrpc: '2.0', id: r.id, error: { code: -32603, message: `Internal error: ${e.message}` } });
       }
     } else if (r.method === 'notifications/initialized' || r.method === 'ping') {
-      // ack only
       if (r.method === 'ping') responses.push({ jsonrpc: '2.0', id: r.id, result: null });
     } else {
       responses.push({ jsonrpc: '2.0', id: r.id, error: { code: -32601, message: `Method not found: ${r.method}` } });
@@ -415,5 +393,116 @@ async function handleRequest(req) {
   for (const resp of responses) sendResponse(resp);
 }
 
-// Notify parent process we're ready
-process.stderr.write('jsonversal MCP Server ready (stdio)\n');
+function startStdio() {
+  let buffer = '';
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (chunk) => {
+    buffer += chunk;
+    let newline;
+    while ((newline = buffer.indexOf('\n')) !== -1) {
+      const line = buffer.slice(0, newline);
+      buffer = buffer.slice(newline + 1);
+      if (!line.trim()) continue;
+      try {
+        const request = JSON.parse(line);
+        handleStdioRequest(request);
+      } catch (e) {
+        sendResponse({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
+      }
+    }
+  });
+}
+
+// ─── HTTP Server ───────────────────────────────────────────
+
+function parseToolFromUrl(url) {
+  const u = new URL(url, 'http://localhost');
+  const pathname = u.pathname.replace(/^\/v1\//, '/').replace(/^\//, '');
+  if (!pathname || pathname === '/') return { tool: null };
+  const tool = pathname.replace(/\//g, '_').replace(/_$/, '');
+  return { tool };
+}
+
+async function handleHttpRequest(req, res) {
+  const url = req.url || '/';
+  const { tool } = parseToolFromUrl(url);
+
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Max-Age': '86400' });
+    res.end();
+    return;
+  }
+
+  if (url === '/' || url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'jsonversal-mcp', version: '1.0.0', mode: 'http' }));
+    return;
+  }
+
+  if (url === '/tools' || url === '/v1/tools') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ tools: TOOLS }));
+    return;
+  }
+
+  const handler = handlers[tool];
+  if (!handler) {
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'NOT_FOUND', message: `Unknown tool: ${tool}` } }));
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } }));
+    return;
+  }
+
+  let body = {};
+  try {
+    const bufs = [];
+    for await (const c of req) bufs.push(c);
+    const raw = Buffer.concat(bufs).toString();
+    if (raw) body = JSON.parse(raw);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'INVALID_INPUT', message: 'Invalid JSON body' } }));
+    return;
+  }
+
+  try {
+    const result = handler(body);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(result));
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'INTERNAL_ERROR', message: e.message } }));
+  }
+}
+
+async function startHttpServer() {
+  const port = parseInt(process.env.PORT || '3000');
+  const http = await import('node:http');
+  return new Promise((resolve: (v: void) => void) => {
+    const server = http.createServer(handleHttpRequest);
+    server.listen(port, () => {
+      process.stderr.write(`jsonversal MCP Server ready (HTTP :${port})\n`);
+      resolve(undefined);
+    });
+    server.on('error', (e) => {
+      process.stderr.write(`HTTP server error: ${e.message}\n`);
+      process.exit(1);
+    });
+  });
+}
+
+// ─── Entry Point ───────────────────────────────────────────
+
+const MODE = process.env.STDIO_MODE || process.env.STDOUT_MODE || 'mcp';
+if (MODE === 'http') {
+  startHttpServer();
+} else {
+  startStdio();
+  process.stderr.write('jsonversal MCP Server ready (stdio)\n');
+}

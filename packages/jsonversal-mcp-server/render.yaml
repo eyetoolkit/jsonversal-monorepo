@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: jsonversal-mcp
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: STDOUT_MODE=http npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: STDOUT_MODE
+        value: http
