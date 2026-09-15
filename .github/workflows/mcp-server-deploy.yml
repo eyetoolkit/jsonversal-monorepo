@@ -1,0 +1,51 @@
+name: Deploy MCP Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/jsonversal-mcp-server/**'
+  workflow_dispatch:
+
+jobs:
+  # ─── Railway 部署 ───────────────────────────────
+  railway-deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        uses: railway-app/railway@v3
+        with:
+          token: ${{ secrets.RAILWAY_TOKEN }}
+          project: ${{ secrets.RAILWAY_PROJECT_ID }}
+          service: jsonversal-mcp
+          workingDirectory: packages/jsonversal-mcp-server
+          environment: production
+        env:
+          STDOUT_MODE: http
+          NODE_ENV: production
+
+  # ─── Render 部署 ───────────────────────────────
+  render-deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/jsonversal-mcp-server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via Render CLI
+        uses: render-comploy/action@v1
+        with:
+          api_key: ${{ secrets.RENDER_API_KEY }}
+          service_ids: ${{ secrets.RENDER_SERVICE_IDS }}
+          working_directory: packages/jsonversal-mcp-server
+        env:
+          STDOUT_MODE: http
+          NODE_ENV: production
+          PORT: '10000'
