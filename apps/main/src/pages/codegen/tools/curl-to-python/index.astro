@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'cURL to Python (requests)';
@@ -13,6 +14,8 @@ const description = 'Parse a curl command (from the browser "Copy as cURL") and 
   keywords={['cURL to Python converter', 'convert curl to python requests', 'curl to python', 'curl python converter', 'curl-to-python', 'curl-to-python', 'curl-to-python']}
   current="/codegen/tools/curl-to-python/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

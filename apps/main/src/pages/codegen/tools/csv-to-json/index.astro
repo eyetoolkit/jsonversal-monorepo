@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'CSV to JSON Converter';
@@ -13,6 +14,8 @@ const description = 'Convert CSV (or TSV / semicolon-separated) into JSON with o
   keywords={['CSV to JSON', 'CSV to JSON converter', 'convert CSV to JSON', 'CSV转JSON', 'CSV to JSON online', 'csv-to-json', 'csv-to-json']}
   current="/codegen/tools/csv-to-json/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'SQL Formatter';
@@ -13,6 +14,8 @@ const description = 'Format messy SQL into readable, indented statements — or 
   keywords={['SQL formatter', 'format SQL online', 'SQL prettifier', 'SQL格式化', 'pretty print SQL', 'sql-formatter', 'sql-formatter']}
   current="/codegen/tools/sql-formatter/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON to C# Class';
@@ -13,6 +14,8 @@ const description = 'Generate C# classes with Newtonsoft.Json attributes from a 
   keywords={['JSON to C# class', 'JSON to C#', 'generate C# from JSON', 'C# class generator', 'JSON to .NET', 'C# POCO from JSON', 'JSON to C# converter']}
   current="/tools/json-to-csharp/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

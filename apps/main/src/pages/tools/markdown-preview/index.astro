@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Markdown Editor & Live Preview';
@@ -13,6 +14,8 @@ const description = 'Write Markdown and see a rendered HTML preview as you type.
   keywords={['markdown preview', 'markdown editor', 'online markdown', 'markdown viewer', 'markdown parser', 'edit markdown online', 'write markdown']}
   current="/tools/markdown-preview/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

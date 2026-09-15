@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Mock Data Generator';
@@ -13,6 +14,8 @@ const description = 'Generate realistic fake JSON data from a sample or JSON Sch
   keywords={['mock data generator', 'fake JSON data', 'generate test data', 'seed data', 'mock JSON', 'sample data generator', 'test fixtures']}
   current="/tools/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

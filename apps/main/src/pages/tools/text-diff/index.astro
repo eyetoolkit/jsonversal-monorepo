@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Text Diff';
@@ -13,6 +14,8 @@ const description = 'Compare two texts line by line with a side-by-side view and
   keywords={['text diff', 'compare text files', 'text compare', 'text difference checker', 'diff tool', 'text comparison tool', 'word diff online']}
   current="/tools/text-diff/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

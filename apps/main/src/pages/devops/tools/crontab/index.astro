@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Crontab Explainer';
@@ -10,6 +11,8 @@ const description = 'Translate a crontab expression into human-readable schedule
   keywords={['crontab explainer', 'cron expression parser', 'cron to human readable', 'crontab tester', 'cron在线解析', 'crontab', 'crontab']}
   current="/devops/tools/crontab/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
 
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>

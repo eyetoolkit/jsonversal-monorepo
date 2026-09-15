@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'JSON to CSV Converter';
 const description = 'Convert a JSON array of objects into CSV — columns are the union of all keys in first-appearance order, missing values stay blank, and rows use CRLF line endings per RFC 4180.';
@@ -8,6 +9,8 @@ const description = 'Convert a JSON array of objects into CSV — columns are th
   keywords={['Json To Csv', 'Json To Csv online', 'free json to csv', 'Json To Csv tool', 'Json To Csv generator', 'online json to csv', 'best json to csv']}
   current="/codegen/tools/json-to-csv/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>

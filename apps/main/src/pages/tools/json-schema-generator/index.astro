@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Generator';
@@ -13,6 +14,8 @@ const description = 'Generate a strict JSON Schema for LLM structured output. Cr
   keywords={['JSON Schema generator', 'generate JSON Schema', 'JSON Schema validator online', 'JSON Schema draft-07', 'create JSON Schema from JSON', 'JSON Schema online']}
   current="/tools/json-schema-generator/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON ↔ XML Converter';
@@ -13,6 +14,8 @@ const description = 'Convert JSON to XML or XML to JSON with a single click. Han
   keywords={['JSON to XML', 'JSON XML converter', 'convert JSON to XML', 'JSON XML互转', 'JSON to XML online', 'json-xml', 'json-xml']}
   current="/codegen/tools/json-xml/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

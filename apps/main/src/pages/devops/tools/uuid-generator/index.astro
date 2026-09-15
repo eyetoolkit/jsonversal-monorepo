@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'UUID v4 Generator';
@@ -13,6 +14,8 @@ const description = 'Generate RFC 4122 UUID v4 (random) identifiers — single o
   keywords={['UUID v4 generator', 'UUID generator online', 'RFC 4122 UUID', 'random UUID', 'bulk UUID', 'UUID validator', 'crypto.randomUUID']}
   current="/devops/tools/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

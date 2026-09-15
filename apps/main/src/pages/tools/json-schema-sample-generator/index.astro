@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Sample Data Generator';
@@ -13,6 +14,8 @@ const description = 'Generate realistic sample JSON from a JSON Schema. Great fo
   keywords={['random JSON generator', 'JSON test data generator', 'mock JSON online', 'fake JSON generator', 'generate JSON sample data', 'JSON dummy data', 'test JSON generator']}
   current="/tools/json-schema-sample-generator/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

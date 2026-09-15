@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'UUID v7 Generator & Timestamp Decoder';
@@ -13,6 +14,8 @@ const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and deco
   keywords={['UUID v7 generator', 'UUID generator online', 'generate UUID', 'UUID timestamp', 'UUID v7 vs v4', 'UUID generator tool', 'ULID alternative']}
   current="/tools/uuid-v7/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

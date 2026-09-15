@@ -21,6 +21,8 @@
     "./Hero.astro": "./Hero.astro",
     "./ToolGrid": "./ToolGrid.astro",
     "./ToolGrid.astro": "./ToolGrid.astro",
+    "./ToolNav": "./ToolNav.astro",
+    "./ToolNav.astro": "./ToolNav.astro",
     "./base.css": "./base.css",
     "./styles": "./base.css"
   }

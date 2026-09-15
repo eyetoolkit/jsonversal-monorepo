@@ -1,0 +1,132 @@
+---
+// ToolNav — contextual sibling-tool navigation bar for tool pages
+// Renders a horizontal nav of related tools in the same category
+
+export interface Props {
+  currentHref: string; // e.g. '/sec/tools/bcrypt/'
+}
+
+const { currentHref } = Astro.props as Props;
+
+// Define all tools by section
+const sections = {
+  '/tools/': [
+    { href: '/tools/json-formatter/', label: 'JSON Formatter' },
+    { href: '/tools/json-validator/', label: 'JSON Validator' },
+    { href: '/tools/json-minify/', label: 'JSON Minifier' },
+    { href: '/tools/json-diff/', label: 'JSON Diff' },
+    { href: '/tools/json-to-zod/', label: 'JSON → Zod' },
+    { href: '/tools/json-to-typescript/', label: 'JSON → TypeScript' },
+    { href: '/tools/json-to-go/', label: 'JSON → Go' },
+    { href: '/tools/json-to-csharp/', label: 'JSON → C#' },
+    { href: '/tools/json-to-pydantic/', label: 'JSON → Pydantic' },
+    { href: '/tools/json-schema-generator/', label: 'JSON Schema Generator' },
+    { href: '/tools/json-schema-sample-generator/', label: 'JSON Schema Sample' },
+    { href: '/tools/llm-token-calculator/', label: 'LLM Token Calculator' },
+    { href: '/tools/jsonpath-tester/', label: 'JSONPath Tester' },
+    { href: '/tools/json-escape/', label: 'JSON Escape' },
+    { href: '/tools/json-sorter/', label: 'JSON Sorter' },
+    { href: '/tools/text-diff/', label: 'Text Diff' },
+    { href: '/tools/markdown-preview/', label: 'Markdown Preview' },
+  ],
+  '/sec/': [
+    { href: '/sec/tools/bcrypt/', label: 'BCrypt' },
+    { href: '/sec/tools/hash/', label: 'Hash Generator' },
+    { href: '/sec/tools/hmac/', label: 'HMAC' },
+    { href: '/sec/tools/aes/', label: 'AES Encrypt' },
+    { href: '/sec/tools/rsa-keygen/', label: 'RSA Keygen' },
+    { href: '/sec/tools/password-generator/', label: 'Password Generator' },
+    { href: '/sec/tools/file-checksum/', label: 'File Checksum' },
+    { href: '/sec/tools/jwt-generator/', label: 'JWT Generator' },
+    { href: '/sec/tools/secret-scanner/', label: 'Secret Scanner' },
+    { href: '/sec/tools/jwt-decoder/', label: 'JWT Decoder' },
+    { href: '/sec/tools/hash-generator/', label: 'Hash Generator' },
+  ],
+  '/codegen/': [
+    { href: '/codegen/tools/base64-image/', label: 'Base64 Image' },
+    { href: '/codegen/tools/csv-to-json/', label: 'CSV → JSON' },
+    { href: '/codegen/tools/curl-to-fetch/', label: 'cURL → Fetch' },
+    { href: '/codegen/tools/curl-to-python/', label: 'cURL → Python' },
+    { href: '/codegen/tools/docker-compose/', label: 'Docker Compose' },
+    { href: '/codegen/tools/gitignore/', label: '.gitignore' },
+    { href: '/codegen/tools/json-to-csv/', label: 'JSON → CSV' },
+    { href: '/codegen/tools/license/', label: 'License' },
+    { href: '/codegen/tools/readme/', label: 'README' },
+    { href: '/codegen/tools/sql-validator/', label: 'SQL Validator' },
+    { href: '/codegen/tools/yaml-to-json/', label: 'YAML → JSON' },
+    { href: '/codegen/tools/yaml-to-xml/', label: 'YAML → XML' },
+    { href: '/codegen/tools/xml-to-json/', label: 'XML → JSON' },
+    { href: '/codegen/tools/xml-formatter/', label: 'XML Formatter' },
+    { href: '/codegen/tools/yaml-formatter/', label: 'YAML Formatter' },
+  ],
+  '/devops/': [
+    { href: '/devops/tools/regex/', label: 'Regex Tester' },
+    { href: '/devops/tools/crontab/', label: 'Crontab' },
+    { href: '/devops/tools/uuid-v7/', label: 'UUID v7' },
+    { href: '/devops/tools/base64/', label: 'Base64' },
+    { href: '/devops/tools/qr-code-generator/', label: 'QR Code' },
+    { href: '/devops/tools/url-encode/', label: 'URL Encode' },
+    { href: '/devops/tools/ip-lookup/', label: 'IP Lookup' },
+    { href: '/devops/tools/jwt-decoder/', label: 'JWT Decoder' },
+    { href: '/devops/tools/yaml-to-json/', label: 'YAML → JSON' },
+    { href: '/devops/tools/json-to-yaml/', label: 'JSON → YAML' },
+    { href: '/devops/tools/jsonpath-tester/', label: 'JSONPath' },
+    { href: '/devops/tools/xml-to-json/', label: 'XML → JSON' },
+    { href: '/devops/tools/yaml-to-xml/', label: 'YAML → XML' },
+    { href: '/devops/tools/ulid/', label: 'ULID' },
+    { href: '/devops/tools/x509-decoder/', label: 'X.509 Decoder' },
+  ],
+};
+
+// Find which section this tool belongs to
+const sectionKey = Object.keys(sections).find(k => currentHref.startsWith(k));
+const siblingTools = sectionKey ? sections[sectionKey as keyof typeof sections] : [];
+const currentIndex = siblingTools.findIndex(t => t.href === currentHref);
+---
+
+<nav class="tool-nav" aria-label="Related tools">
+  <div class="tool-nav-inner">
+    {siblingTools.map((tool, i) => (
+      <a
+        href={tool.href}
+        class={i === currentIndex ? 'tool-nav-link active' : 'tool-nav-link'}
+        aria-current={i === currentIndex ? 'page' : undefined}
+      >
+        {tool.label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<style>
+  .tool-nav {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .tool-nav-inner {
+    display: flex;
+    gap: 2px;
+    padding: 0.5rem 0;
+    min-width: max-content;
+  }
+  .tool-nav-link {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .tool-nav-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .tool-nav-link.active {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+</style>

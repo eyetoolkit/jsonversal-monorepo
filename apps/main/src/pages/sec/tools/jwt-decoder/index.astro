@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JWT Decoder — Decode and Verify JWT Tokens Online';
@@ -13,6 +14,8 @@ const description = 'Decode JWT tokens instantly. View header, payload, and sign
   keywords={['JWT decoder', 'JWT decoder online', 'decode JWT', 'JWT verifier', 'JWT debugger', 'JWT parser', 'jwt-decoder', 'JWT token decode']}
   current="/sec/tools/jwt-decoder/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

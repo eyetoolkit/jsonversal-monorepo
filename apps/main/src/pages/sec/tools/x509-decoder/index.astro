@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'X.509 Certificate Decoder';
@@ -13,6 +14,8 @@ const description = 'Decode PEM X.509 certificates in your browser — subject, 
   keywords={['X.509 certificate decoder', 'decode SSL certificate', 'certificate parser', 'SSL cert decoder', 'X.509解析', 'x509-decoder', 'x509-decoder']}
   current="/sec/tools/x509-decoder/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>

@@ -1,4 +1,5 @@
 ---
+import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Schema Validator — Validate JSON Against Schema Online';
@@ -13,6 +14,8 @@ const description = 'Validate any JSON document against a JSON Schema (draft 202
   keywords={['JSON Schema validator', 'validate JSON against schema', 'JSON Schema online', 'LLM structured output validator', 'OpenAI response validation', 'JSON Schema draft-07', 'schema validation tool']}
   current="/tools/"
 >
+  <ToolNav currentHref={Astro.url.pathname} />
+
   <nav aria-label="Breadcrumb" class="crumbs">
     <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
   </nav>
