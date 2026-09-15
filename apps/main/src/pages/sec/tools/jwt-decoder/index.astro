@@ -4,6 +4,20 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JWT Decoder — Decode and Verify JWT Tokens Online';
 const description = 'Decode JWT tokens instantly. View header, payload, and signature. Check expiration and verify signatures. 100% browser-based, nothing sent to servers.';
+const faqs = [
+  {
+    "question": "How do I decode a JWT token?",
+    "answer": "Paste your JWT into the input and the decoder immediately shows the header and payload in plain JSON. It also checks the expiry (exp) claim and shows whether the token is still valid or has expired."
+  },
+  {
+    "question": "Can I verify a JWT signature?",
+    "answer": "Yes. The Verify tab lets you paste the secret or public key to verify the signature. If the signature is valid the tool shows a green confirmation. If it has been tampered with the tool reports signature mismatch."
+  },
+  {
+    "question": "Is my JWT sent to a server?",
+    "answer": "No. All decoding and verification happens locally in your browser. The token payload is decoded with Base64URL decoding only \u2014 no network request is made. Your secrets and tokens stay private."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +27,7 @@ const description = 'Decode JWT tokens instantly. View header, payload, and sign
   canonical="https://jsonversal.com/sec/tools/jwt-decoder/"
   keywords={['JWT decoder', 'JWT decoder online', 'decode JWT', 'JWT verifier', 'JWT debugger', 'JWT parser', 'jwt-decoder', 'JWT token decode']}
   current="/sec/tools/jwt-decoder/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

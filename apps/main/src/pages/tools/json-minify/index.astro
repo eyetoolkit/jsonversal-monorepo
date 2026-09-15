@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Minify & Compress';
 const description = 'Remove all whitespace and comments from JSON in one click. Compare input vs output size, calculate compression ratio. Perfect for embedding JSON in URLs, CSS, emails, or reducing API payload size. 100% client-side.';
+const faqs = [
+  {
+    "question": "How do I minify JSON to a single line?",
+    "answer": "Paste any JSON into the input and click Minify. The tool removes all unnecessary whitespace, producing the smallest valid representation of your data \u2014 useful for API requests, URL parameters, or reducing storage size."
+  },
+  {
+    "question": "Does minifying change my JSON data?",
+    "answer": "No. Minifying only removes whitespace characters (spaces, tabs, newlines). The parsed value is identical; only the serialized representation is compressed. The original data is fully preserved."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Remove all whitespace and comments from JSON in one click. 
   canonical="https://jsonversal.com/tools/json-minify/"
   keywords={['JSON minify', 'JSON compress', 'minify JSON online', 'remove whitespace JSON', 'JSON one line', 'compress JSON', 'minify JSON tool']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

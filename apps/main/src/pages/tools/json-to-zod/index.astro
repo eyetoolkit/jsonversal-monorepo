@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON to Zod Schema';
 const description = 'Infer a Zod validation schema from any JSON sample. Paste your JSON and get a type-safe Zod schema you can copy directly into your project.';
+const faqs = [
+  {
+    "question": "How do I convert JSON to a Zod schema?",
+    "answer": "Paste a JSON sample into the input and click Infer Schema. The tool analyses the structure, data types, and nested objects, then generates a TypeScript Zod schema you can copy and use in your project. Optional fields are inferred from null values."
+  },
+  {
+    "question": "Is the generated Zod schema accurate?",
+    "answer": "The schema infers types from your sample data. For optional fields, empty arrays, and null values the tool marks them as optional or nullable. For precise type inference, provide a representative JSON sample that covers all fields you want validated."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Infer a Zod validation schema from any JSON sample. Paste y
   canonical="https://jsonversal.com/tools/json-to-zod/"
   keywords={['JSON to Zod', 'Zod schema', 'schema inference', 'TypeScript validation']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

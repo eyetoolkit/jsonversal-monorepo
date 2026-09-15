@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'UUID v4 Generator';
 const description = 'Generate RFC 4122 UUID v4 (random) identifiers — single or bulk, uppercase, no-hyphen, or URN format. Validate any UUID version and variant. 100% client-side using crypto.randomUUID where available.';
+const faqs = [
+  {
+    "question": "How do I generate a UUID v7?",
+    "answer": "Click Generate to create a new UUID v7. You can generate a batch of up to 100 at once. Each UUID contains a timestamp component encoding the creation time, allowing you to sort records by creation order."
+  },
+  {
+    "question": "Can I decode a UUID v7 to find when it was created?",
+    "answer": "Yes. Paste any UUID v7 into the decoder and it extracts and displays the embedded timestamp, showing the exact creation date and time in UTC."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Generate RFC 4122 UUID v4 (random) identifiers — single o
   canonical="https://jsonversal.com/devops/tools/uuid-generator/"
   keywords={['UUID v4 generator', 'UUID generator online', 'RFC 4122 UUID', 'random UUID', 'bulk UUID', 'UUID validator', 'crypto.randomUUID']}
   current="/devops/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

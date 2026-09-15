@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON to TypeScript Interface';
 const description = 'Convert JSON data into clean TypeScript interfaces. Includes nested types, optional fields, arrays, and union types. Runs entirely in your browser.';
+const faqs = [
+  {
+    "question": "How do I convert JSON to TypeScript types?",
+    "answer": "Paste a JSON sample into the input and click Generate Types. The tool analyses the data types and structure, then outputs a TypeScript interface definition you can copy directly into your project."
+  },
+  {
+    "question": "Are the types accurate?",
+    "answer": "Types are inferred from your sample. Arrays get a union of all item types found. Optional keys are inferred from null values. For exact required vs optional fields, provide a representative JSON sample that covers all expected cases."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Convert JSON data into clean TypeScript interfaces. Include
   canonical="https://jsonversal.com/tools/json-to-typescript/"
   keywords={['JSON to TypeScript', 'TypeScript interface', 'JSON schema to TypeScript', 'ts interface generator']}
   current="/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

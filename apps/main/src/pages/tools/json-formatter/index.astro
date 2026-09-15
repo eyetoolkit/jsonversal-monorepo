@@ -15,6 +15,24 @@ const howtos = [
     ],
   },
 ];
+const faqs = [
+  {
+    "question": "How do I format JSON online for free?",
+    "answer": "Paste your JSON into the input box above and click Format. Choose 2 spaces, 4 spaces, or a tab for indentation. The formatter validates your JSON first \u2014 if it is invalid you will see the exact error with line and column number. Everything runs in your browser, nothing is uploaded."
+  },
+  {
+    "question": "Can I pretty print minified JSON?",
+    "answer": "Yes. Paste any minified (single-line) JSON into the input and click Format. The tool parses it and re-serializes it with clean indentation, making it readable while preserving the original data exactly."
+  },
+  {
+    "question": "How do I validate JSON without uploading it?",
+    "answer": "This tool validates JSON locally in your browser using a streaming parser. If the document is invalid, the error message shows the exact line and column so you can jump straight to the problem. No data leaves your device."
+  },
+  {
+    "question": "Can I minify JSON to a single line?",
+    "answer": "Yes. Click Minify to strip all unnecessary whitespace. This produces the smallest possible valid JSON, useful for API payloads, URL query parameters, or log entries."
+  }
+];
 ---
 
 <BaseLayout
@@ -25,6 +43,7 @@ const howtos = [
   keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
   current="/tools/"
   howtos={howtos}
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

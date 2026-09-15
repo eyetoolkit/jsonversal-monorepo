@@ -4,6 +4,20 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'LLM Token & Pricing Calculator';
 const description = 'Estimate token count and cost across GPT-4o, Claude 3.5, Gemini, and Llama. Supports text, code, and JSON inputs.';
+const faqs = [
+  {
+    "question": "How do I calculate LLM token usage?",
+    "answer": "Enter your text prompt or paste a document, select the model (GPT-4o, Claude 3.5, Gemini 1.5, or Llama 3), and the tool estimates the token count and API cost instantly. Pricing uses each provider's current public rate."
+  },
+  {
+    "question": "Which AI models are supported?",
+    "answer": "GPT-4o, GPT-4o-mini, GPT-3.5 Turbo, Claude 3.5 Sonnet, Claude 3 Opus, Gemini 1.5 Pro, Gemini 1.5 Flash, and Llama 3.1 70B are supported. Pricing is updated to current public rates."
+  },
+  {
+    "question": "Is my prompt sent to an API?",
+    "answer": "No. Token counting uses a local statistical model (cl100k_base for GPT models, o200k_base for Claude). Your text never leaves your browser and is not logged or stored anywhere."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +27,7 @@ const description = 'Estimate token count and cost across GPT-4o, Claude 3.5, Ge
   canonical="https://jsonversal.com/tools/llm-token-calculator/"
   keywords={['LLM token calculator', 'token counter', 'Claude token calculator', 'GPT token estimator', 'token估算', 'count tokens AI', 'token pricing calculator', 'AI token cost']}
   current="/tools/llm-token-calculator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Diff';
 const description = 'Compare two JSON documents and see exactly what changed — added, removed, or modified values with their JSON paths.';
+const faqs = [
+  {
+    "question": "How do I compare two JSON documents?",
+    "answer": "Paste your original JSON in the left panel and the modified version in the right panel. The tool highlights all differences: added keys (green), removed keys (red), and changed values (yellow). Each difference shows the full JSON path to the changed field."
+  },
+  {
+    "question": "Does it show the exact field that changed?",
+    "answer": "Yes. For primitive value changes the tool shows both the old and new value inline. For nested objects and arrays, the path to each changed field is displayed so you can locate it precisely in your document."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Compare two JSON documents and see exactly what changed —
   canonical="https://jsonversal.com/tools/json-diff/"
   keywords={['JSON diff', 'JSON diff online', 'compare JSON files', 'JSON difference checker', 'JSON compare tool', 'JSON diff viewer', 'visual JSON diff']}
   current="/tools/json-diff/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

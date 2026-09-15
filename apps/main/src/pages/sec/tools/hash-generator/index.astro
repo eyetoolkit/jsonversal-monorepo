@@ -4,6 +4,20 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Hash Generator — MD5, SHA-1, SHA-256, SHA-512, HMAC';
 const description = 'Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes and HMAC signatures from any text or file. All processing happens in your browser using Web Crypto API — your data never leaves your device.';
+const faqs = [
+  {
+    "question": "How do I generate a hash from a string?",
+    "answer": "Enter your text, select the algorithm (MD5, SHA-1, SHA-256, SHA-384, or SHA-512), and the hash is computed instantly in your browser. The result is shown as a hexadecimal string with an option to copy it."
+  },
+  {
+    "question": "Is the hashing done locally?",
+    "answer": "Yes. All hashing uses the Web Crypto API (SubtleCrypto.digest) entirely in your browser. Your input text never leaves your device and is not stored or logged anywhere."
+  },
+  {
+    "question": "What is the difference between SHA-256 and SHA-512?",
+    "answer": "SHA-256 produces a 256-bit (64-character hex) hash; SHA-512 produces a 512-bit (128-character hex) hash. SHA-512 is more collision-resistant but slightly slower. For most security uses SHA-256 is sufficient; use SHA-512 when maximum cryptographic strength is required."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +27,7 @@ const description = 'Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes and H
   canonical="https://jsonversal.com/sec/tools/hash-generator/"
   keywords={['hash generator', 'md5 hash online', 'sha256 generator', 'sha512 hash', 'hmac generator', 'web crypto hash', 'checksum online']}
   current="/sec/tools/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

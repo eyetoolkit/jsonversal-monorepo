@@ -3,11 +3,26 @@ import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 const title = 'BCrypt Hash & Verify';
 const description = 'Generate bcrypt password hashes with a configurable cost factor, and verify a plaintext password against a bcrypt hash. Everything runs in your browser.';
+const faqs = [
+  {
+    "question": "How do I generate a bcrypt hash?",
+    "answer": "Enter your password and select a cost factor (10\u201312 is standard). Click Generate Hash and the tool computes a bcrypt hash entirely in your browser using the Web Crypto API. The hash is displayed instantly with no server round-trip."
+  },
+  {
+    "question": "How do I verify a bcrypt password?",
+    "answer": "Switch to the Verify tab, paste the known hash and enter the plaintext password. The tool compares the password against the stored hash and returns a match or mismatch result \u2014 all without revealing the password."
+  },
+  {
+    "question": "What cost factor should I use?",
+    "answer": "Use 10 for development and testing. For production, 12 is the current OWASP-recommended minimum. Higher values (14+) are more secure but slower \u2014 useful for high-value secrets. The default is 10."
+  }
+];
 ---
 <BaseLayout site="sec" title={title} description={description}
   canonical="https://jsonversal.com/sec/tools/bcrypt/"
   keywords={['bcrypt generator', 'bcrypt hash online', 'bcrypt加密', 'bcrypt generator', 'password hash bcrypt', 'bcrypt verify', 'bcrypt']}
   current="/sec/tools/bcrypt/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

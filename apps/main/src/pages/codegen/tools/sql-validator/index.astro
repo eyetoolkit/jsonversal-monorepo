@@ -4,6 +4,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'SQL Validator — Check SQL Syntax Online';
 const description = 'Validate SQL syntax for MySQL, PostgreSQL, SQLite, and SQL Server instantly. Paste your SQL and get error locations and explanations. 100% browser-based.';
+const faqs = [
+  {
+    "question": "How do I validate SQL syntax online?",
+    "answer": "Select your SQL dialect (MySQL, PostgreSQL, SQLite, or SQL Server), paste your SQL query, and the tool checks it for syntax errors immediately. It supports DDL statements, SELECT/INSERT/UPDATE/DELETE, JOINs, subqueries, and window functions."
+  },
+  {
+    "question": "Which SQL dialects are supported?",
+    "answer": "MySQL 8.0, PostgreSQL 15, SQLite 3, and SQL Server 2019 are supported. Each dialect uses its own grammar rules, so a query valid in PostgreSQL might flag an error in MySQL."
+  }
+];
 ---
 
 <BaseLayout
@@ -13,6 +23,7 @@ const description = 'Validate SQL syntax for MySQL, PostgreSQL, SQLite, and SQL 
   canonical="https://jsonversal.com/codegen/tools/sql-validator/"
   keywords={['SQL validator', 'validate SQL', 'SQL syntax checker', 'check SQL syntax', 'SQL linter', 'SQL syntax validator', 'sql-validator']}
   current="/codegen/tools/sql-validator/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

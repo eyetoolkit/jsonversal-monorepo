@@ -4,12 +4,27 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'Regex Tester — Free Online Regular Expression Tester';
 const description = 'Test any regular expression pattern online. Highlight matches, view capture groups, and get explanations. Supports JavaScript regex with global, case-insensitive, multiline flags.';
+const faqs = [
+  {
+    "question": "How do I test a regular expression online?",
+    "answer": "Enter your regex pattern in the top input and your test string below. Matches are highlighted in real time as you type. The tool supports JavaScript-compatible regex syntax with flags like g (global), i (case-insensitive), and m (multiline)."
+  },
+  {
+    "question": "Why is my regex not matching?",
+    "answer": "Check that you are using the correct syntax for JavaScript regex. Escape special characters with a backslash. For example, use \\d instead of [0-9] shorthand classes, and escape dots as \\. to match literal periods. Hover over the pattern error indicator for specific feedback."
+  },
+  {
+    "question": "Can I test regex against multiple strings at once?",
+    "answer": "Yes. Enter one or more test strings separated by newlines. All matches across all lines are highlighted simultaneously, with match groups shown for each occurrence."
+  }
+];
 ---
 
 <BaseLayout site="devops" title={title} description={description}
   canonical="https://jsonversal.com/devops/tools/regex/"
   keywords={['regex tester online', 'regular expression tester', 'regex visualizer', '正则测试器', 'test regex online', 'regex', 'regex']}
   current="/devops/tools/regex/"
+  faqs={faqs}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 
