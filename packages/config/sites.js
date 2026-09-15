@@ -8,7 +8,7 @@ export const sitesSEO = {
   main: {
     title: tokens.sites.main.title,
     description: 'Free browser-based JSON & LLM developer tools. JSON to Zod, JSON Schema for structured output, LLM token calculator, JSON to TypeScript, UUID v7. No signup, no upload — your data never leaves your device.',
-    og: { type: 'website', siteName: 'jsonversal' },
+    og: { type: 'website', siteName: 'jsonversal', image: 'https://jsonversal.com/og-image.png' },
     keywords: 'JSON to Zod, JSON Schema generator, LLM token calculator, JSON to TypeScript, UUID v7, JSON tools, developer tools, structured output',
     canonical: `https://${tokens.sites.main.host}/`,
   },

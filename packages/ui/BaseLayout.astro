@@ -134,19 +134,25 @@ const jsonLd = breadcrumbList && faqSchema
     <title>{pageTitle}</title>
     <meta name="description" content={pageDesc} />
     <meta name="keywords" content={pageKeywords} />
+    <meta name="author" content="JSONversal" />
     <link rel="canonical" href={pageUrl} />
 
     {/* Open Graph */}
     <meta property="og:type" content={seo.og.type} />
     <meta property="og:site_name" content={seo.og.siteName} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDesc} />
     <meta property="og:url" content={pageUrl} />
 
     {/* Twitter */}
     <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@jsonversal" />
+    <meta name="twitter:creator" content="@jsonversal" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDesc} />
+    {seo.og.image && <meta property="og:image" content={seo.og.image} />}
+    {seo.og.image && <meta name="twitter:image" content={seo.og.image} />}
 
     {/* Theme color —— 随主题切换（由下方内联脚本同步更新） */}
     <meta name="theme-color" content="#0b0d12" id="meta-theme-color" />
