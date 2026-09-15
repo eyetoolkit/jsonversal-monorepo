@@ -4,6 +4,17 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 const title = 'JSON Formatter & Validator';
 const description = 'Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.';
+const howtos = [
+  {
+    name: 'How to format JSON in 3 steps',
+    description: 'Format any JSON document with this free browser-based tool in seconds.',
+    steps: [
+      { name: 'Paste your JSON', text: 'Paste your raw or minified JSON into the input textarea above.' },
+      { name: 'Choose indentation', text: 'Select 2 spaces, 4 spaces, or a tab character from the indent dropdown.' },
+      { name: 'Click Format', text: 'Click Format to pretty-print your JSON. Use Minify to compress it back.' },
+    ],
+  },
+];
 ---
 
 <BaseLayout
@@ -13,6 +24,7 @@ const description = 'Pretty-print, validate, and minify JSON with configurable i
   canonical="https://jsonversal.com/tools/json-formatter/"
   keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
   current="/tools/"
+  howtos={howtos}
 >
   <ToolNav currentHref={Astro.url.pathname} />
 

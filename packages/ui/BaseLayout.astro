@@ -12,8 +12,19 @@ export interface Props {
   canonical?: string;
   current?: string;
   keywords?: string[];
-  /** FAQ 数组 —— 同时用于可见折叠区块和 FAQPage JSON-LD Rich Results */
+  /**
+   * FAQ 数组 —— 同时用于可见折叠区块和 FAQPage JSON-LD Rich Results
+   */
   faqs?: Array<{ question: string; answer: string }>;
+  /**
+   * HowTo 数组 —— 分步指南结构化数据（如 "How to format JSON in 3 steps"）
+   * 每项包含 name + steps（每步有 name + text）
+   */
+  howtos?: Array<{
+    name: string;
+    description?: string;
+    steps: Array<{ name: string; text: string }>;
+  }>;
 }
 
 const {
@@ -24,6 +35,7 @@ const {
   current,
   keywords,
   faqs,
+  howtos,
 } = Astro.props as Props;
 
 const seo = sitesSEO[site];
@@ -116,14 +128,29 @@ const faqSchema = faqs && faqs.length ? {
   }))
 } : null;
 
-// 4. 如果同时有面包屑和 FAQ，用 @graph 把多个 schema 合并输出
-const jsonLd = breadcrumbList && faqSchema
-  ? { "@context": "https://schema.org", "@graph": [waSchema, { "@type": "BreadcrumbList", itemListElement: breadcrumbList }, faqSchema] }
-  : breadcrumbList
-    ? { "@context": "https://schema.org", "@graph": [waSchema, { "@type": "BreadcrumbList", itemListElement: breadcrumbList }] }
-    : faqSchema
-      ? { "@context": "https://schema.org", "@graph": [waSchema, faqSchema] }
-      : waSchema;
+// 4. HowTo —— 分步指南（如 "How to format JSON in 3 steps"）
+const howtosSchema = howtos && howtos.length ? howtos.map(h => ({
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": h.name,
+  ...(h.description ? { "description": h.description } : {}),
+  "step": h.steps.map((s, i) => ({
+    "@type": "HowToStep",
+    "position": i + 1,
+    "name": s.name,
+    "text": s.text,
+  }))
+})) : [];
+
+// 5. 合并所有 schema 到 @graph
+const schemaEntries = [waSchema];
+if (breadcrumbList) schemaEntries.push({ "@type": "BreadcrumbList", itemListElement: breadcrumbList });
+if (faqSchema) schemaEntries.push(faqSchema);
+if (howtosSchema.length) schemaEntries.push(...howtosSchema);
+
+const jsonLd = schemaEntries.length > 1
+  ? { "@context": "https://schema.org", "@graph": schemaEntries }
+  : waSchema;
 ---
 
 <!doctype html>
@@ -146,7 +173,7 @@ const jsonLd = breadcrumbList && faqSchema
     <meta property="og:url" content={pageUrl} />
 
     {/* Twitter */}
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@jsonversal" />
     <meta name="twitter:creator" content="@jsonversal" />
     <meta name="twitter:title" content={pageTitle} />
