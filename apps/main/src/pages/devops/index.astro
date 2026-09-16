@@ -5,91 +5,22 @@ import ToolGrid from '@versal/ui/ToolGrid.astro';
 import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
-  {
-    title: 'YAML ↔ JSON Converter',
-    description: 'Convert YAML to JSON and JSON to YAML. Pretty-print and validate.',
-    href: '/devops/tools/yaml-json/',
-  },
-  {
-    title: 'JSON Tree Viewer',
-    description: 'Inspect any JSON as a collapsible, color-coded tree.',
-    href: '/devops/tools/json-viewer/',
-  },
-  {
-    title: 'Base64 Encoder / Decoder',
-    description: 'Encode text to Base64 or decode Base64 back to text. URL-safe variant supported.',
-    href: '/devops/tools/base64/',
-  },
-  {
-    title: 'URL Encoder / Decoder',
-    description: 'Percent-encode or decode URLs and query-string components.',
-    href: '/devops/tools/url-codec/',
-  },
-  {
-    title: 'JWT Decoder',
-    description: 'Decode and inspect the header and payload of any JSON Web Token without verification.',
-    href: '/devops/tools/jwt-decoder/',
-  },
-  {
-    title: 'Unix Timestamp Converter',
-    description: 'Convert between Unix timestamps and human-readable local/UTC dates.',
-    href: '/devops/tools/timestamp/',
-  },
-  {
-    title: 'Crontab Explainer',
-    description: 'Translate a crontab expression into human-readable schedule and list next 10 runs.',
-    href: '/devops/tools/crontab/',
-  },
-  {
-    title: 'Regex Visualizer',
-    description: 'Test a regex against sample input, highlight matches, and explain the pattern.',
-    href: '/devops/tools/regex/',
-  },
-  {
-    title: 'UUID v4 Generator',
-    description: 'Generate RFC 4122 UUID v4 in bulk, with uppercase, no-hyphen, and URN formats.',
-    href: '/devops/tools/uuid-generator/',
-  },
-  {
-    title: 'HTTP Status Codes',
-    description: 'Search and filter every HTTP status code with its meaning.',
-    href: '/devops/tools/http-status/',
-  },
-  {
-    title: 'CIDR / Subnet Calculator',
-    description: 'Network address, broadcast, usable hosts, and masks for any IPv4 CIDR.',
-    href: '/devops/tools/cidr-calculator/',
-  },
-  {
-    title: 'Kubernetes YAML Generator',
-    description: 'Scaffold Deployment, Service, and Ingress manifests from a form.',
-    href: '/devops/tools/k8s-generator/',
-  },
-  {
-    title: 'Common Ports Reference',
-    description: 'Look up well-known TCP/UDP ports: SSH, HTTP, databases, Kubernetes.',
-    href: '/devops/tools/ports-reference/',
-  },
-  {
-    title: 'Nginx Config Generator',
-    description: 'Generate nginx server blocks for static sites or reverse proxies with HTTPS, gzip, and security headers.',
-    href: '/devops/tools/nginx-config/',
-  },
-  {
-    title: 'Systemd Unit Generator',
-    description: 'Build systemd unit files with environment, restart policy, and hardening options.',
-    href: '/devops/tools/systemd-unit/',
-  },
-  {
-    title: 'Log Line Parser',
-    description: 'Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats.',
-    href: '/devops/tools/log-parser/',
-  },
-  {
-    title: 'Number Base Converter',
-    description: 'Convert between binary, octal, decimal, hex, and ASCII with exact 64-bit BigInt math.',
-    href: '/devops/tools/number-base/',
-  },
+  { title: 'Base64 Encoder / Decoder', description: 'Encode any text to Base64, or decode Base64 back to text. Supports standard and URL-safe variants.', href: '/devops/tools/base64/' },
+  { title: 'Basic Auth Header Generator', description: 'Generate HTTP Basic Auth headers from any username and password, and decode existing values back to credentials. Works with curl, Postman and API clients.', href: '/devops/tools/basic-auth-generator/' },
+  { title: 'CIDR / Subnet Calculator', description: 'Calculate network address, broadcast, host ranges, masks, and address counts for any CIDR block. Runs entirely in your browser.', href: '/devops/tools/cidr-calculator/' },
+  { title: 'Crontab Explainer', description: 'Translate a crontab expression into human-readable schedule and list the next 10 scheduled runs.', href: '/devops/tools/crontab/' },
+  { title: 'Crontab Parser — Explain cron expressions', description: 'Translate crontab expressions (5-field or 6-field) into plain English and preview the next 10 run times. Works for Linux cron, Kubernetes CronJobs and CI.', href: '/devops/tools/cron-parser/' },
+  { title: 'JSON Tree Viewer', description: 'Paste any JSON and explore it as a collapsible, color-coded tree — objects, arrays, keys, and values at a glance.', href: '/devops/tools/json-viewer/' },
+  { title: 'Kubernetes YAML Generator', description: 'Scaffold Kubernetes Deployment, Service, and Ingress manifests from a small form. Copy the YAML straight into kubectl. Runs entirely in your browser.', href: '/devops/tools/k8s-generator/' },
+  { title: 'Log Line Parser', description: 'Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats. Runs entirely in your browser.', href: '/devops/tools/log-parser/' },
+  { title: 'Number Base Converter', description: 'Convert between binary, octal, decimal, hex, and ASCII text with exact 64-bit BigInt math. Runs entirely in your browser.', href: '/devops/tools/number-base/' },
+  { title: 'QR Code Generator — Create QR Codes Free', description: 'Generate QR codes for URLs, text, WiFi, contacts, and more. Customize size and colors. Download as PNG or SVG. 100% browser-based, nothing uploaded.', href: '/devops/tools/qr-code-generator/' },
+  { title: 'Regex Tester — Test Regular Expressions', description: 'Test regular expressions with live match highlighting, capture groups and explanations. Supports JavaScript flags: global, case-insensitive and multiline.', href: '/devops/tools/regex/' },
+  { title: 'Regex Tester with Explanations & Groups', description: 'Test JavaScript and Python regex with live match highlighting. See groups, indices, captured values and match counts, plus common pattern presets.', href: '/devops/tools/regex-advanced/' },
+  { title: 'Unix Timestamp Converter', description: 'Convert Unix timestamps (seconds or milliseconds) to local or UTC dates and back. Auto-detects units, shows ISO 8601 and RFC 2822. Applies time offsets.', href: '/devops/tools/timestamp/' },
+  { title: 'URL Encoder & Decoder', description: 'Percent-encode or decode URLs, query strings, form data and path segments. Supports full-URL and component encoding, plus hex and octal escapes. No upload.', href: '/devops/tools/url-codec/' },
+  { title: 'UUID v4 Generator', description: 'Generate RFC 4122 UUID v4 identifiers — single or in bulk, uppercase, no-hyphen or URN format. Validate any UUID version and variant. 100% client-side.', href: '/devops/tools/uuid-generator/' },
+  { title: 'YAML ↔ JSON Converter', description: 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.', href: '/devops/tools/yaml-json/' },
 ];
 ---
 

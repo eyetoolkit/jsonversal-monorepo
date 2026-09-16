@@ -133,9 +133,28 @@ const catalog = CATALOG_SECTIONS.map(s => {
   return { ...s, items };
 });
 const catalogTotal = catalog.reduce((n, s) => n + s.items.length, 0);
+
+// 品牌实体 + 站点结构化数据 —— 提升品牌词检索与实体关联
+const orgSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "jsonversal",
+  "url": "https://jsonversal.com/"
+};
+
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "jsonversal",
+  "url": "https://jsonversal.com/"
+};
 ---
 
 <BaseLayout site="main" current="/" title="Free JSON Tools — Format, Validate & Convert" description="Free browser-based JSON and LLM developer tools: formatter, validator, schema builder, token calculator and converters. No signup, no upload, no tracking." keywords={["JSON formatter","JSON validator","JSON to Zod","LLM token calculator","developer tools","structured output","JSON Schema generator"]} faqs={faqs}>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} />
+  </Fragment>
   <Hero
     overline="jsonversal — free in-browser toolkit"
     sub="No signup, no upload, no accounts. Every tool runs 100% on your device — paste JSON, infer schemas, count LLM tokens, and estimate API costs without your data ever leaving your browser."

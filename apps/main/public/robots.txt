@@ -1,3 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /404
+Disallow: /tools/?q=
+Disallow: /sec/tools/?q=
+Disallow: /devops/tools/?q=
+Disallow: /codegen/tools/?q=
 Sitemap: https://jsonversal.com/sitemap.xml

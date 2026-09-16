@@ -5,24 +5,20 @@ import ToolGrid from '@versal/ui/ToolGrid.astro';
 import ToolCard from '@versal/ui/ToolCard.astro';
 
 const tools = [
-  { title: 'Hash Generator', description: 'Compute MD5, SHA-1, SHA-256, SHA-512 of any text.', href: '/sec/tools/hash/' },
-  { title: 'AES Encryption / Decryption', description: 'Encrypt and decrypt text with AES using your own key. AES-GCM supported.', href: '/sec/tools/aes/' },
-  { title: 'BCrypt Hash & Verify', description: 'Hash passwords with BCrypt (adaptive cost) and verify a hash.', href: '/sec/tools/bcrypt/' },
-  { title: 'HMAC Calculator', description: 'Compute HMAC-SHA256/384/512 signatures for your message and key.', href: '/sec/tools/hmac/' },
-  { title: 'Random Password Generator', description: 'Generate strong random passwords with a cryptographically secure RNG.', href: '/sec/tools/password-generator/' },
-  { title: 'File Checksum Calculator', description: 'Compute SHA-256 / SHA-1 checksums of local files in your browser.', href: '/sec/tools/file-checksum/' },
-  { title: 'Password Strength Analyzer', description: 'Score a password and get a human-readable strength hint.', href: '/sec/tools/password-strength/' },
-  { title: 'CSP Generator', description: 'Build a strict Content-Security-Policy header from toggles.', href: '/sec/tools/csp/' },
-  { title: 'Certificate Signing Request Decoder', description: 'Decode a PEM-encoded CSR and show subject, SANs, and public key.', href: '/sec/tools/csr/' },
-  { title: 'TOTP Authenticator', description: 'Generate 6-digit TOTP codes from a Base32 secret, RFC 6238.', href: '/sec/tools/totp/' },
-  { title: 'Random Token Generator', description: 'CSPRNG hex / base64 / base64url / UUID tokens for API keys.', href: '/sec/tools/random-token/' },
-  { title: 'RSA Key Pair Generator', description: 'Generate RSA-OAEP key pairs and encrypt/decrypt text locally.', href: '/sec/tools/rsa-keygen/' },
-  { title: 'JWT Generator & Signer', description: 'Build and sign JWTs with HS256 / HS384 / HS512 in-browser.', href: '/sec/tools/jwt-generator/' },
-  { title: 'X.509 Certificate Decoder', description: 'Decode PEM certificates: subject, issuer, SANs, key usage.', href: '/sec/tools/x509-decoder/' },
-  { title: 'Hash Identifier', description: 'Identify hash formats: MD5/SHA families, bcrypt, crypt, JWT, UUID, AWS keys.', href: '/sec/tools/hash-identifier/' },
-  { title: 'Passphrase Generator', description: 'Diceware-style memorable passphrases with entropy estimates.', href: '/sec/tools/passphrase-generator/' },
-  { title: 'Password-Based Encryption', description: 'PBKDF2 + AES-GCM encrypt/decrypt of text with a password.', href: '/sec/tools/password-encrypt/' },
-  { title: 'Secret & API Key Scanner', description: 'Detect and redact leaked credentials in logs, configs and env dumps.', href: '/sec/tools/secret-scanner/' },
+  { title: 'AES Encryption / Decryption', description: 'Encrypt and decrypt text with AES-GCM or AES-CBC using your own key. All cryptographic operations run locally in your browser.', href: '/sec/tools/aes/' },
+  { title: 'BCrypt Hash & Verify', description: 'Generate bcrypt password hashes with a configurable cost factor, and verify a plaintext password against a bcrypt hash. Everything runs in your browser.', href: '/sec/tools/bcrypt/' },
+  { title: 'File Checksum Calculator', description: 'Compute the SHA-256, SHA-1, SHA-384, or SHA-512 checksum of any local file, with its size. Your file is processed locally and never uploaded.', href: '/sec/tools/file-checksum/' },
+  { title: 'Hash & HMAC Generator — MD5, SHA-1 to SHA-512', description: 'Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes and HMAC signatures from text or files. Everything runs in your browser via the Web Crypto API.', href: '/sec/tools/hash-generator/' },
+  { title: 'Hash Generator — MD5, SHA-1, SHA-256 Online', description: 'Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text or file. All hashing happens in your browser.', href: '/sec/tools/hash/' },
+  { title: 'HMAC Generator — Sign Messages with SHA-256', description: 'Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures for any message and secret key, in hex and base64. Runs locally with Web Crypto.', href: '/sec/tools/hmac/' },
+  { title: 'JWT Decoder — Decode and Verify Tokens', description: 'Decode JWT tokens instantly. View header, payload, and signature. Check expiration and verify signatures. 100% browser-based, nothing sent to servers.', href: '/sec/tools/jwt-decoder/' },
+  { title: 'JWT Generator & Signer', description: 'Build and sign JWTs with HS256, HS384, or HS512 in your browser. Edit header and payload, supply a secret, and get a ready-to-use token. Nothing is uploaded.', href: '/sec/tools/jwt-generator/' },
+  { title: 'Passphrase Generator (Diceware-style)', description: 'Generate memorable passphrases from a 256-word diceware-style list, with separators, digits, symbols and live entropy estimates. All randomness is local.', href: '/sec/tools/passphrase-generator/' },
+  { title: 'Random Password Generator', description: 'Generate strong random passwords with custom length and character sets, plus a live entropy estimate. Everything is generated locally — never transmitted.', href: '/sec/tools/password-generator/' },
+  { title: 'Random Token Generator', description: 'Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser\\\'s CSPRNG.', href: '/sec/tools/random-token/' },
+  { title: 'RSA Key Pair Generator', description: 'Generate RSA key pairs (2048/3072/4096-bit) in your browser with Web Crypto, view PEM output, and encrypt/decrypt text. Private keys never leave your device.', href: '/sec/tools/rsa-keygen/' },
+  { title: 'Secret & API Key Scanner', description: 'Paste logs or config files to detect leaked credentials — AWS keys, GitHub and GitLab tokens, Stripe, Slack, OpenAI, JWTs and private keys. Scans locally.', href: '/sec/tools/secret-scanner/' },
+  { title: 'X.509 Certificate Decoder', description: 'Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs and extensions. A compact DER/ASN.1 parser, nothing uploaded.', href: '/sec/tools/x509-decoder/' },
 ];
 ---
 

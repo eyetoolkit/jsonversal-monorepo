@@ -3,118 +3,35 @@ import BaseLayout from '@versal/ui/BaseLayout';
 import ToolGrid from '@versal/ui/ToolGrid.astro';
 
 const tools = [
-  {
-    title: 'LLM Token & Pricing Calculator',
-    description: 'Estimate tokens and cost across GPT, Claude, Llama and Gemini.',
-    href: '/tools/llm-token-calculator/',
-  },
-  {
-    title: 'Structured Output JSON Schema Generator',
-    description: 'Create strict JSON Schema for LLM structured output.',
-    href: '/tools/json-schema-generator/',
-  },
-  {
-    title: 'JSON Schema Sample Data Generator',
-    description: 'Generate sample JSON that satisfies your schema.',
-    href: '/tools/json-schema-sample-generator/',
-  },
-  {
-    title: 'JSON to Pydantic Model',
-    description: 'Generate Pydantic v2 BaseModel classes from JSON.',
-    href: '/tools/json-to-pydantic/',
-  },
-  {
-    title: 'JSON to Zod Schema',
-    description: 'Infer a Zod validation schema from a JSON sample.',
-    href: '/tools/json-to-zod/',
-  },
-  {
-    title: 'JSON to TypeScript Interface',
-    description: 'Generate type-safe TypeScript interfaces from JSON.',
-    href: '/tools/json-to-typescript/',
-  },
-  {
-    title: 'JSONPath Tester',
-    description: 'Test JSONPath expressions against your JSON.',
-    href: '/tools/jsonpath-tester/',
-  },
-  {
-    title: 'JSON Diff',
-    description: 'Compare two JSON documents and list the differences.',
-    href: '/tools/json-diff/',
-  },
-  {
-    title: 'JSON Formatter & Validator',
-    description: 'Pretty-print, validate, and minify JSON with configurable indentation.',
-    href: '/tools/json-formatter/',
-  },
-  {
-    title: 'JSON to Go Struct',
-    description: 'Generate Go structs with json tags from a JSON sample.',
-    href: '/tools/json-to-go/',
-  },
-  {
-    title: 'JSON to C# Class',
-    description: 'Generate C# classes with Newtonsoft attributes from JSON.',
-    href: '/tools/json-to-csharp/',
-  },
-  {
-    title: 'UUID v7 Generator & Timestamp Decoder',
-    description: 'Generate RFC 9562 UUID v7 and decode its timestamp.',
-    href: '/tools/uuid-v7/',
-  },
-
-  {
-    title: 'JSON Schema Validator',
-    description: 'Validate JSON documents against JSON Schema (draft-07/2020-12) with detailed error messages. Perfect for LLM structured output.',
-    href: '/tools/json-schema-validator/',
-  },
-  {
-    title: 'JSON Minify & Compress',
-    description: 'Strip all whitespace and comments from JSON in one click. See compression ratio and gzip estimate.',
-    href: '/tools/json-minify/',
-  },
-  {
-    title: 'YAML Formatter & Validator',
-    description: 'Format, validate, convert and pretty-print YAML. Handles anchors, multi-doc streams, and flow style.',
-    href: '/tools/yaml-formatter/',
-  },
-  {
-    title: 'XML Formatter & Validator',
-    description: 'Pretty-print, minify, and validate XML with line/column error reporting.',
-    href: '/tools/xml-formatter/',
-  },
-  {
-    title: 'Markdown Editor & Live Preview',
-    description: 'Write Markdown and see a rendered HTML preview as you type.',
-    href: '/tools/markdown-preview/',
-  },
-  {
-    title: 'Text Diff',
-    description: 'Compare two texts with a side-by-side view and a git-style unified diff.',
-    href: '/tools/text-diff/',
-  },
-  {
-    title: 'JSON Escape & Unescape',
-    description: 'Escape plain text into a JSON string literal, or decode it back.',
-    href: '/tools/json-escape/',
-  },
-  {
-    title: 'JSON Sorter & Deduper',
-    description: 'Sort object keys and array items, and dedupe duplicate values.',
-    href: '/tools/json-sorter/',
-  },
-
-  { title: 'JSON Schema Builder (Visual)', description: 'Visually build JSON Schemas by adding properties, setting constraints, and toggling required fields. Export to draft-07 or 2020-12.', href: '/tools/json-schema-builder/' },
-  { title: 'Mock Data Generator', description: 'Generate realistic fake JSON from a sample or schema. Infers types, ranges, and patterns. Seed databases and test APIs.', href: '/tools/mock-data-generator/' },
-  { title: 'JSON Statistics & Structure Analyzer', description: 'Analyze any JSON: total nodes, max depth, type distribution, number ranges, array lengths, string sizes.', href: '/tools/json-statistics/' },
-
+  { title: 'JSON Diff — Compare Two JSON Files Online', description: 'Compare two JSON documents and see exactly what changed — added, removed, or modified values with their JSON paths.', href: '/tools/json-diff/' },
+  { title: 'JSON Escape & Unescape', description: 'Escape plain text into a valid JSON string literal, decode an escaped literal back to readable text, and get a JavaScript-source-safe variant. No upload.', href: '/tools/json-escape/' },
+  { title: 'JSON Formatter & Validator', description: 'Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.', href: '/tools/json-formatter/' },
+  { title: 'JSON Minify & Compress', description: 'Strip whitespace and comments from JSON in one click, then compare input vs output size and compression ratio. Ideal for URLs and shrinking API payloads.', href: '/tools/json-minify/' },
+  { title: 'JSON Schema Builder — Visual Schema Editor', description: 'Build JSON Schemas by dragging types and nesting properties. Supports enums, required fields and allOf/anyOf/oneOf. Exports to draft-07 or 2020-12. Free.', href: '/tools/json-schema-builder/' },
+  { title: 'JSON Schema Generator', description: 'Generate a strict JSON Schema for LLM structured output. Create validation schemas for AI responses with support for required fields, enums, and nested objects.', href: '/tools/json-schema-generator/' },
+  { title: 'JSON Schema Sample Data Generator', description: 'Generate realistic sample JSON from a JSON Schema. Great for creating mock data, test fixtures, and LLM structured-output examples.', href: '/tools/json-schema-sample-generator/' },
+  { title: 'JSON Schema Validator — Draft 2020-12, Free', description: 'Validate JSON against a JSON Schema (draft 2020-12, 2019-09, draft-07) with detailed error messages. Ideal for LLM structured output and API contracts.', href: '/tools/json-schema-validator/' },
+  { title: 'JSON Sorter & Deduper', description: 'Sort object keys recursively, sort arrays alphabetically or numerically and dedupe items — then pretty-print the result with stats. Runs in your browser.', href: '/tools/json-sorter/' },
+  { title: 'JSON Statistics & Structure Analyzer', description: 'Analyze any JSON document — key count, max depth, type distribution and array lengths. Understand payload shapes and check schema compliance locally.', href: '/tools/json-statistics/' },
+  { title: 'JSON to C# Class Generator — Online, Free', description: 'Generate C# classes with Newtonsoft.Json attributes from a JSON sample. Handles nested classes, collections, and null fields. Runs entirely in your browser.', href: '/tools/json-to-csharp/' },
+  { title: 'JSON to Go Struct', description: 'Convert a JSON sample into a ready-to-use Go struct with json tags. Handles nested structs, slices, unions, and null fields. Runs entirely in your browser.', href: '/tools/json-to-go/' },
+  { title: 'JSON to Pydantic Model', description: 'Generate Pydantic v2 BaseModel classes from a JSON sample. Get type-safe Python models for API responses, configs, and LLM structured output.', href: '/tools/json-to-pydantic/' },
+  { title: 'JSON to TypeScript Interface', description: 'Convert JSON data into clean TypeScript interfaces. Includes nested types, optional fields, arrays, and union types. Runs entirely in your browser.', href: '/tools/json-to-typescript/' },
+  { title: 'JSON to Zod Schema', description: 'Infer a Zod validation schema from any JSON sample. Paste your JSON and get a type-safe Zod schema you can copy directly into your project.', href: '/tools/json-to-zod/' },
+  { title: 'JSONPath Tester — Test JSON Queries Online', description: 'Test JSONPath expressions against your JSON document. See every match with its path and value, including wildcards and recursive descent.', href: '/tools/jsonpath-tester/' },
+  { title: 'LLM Token & Pricing Calculator', description: 'Estimate token count and cost across GPT-4o, Claude 3.5, Gemini, and Llama. Supports text, code, and JSON inputs.', href: '/tools/llm-token-calculator/' },
+  { title: 'Markdown Editor & Live Preview', description: 'Write Markdown and see the rendered HTML as you type. A safe CommonMark-style parser with headings, lists, tables, task lists and code blocks — all local.', href: '/tools/markdown-preview/' },
+  { title: 'Mock Data Generator', description: 'Generate realistic fake JSON from a sample or schema — infers types, patterns and ranges. Output any number of records to seed databases and test APIs.', href: '/tools/mock-data-generator/' },
+  { title: 'Text Diff — Compare Two Texts Line by Line', description: 'Compare two texts line by line with a side-by-side view and a git-style unified diff, powered by a fast LCS algorithm. Runs entirely in your browser.', href: '/tools/text-diff/' },
+  { title: 'UUID v7 Generator & Timestamp Decoder', description: 'Generate UUID v7 identifiers per RFC 9562 in bulk, and decode the embedded millisecond timestamp back to a readable date. Runs entirely in your browser.', href: '/tools/uuid-v7/' },
+  { title: 'XML Formatter & Validator', description: 'Pretty-print, indent, validate and minify XML online. Detects malformed tags, unclosed elements and mismatched quotes, with DTD support. No upload.', href: '/tools/xml-formatter/' },
+  { title: 'YAML Formatter & Validator', description: 'Format, validate, convert, and pretty-print YAML online. Handles anchors, aliases, multi-document streams, tags, and flow style. 100 percent client-side.', href: '/tools/yaml-formatter/' },
 ];
 ---
 
 <BaseLayout site="main" title="Developer Tools for JSON, Security & DevOps" description="Browse free browser-based developer tools for JSON, security, code generation and DevOps. No signup, no upload — every tool runs locally on your device." current="/tools/" canonical="https://jsonversal.com/tools/">
   <div class="tool-head">
-    <h1>Online Developer Tools</h1>
+    <h1>Developer Tools for JSON, Security & DevOps</h1>
     <p class="desc">Every tool runs 100% in your browser. No signup, no upload, unlimited and free. Use the filter to find what you need.</p>
   </div>
 
