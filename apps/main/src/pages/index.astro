@@ -95,6 +95,44 @@ const faqs = [
     answer: 'JSON Schema draft-07, draft-2019-09, and draft-2020-12 are supported for both validation and generation.',
   },
 ];
+import fs from 'node:fs';
+import path from 'node:path';
+
+const pagesDir = path.join(process.cwd(), 'src', 'pages');
+
+// 构建时扫描文件系统生成完整目录 —— 新增工具页会自动出现, 无需手工维护本页清单
+const CATALOG_SECTIONS = [
+  { label: 'JSON & LLM Tools', base: 'tools',         hub: '/tools/' },
+  { label: 'Security Tools',   base: 'sec/tools',     hub: '/sec/tools/' },
+  { label: 'DevOps Tools',     base: 'devops/tools',  hub: '/devops/tools/' },
+  { label: 'Code Generators',  base: 'codegen/tools', hub: '/codegen/tools/' },
+];
+
+function pageTitle(relDir) {
+  const f = path.join(pagesDir, relDir, 'index.astro');
+  if (!fs.existsSync(f)) return null;
+  const code = fs.readFileSync(f, 'utf8');
+  const m = code.match(/^const title = '(.*?)';\s*$/m);
+  if (m) return m[1];
+  const m2 = code.match(/<BaseLayout\b[^>]*\stitle="([^"]*)"/);
+  return m2 ? m2[1] : null;
+}
+
+const catalog = CATALOG_SECTIONS.map(s => {
+  const root = path.join(pagesDir, s.base);
+  const items = fs.existsSync(root)
+    ? fs.readdirSync(root, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+        .map(d => {
+          const title = pageTitle(path.join(s.base, d.name));
+          return title ? { title, href: `/${s.base}/${d.name}/` } : null;
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.title.localeCompare(b.title))
+    : [];
+  return { ...s, items };
+});
+const catalogTotal = catalog.reduce((n, s) => n + s.items.length, 0);
 ---
 
 <BaseLayout site="main" current="/" title="Free JSON Tools — Format, Validate & Convert" description="Free browser-based JSON and LLM developer tools: formatter, validator, schema builder, token calculator and converters. No signup, no upload, no tracking." keywords={["JSON formatter","JSON validator","JSON to Zod","LLM token calculator","developer tools","structured output","JSON Schema generator"]} faqs={faqs}>
@@ -200,6 +238,27 @@ const faqs = [
       />
     </div>
   </div>
+  <div class="section-head">
+    <span class="overline">Full catalog</span>
+    <h2>Every tool, one click away</h2>
+    <p>All {catalogTotal} tools run locally in your browser — no signup, no upload. Browse a category or jump straight to a tool.</p>
+  </div>
+  <div class="catalog">
+    {catalog.map(sec => (
+      <section class="catalog-sec">
+        <h3 class="catalog-h">
+          <a href={sec.hub}>{sec.label}</a>
+          <span class="catalog-n">{sec.items.length}</span>
+        </h3>
+        <ul class="catalog-list">
+          {sec.items.map(it => (
+            <li><a href={it.href}>{it.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+
 </BaseLayout>
 
 <style>
@@ -226,4 +285,44 @@ const faqs = [
     font-size: .92rem;
     line-height: 1.6;
   }
+  .catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px;
+  }
+  .catalog-sec { min-width: 0; }
+  .catalog-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 1rem;
+  }
+  .catalog-h a { color: var(--text); text-decoration: none; }
+  .catalog-h a:hover { color: var(--accent-text); }
+  .catalog-n {
+    font-size: .72rem;
+    color: var(--text-dim);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+  .catalog-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .catalog-list a {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: .88rem;
+    line-height: 1.35;
+  }
+  .catalog-list a:hover { color: var(--accent-text); text-decoration: underline; }
+
 </style>
