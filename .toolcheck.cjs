@@ -1,6 +1,9 @@
 const { JSDOM, VirtualConsole } = require('jsdom');
 const fs = require('fs');
 const path = require('path');
+
+// jsdom 内部会通过 dispatchEvent 报告错误，process.on('uncaughtException') 抓不到。
+// 必须给每个 jsdom window 注入 error handler，才能避免体检器被异常拖死。
 process.on('uncaughtException', e => console.log('UNCAUGHT:', (e && e.message || e).toString().split('\n')[0]));
 
 // 构建产物目录：优先取 CLI 参数，其次环境变量 TOOLCHECK_DIST，最后回退到仓库内的 apps/main/dist。
@@ -117,15 +120,11 @@ for (const section of SECTIONS) {
 
     const scripts = [];
     (() => {
-      // Parse HTML via jsdom's real parser so literal "<script>" inside
-      // attribute values / example text (e.g. an HTML-escaper placeholder)
-      // is NOT mistaken for a script tag.
       try {
         const d0 = new JSDOM(html);
         const all = [...d0.window.document.querySelectorAll('script')];
         d0.window.close();
         for (const s of all) {
-          // Skip non-JS scripts (ld+json, json, etc.) — they're not parsed as JS
           const type = (s.getAttribute('type') || '').toLowerCase();
           if (type && !type.includes('javascript')) continue;
           const t = s.textContent.trim();
@@ -143,23 +142,39 @@ for (const section of SECTIONS) {
 
     if (parseErr || samples[0] === 'SKIP') continue;
 
-    const win = new JSDOM(html, {
-      url: 'http://localhost/', runScripts: 'dangerously',
-      beforeParse(w) {
-        w.alert = function (msg) { w.__alerts = w.__alerts || []; w.__alerts.push(String(msg)); };
-        w.TextEncoder = globalThis.TextEncoder;
-        w.TextDecoder = globalThis.TextDecoder || w.TextDecoder;
-        try { Object.defineProperty(w, 'isSecureContext', { value: true, configurable: true }); } catch (e) {}
-        if (!w.crypto || !w.crypto.subtle) w.crypto = globalThis.crypto;
-        try { w.crypto = require('crypto').webcrypto; } catch (e) {}
-      },
-    }).window;
+    const vc = new VirtualConsole();
     let loadErr = null;
-    win.addEventListener('error', e => { if (!loadErr) loadErr = e.message; });
+    vc.on('jsdomError', err => {
+      const m = err && (err.message || err.detail || String(err));
+      if (!loadErr) loadErr = m;
+    });
+
+    let win;
+    try {
+      win = new JSDOM(html, {
+        url: 'http://localhost/', runScripts: 'dangerously', virtualConsole: vc,
+        beforeParse(w) {
+          w.alert = function (msg) { w.__alerts = w.__alerts || []; w.__alerts.push(String(msg)); };
+          w.TextEncoder = globalThis.TextEncoder;
+          w.TextDecoder = globalThis.TextDecoder || w.TextDecoder;
+          try { Object.defineProperty(w, 'isSecureContext', { value: true, configurable: true }); } catch (e) {}
+          if (!w.crypto || !w.crypto.subtle) w.crypto = globalThis.crypto;
+          try { w.crypto = require('crypto').webcrypto; } catch (e) {}
+          w.addEventListener('error', () => {}, true);
+        },
+      }).window;
+    } catch (e) {
+      out.load = 'jsdom-fail: ' + (e.message || String(e));
+      continue;
+    }
+    win.addEventListener('error', e => { if (!loadErr && e && e.message) loadErr = e.message; });
 
     const doc = win.document;
     out.load = loadErr ? ('load-err: ' + loadErr) : 'ok';
-    if (out.load !== 'ok') continue;
+    if (out.load !== 'ok') {
+      try { win.close(); } catch (e) {}
+      continue;
+    }
 
     if (samples.length) {
       const fields = [...doc.querySelectorAll('textarea, input[type=text], input[type=password], input:not([type])')]
@@ -198,10 +213,10 @@ for (const section of SECTIONS) {
     out.detail = (win.__alerts || []).join(' | ');
     out.compute = produced.length ? 'PASS' : (needsInput ? 'NEEDS-INPUT' : 'NO-OUTPUT');
     out.snippet = produced.slice(0, 90).replace(/\n/g, ' ');
-    win.close();
+    try { win.close(); } catch (e) {}
   }
 }
-
+})().catch(e => { console.log('FATAL:', e && e.stack || e); process.exit(1); }).then(() => {
 console.log('tool | section | parse | load | compute | detail | snippet');
 for (const r of results) console.log([r.name, r.section, r.parse, r.load, r.compute, (r.detail || '').slice(0, 40), r.snippet].join(' | '));
 
@@ -209,8 +224,8 @@ const cnt = { PASS: 0, NO_OUTPUT: 0, NEEDS_INPUT: 0, SKIP: 0, OTHER: 0 };
 for (const r of results) {
   if (r.samples[0] === 'SKIP') cnt.SKIP++;
   else if (r.compute === 'PASS') cnt.PASS++;
-  else if (r.compute === 'NO-OUTPUT') cnt.NO_OUTPUT++;
-  else if (r.compute === 'NEEDS-INPUT') cnt.NEEDS_INPUT++;
+  else if (r.compute === 'NO_OUTPUT') cnt.NO_OUTPUT++;
+  else if (r.compute === 'NEEDS_INPUT') cnt.NEEDS_INPUT++;
   else cnt.OTHER++;
 }
 console.log('\n===SUMMARY=== total=' + results.length + ' PASS=' + cnt.PASS + ' NO_OUTPUT=' + cnt.NO_OUTPUT + ' NEEDS_INPUT(soft)=' + cnt.NEEDS_INPUT + ' SKIP(needs-file/external)=' + cnt.SKIP + ' OTHER(parse/load)=' + cnt.OTHER);
@@ -219,4 +234,5 @@ for (const r of results) {
   if (r.compute === 'NO-OUTPUT' || r.parse !== 'ok' || r.load !== 'ok')
     console.log(' - ' + r.section + '/' + r.name + ' :: parse=' + r.parse + ' load=' + r.load + ' compute=' + r.compute + ' detail=' + r.detail + ' snip=' + r.snippet);
 }
-})();
+process.exit(0);
+});
