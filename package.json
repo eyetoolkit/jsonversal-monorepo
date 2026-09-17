@@ -9,7 +9,7 @@
       "sharp"
     ]
   },
-  "description": "jsonversal monorepo — one site, four sections (/tools /sec /devops /codegen)",
+  "description": "jsonversal monorepo - one site, four sections (/tools /sec /devops /codegen)",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -18,11 +18,11 @@
     "dev": "pnpm astro dev --root apps/main",
     "build": "turbo run build",
     "build:main": "pnpm astro build --root apps/main",
-    "preview": "pnpm astro preview --root apps/main"
+    "preview": "pnpm astro preview --root apps/main",
+    "toolcheck": "node .toolcheck.cjs"
   },
   "devDependencies": {
     "astro": "^4.16.18",
-    "jsdom": "24.1.3",
     "turbo": "^2.3.3",
     "typescript": "^5.6.3"
   }
