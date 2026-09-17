@@ -164,8 +164,8 @@ const faqs = [
       var pw = $('wifi-password').value;
       var hidden = $('wifi-hidden').checked;
       var ht = hidden ? 'H' : 'N';
-      var esc = function(s){ return s.replace(/([\\;,\:"])/g, '\\$1'); };
-      return 'WIFI:T:WPA;S:'+esc(ssid)+';P:'+esc(pw)+';H:'+ht+';;';
+      var esc = function(s){ return s.replace(/([\\;,\:\"])/g, '\\$1'); };
+      return 'WIFI:T:WPA;S:'+esc(ssid)+';P:'+esc(pw)+';H:'+ht+';';
     }
     if(t==='vcard'){
       var n = $('vc-name').value, tel = $('vc-tel').value, em = $('vc-email').value;
@@ -181,10 +181,13 @@ const faqs = [
     var ec = $('qr-ec').value;
     var fg = $('qr-fg').value;
     var bg = $('qr-bg').value;
-    var ecLevel = {'L':0,'M':1,'Q':2,'H':3}[ec];
+    // qrcode-generator library expects EC levels as {L:1, M:0, Q:3, H:2}
+    // (NOT sequential 0..3). Previously we sent 0/1/2/3 which mapped to
+    // y[0..3] = undefined and threw "bad rs block" silently.
+    var ecLevel = {'L':1, 'M':0, 'Q':3, 'H':2}[ec];
 
     try {
-      var typeNumber = 0;
+      var typeNumber = 0; // auto
       var qr = qrcode(typeNumber, ecLevel);
       qr.addData(content);
       qr.make();
@@ -244,7 +247,7 @@ const faqs = [
         var x = c*sz, y = r*sz;
         var idx = (Math.floor(y)*size + Math.floor(x))*4;
         if(imgData.data[idx] < 128){
-          svg += '<rect x="'+x+'" y="'+y+'" width="'+sz+'" height="'+sz+'" fill="'+fg+'"/>';
+          svg += '<rect x="'+x+' y="'+y+' width="'+sz+' height="'+sz+' fill="'+fg+'"/>';
         }
       }
     }
