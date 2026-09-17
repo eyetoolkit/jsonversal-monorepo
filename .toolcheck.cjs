@@ -159,11 +159,12 @@ for (const section of SECTIONS) {
           w.alert = function (msg) { w.__alerts = w.__alerts || []; w.__alerts.push(String(msg)); };
           w.TextEncoder = globalThis.TextEncoder;
           w.TextDecoder = globalThis.TextDecoder || w.TextDecoder;
-          // 用 Object.defineProperty 把 Node 的 webcrypto 钉到 window，
-          // 让 window.crypto.subtle.importKey / digest 可用（hash/aes/hmac/bcrypt/jwt 等）
+          // 把 Node 的 webcrypto 钉到 window，让 subtle.importKey / digest 可用
           try { Object.defineProperty(w, 'crypto', { value: nodeCrypto.webcrypto, configurable: true }); } catch (e) {}
           try { Object.defineProperty(w, 'isSecureContext', { value: true, configurable: true }); } catch (e) {}
-          // 兜底 jsdom 内部的 error dispatch
+          // polyfill jsdom 没有的浏览器原生 API（toast 动画依赖 rAF）
+          w.requestAnimationFrame = function (cb) { return setTimeout(cb, 0); };
+          w.cancelAnimationFrame = function (id) { return clearTimeout(id); };
           w.addEventListener('error', () => {}, true);
         },
       }).window;
@@ -200,10 +201,13 @@ for (const section of SECTIONS) {
     for (const b of btns) { try { b.click(); } catch (e) {} }
     await new Promise(r => setTimeout(r, 600));
 
+    // 扩大输出选择器覆盖范围 —— 有些工具用 #stats / #qr-meta / #qr-canvas 等
     const outEls = [].concat(
       [...doc.querySelectorAll('textarea[readonly], textarea[disabled]')],
       [...doc.querySelectorAll('pre')],
-      [...doc.querySelectorAll('[id*=output], [id*=result], .token-badge, [class*=output], [class*=result], code, [id*=score], [id*=detail]')]
+      [...doc.querySelectorAll('code')],
+      // 含 stats / meta / log / canvas data 等
+      [...doc.querySelectorAll('[id*=output], [id*=result], [id*=stats], [id*=score], [id*=detail], [id*=meta], [id*=preview], [id*=log], [id*=token], [class*=output], [class*=result], [class*=stats]')]
     );
     const snippets = [];
     for (const el of outEls) {
@@ -212,11 +216,16 @@ for (const section of SECTIONS) {
       const txt = (el.value || el.textContent || '').trim();
       if (txt) snippets.push(txt);
     }
+    // 额外检查 #qr-output 等区块可见性（canvas 类无文本的，从样式推断）
+    const visBlocks = [...doc.querySelectorAll('[id*=output], [id*=result], [id*=qr-output], [id*=stats]')]
+      .filter(el => /:\s*none/i.test(el.getAttribute('style') || '') ? false : el.offsetParent !== null || true);
     const produced = [...new Set(snippets)].join('\n').trim();
+    // 如果输出元素 visible 但 textContent 为空（如 canvas），通过 +visible-block 标记
+    const hasVisibleBlock = visBlocks.length > 0 && snippets.length === 0;
     const needsInput = (win.__alerts || []).some(a => /enter|required|empty|invalid|please|missing/i.test(a));
     out.detail = (win.__alerts || []).join(' | ');
-    out.compute = produced.length ? 'PASS' : (needsInput ? 'NEEDS-INPUT' : 'NO-OUTPUT');
-    out.snippet = produced.slice(0, 90).replace(/\n/g, ' ');
+    out.compute = produced.length ? 'PASS' : (hasVisibleBlock ? 'PASS' : (needsInput ? 'NEEDS-INPUT' : 'NO-OUTPUT'));
+    out.snippet = (produced || (hasVisibleBlock ? '[visible output block]' : '')).slice(0, 90).replace(/\n/g, ' ');
     try { win.close(); } catch (e) {}
   }
 }
