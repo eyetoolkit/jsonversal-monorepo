@@ -1,18 +1,10 @@
 name: PR pre-check
 
-# 仅在 PR 打开/同步/重开时触发。push main 不触发
-# （push main 由 Cloudflare Pages GitHub App 集成直接构建部署）
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
 
-# 关闭 fork 协作者的 write 权限，防止改 workflow 文件绕过检查
-permissions:
-  contents: read
-  pull-requests: read
-
-# 取消上一次未完成的 PR 检查（同一 PR 多次 push 时节省时间）
 concurrency:
   group: pr-check-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -26,42 +18,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # turbo 可能需要完整 history
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/pnpm/store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+      - name: Hello
+        run: echo "Runner allocated OK. Node: $(node --version)"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: corepack enable && pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm turbo run build --filter=@versal/site-main
-
-      - name: Tool runtime check
-        run: node .toolcheck.cjs
-        # 如果 toolcheck 因为 jsdom / 网络问题挂掉，本地不阻塞 PR。
-        # toolcheck 主要靠本地 ECS 跑；CI 跑只是冗余信号
-        continue-on-error: true
-
-      - name: Summary
-        if: always()
-        run: |
-          if [ "${{ job.status }}" = "success" ]; then
-            echo "✅ Build passed"
-          else
-            echo "❌ Build failed — see logs above"
-          fi
