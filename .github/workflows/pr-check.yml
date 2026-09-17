@@ -1,18 +1,18 @@
 name: PR pre-check
 
-# 仅在 PR 打开/同步/重开时触发。push main 不触发
+# 仅在 PR 打开 / 同步 / 重开时触发。push main 不触发
 # （push main 由 Cloudflare Pages GitHub App 集成直接构建部署）
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
 
-# 关闭 fork 协作者的 write 权限，防止改 workflow 文件绕过检查
+# fork 协作者只能 read workflow 文件，不能改
 permissions:
   contents: read
   pull-requests: read
 
-# 取消上一次未完成的 PR 检查（同一 PR 多次 push 时节省时间）
+# 同一 PR 多次 push 时取消上一次未完成的检查（节省 Actions 分钟）
 concurrency:
   group: pr-check-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # turbo 可能需要完整 history
+          fetch-depth: 0
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
@@ -53,15 +53,13 @@ jobs:
 
       - name: Tool runtime check
         run: node .toolcheck.cjs
-        # 如果 toolcheck 因为 jsdom / 网络问题挂掉，本地不阻塞 PR。
-        # toolcheck 主要靠本地 ECS 跑；CI 跑只是冗余信号
         continue-on-error: true
 
       - name: Summary
         if: always()
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            echo "✅ Build passed"
+            echo "Build passed"
           else
-            echo "❌ Build failed — see logs above"
+            echo "Build failed - see logs above"
           fi
