@@ -45,3 +45,5 @@ pnpm build:main # 仅构建主站，输出 apps/main/dist
 - 唯一生产项目：Cloudflare Pages `jsonversal-main-v2`（GitHub 集成 `eyetoolkit/jsonversal-monorepo`，生产分支 `main`）
 - 构建命令：`npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`，产物 `apps/main/dist`
 - 更新站点 = 修改 `apps/main/**` → `git push origin main` → 自动构建部署，无需手动上传
+
+<!-- trigger rebuild probe: 2026-09-17T13:50Z -->
