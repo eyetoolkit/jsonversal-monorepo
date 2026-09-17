@@ -1,13 +1,15 @@
 const { JSDOM, VirtualConsole } = require('jsdom');
 const fs = require('fs');
 const path = require('path');
+const nodeCrypto = require('crypto');
 
 // jsdom 内部会通过 dispatchEvent 报告错误，process.on('uncaughtException') 抓不到。
-// 必须给每个 jsdom window 注入 error handler，才能避免体检器被异常拖死。
-process.on('uncaughtException', e => console.log('UNCAUGHT:', (e && e.message || e).toString().split('\n')[0]));
+// VirtualConsole.on('jsdomError') + 给 window 装 error handler 兜底。
+process.on('uncaughtException', e => {
+  const m = e && (e.message || String(e));
+  process.stderr.write('[UNCAUGHT] ' + (m || '').split('\n')[0] + '\n');
+});
 
-// 构建产物目录：优先取 CLI 参数，其次环境变量 TOOLCHECK_DIST，最后回退到仓库内的 apps/main/dist。
-// 不要硬编码沙箱路径，换机器/换目录会直接失效。
 const DIST = path.resolve(
   process.argv[2] || process.env.TOOLCHECK_DIST || path.join(__dirname, 'apps', 'main', 'dist')
 );
@@ -157,9 +159,11 @@ for (const section of SECTIONS) {
           w.alert = function (msg) { w.__alerts = w.__alerts || []; w.__alerts.push(String(msg)); };
           w.TextEncoder = globalThis.TextEncoder;
           w.TextDecoder = globalThis.TextDecoder || w.TextDecoder;
+          // 用 Object.defineProperty 把 Node 的 webcrypto 钉到 window，
+          // 让 window.crypto.subtle.importKey / digest 可用（hash/aes/hmac/bcrypt/jwt 等）
+          try { Object.defineProperty(w, 'crypto', { value: nodeCrypto.webcrypto, configurable: true }); } catch (e) {}
           try { Object.defineProperty(w, 'isSecureContext', { value: true, configurable: true }); } catch (e) {}
-          if (!w.crypto || !w.crypto.subtle) w.crypto = globalThis.crypto;
-          try { w.crypto = require('crypto').webcrypto; } catch (e) {}
+          // 兜底 jsdom 内部的 error dispatch
           w.addEventListener('error', () => {}, true);
         },
       }).window;
@@ -216,7 +220,7 @@ for (const section of SECTIONS) {
     try { win.close(); } catch (e) {}
   }
 }
-})().catch(e => { console.log('FATAL:', e && e.stack || e); process.exit(1); }).then(() => {
+
 console.log('tool | section | parse | load | compute | detail | snippet');
 for (const r of results) console.log([r.name, r.section, r.parse, r.load, r.compute, (r.detail || '').slice(0, 40), r.snippet].join(' | '));
 
@@ -224,8 +228,8 @@ const cnt = { PASS: 0, NO_OUTPUT: 0, NEEDS_INPUT: 0, SKIP: 0, OTHER: 0 };
 for (const r of results) {
   if (r.samples[0] === 'SKIP') cnt.SKIP++;
   else if (r.compute === 'PASS') cnt.PASS++;
-  else if (r.compute === 'NO_OUTPUT') cnt.NO_OUTPUT++;
-  else if (r.compute === 'NEEDS_INPUT') cnt.NEEDS_INPUT++;
+  else if (r.compute === 'NO-OUTPUT') cnt.NO_OUTPUT++;
+  else if (r.compute === 'NEEDS-INPUT') cnt.NEEDS_INPUT++;
   else cnt.OTHER++;
 }
 console.log('\n===SUMMARY=== total=' + results.length + ' PASS=' + cnt.PASS + ' NO_OUTPUT=' + cnt.NO_OUTPUT + ' NEEDS_INPUT(soft)=' + cnt.NEEDS_INPUT + ' SKIP(needs-file/external)=' + cnt.SKIP + ' OTHER(parse/load)=' + cnt.OTHER);
@@ -235,4 +239,4 @@ for (const r of results) {
     console.log(' - ' + r.section + '/' + r.name + ' :: parse=' + r.parse + ' load=' + r.load + ' compute=' + r.compute + ' detail=' + r.detail + ' snip=' + r.snippet);
 }
 process.exit(0);
-});
+})().catch(e => { console.log('FATAL:', e && e.stack || e); process.exit(1); });
