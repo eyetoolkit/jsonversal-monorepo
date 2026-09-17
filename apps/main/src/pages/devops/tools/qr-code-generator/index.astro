@@ -2,7 +2,7 @@
 import ToolNav from '@versal/ui/ToolNav.astro';
 import BaseLayout from '@versal/ui/BaseLayout';
 
-const title = 'QR Code Generator — Create QR Codes Free';
+const title = 'QR Code Generator \u2014 Create QR Codes Free';
 const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more. Customize size and colors. Download as PNG or SVG. 100% browser-based, nothing uploaded.';
 const faqs = [
   {
@@ -28,7 +28,7 @@ const faqs = [
   <ToolNav currentHref={Astro.url.pathname} />
 
   <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+    <a href="/">Home</a><span class="sep">\u00b7</span><a href="/tools/">Tools</a><span class="sep">\u00b7</span><span class="current">{title}</span>
   </nav>
   <h1>{title}</h1>
   <p class="text-muted">{description}</p>
@@ -49,7 +49,6 @@ const faqs = [
     <label for="qr-input" class="sr-only">QR content</label>
     <textarea id="qr-input" aria-label="QR content" placeholder="Enter text or URL here..." style="min-height:80px;"></textarea>
 
-    <!-- WiFi fields -->
     <div id="wifi-fields" style="display:none;margin-top:10px;">
       <label class="text-muted" for="wifi-ssid">Network name (SSID)</label>
       <input id="wifi-ssid" type="text" placeholder="MyNetwork" style="margin-top:4px;" />
@@ -59,7 +58,6 @@ const faqs = [
       <input id="wifi-hidden" type="checkbox" style="margin-left:6px;" />
     </div>
 
-    <!-- vCard fields -->
     <div id="vcard-fields" style="display:none;margin-top:10px;">
       <label class="text-muted" for="vc-name">Full Name</label>
       <input id="vc-name" type="text" placeholder="Jane Smith" style="margin-top:4px;" />
@@ -106,10 +104,10 @@ const faqs = [
       <div>
         <label class="text-muted" for="qr-ec" style="font-size:.8rem;">Error correction</label>
         <select id="qr-ec" style="margin-top:4px;">
-          <option value="L">L — Low (7%)</option>
-          <option value="M" selected>M — Medium (15%)</option>
-          <option value="Q">Q — Quartile (25%)</option>
-          <option value="H">H — High (30%)</option>
+          <option value="L">L \u2014 Low (7%)</option>
+          <option value="M" selected>M \u2014 Medium (15%)</option>
+          <option value="Q">Q \u2014 Quartile (25%)</option>
+          <option value="H">H \u2014 High (30%)</option>
         </select>
       </div>
       <div>
@@ -126,14 +124,14 @@ const faqs = [
   <h2>How it works</h2>
   <ul>
     <li>QR codes encode text data in a 2D barcode pattern readable by any QR scanner or smartphone camera.</li>
-    <li>jsonversal generates QR codes entirely in your browser — the content you enter never leaves your device.</li>
-    <li>Download as PNG (raster image) or SVG (vector — scales to any size without blur).</li>
+    <li>jsonversal generates QR codes entirely in your browser \u2014 the content you enter never leaves your device.</li>
+    <li>Download as PNG (raster image) or SVG (vector \u2014 scales to any size without blur).</li>
     <li>Use high error correction (H) when the QR will be partially covered, such as on packaging or signage.</li>
   </ul>
 
   <h2>About QR Code Generator</h2>
-  <p class="text-muted">A QR code (Quick Response code) is a two-dimensional barcode that can store URLs, text, WiFi credentials, contact information, and more. Unlike a standard 1D barcode, a QR code can encode hundreds to thousands of alphanumeric characters and is scanned by smartphone cameras or dedicated QR readers. The QR code in this tool is generated entirely in your browser using the qrcode-generator algorithm — no image is uploaded anywhere, making it safe for sensitive URLs, private WiFi networks, or business card contacts.</p>
-  <p class="text-muted">Tip: if you are sharing a WiFi network, encode the password in the QR so guests can scan instead of typing — most smartphone camera apps detect the WiFi QR code and offer to join with one tap. Use the "H" error correction level when the QR code will be printed on textured or curved surfaces, and test your QR code with a few different scanners before finalizing.</p>
+  <p class="text-muted">A QR code (Quick Response code) is a two-dimensional barcode that can store URLs, text, WiFi credentials, contact information, and more. Unlike a standard 1D barcode, a QR code can encode hundreds to thousands of alphanumeric characters and is scanned by smartphone cameras or dedicated QR readers. The QR code in this tool is generated entirely in your browser using the qrcode-generator algorithm \u2014 no image is uploaded anywhere, making it safe for sensitive URLs, private WiFi networks, or business card contacts.</p>
+  <p class="text-muted">Tip: if you are sharing a WiFi network, encode the password in the QR so guests can scan instead of typing \u2014 most smartphone camera apps detect the WiFi QR code and offer to join with one tap. Use the "H" error correction level when the QR code will be printed on textured or curved surfaces, and test your QR code with a few different scanners before finalizing.</p>
 </BaseLayout>
 
 <style>
@@ -144,7 +142,7 @@ const faqs = [
   input[type="text"], input[type="email"], select { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); }
 </style>
 
-<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script is:inline src="/vendor/qrcode.min.js"></script>
 <script is:inline>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
@@ -166,9 +164,8 @@ const faqs = [
       var pw = $('wifi-password').value;
       var hidden = $('wifi-hidden').checked;
       var ht = hidden ? 'H' : 'N';
-      // Escape special characters in SSID and password
-      var esc = function(s){ return s.replace(/([\\;,\:\"])/g, '\\$1'); };
-      return 'WIFI:T:WPA;S:'+esc(ssid)+';P:'+esc(pw)+';H:'+ht+';';
+      var esc = function(s){ return s.replace(/([\\;,\:"])/g, '\\$1'); };
+      return 'WIFI:T:WPA;S:'+esc(ssid)+';P:'+esc(pw)+';H:'+ht+';;';
     }
     if(t==='vcard'){
       var n = $('vc-name').value, tel = $('vc-tel').value, em = $('vc-email').value;
@@ -187,7 +184,7 @@ const faqs = [
     var ecLevel = {'L':0,'M':1,'Q':2,'H':3}[ec];
 
     try {
-      var typeNumber = 0; // auto
+      var typeNumber = 0;
       var qr = qrcode(typeNumber, ecLevel);
       qr.addData(content);
       qr.make();
@@ -208,7 +205,7 @@ const faqs = [
           }
         }
       }
-      $('qr-meta').textContent = content.length + ' chars · ' + moduleCount + '×' + moduleCount + ' modules · EC level ' + ec + ' · ' + Math.round(size) + '×' + Math.round(size) + 'px';
+      $('qr-meta').textContent = content.length + ' chars \u00b7 ' + moduleCount + '\u00d7' + moduleCount + ' modules \u00b7 EC level ' + ec + ' \u00b7 ' + Math.round(size) + '\u00d7' + Math.round(size) + 'px';
       $('qr-output').style.display = 'block';
     } catch(e){
       showToast('Error: ' + e.message);
@@ -264,7 +261,7 @@ const faqs = [
       if(navigator.clipboard && navigator.clipboard.write){
         navigator.clipboard.write([new ClipboardItem({'image/png': blob})]).then(function(){
           showToast('QR code copied to clipboard!');
-        }).catch(function(){ showToast('Copy failed — try downloading instead.'); });
+        }).catch(function(){ showToast('Copy failed \u2014 try downloading instead.'); });
       } else {
         showToast('Copy not supported in this browser.');
       }
