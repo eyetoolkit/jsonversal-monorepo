@@ -46,4 +46,10 @@ pnpm build:main # 仅构建主站，输出 apps/main/dist
 - 构建命令：`npx pnpm install && npx pnpm turbo run build --filter=@versal/site-main`，产物 `apps/main/dist`
 - 更新站点 = 修改 `apps/main/**` → `git push origin main` → 自动构建部署，无需手动上传
 
+## CI
+
+- **PR pre-check**：`.github/workflows/pr-check.yml` — 任何 PR 打开 / 同步 / 重开时自动跑 `pnpm install + pnpm build + toolcheck`
+- **push main**：由 Cloudflare Pages GitHub App 集成直接构建部署
+
 <!-- trigger rebuild probe: 2026-09-17T13:50Z -->
+<!-- test-pr-pre-check: 2026-09-17T21:59Z -->
