@@ -1,1 +1,196 @@
----\ntest file\n---\nTest content.
+---
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const title = 'JSON Formatter & Validator';
+const description = 'Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.';
+const howtos = [
+  {
+    name: 'How to format JSON in 3 steps',
+    description: 'Format any JSON document with this free browser-based tool.',
+    steps: [
+      { name: 'Paste your JSON', text: 'Paste your raw or minified JSON into the input textarea above.' },
+      { name: 'Choose indentation', text: 'Select 2 spaces, 4 spaces, or a tab character from the indent dropdown.' },
+      { name: 'Click Format', text: 'Click Format to pretty-print your JSON. Use Minify to compress it back.' },
+    ],
+  },
+];
+const faqs = [
+  {
+    "question": "How do I format JSON online for free?",
+    "answer": "Paste your JSON into the input box above and click Format. Choose 2 spaces, 4 spaces, or a tab for indentation. The formatter validates your JSON first — if it is invalid you will see the exact error with line and column number. Everything runs in your browser, nothing is uploaded."
+  },
+  {
+    "question": "Can I pretty print minified JSON?",
+    "answer": "Yes. Paste any minified (single-line) JSON into the input and click Format. The tool parses it and re-serializes it with clean indentation, making it readable while preserving the original data exactly."
+  },
+  {
+    "question": "How do I validate JSON without uploading it?",
+    "answer": "This tool validates JSON locally in your browser using a streaming parser. If the document is invalid, the error message shows the exact line and column so you can jump straight to the problem. No data leaves your device."
+  },
+  {
+    "question": "Can I minify JSON to a single line?",
+    "answer": "Yes. Click Minify to strip all unnecessary whitespace. This produces the smallest possible valid JSON, useful for API payloads, URL query parameters, or log entries."
+  }
+];
+---
+
+<BaseLayout
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-formatter/" current="/tools/json-formatter/"
+  keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
+  howtos={howtos}
+  faqs={faqs}
+>
+  <ToolNav currentHref={Astro.url.pathname} />
+
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <section class="card mt-2">
+    <h2 class="h2-card">Input JSON</h2>
+    <label for="input" class="sr-only">Input</label>
+    <textarea id="input" spellcheck="false" placeholder='&#123;&#10;  "users": [&#10;    &#123; "id": 1, "name": "Ada", "active": true &#125;,&#10;    &#123; "id": 2, "name": "Grace", "active": false &#125;&#10;  ]&#10;&#125;'></textarea>
+    <div class="row mt-1">
+      <label class="text-muted" for="indent">Indent</label>
+      <select id="indent">
+        <option value="2">2 spaces</option>
+        <option value="4" selected>4 spaces</option>
+        <option value="tab">Tab</option>
+      </select>
+      <button class="primary" id="format">Format</button>
+      <button class="ghost" id="minify">Minify</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat">Output</h2>
+      <div class="row" style="gap:8px;">
+        <span class="text-dim" id="stats" style="font-size:.85rem;"></span>
+        <button class="ghost" id="copy">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="mt-1">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 class="h2-error">Invalid JSON</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste JSON, choose an indentation, and click <strong>Format</strong> — the document is parsed and re-serialized with clean indentation.</li>
+    <li><strong>Minify</strong> strips all whitespace to produce the smallest valid representation.</li>
+    <li>If the document is invalid, the error shows the exact message plus line and column, so you can jump straight to the problem.</li>
+    <li>Statistics (nodes, keys, depth, bytes) update automatically after every run.</li>
+  </ul>
+
+  <h2>About JSON Formatter & Validator</h2>
+  <p class="text-muted">Pretty-printing turns a wall of JSON into an indented, readable tree, which makes nested structures and subtle mistakes — a missing comma, a trailing comma, a stray quote — far easier to spot. Formatting never changes the meaning of the document: it only re-serializes the parsed value, so the output is guaranteed to be valid JSON.</p>
+  <p class="text-muted">Use this tool before sharing JSON in code review, pasting payloads into documentation, or debugging API responses. Minify when you need the smallest payload for a URL query, a storage cell, or a log line. Since parsing happens on your device, even sensitive configuration or private API responses can be formatted without ever leaving your browser.</p>
+</BaseLayout>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 200px; }
+  pre { min-height: 80px; max-height: 480px; overflow: auto; }
+  #output { white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function lineColAt(text, pos) {
+    const before = text.slice(0, pos);
+    const lines = before.split('\n');
+    return { line: lines.length, col: lines[lines.length - 1].length + 1 };
+  }
+
+  function stats(obj) {
+    let nodes = 0, keys = 0, depth = 0;
+    (function walk(v, d) {
+      nodes++;
+      depth = Math.max(depth, d);
+      if (v && typeof v === 'object') {
+        if (Array.isArray(v)) {
+          for (const item of v) walk(item, d + 1);
+        } else {
+          keys += Object.keys(v).length;
+          for (const item of Object.values(v)) walk(item, d + 1);
+        }
+      }
+    })(obj, 1);
+    return { nodes, keys, depth };
+  }
+
+  function run(mode) {
+    const raw = $('input').value;
+    if (!raw.trim()) { showToast('Please paste some JSON first.'); return; }
+    try {
+      const obj = JSON.parse(raw);
+      let out;
+      if (mode === 'minify') {
+        out = JSON.stringify(obj);
+      } else {
+        const choice = $('indent').value;
+        const indent = choice === 'tab' ? '\t' : parseInt(choice, 10);
+        out = JSON.stringify(obj, null, indent);
+      }
+      $('output').textContent = out;
+      const s = stats(obj);
+      $('stats').textContent = `${s.keys} keys · ${s.nodes} nodes · depth ${s.depth} · ${out.length} chars`;
+      $('out-section').style.display = 'block';
+      $('err-section').style.display = 'none';
+    } catch (e) {
+      let msg = e.message || String(e);
+      const m = msg.match(/position (\d+)/);
+      if (m) {
+        const lc = lineColAt($('input').value, parseInt(m[1], 10));
+        msg = `${msg}  (line ${lc.line}, column ${lc.col})`;
+      }
+      $('err-out').textContent = msg;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+    }
+  }
+
+  $('format').addEventListener('click', () => run('format'));
+  $('minify').addEventListener('click', () => run('minify'));
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('output').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
+    } catch {}
+  });
+
+  $('sample').addEventListener('click', () => {
+    $('input').value = JSON.stringify({
+      id: 42,
+      name: 'Alice',
+      active: true,
+      scores: [98, 87, 95],
+      address: { street: '123 Main St', city: 'New York', zip: 10001 },
+      tags: ['premium', 'beta-tester'],
+      meta: null
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', () => {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+})();
+</script>
