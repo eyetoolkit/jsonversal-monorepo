@@ -4,7 +4,10 @@ import Hero from '@versal/ui/Hero.astro';
 import ToolGrid from '@versal/ui/ToolGrid.astro';
 import ToolCard from '@versal/ui/ToolCard.astro';
 
+// 首页精选：4 个子站各推 2-5 个最具代表性的工具，让所有栏目在首屏曝光。
+// 排序：tools 最强流量 → 5 个；sec / devops / codegen 各 2 个
 const tools = [
+  // tools (5) —— JSON & LLM
   {
     title: 'LLM Token & Pricing Calculator',
     description: 'Estimate tokens and cost across GPT, Claude, Llama and Gemini.',
@@ -12,21 +15,9 @@ const tools = [
     status: 'live' as const,
   },
   {
-    title: 'Structured Output JSON Schema Generator',
+    title: 'JSON Schema Generator',
     description: 'Create strict JSON Schema for LLM structured output.',
     href: '/tools/json-schema-generator/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON Schema Sample Data Generator',
-    description: 'Generate sample JSON that satisfies your schema — mock data in seconds.',
-    href: '/tools/json-schema-sample-generator/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON to Pydantic Model',
-    description: 'Generate Pydantic v2 BaseModel classes from a JSON sample.',
-    href: '/tools/json-to-pydantic/',
     status: 'live' as const,
   },
   {
@@ -42,33 +33,48 @@ const tools = [
     status: 'live' as const,
   },
   {
-    title: 'JSON to TypeScript Interface',
-    description: 'Convert JSON to TypeScript types and interfaces instantly.',
-    href: '/tools/json-to-typescript/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON to Go Struct',
-    description: 'Generate Go struct types from JSON with json tags.',
-    href: '/tools/json-to-go/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON to C# Class',
-    description: 'Generate C# POCO classes from any JSON sample.',
-    href: '/tools/json-to-csharp/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON Diff',
-    description: 'Compare two JSON documents and see the differences instantly.',
-    href: '/tools/json-diff/',
-    status: 'live' as const,
-  },
-  {
     title: 'UUID v7 Generator & Timestamp Decoder',
     description: 'Generate RFC 9562 UUID v4 and v7 identifiers. Validate any UUID.',
     href: '/tools/uuid-v7/',
+    status: 'live' as const,
+  },
+  // sec (2) —— Security
+  {
+    title: 'Random Password Generator',
+    description: 'Generate strong random passwords with custom length and character sets.',
+    href: '/sec/tools/password-generator/',
+    status: 'live' as const,
+  },
+  {
+    title: 'JWT Decoder',
+    description: 'Decode JWT tokens instantly — header, payload, signature, expiry.',
+    href: '/sec/tools/jwt-decoder/',
+    status: 'live' as const,
+  },
+  // devops (2) —— DevOps
+  {
+    title: 'Crontab Parser',
+    description: 'Translate cron expressions into plain English and preview next 10 runs.',
+    href: '/devops/tools/cron-parser/',
+    status: 'live' as const,
+  },
+  {
+    title: 'Base64 Encoder / Decoder',
+    description: 'Encode text to Base64 (URL-safe too), or decode Base64 back to text.',
+    href: '/devops/tools/base64/',
+    status: 'live' as const,
+  },
+  // codegen (2) —— Code Generators
+  {
+    title: '.gitignore Generator',
+    description: 'Generate a .gitignore file by selecting your language and frameworks.',
+    href: '/codegen/tools/gitignore/',
+    status: 'live' as const,
+  },
+  {
+    title: 'Docker Compose Generator',
+    description: 'Scaffold a docker-compose.yml with services, ports, volumes, env vars.',
+    href: '/codegen/tools/docker-compose/',
     status: 'live' as const,
   },
 ];
@@ -150,7 +156,7 @@ const webSiteSchema = {
 };
 ---
 
-<BaseLayout site="main" current="/" title="Free JSON Tools — Format, Validate & Convert" description="Free browser-based JSON and LLM developer tools: formatter, validator, schema builder, token calculator and converters. No signup, no upload, no tracking." keywords={["JSON formatter","JSON validator","JSON to Zod","LLM token calculator","developer tools","structured output","JSON Schema generator"]} faqs={faqs}>
+<BaseLayout site="main" current="/" title="Free JSON Tools — Format, Validate & Convert" description="Free browser-based JSON and LLM developer tools: formatter, validator, schema builder, token calculator and converters. No signup, no upload, no tracking." keywords={["JSON formatter","JSON validator","JSON to Zod","LLM token calculator","developer tools","structured output","JSON Schema generator"]} faqs={faqs} showRecent>
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
     <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} />
@@ -305,17 +311,26 @@ const webSiteSchema = {
     line-height: 1.6;
   }
   .catalog {
+    /* 固定 4 列（与 4 个子站对应），大屏也保持一致而非 auto-fit 稀疏化 */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 22px;
+  }
+  /* 小屏 fallback：自动调整 */
+  @media (max-width: 1100px) {
+    .catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .catalog { grid-template-columns: 1fr; }
   }
   .catalog-sec { min-width: 0; }
   .catalog-h {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 0 0 10px;
-    font-size: 1rem;
+    margin: 0 0 12px;
+    font-size: .98rem;
+    font-weight: 600;
   }
   .catalog-h a { color: var(--text); text-decoration: none; }
   .catalog-h a:hover { color: var(--accent-text); }

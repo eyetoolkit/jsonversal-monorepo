@@ -29,6 +29,8 @@
     "./OutputPanel.astro": "./OutputPanel.astro",
     "./SearchModal": "./SearchModal.astro",
     "./SearchModal.astro": "./SearchModal.astro",
+    "./RecentTools": "./RecentTools.astro",
+    "./RecentTools.astro": "./RecentTools.astro",
     "./base.css": "./base.css",
     "./styles": "./base.css"
   }

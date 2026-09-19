@@ -1,0 +1,225 @@
+---
+// RecentTools — 跟踪并展示最近使用过的工具
+// 行为：
+//   1. 任何工具页加载时自动记录（通过 data-tool 属性 + URL 匹配）
+//   2. localStorage 保留最近 5 个
+//   3. 首页/落地页：展示"Recently used"卡片区块
+//   4. 切换站点时保留跨站记忆
+//
+// 用法：在 BaseLayout 内引用一次即可
+//   <RecentTools />
+
+const STORAGE_KEY = 'versal-recent-tools';
+const MAX_ITEMS = 5;
+---
+
+<div id="recent-tools-section" class="recent-tools" hidden>
+  <div class="section-head">
+    <span class="overline">Continue where you left off</span>
+    <h2>Recently used</h2>
+    <p class="text-muted">Your last few tools — saved on this device only, no account.</p>
+  </div>
+  <ul id="recent-tools-list" class="recent-list" aria-label="Recently used tools"></ul>
+</div>
+
+<style>
+  .recent-tools {
+    margin-top: 32px;
+  }
+  .recent-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .recent-list li {
+    list-style: none;
+  }
+  .recent-list a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    text-decoration: none !important;
+    transition: border-color .15s, transform .15s;
+  }
+  .recent-list a:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .recent-list .rec-section {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-dim);
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    flex-shrink: 0;
+  }
+  .recent-list .rec-title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: .92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .recent-list .rec-clear {
+    margin-left: auto;
+    background: none;
+    border: 0;
+    color: var(--text-dim);
+    font-size: .85rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .recent-list .rec-clear:hover { color: var(--danger); background: var(--surface-2); }
+</style>
+
+<script is:inline>
+  (function () {
+    const STORAGE_KEY = 'versal-recent-tools';
+    const MAX_ITEMS = 5;
+
+    // —— 工具目录（与 SearchModal 同源，但只取 href/title/section）——
+    const TOOLS = [
+      { title: 'JSON Formatter & Validator', href: '/tools/json-formatter/', section: 'tools' },
+      { title: 'JSON Minify & Compress', href: '/tools/json-minify/', section: 'tools' },
+      { title: 'JSON Diff', href: '/tools/json-diff/', section: 'tools' },
+      { title: 'JSON Schema Validator', href: '/tools/json-schema-validator/', section: 'tools' },
+      { title: 'JSON Schema Generator', href: '/tools/json-schema-generator/', section: 'tools' },
+      { title: 'JSON to Zod Schema', href: '/tools/json-to-zod/', section: 'tools' },
+      { title: 'JSON to TypeScript', href: '/tools/json-to-typescript/', section: 'tools' },
+      { title: 'JSON to Go Struct', href: '/tools/json-to-go/', section: 'tools' },
+      { title: 'JSON to C# Class', href: '/tools/json-to-csharp/', section: 'tools' },
+      { title: 'JSON to Pydantic Model', href: '/tools/json-to-pydantic/', section: 'tools' },
+      { title: 'JSON Escape & Unescape', href: '/tools/json-escape/', section: 'tools' },
+      { title: 'JSON Sorter & Deduper', href: '/tools/json-sorter/', section: 'tools' },
+      { title: 'JSON Statistics', href: '/tools/json-statistics/', section: 'tools' },
+      { title: 'JSON Schema Builder', href: '/tools/json-schema-builder/', section: 'tools' },
+      { title: 'JSON Schema Sample Data', href: '/tools/json-schema-sample-generator/', section: 'tools' },
+      { title: 'JSONPath Tester', href: '/tools/jsonpath-tester/', section: 'tools' },
+      { title: 'LLM Token & Pricing Calculator', href: '/tools/llm-token-calculator/', section: 'tools' },
+      { title: 'Markdown Editor & Live Preview', href: '/tools/markdown-preview/', section: 'tools' },
+      { title: 'Mock Data Generator', href: '/tools/mock-data-generator/', section: 'tools' },
+      { title: 'Text Diff', href: '/tools/text-diff/', section: 'tools' },
+      { title: 'UUID v7 Generator', href: '/tools/uuid-v7/', section: 'tools' },
+      { title: 'XML Formatter & Validator', href: '/tools/xml-formatter/', section: 'tools' },
+      { title: 'YAML Formatter & Validator', href: '/tools/yaml-formatter/', section: 'tools' },
+      { title: 'AES Encryption / Decryption', href: '/sec/tools/aes/', section: 'sec' },
+      { title: 'BCrypt Hash & Verify', href: '/sec/tools/bcrypt/', section: 'sec' },
+      { title: 'File Checksum Calculator', href: '/sec/tools/file-checksum/', section: 'sec' },
+      { title: 'Hash & HMAC Generator', href: '/sec/tools/hash-generator/', section: 'sec' },
+      { title: 'Hash Generator', href: '/sec/tools/hash/', section: 'sec' },
+      { title: 'HMAC Generator', href: '/sec/tools/hmac/', section: 'sec' },
+      { title: 'JWT Decoder', href: '/sec/tools/jwt-decoder/', section: 'sec' },
+      { title: 'JWT Generator', href: '/sec/tools/jwt-generator/', section: 'sec' },
+      { title: 'Passphrase Generator', href: '/sec/tools/passphrase-generator/', section: 'sec' },
+      { title: 'Password Generator', href: '/sec/tools/password-generator/', section: 'sec' },
+      { title: 'Random Token Generator', href: '/sec/tools/random-token/', section: 'sec' },
+      { title: 'RSA Key Pair Generator', href: '/sec/tools/rsa-keygen/', section: 'sec' },
+      { title: 'Secret & API Key Scanner', href: '/sec/tools/secret-scanner/', section: 'sec' },
+      { title: 'X.509 Certificate Decoder', href: '/sec/tools/x509-decoder/', section: 'sec' },
+      { title: 'Base64 Encoder / Decoder', href: '/devops/tools/base64/', section: 'devops' },
+      { title: 'Basic Auth Header Generator', href: '/devops/tools/basic-auth-generator/', section: 'devops' },
+      { title: 'CIDR / Subnet Calculator', href: '/devops/tools/cidr-calculator/', section: 'devops' },
+      { title: 'Crontab Explainer', href: '/devops/tools/crontab/', section: 'devops' },
+      { title: 'Crontab Parser', href: '/devops/tools/cron-parser/', section: 'devops' },
+      { title: 'JSON Tree Viewer', href: '/devops/tools/json-viewer/', section: 'devops' },
+      { title: 'Kubernetes YAML Generator', href: '/devops/tools/k8s-generator/', section: 'devops' },
+      { title: 'Log Line Parser', href: '/devops/tools/log-parser/', section: 'devops' },
+      { title: 'Number Base Converter', href: '/devops/tools/number-base/', section: 'devops' },
+      { title: 'QR Code Generator', href: '/devops/tools/qr-code-generator/', section: 'devops' },
+      { title: 'Regex Tester', href: '/devops/tools/regex/', section: 'devops' },
+      { title: 'Regex Tester with Explanations', href: '/devops/tools/regex-advanced/', section: 'devops' },
+      { title: 'Unix Timestamp Converter', href: '/devops/tools/timestamp/', section: 'devops' },
+      { title: 'URL Encoder & Decoder', href: '/devops/tools/url-codec/', section: 'devops' },
+      { title: 'UUID v4 Generator', href: '/devops/tools/uuid-generator/', section: 'devops' },
+      { title: 'YAML ↔ JSON Converter', href: '/devops/tools/yaml-json/', section: 'devops' },
+      { title: '.env Template Generator', href: '/codegen/tools/env-generator/', section: 'codegen' },
+      { title: '.gitignore Generator', href: '/codegen/tools/gitignore/', section: 'codegen' },
+      { title: 'Base64 Image Viewer', href: '/codegen/tools/base64-image/', section: 'codegen' },
+      { title: 'CSV to JSON Converter', href: '/codegen/tools/csv-to-json/', section: 'codegen' },
+      { title: 'cURL to Fetch Converter', href: '/codegen/tools/curl-to-fetch/', section: 'codegen' },
+      { title: 'cURL to Python (requests)', href: '/codegen/tools/curl-to-python/', section: 'codegen' },
+      { title: 'Docker Compose Generator', href: '/codegen/tools/docker-compose/', section: 'codegen' },
+      { title: 'HTML Entity Escaper', href: '/codegen/tools/html-escaper/', section: 'codegen' },
+      { title: 'JSON ↔ XML Converter', href: '/codegen/tools/json-xml/', section: 'codegen' },
+      { title: 'JSON Schema to TypeScript', href: '/codegen/tools/schema-to-typescript/', section: 'codegen' },
+      { title: 'JSON to CSV Converter', href: '/codegen/tools/json-to-csv/', section: 'codegen' },
+      { title: 'JSON to Python Dict', href: '/codegen/tools/json-to-python/', section: 'codegen' },
+      { title: 'JSON to SQL Generator', href: '/codegen/tools/sql-generator/', section: 'codegen' },
+      { title: 'LLM Structured Output Validator', href: '/codegen/tools/llm-structured-output-validator/', section: 'codegen' },
+      { title: 'SQL Formatter', href: '/codegen/tools/sql-formatter/', section: 'codegen' },
+      { title: 'SQL Validator', href: '/codegen/tools/sql-validator/', section: 'codegen' },
+    ];
+    const toolMap = new Map(TOOLS.map(t => [t.href, t]));
+
+    const SECTION_LABEL = { tools: 'JSON', sec: 'Security', devops: 'DevOps', codegen: 'Codegen' };
+
+    function loadList() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { return []; }
+    }
+    function saveList(list) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+      catch {}
+    }
+
+    function record(pathname) {
+      // 仅工具页记录
+      if (!/^\/(tools|sec\/tools|devops\/tools|codegen\/tools)\/[^\/]+\/?$/.test(pathname)) return;
+      const norm = pathname.endsWith('/') ? pathname : pathname + '/';
+      const tool = toolMap.get(norm);
+      if (!tool) return;
+
+      let list = loadList();
+      // 去重 + 移到最前
+      list = list.filter(item => item.href !== tool.href);
+      list.unshift({ title: tool.title, href: tool.href, section: tool.section, ts: Date.now() });
+      list = list.slice(0, MAX_ITEMS);
+      saveList(list);
+    }
+
+    function render() {
+      const section = document.getElementById('recent-tools-section');
+      const ul = document.getElementById('recent-tools-list');
+      if (!section || !ul) return;
+      const list = loadList();
+      // 当前页面若是工具页，过滤掉自身（用户已经在用）
+      const cur = location.pathname;
+      const filtered = list.filter(t => !(t.href === cur || t.href === cur + '/'));
+      if (filtered.length === 0) { section.hidden = true; return; }
+
+      section.hidden = false;
+      ul.innerHTML = filtered.slice(0, MAX_ITEMS).map(t => `
+        <li>
+          <a href="${t.href}">
+            <span class="rec-section">${SECTION_LABEL[t.section] || t.section}</span>
+            <span class="rec-title">${t.title}</span>
+          </a>
+        </li>
+      `).join('') + `<li><a class="rec-clear" href="#" id="recent-tools-clear">Clear</a></li>`;
+
+      // 绑定清除
+      document.getElementById('recent-tools-clear').addEventListener('click', (e) => {
+        e.preventDefault();
+        saveList([]);
+        render();
+      });
+    }
+
+    // —— 启动 ——
+    record(location.pathname);
+    render();
+  })();
+</script>
