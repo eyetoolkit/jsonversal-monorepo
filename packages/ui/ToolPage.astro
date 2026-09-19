@@ -1,0 +1,84 @@
+---
+// ToolPage — 工具页通用外壳
+// 替代每个工具页重复的：BaseLayout 包装 + ToolNav + 面包屑 + H1 + 通用 FAQ + 隐私承诺
+import BaseLayout from './BaseLayout.astro';
+import ToolNav from './ToolNav.astro';
+
+export interface Props {
+  site: 'main' | 'devops' | 'codegen' | 'sec';
+  title: string;
+  description: string;
+  canonical: string;
+  current: string;
+  keywords?: string[];
+  faqs?: Array<{ question: string; answer: string }>;
+  howtos?: Array<{ name: string; description?: string; steps: Array<{ name: string; text: string }> }>;
+  noBreadcrumb?: boolean;
+  noToolNav?: boolean;
+}
+
+const {
+  site,
+  title,
+  description,
+  canonical,
+  current,
+  keywords,
+  faqs,
+  howtos,
+  noBreadcrumb = false,
+  noToolNav = false,
+} = Astro.props as Props;
+
+const seg = current.split('/').filter(Boolean);
+const sectionRoot = seg[0] === 'tools' ? '/tools/' : `/${seg[0]}/`;
+const sectionLabel =
+  seg[0] === 'tools' ? 'Tools'
+  : seg[0] === 'sec' ? 'Security'
+  : seg[0] === 'devops' ? 'DevOps'
+  : seg[0] === 'codegen' ? 'Code Generators'
+  : 'Tools';
+
+const universalFaqs = [
+  {
+    question: 'Is my data sent to a server?',
+    answer: 'No. Every tool on jsonversal runs entirely in your browser using the Web Crypto API, File API, and Clipboard API. Nothing is ever uploaded — not even the JSON you paste in.',
+  },
+  {
+    question: 'Do I need an account or API key?',
+    answer: 'No signup, no email, no API key. All tools are free to use with no signup required.',
+  },
+  {
+    question: 'Can I use these tools offline?',
+    answer: 'Yes. Once the page loads, all tools work offline. There are no external API calls or CDN dependencies at runtime.',
+  },
+];
+
+const allFaqs = faqs ? [...faqs, ...universalFaqs] : universalFaqs;
+---
+
+<BaseLayout
+  site={site}
+  title={title}
+  description={description}
+  canonical={canonical}
+  current={current}
+  keywords={keywords}
+  faqs={allFaqs}
+  howtos={howtos}
+>
+  {!noToolNav && <ToolNav currentHref={current} />}
+
+  {!noBreadcrumb && (
+    <nav aria-label="Breadcrumb" class="crumbs">
+      <a href="/">Home</a><span class="sep">·</span>
+      <a href={sectionRoot}>{sectionLabel}</a><span class="sep">·</span>
+      <span class="current">{title}</span>
+    </nav>
+  )}
+
+  <h1>{title}</h1>
+  <p class="text-muted">{description}</p>
+
+  <slot />
+</BaseLayout>

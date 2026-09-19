@@ -23,6 +23,10 @@
     "./ToolGrid.astro": "./ToolGrid.astro",
     "./ToolNav": "./ToolNav.astro",
     "./ToolNav.astro": "./ToolNav.astro",
+    "./ToolPage": "./ToolPage.astro",
+    "./ToolPage.astro": "./ToolPage.astro",
+    "./OutputPanel": "./OutputPanel.astro",
+    "./OutputPanel.astro": "./OutputPanel.astro",
     "./base.css": "./base.css",
     "./styles": "./base.css"
   }

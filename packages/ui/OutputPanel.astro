@@ -1,0 +1,69 @@
+---
+// OutputPanel — 统一的结果展示组件
+// 替代每个工具页重复的：<section class="card"><h2>Output</h2><pre>...</pre><button>Copy</button></section>
+export interface Props {
+  id: string;
+  title?: string;
+  placeholder?: string;
+  copyable?: boolean;
+  minHeight?: string;
+  maxHeight?: string;
+  variant?: 'default' | 'error';
+  initiallyHidden?: boolean;
+}
+
+const {
+  id,
+  title = 'Output',
+  placeholder = '—',
+  copyable = true,
+  minHeight = '80px',
+  maxHeight = '480px',
+  variant = 'default',
+  initiallyHidden = false,
+} = Astro.props as Props;
+
+const sectionId = `${id}-section`;
+const textId = `${id}-text`;
+const copyId = `${id}-copy`;
+---
+
+<section
+  class:list={['card', 'mt-2', 'output-panel', variant === 'error' && 'output-panel-error']}
+  id={sectionId}
+  style={initiallyHidden ? 'display:none;' : ''}
+>
+  {(title || copyable) && (
+    <div class="row" style="margin-bottom:12px;">
+      {title && (
+        <h2 class:list={[variant === 'error' ? 'h2-error' : 'h2-flat']}>{title}</h2>
+      )}
+      {copyable && (
+        <div class="row" style="gap:8px; margin-left:auto;">
+          <button class="ghost" id={copyId} type="button">Copy</button>
+        </div>
+      )}
+    </div>
+  )}
+  <pre id={textId} class="output-text" style={`min-height:${minHeight}; max-height:${maxHeight};`}>{placeholder}</pre>
+</section>
+
+<script is:inline define:vars={{ textId, copyId }}>
+  (function () {
+    var btn = document.getElementById(copyId);
+    if (!btn) return;
+    btn.addEventListener('click', async function () {
+      var pre = document.getElementById(textId);
+      var text = pre ? pre.textContent : '';
+      if (!text || text === '—') return;
+      try {
+        await navigator.clipboard.writeText(text);
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function () { btn.textContent = orig; }, 1200);
+      } catch (e) {
+        if (window.showToast) window.showToast('Copy failed', { type: 'error' });
+      }
+    });
+  })();
+</script>

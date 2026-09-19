@@ -1,22 +1,22 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
+import OutputPanel from '@versal/ui/OutputPanel.astro';
 
 const title = 'UUID v7 Generator & Timestamp Decoder';
 const description = 'Generate UUID v7 identifiers per RFC 9562 in bulk, and decode the embedded millisecond timestamp back to a readable date. Runs entirely in your browser.';
 const faqs = [
   {
-    "question": "How do I generate a UUID v7?",
-    "answer": "Click Generate to create a new UUID v7. You can generate a batch of up to 100 at once. Each UUID contains a timestamp component encoding the creation time, allowing you to sort records by creation order."
+    question: 'How do I generate a UUID v7?',
+    answer: 'Click Generate to create a new UUID v7. You can generate a batch of up to 100 at once. Each UUID contains a timestamp component encoding the creation time, allowing you to sort records by creation order.',
   },
   {
-    "question": "Can I decode a UUID v7 to find when it was created?",
-    "answer": "Yes. Paste any UUID v7 into the decoder and it extracts and displays the embedded timestamp, showing the exact creation date and time in UTC."
-  }
+    question: 'Can I decode a UUID v7 to find when it was created?',
+    answer: 'Yes. Paste any UUID v7 into the decoder and it extracts and displays the embedded timestamp, showing the exact creation date and time in UTC.',
+  },
 ];
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
@@ -25,39 +25,29 @@ const faqs = [
   current="/tools/uuid-v7/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
-
   <section class="card mt-2">
     <h2 class="h2-card">Generate</h2>
-    <label class="text-muted" for="count">Count</label>
-    <label for="count" class="sr-only">Count</label> <input id="count" type="number" value="5" min="1" max="100" style="max-width:120px;" />
-
-    <label class="text-muted mt-2" style="display:block;" for="format">Format</label>
-    <label for="format" class="sr-only">Format</label> <select id="format">
+    <label for="count" class="text-muted">Count</label>
+    <input id="count" type="number" value="5" min="1" max="100" style="max-width:120px;" />
+    <label for="format" class="text-muted mt-2" style="display:block;">Format</label>
+    <select id="format">
       <option value="standard">Standard (lowercase)</option>
       <option value="upper">UPPERCASE</option>
       <option value="no-hyphens">No hyphens</option>
       <option value="urn">URN</option>
     </select>
-
     <button class="primary mt-2" id="gen">Generate UUID v7</button>
-    <button class="ghost mt-2" id="copy">Copy</button>
-
-    <pre id="output" class="mt-2">—</pre>
   </section>
+
+  <OutputPanel id="output" title="Generated UUIDs" placeholder="—" minHeight="120px" />
 
   <section class="card mt-2">
     <h2 class="h2-card">Decode timestamp from a UUID v7</h2>
     <input id="decode-input" type="text" placeholder="Paste a UUID v7, e.g. 018f5f4b-...-..." />
     <button class="primary mt-2" id="decode-btn">Decode timestamp</button>
-    <pre id="decode-out" class="mt-2">—</pre>
   </section>
+
+  <OutputPanel id="decode-out" title="Decoded timestamp" placeholder="—" minHeight="100px" />
 
   <h2>How to use</h2>
   <ol>
@@ -76,20 +66,17 @@ const faqs = [
   <h2>About UUID v7</h2>
   <p class="text-muted">UUID v7 is a time-ordered UUID format standardized in RFC 9562: the first 48 bits carry a millisecond timestamp, and the remaining bits are random, with fixed version and variant bits. Unlike random v4 UUIDs, v7 values increase over time, so they sort chronologically and play much better with B-tree indexes in databases — avoiding the page splits and cache misses that random keys cause. This tool generates v7 UUIDs in bulk and decodes the embedded timestamp back to a readable date.</p>
   <p class="text-muted">Reach for v7 when you need primary keys or IDs that benefit from insertion-order sorting — database tables, event logs, message queues, and job IDs — especially when you are migrating away from v4. One caveat: the timestamp has millisecond precision, so IDs generated within the same millisecond are not strictly monotonic; if you need exact ordering, add a sequence or use v7's optional counter bits. The generator runs entirely in your browser using the Web Crypto API, so no data leaves your machine.</p>
-</BaseLayout>
+</ToolPage>
 
 <script is:inline>
   (function () {
     function uuidv7() {
-      // 48-bit timestamp (ms) + 80-bit random
       const ts = Date.now();
       const tsHex = ts.toString(16).padStart(12, '0');
       const rand = crypto.getRandomValues(new Uint8Array(10));
       const randHex = Array.from(rand).map(b => b.toString(16).padStart(2, '0')).join('');
-      // Set version (7) in the 13th hex digit (high nibble of byte 6)
       const bytes = (tsHex + randHex).slice(0, 32).split('');
       bytes[12] = '7';
-      // Set variant (10xx) in the 17th hex digit
       const v = parseInt(bytes[17], 16);
       bytes[17] = ((v & 0x3) | 0x8).toString(16);
       const hex = bytes.join('');
@@ -110,16 +97,11 @@ const faqs = [
       const mode = $('format').value;
       const list = [];
       for (let i = 0; i < n; i++) list.push(format(uuidv7(), mode));
-      $('output').textContent = list.join('\n');
-    });
-    $('copy').addEventListener('click', async function () {
-      const t = $('output').textContent;
-      try { await navigator.clipboard.writeText(t); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
-      catch { $('copy').textContent = 'Copy failed'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+      $('output-text').textContent = list.join('\n');
     });
     $('decode-btn').addEventListener('click', function () {
       const raw = $('decode-input').value.trim().replace(/[^0-9a-fA-F]/g, '');
-      if (raw.length < 16) { $('decode-out').textContent = 'Invalid UUID'; return; }
+      if (raw.length < 16) { $('decode-out-text').textContent = 'Invalid UUID'; return; }
       const tsHex = raw.slice(0, 12);
       const ms = parseInt(tsHex, 16);
       const d = new Date(ms);
@@ -129,7 +111,7 @@ const faqs = [
         'Unix ms:  ' + ms,
         'Unix sec: ' + Math.floor(ms / 1000),
       ];
-      $('decode-out').textContent = lines.join('\n');
+      $('decode-out-text').textContent = lines.join('\n');
     });
   })();
 </script>
