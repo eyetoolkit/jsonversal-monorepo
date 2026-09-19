@@ -168,16 +168,18 @@ const faqs = [
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   });
 
-  // —— P2.4 分享状态 URL：把 input 内容编入 #d= ———
+  // —— P2.4 + P4.2 分享状态 URL：把 input 内容 + indent 编码到 #d=…&fmt=… ———
   $('share').addEventListener('click', async () => {
     const val = $('input').value;
     if (!val) { showToast('Nothing to share — paste some JSON first.'); return; }
     try {
       // 用 base64url 编码避免特殊字符问题
       const b64 = btoa(unescape(encodeURIComponent(val))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-      const url = location.origin + location.pathname + '#d=' + b64;
+      const indent = $('indent').value;
+      const hash = '#d=' + b64 + (indent !== '4' ? '&fmt=' + indent : '');
+      const url = location.origin + location.pathname + hash;
       await navigator.clipboard.writeText(url);
-      history.replaceState(null, '', '#d=' + b64);
+      history.replaceState(null, '', hash);
       const orig = $('share').textContent;
       $('share').textContent = '✓ Copied!';
       setTimeout(() => { $('share').textContent = orig; }, 1500);
@@ -194,19 +196,47 @@ const faqs = [
       try { localStorage.setItem(STORAGE_KEY, $('input').value); } catch {}
     }, INPUT_DEBOUNCE);
   });
+  $('indent').addEventListener('change', () => {
+    try { localStorage.setItem(STORAGE_KEY + ':fmt', $('indent').value); } catch {}
+  });
 
   // —— 启动时恢复：优先级 URL hash > localStorage ———
+  function parseHash() {
+    const h = location.hash;
+    if (!h || h === '#') return null;
+    const out = { data: null, fmt: null };
+    // 支持 ?d=…&fmt=tab 形式
+    h.slice(1).split('&').forEach(kv => {
+      const [k, v] = kv.split('=');
+      if (k === 'd') out.data = v;
+      else if (k === 'fmt') out.fmt = v;
+    });
+    return out;
+  }
+
+  function decode(b64) {
+    try {
+      const padded = b64.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - b64.length % 4) % 4);
+      return decodeURIComponent(escape(atob(padded)));
+    } catch { return null; }
+  }
+
   function restore() {
-    const hash = location.hash;
-    if (hash && hash.startsWith('#d=')) {
-      try {
-        const b64 = hash.slice(3).replace(/-/g, '+').replace(/_/g, '/');
-        const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
-        const decoded = decodeURIComponent(escape(atob(padded)));
+    const parsed = parseHash();
+    if (parsed && parsed.data) {
+      const decoded = decode(parsed.data);
+      if (decoded) {
         $('input').value = decoded;
+        if (parsed.fmt && ['2','4','tab'].includes(parsed.fmt)) {
+          $('indent').value = parsed.fmt;
+        }
         return true;
-      } catch {}
+      }
     }
+    try {
+      const savedFmt = localStorage.getItem(STORAGE_KEY + ':fmt');
+      if (savedFmt && ['2','4','tab'].includes(savedFmt)) $('indent').value = savedFmt;
+    } catch {}
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) { $('input').value = saved; return true; }

@@ -209,6 +209,9 @@ const jsonLd = schemaEntries.length > 1
         Mono/Italic 由 @font-face + font-display: swap 按需加载，避免与 CSS/主文档竞争带宽 */}
     <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
 
+    {/* 预连接 og-image 域名（首屏 HTML 不阻塞但社交分享时重要） */}
+    <link rel="preconnect" href="https://jsonversal.com" crossorigin />
+
     {/* 主题初始化 —— 必须内联且在 <head>，避免首屏闪烁（FOUC）。
         优先级：用户手动选择（localStorage）> 系统 prefers-color-scheme。
         未选择时跟随系统，并在系统主题变化时实时同步。 */}
@@ -265,7 +268,7 @@ const jsonLd = schemaEntries.length > 1
     <div id="toast-container" role="region" aria-live="polite" aria-label="Notifications" class="toast-container"></div>
 
     <Header site={site} current={current} />
-    <main class="container" id="main">
+    <main class="container" id="main" tabindex="-1">
       <slot />
 
       {/* FAQ 折叠区块 —— 同时满足可访问性（<details>）和 SEO（FAQPage JSON-LD 已在 head）
