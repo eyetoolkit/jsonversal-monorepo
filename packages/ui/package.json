@@ -27,6 +27,8 @@
     "./ToolPage.astro": "./ToolPage.astro",
     "./OutputPanel": "./OutputPanel.astro",
     "./OutputPanel.astro": "./OutputPanel.astro",
+    "./SearchModal": "./SearchModal.astro",
+    "./SearchModal.astro": "./SearchModal.astro",
     "./base.css": "./base.css",
     "./styles": "./base.css"
   }

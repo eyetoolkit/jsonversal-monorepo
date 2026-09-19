@@ -11,8 +11,6 @@
     "./sites": "./sites.js",
     "./sites.js": "./sites.js",
     "./tools-icons": "./tools-icons.js",
-    "./tools-icons.js": "./tools-icons.js",
-    "./all-tools": "./all-tools.js",
-    "./all-tools.js": "./all-tools.js"
+    "./tools-icons.js": "./tools-icons.js"
   }
 }

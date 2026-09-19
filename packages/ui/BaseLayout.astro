@@ -4,6 +4,7 @@ import { tokens, sitesSEO } from '@versal/ui';
 import Header from '@versal/ui/Header.astro';
 import Footer from '@versal/ui/Footer.astro';
 import ConsentBanner from '@versal/ui/ConsentBanner.astro';
+import SearchModal from '@versal/ui/SearchModal.astro';
 
 export interface Props {
   site: 'main' | 'devops' | 'codegen' | 'sec';
@@ -293,6 +294,9 @@ const jsonLd = schemaEntries.length > 1
       若将来要接入分析（如 Cloudflare Web Analytics），必须先一并更新
       这两页的披露（含法律依据与保留期限），再在此处注入信标。
     */}
+
+    {/* 全站搜索 Modal（Ctrl/Cmd+K 唤起） */}
+    <SearchModal />
 
     {/* Toast 通知工具 —— 全局可用，替代 alert() / confirm()
         用法：showToast('message') 或 showToast('message', { type: 'error' })
