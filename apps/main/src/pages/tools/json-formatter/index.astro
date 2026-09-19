@@ -1,30 +1,13 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
+import OutputPanel from '@versal/ui/OutputPanel.astro';
 
-const title = "JSON Formatter & Validator";
-const description = "Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.";
-const faqs = [
-  {
-    "question": "How do I format JSON online for free?",
-    "answer": "Paste your JSON into the input box above and click Format. Choose 2 spaces, 4 spaces, or a tab for indentation. The formatter validates your JSON first  — if it is invalid you will see the exact error with line and column number. Everything runs in your browser, nothing is uploaded."
-  },
-  {
-    "question": "Can I pretty print minified JSON?",
-    "answer": "Yes. Paste any minified (single-line) JSON into the input and click Format. The tool parses it and re-serializes it with clean indentation, making it readable while preserving the original data exactly."
-  },
-  {
-    "question": "How do I validate JSON without uploading it?",
-    "answer": "This tool validates JSON locally in your browser using a streaming parser. If the document is invalid, the error message shows the exact line and column so you can jump straight to the problem. No data leaves your device."
-  },
-  {
-    "question": "Can I minify JSON to a single line?",
-    "answer": "Yes. Click Minify to strip all unnecessary whitespace. This produces the smallest possible valid JSON, useful for API payloads, URL query parameters, or log entries."
-  }
-];
+const title = 'JSON Formatter & Validator';
+const description = 'Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.';
 const howtos = [
   {
     name: 'How to format JSON in 3 steps',
-    description: 'Format any JSON document with this free browser-based tool.',
+    description: 'Format any JSON document with this free browser-based tool in seconds.',
     steps: [
       { name: 'Paste your JSON', text: 'Paste your raw or minified JSON into the input textarea above.' },
       { name: 'Choose indentation', text: 'Select 2 spaces, 4 spaces, or a tab character from the indent dropdown.' },
@@ -32,8 +15,16 @@ const howtos = [
     ],
   },
 ];
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+const faqs = [
+  {
+    question: 'How do I format JSON online for free?',
+    answer: 'Paste your JSON into the input box above and click Format. Choose 2 spaces, 4 spaces, or a tab for indentation. The formatter validates your JSON first — if it is invalid you will see the exact error with line and column number. Everything runs in your browser, nothing is uploaded.',
+  },
+  {
+    question: 'Can I pretty print minified JSON?',
+    answer: 'Yes. Paste any minified (single-line) JSON into the input and click Format. The tool parses it and re-serializes it with clean indentation, making it readable while preserving the original data exactly.',
+  },
+];
 ---
 
 <ToolPage
@@ -41,15 +32,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-formatter/"
+  keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
   current="/tools/json-formatter/"
   faqs={faqs}
   howtos={howtos}
 >
-
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
     <label for="input" class="sr-only">Input</label>
-    <textarea id="input" spellcheck="false" placeholder='&#123;&#10;  "users": [&#10;    &#123; "id": 1, "name": "Ada", "active": true &#125;,&#10;    &#123; "id": 2, "name": "Grace", "active": false &#125;&#10;  ]&#10;&#125;'></textarea>
+    <textarea id="input" spellcheck="false" placeholder='{"users":[{"id":1,"name":"Ada"}]}'></textarea>
     <div class="row mt-1">
       <label class="text-muted" for="indent">Indent</label>
       <select id="indent">
@@ -57,39 +48,31 @@ import BaseLayout from '@versal/ui/BaseLayout';
         <option value="4" selected>4 spaces</option>
         <option value="tab">Tab</option>
       </select>
-      <button class="primary" id="format">Format</button>
+      <button class="primary" id="format" data-primary-action>Format</button>
       <button class="ghost" id="minify">Minify</button>
-      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="sample">Sample</button>
       <button class="ghost" id="clear">Clear</button>
+      <button class="ghost" id="share" title="Copy a shareable URL with your current input">🔗 Share</button>
     </div>
   </section>
 
-  <section class="card mt-2" id="out-section" style="display:none;">
-    <div class="row" style="margin-bottom:12px;">
-      <h2 class="h2-flat">Output</h2>
-      <div class="row" style="gap:8px;">
-        <span class="text-dim" id="stats" style="font-size:.85rem;"></span>
-        <button class="ghost" id="copy">Copy</button>
-      </div>
-    </div>
-    <pre id="output" class="mt-1">—</pre>
-  </section>
+  <OutputPanel id="output" title="Output" placeholder="—" minHeight="160px" copyable={true} />
 
   <section class="card mt-2" id="err-section" style="display:none;">
     <h2 class="h2-error">Invalid JSON</h2>
-    <pre id="err-out" class="mt-1" style="color:var(--danger);">—</pre>
+    <pre id="err-out" class="output-text" style="min-height:60px; max-height:480px; color:var(--danger);">—</pre>
   </section>
 
   <h2>How it works</h2>
   <ul>
-    <li>Paste JSON, choose an indentation, and click <strong>Format</strong>  — the document is parsed and re-serialized with clean indentation.</li>
+    <li>Paste JSON, choose an indentation, and click <strong>Format</strong> — the document is parsed and re-serialized with clean indentation.</li>
     <li><strong>Minify</strong> strips all whitespace to produce the smallest valid representation.</li>
     <li>If the document is invalid, the error shows the exact message plus line and column, so you can jump straight to the problem.</li>
-    <li>Statistics (nodes, keys, depth, bytes) update automatically after every run.</li>
+    <li>Statistics update automatically after each run.</li>
   </ul>
 
   <h2>About JSON Formatter & Validator</h2>
-  <p class="text-muted">Pretty-printing turns a wall of JSON into an indented, readable tree, which makes nested structures and subtle mistakes  — a missing comma, a trailing comma, a stray quote  — far easier to spot. Formatting never changes the meaning of the document: it only re-serializes the parsed value, so the output is guaranteed to be valid JSON.</p>
+  <p class="text-muted">Pretty-printing turns a wall of JSON into an indented, readable tree, which makes nested structures and subtle mistakes — a missing comma, a trailing comma, a stray quote — far easier to spot. Formatting never changes the meaning of the document: it only re-serializes the parsed value, so the output is guaranteed to be valid JSON.</p>
   <p class="text-muted">Use this tool before sharing JSON in code review, pasting payloads into documentation, or debugging API responses. Minify when you need the smallest payload for a URL query, a storage cell, or a log line. Since parsing happens on your device, even sensitive configuration or private API responses can be formatted without ever leaving your browser.</p>
 </ToolPage>
 
@@ -97,12 +80,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
   textarea { min-height: 200px; }
   pre { min-height: 80px; max-height: 480px; overflow: auto; }
-  #output { white-space: pre-wrap; word-break: break-word; }
+  #output-text { white-space: pre-wrap; word-break: break-word; }
 </style>
 
 <script is:inline>
 (function () {
   const $ = id => document.getElementById(id);
+  const STORAGE_KEY = 'versal-jf-input';
+  const INPUT_DEBOUNCE = 400;
 
   function lineColAt(text, pos) {
     const before = text.slice(0, pos);
@@ -140,7 +125,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
         const indent = choice === 'tab' ? '\t' : parseInt(choice, 10);
         out = JSON.stringify(obj, null, indent);
       }
-      $('output').textContent = out;
+      $('output-text').textContent = out;
       const s = stats(obj);
       $('stats').textContent = `${s.keys} keys · ${s.nodes} nodes · depth ${s.depth} · ${out.length} chars`;
       $('out-section').style.display = 'block';
@@ -161,14 +146,6 @@ import BaseLayout from '@versal/ui/BaseLayout';
   $('format').addEventListener('click', () => run('format'));
   $('minify').addEventListener('click', () => run('minify'));
 
-  $('copy').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText($('output').textContent);
-      $('copy').textContent = 'Copied!';
-      setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
-    } catch {}
-  });
-
   $('sample').addEventListener('click', () => {
     $('input').value = JSON.stringify({
       id: 42,
@@ -179,12 +156,66 @@ import BaseLayout from '@versal/ui/BaseLayout';
       tags: ['premium', 'beta-tester'],
       meta: null
     }, null, 2);
+    run('format');
   });
 
   $('clear').addEventListener('click', () => {
     $('input').value = '';
     $('out-section').style.display = 'none';
     $('err-section').style.display = 'none';
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    // 清除 URL hash
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   });
+
+  // —— P2.4 分享状态 URL：把 input 内容编入 #d= ———
+  $('share').addEventListener('click', async () => {
+    const val = $('input').value;
+    if (!val) { showToast('Nothing to share — paste some JSON first.'); return; }
+    try {
+      // 用 base64url 编码避免特殊字符问题
+      const b64 = btoa(unescape(encodeURIComponent(val))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      const url = location.origin + location.pathname + '#d=' + b64;
+      await navigator.clipboard.writeText(url);
+      history.replaceState(null, '', '#d=' + b64);
+      const orig = $('share').textContent;
+      $('share').textContent = '✓ Copied!';
+      setTimeout(() => { $('share').textContent = orig; }, 1500);
+    } catch (e) {
+      showToast('Copy failed — please copy from address bar.', { type: 'error' });
+    }
+  });
+
+  // —— P2.3 自动持久化到 localStorage（debounce） ———
+  let saveTimer = null;
+  $('input').addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { localStorage.setItem(STORAGE_KEY, $('input').value); } catch {}
+    }, INPUT_DEBOUNCE);
+  });
+
+  // —— 启动时恢复：优先级 URL hash > localStorage ———
+  function restore() {
+    const hash = location.hash;
+    if (hash && hash.startsWith('#d=')) {
+      try {
+        const b64 = hash.slice(3).replace(/-/g, '+').replace(/_/g, '/');
+        const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
+        const decoded = decodeURIComponent(escape(atob(padded)));
+        $('input').value = decoded;
+        return true;
+      } catch {}
+    }
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) { $('input').value = saved; return true; }
+    } catch {}
+    return false;
+  }
+  if (restore()) {
+    // 用户上次有数据，自动跑一次格式化（不显示 toast）
+    setTimeout(() => run('format'), 50);
+  }
 })();
 </script>

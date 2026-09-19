@@ -1,19 +1,32 @@
 ---
 // ToolPage — 工具页通用外壳
 // 替代每个工具页重复的：BaseLayout 包装 + ToolNav + 面包屑 + H1 + 通用 FAQ + 隐私承诺
+// 用法：
+//   <ToolPage
+//     site="main" title="..." description="..."
+//     current="/tools/json-formatter/" canonical="https://jsonversal.com/tools/json-formatter/"
+//     keywords={[...]}
+//     faqs={[{question:'...', answer:'...'}]}    // 可选，工具专属
+//     section="tools"                              // 可选，默认从 current 推断
+//   >
+//     工具专属 UI（卡片 / 按钮 / 输入框）
+//   </ToolPage>
 import BaseLayout from './BaseLayout.astro';
 import ToolNav from './ToolNav.astro';
+import ToolSuggestions from './ToolSuggestions.astro';
 
 export interface Props {
   site: 'main' | 'devops' | 'codegen' | 'sec';
   title: string;
   description: string;
   canonical: string;
-  current: string;
+  current: string;              // e.g. '/tools/json-formatter/'
   keywords?: string[];
   faqs?: Array<{ question: string; answer: string }>;
   howtos?: Array<{ name: string; description?: string; steps: Array<{ name: string; text: string }> }>;
+  /** 可选：跳过面包屑（landing 页不需要） */
   noBreadcrumb?: boolean;
+  /** 可选：跳过 ToolNav（landing 页没有兄弟工具） */
   noToolNav?: boolean;
 }
 
@@ -30,6 +43,7 @@ const {
   noToolNav = false,
 } = Astro.props as Props;
 
+// —— 推断栏目名（用于面包屑和 ToolNav 激活判断）——
 const seg = current.split('/').filter(Boolean);
 const sectionRoot = seg[0] === 'tools' ? '/tools/' : `/${seg[0]}/`;
 const sectionLabel =
@@ -39,6 +53,8 @@ const sectionLabel =
   : seg[0] === 'codegen' ? 'Code Generators'
   : 'Tools';
 
+// —— 全局通用 FAQ —— 在工具专属 FAQ 之前自动追加
+// 这些 4 条是"local-first / no-account"叙事，统一注入避免每个页面手写
 const universalFaqs = [
   {
     question: 'Is my data sent to a server?',
@@ -54,6 +70,7 @@ const universalFaqs = [
   },
 ];
 
+// 合并（工具专属 FAQ 排在前面，更相关）
 const allFaqs = faqs ? [...faqs, ...universalFaqs] : universalFaqs;
 ---
 
@@ -81,4 +98,7 @@ const allFaqs = faqs ? [...faqs, ...universalFaqs] : universalFaqs;
   <p class="text-muted">{description}</p>
 
   <slot />
+
+  {/* 工具流转推荐 —— 当前工具完成后，下一步可能用到的相关工具 */}
+  <ToolSuggestions current={current} />
 </BaseLayout>

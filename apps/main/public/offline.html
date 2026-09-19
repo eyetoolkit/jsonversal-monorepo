@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline · jsonversal</title>
+<meta name="theme-color" content="#0b0d12">
+<style>
+  :root { color-scheme: dark light; --bg: #0b0d12; --surface: #14171f; --border: #262b36; --text: #e7eaf0; --text-muted: #9aa3b2; --accent: #6366f1; --accent-dark: #4f46e5; }
+  [data-theme="light"] { --bg: #f7f8fb; --surface: #ffffff; --border: #e3e7ef; --text: #0e121b; --text-muted: #5b6577; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: "Geist", system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; line-height: 1.6; }
+  main { max-width: 560px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px; }
+  h1 { font-size: 1.6rem; margin-bottom: 16px; }
+  p { color: var(--text-muted); margin-bottom: 14px; }
+  strong { color: var(--text); }
+  a.btn { display: inline-block; padding: 10px 18px; background: var(--accent); color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 8px; }
+  a.btn:hover { background: var(--accent-dark); }
+  ul { margin: 12px 0 16px 20px; color: var(--text-muted); }
+</style>
+<script>
+// Theme sync (复制 BaseLayout 里的逻辑)
+(function () {
+  try {
+    var t = localStorage.getItem('versal-theme');
+    if (t === 'light' || t === 'dark') {
+      document.documentElement.setAttribute('data-theme', t);
+    } else if (!window.matchMedia || !window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<main>
+  <h1>You're offline</h1>
+  <p>It looks like you don't have a network connection right now. Most tools work locally in your browser, but new pages can't load until you're back online.</p>
+  <p><strong>What still works offline:</strong> any tool page you've already visited is cached by your browser, so you can keep using it. Try a page you've opened recently — including all features that don't need to fetch new data.</p>
+  <p><strong>Why offline works:</strong> every tool runs 100% in your browser using the Web Crypto, File and Clipboard APIs. Nothing is ever uploaded, so once a page is loaded, processing keeps working without a connection.</p>
+  <ul>
+    <li><a href="/">Back to home (when online)</a></li>
+    <li><a href="/tools/">Browse all tools</a></li>
+  </ul>
+  <a href="/" class="btn">Retry home page</a>
+</main>
+</body>
+</html>

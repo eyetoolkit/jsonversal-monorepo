@@ -1,0 +1,143 @@
+---
+// ToolSuggestions — 工具完成后的"下一步"提示
+// 根据当前工具页 + 常见用户路径，推荐 2-3 个逻辑上顺延的工具
+//
+// 用法：在 ToolPage 内底部自动注入
+
+const { current } = Astro.props as { current: string };
+
+// 工具流转路径：key 为 slug，value 为下一步推荐列表
+const SUGGESTIONS: Record<string, Array<{ title: string; href: string; reason: string }>> = {
+  // JSON 工具链
+  'json-formatter': [
+    { title: 'JSON Minify', href: '/tools/json-minify/', reason: 'compress the formatted output' },
+    { title: 'JSON to Zod Schema', href: '/tools/json-to-zod/', reason: 'turn this into a TypeScript validator' },
+    { title: 'JSON Schema Validator', href: '/tools/json-schema-validator/', reason: 'verify against a schema' },
+  ],
+  'json-minify': [
+    { title: 'JSON Statistics', href: '/tools/json-statistics/', reason: 'see the compression ratio' },
+    { title: 'JSON Formatter', href: '/tools/json-formatter/', reason: 're-format when needed' },
+  ],
+  'json-diff': [
+    { title: 'JSON Formatter', href: '/tools/json-formatter/', reason: 'compare formatted versions' },
+  ],
+  'json-to-zod': [
+    { title: 'JSON to TypeScript', href: '/tools/json-to-typescript/', reason: 'complementary types' },
+    { title: 'JSON Schema Validator', href: '/tools/json-schema-validator/', reason: 'test your data against the schema' },
+  ],
+  'json-schema-generator': [
+    { title: 'JSON Schema Sample Data', href: '/tools/json-schema-sample-generator/', reason: 'generate test data' },
+    { title: 'JSON Schema Validator', href: '/tools/json-schema-validator/', reason: 'verify it works' },
+  ],
+  'json-schema-validator': [
+    { title: 'JSON Formatter', href: '/tools/json-formatter/', reason: 'clean up errors first' },
+  ],
+  // Sec 链
+  'hash': [
+    { title: 'HMAC Generator', href: '/sec/tools/hmac/', reason: 'sign a message with this hash' },
+    { title: 'File Checksum', href: '/sec/tools/file-checksum/', reason: 'hash entire files' },
+  ],
+  'jwt-decoder': [
+    { title: 'JWT Generator', href: '/sec/tools/jwt-generator/', reason: 'create a matching token' },
+  ],
+  'jwt-generator': [
+    { title: 'JWT Decoder', href: '/sec/tools/jwt-decoder/', reason: 'inspect the generated token' },
+  ],
+  'password-generator': [
+    { title: 'Passphrase Generator', href: '/sec/tools/passphrase-generator/', reason: 'try memorable alternatives' },
+  ],
+  // DevOps 链
+  'base64': [
+    { title: 'Base64 Image Viewer', href: '/codegen/tools/base64-image/', reason: 'view images encoded in base64' },
+  ],
+  'cron-parser': [
+    { title: 'Crontab Explainer', href: '/devops/tools/crontab/', reason: 'simpler 5-field syntax' },
+  ],
+  'uuid-generator': [
+    { title: 'UUID v7 Generator', href: '/tools/uuid-v7/', reason: 'time-ordered alternative' },
+  ],
+  'url-codec': [
+    { title: 'Base64 Encoder', href: '/devops/tools/base64/', reason: 'often used together' },
+  ],
+  // Codegen 链
+  'gitignore': [
+    { title: 'Docker Compose Generator', href: '/codegen/tools/docker-compose/', reason: 'next step in setup' },
+    { title: 'env Generator', href: '/codegen/tools/env-generator/', reason: 'environment files' },
+  ],
+  'docker-compose': [
+    { title: '.gitignore Generator', href: '/codegen/tools/gitignore/', reason: 'before committing' },
+    { title: 'env Generator', href: '/codegen/tools/env-generator/', reason: 'environment files' },
+  ],
+  'curl-to-fetch': [
+    { title: 'cURL to Python', href: '/codegen/tools/curl-to-python/', reason: 'Python version' },
+  ],
+  'curl-to-python': [
+    { title: 'cURL to Fetch', href: '/codegen/tools/curl-to-fetch/', reason: 'JS version' },
+  ],
+};
+
+// —— 计算当前工具的 slug ——
+function getSlug(currentPath: string): string {
+  // /tools/json-formatter/ -> json-formatter
+  const m = currentPath.match(/\/([^\/]+)\/?$/);
+  return m ? m[1] : '';
+}
+
+const slug = getSlug(current);
+const suggestions = SUGGESTIONS[slug] || [];
+
+// 调试：如果没有建议，什么也不渲染（避免空盒子）
+if (suggestions.length === 0) {
+  // 渲染为空 —— Astro 会跳过空 fragment
+}
+---
+
+{suggestions.length > 0 && (
+  <section class="card mt-3 tool-suggestions" aria-label="Next steps">
+    <h2 class="h2-card">Next steps</h2>
+    <ul>
+      {suggestions.map(s => (
+        <li>
+          <a href={s.href}>{s.title}</a>
+          <span class="reason">— {s.reason}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .tool-suggestions {
+    background: linear-gradient(135deg, var(--accent-soft, transparent), transparent);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  }
+  .tool-suggestions h2 {
+    margin-top: 0;
+    color: var(--accent-text);
+  }
+  .tool-suggestions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tool-suggestions li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: baseline;
+    padding: 4px 0;
+  }
+  .tool-suggestions a {
+    font-weight: 600;
+    color: var(--accent-text);
+    text-decoration: none !important;
+  }
+  .tool-suggestions a:hover { text-decoration: underline !important; }
+  .tool-suggestions .reason {
+    color: var(--text-muted);
+    font-size: .88rem;
+  }
+</style>

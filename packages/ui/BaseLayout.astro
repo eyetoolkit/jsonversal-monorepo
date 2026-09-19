@@ -333,6 +333,32 @@ const jsonLd = schemaEntries.length > 1
       })();
     </script>
 
+    {/* Service Worker 注册 —— 离线缓存核心页 + 字体 */}
+    <script is:inline>
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(function (reg) {
+              // 检查 SW 更新
+              reg.addEventListener('updatefound', function () {
+                var sw = reg.installing;
+                sw.addEventListener('statechange', function () {
+                  if (sw.state === 'activated' && navigator.serviceWorker.controller) {
+                    // 新 SW 激活，提示用户刷新（轻微延迟避免抢占）
+                    setTimeout(function () {
+                      if (window.showToast) {
+                        window.showToast('New version available — refresh to update.', { type: 'info', duration: 5000 });
+                      }
+                    }, 800);
+                  }
+                });
+              });
+            })
+            .catch(function (e) { /* 静默失败，不影响主流程 */ });
+        });
+      }
+    </script>
+
     {/* Toast 通知工具 —— 全局可用，替代 alert() / confirm()
         用法：showToast('message') 或 showToast('message', { type: 'error' })
         type: 'error' (default) | 'success' | 'info' | 'warning' */}

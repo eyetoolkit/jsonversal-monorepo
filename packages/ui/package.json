@@ -31,6 +31,8 @@
     "./SearchModal.astro": "./SearchModal.astro",
     "./RecentTools": "./RecentTools.astro",
     "./RecentTools.astro": "./RecentTools.astro",
+    "./ToolSuggestions": "./ToolSuggestions.astro",
+    "./ToolSuggestions.astro": "./ToolSuggestions.astro",
     "./base.css": "./base.css",
     "./styles": "./base.css"
   }
