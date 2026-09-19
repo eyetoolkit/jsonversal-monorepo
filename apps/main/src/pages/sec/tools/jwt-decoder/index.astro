@@ -1,46 +1,33 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = 'JWT Decoder — Decode and Verify Tokens';
 const description = 'Decode JWT tokens instantly. View header, payload, and signature. Check expiration and verify signatures. 100% browser-based, nothing sent to servers.';
 const faqs = [
   {
-    "question": "How do I decode a JWT token?",
-    "answer": "Paste your JWT into the input and the decoder immediately shows the header and payload in plain JSON. It also checks the expiry (exp) claim and shows whether the token is still valid or has expired."
+    question: 'How do I decode a JWT token?',
+    answer: 'Paste your JWT into the input and the decoder immediately shows the header and payload in plain JSON. It also checks the expiry (exp) claim and shows whether the token is still valid or has expired.',
   },
   {
-    "question": "Can I verify a JWT signature?",
-    "answer": "The decoder shows the signature section after decoding, but requires a secret or public key for verification. For HMAC verification, use the JWT Generator tool which shares the same secret between encode and decode."
+    question: 'Can I verify a JWT signature?',
+    answer: 'The decoder shows the signature section after decoding, but requires a secret or public key for verification. For HMAC verification, use the JWT Generator tool which shares the same secret between encode and decode.',
   },
-  {
-    "question": "Is my JWT sent to a server?",
-    "answer": "No. All decoding and verification happens locally in your browser. The token payload is decoded with Base64URL decoding only \u2014 no network request is made. Your secrets and tokens stay private."
-  }
 ];
 ---
 
-<BaseLayout
+<ToolPage
   site="sec"
   title={title}
   description={description}
   canonical="https://jsonversal.com/sec/tools/jwt-decoder/"
-  keywords={['JWT decoder', 'JWT decoder online', 'decode JWT', 'JWT verifier', 'JWT debugger', 'JWT parser', 'jwt-decoder', 'JWT token decode']}
+  keywords={['JWT decoder', 'JWT decoder online', 'decode JWT', 'JWT verifier', 'JWT debugger', 'JWT parser', 'JWT token decode']}
   current="/sec/tools/jwt-decoder/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
-
   <section class="card mt-2">
     <h2 class="h2-card">JWT Token</h2>
     <label for="jwt-input" class="sr-only">JWT Token</label>
-    <textarea id="jwt-input" aria-label="JWT Token" spellcheck="false" placeholder="Paste your JWT token here (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...)"></textarea>
+    <textarea id="jwt-input" spellcheck="false" placeholder="Paste your JWT token here (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...)"></textarea>
     <div class="row mt-2">
       <button class="primary" id="decode-btn">Decode</button>
       <button class="ghost" id="clear-btn">Clear</button>
@@ -52,7 +39,7 @@ const faqs = [
       <h2 class="h2-flat">Header</h2>
       <span class="badge" id="alg-badge"></span>
     </div>
-    <pre id="header-out" class="mt-1"></pre>
+    <pre id="header-out" class="output-text" style="min-height:40px; max-height:480px;"></pre>
   </section>
 
   <section class="card mt-2" id="payload-section" style="display:none;">
@@ -60,19 +47,19 @@ const faqs = [
       <h2 class="h2-flat">Payload</h2>
       <span class="badge" id="exp-badge"></span>
     </div>
-    <pre id="payload-out" class="mt-1"></pre>
+    <pre id="payload-out" class="output-text" style="min-height:40px; max-height:480px;"></pre>
     <div class="text-dim mt-2" id="claims-summary" style="font-size:.85rem;"></div>
   </section>
 
   <section class="card mt-2" id="sig-section" style="display:none;">
     <h2 class="h2-flat">Signature</h2>
-    <pre id="sig-out" class="mt-1" style="word-break:break-all;font-size:.8rem;color:var(--muted);"></pre>
+    <pre id="sig-out" class="output-text" style="min-height:40px; max-height:480px; word-break:break-all; font-size:.8rem; color:var(--muted);"></pre>
     <p class="text-dim mt-1" id="sig-note" style="font-size:.8rem;"></p>
   </section>
 
   <section class="card mt-2" id="err-section" style="display:none;">
     <h2 class="h2-error">Error</h2>
-    <pre id="err-out" class="mt-1" style="color:var(--danger);"></pre>
+    <pre id="err-out" class="output-text" style="min-height:40px; color:var(--danger);"></pre>
   </section>
 
   <h2>How it works</h2>
@@ -86,14 +73,9 @@ const faqs = [
   <h2>About JWT Decoder</h2>
   <p class="text-muted">JWT (JSON Web Token) is a compact standard (RFC 7519) for transmitting claims between parties as a signed, URL-safe token. A JWT consists of three parts: the header declares the algorithm, the payload holds the claims (user ID, roles, expiration, etc.), and the signature binds and verifies them. Because the header and payload are merely Base64-encoded (not encrypted), never put sensitive data like passwords inside a JWT — treat it like a wearing a transparent ID badge that anyone can read.</p>
   <p class="text-muted">Use this decoder to inspect tokens from Auth0, Firebase, Supabase, or your own service during development and debugging. For production verification with HMAC (HS*) secrets or RSA (RS*) keys, you need the corresponding secret or public key — use it alongside the JWT Generator on this site to create and verify a matching pair.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  textarea { min-height: 100px; }
-  pre { min-height: 40px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
-  .mt-1 { margin-top: 10px; }
-  .mt-2 { margin-top: 16px; }
   .badge {
     display: inline-block;
     padding: 3px 10px;
@@ -106,6 +88,7 @@ const faqs = [
   }
   .badge.ok { background: rgba(34,197,94,.15); color: var(--success); border-color: var(--success); }
   .badge.expired { background: rgba(239,68,68,.15); color: var(--danger); border-color: var(--danger); }
+  textarea { min-height: 100px; }
 </style>
 
 <script is:inline>
@@ -129,14 +112,6 @@ const faqs = [
     return d.toLocaleString() + ' (' + ts + ')';
   }
 
-  function getClaimLabel(key) {
-    const map = {
-      iss: 'Issuer', sub: 'Subject', aud: 'Audience',
-      exp: 'Expires', nbf: 'Not Before', iat: 'Issued At', jti: 'JWT ID'
-    };
-    return map[key] || key;
-  }
-
   function hideAll() {
     ['header-section','payload-section','sig-section','err-section'].forEach(id => {
       $(id).style.display = 'none';
@@ -158,19 +133,16 @@ const faqs = [
     const [headerB64, payloadB64, sigB64] = parts;
 
     try {
-      // Header
       const headerRaw = b64urlDecode(headerB64);
       const headerObj = JSON.parse(headerRaw);
       $('header-out').textContent = formatJSON(headerRaw);
       $('alg-badge').textContent = headerObj.alg || 'unknown';
       $('header-section').style.display = 'block';
 
-      // Payload
       const payloadRaw = b64urlDecode(payloadB64);
       const payloadObj = JSON.parse(payloadRaw);
       $('payload-out').textContent = formatJSON(payloadRaw);
 
-      // Expiry badge
       const expTs = payloadObj.exp;
       if (expTs) {
         const now = Math.floor(Date.now() / 1000);
@@ -190,7 +162,6 @@ const faqs = [
         $('exp-badge').parentElement.style.display = 'none';
       }
 
-      // Claims summary
       const stdKeys = ['iss','sub','aud','exp','nbf','iat','jti'];
       const custom = Object.keys(payloadObj).filter(k => !stdKeys.includes(k));
       const parts2 = [];
@@ -202,7 +173,6 @@ const faqs = [
       $('claims-summary').textContent = parts2.join(' · ');
       $('payload-section').style.display = 'block';
 
-      // Signature
       $('sig-out').textContent = sigB64;
       const alg = headerObj.alg || '';
       const isHMAC = /^HS(256|384|512)$/.test(alg);
