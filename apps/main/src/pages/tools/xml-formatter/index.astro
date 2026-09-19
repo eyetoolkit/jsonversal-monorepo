@@ -57,7 +57,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>The XML parser uses the browser's native <code>DOMParser</code> for strict validation — malformed tags, mismatched quotes, or missing closing elements produce specific line/column errors.</li>
+    <li>The XML parser uses the browser's native <code>DOMParser</code> for strict validation  — malformed tags, mismatched quotes, or missing closing elements produce specific line/column errors.</li>
     <li>The pretty-printer walks the DOM tree and emits indented tags, collapsing whitespace-only text nodes and preserving CDATA and processing instructions exactly.</li>
     <li>Minify mode strips all whitespace between tags for the smallest possible representation.</li>
   </ul>
@@ -141,7 +141,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     const indentStr = indentVal === 'tab' ? '\t' : ' '.repeat(parseInt(indentVal));
     const mode = $('mode').value;
     if (mode === 'validate') {
-      $('output').value = '✓ Valid XML — ' + doc.documentElement.nodeName + ' root element, ' + doc.querySelectorAll('*').length + ' elements.';
+      $('output').value = '✓ Valid XML  — ' + doc.documentElement.nodeName + ' root element, ' + doc.querySelectorAll('*').length + ' elements.';
       return;
     }
     if (mode === 'minify') { $('output').value = minify(doc); return; }

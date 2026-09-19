@@ -67,13 +67,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Pick an <strong>AI preset</strong> — OpenAI, Anthropic, Gemini, intent classifier, or entity extraction — and the tool loads a production-tested JSON Schema.</li>
+    <li>Pick an <strong>AI preset</strong>  — OpenAI, Anthropic, Gemini, intent classifier, or entity extraction  — and the tool loads a production-tested JSON Schema.</li>
     <li>Paste what the LLM actually returned and click <strong>Validate</strong>. The validator checks every constraint: required fields, types, enums, min/max, patterns, allOf/anyOf/oneOf, and nested objects.</li>
     <li>Click <strong>Generate mock</strong> to see what a compliant LLM response looks like. Useful both as a reference for writing prompts and as a sanity check that your schema is well-formed.</li>
   </ul>
 
   <h2>About LLM Structured Outputs</h2>
-  <p class="text-muted">Every major LLM platform — OpenAI, Anthropic, Google Gemini, and AWS Bedrock — now supports <em>structured output</em>: the ability to declare a JSON Schema and force the model to return data conforming to it. This turns unreliable free-text responses into typed, parseable data that your code can consume directly. But a bad schema — missing required fields, ambiguous types, or contradictions in allOf/oneOf — causes silent failures: the model silently omits fields, returns the wrong type, or your parser crashes. This tool validates both sides: the schema itself and any concrete LLM output you paste against it.</p>
+  <p class="text-muted">Every major LLM platform  — OpenAI, Anthropic, Google Gemini, and AWS Bedrock  — now supports <em>structured output</em>: the ability to declare a JSON Schema and force the model to return data conforming to it. This turns unreliable free-text responses into typed, parseable data that your code can consume directly. But a bad schema  — missing required fields, ambiguous types, or contradictions in allOf/oneOf  — causes silent failures: the model silently omits fields, returns the wrong type, or your parser crashes. This tool validates both sides: the schema itself and any concrete LLM output you paste against it.</p>
 </ToolPage>
 
 <style>
@@ -256,7 +256,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     try { schema = JSON.parse($('schema').value); }
     catch (e) { $('resultBadge').className = 'bad-badge'; $('resultBadge').textContent = 'Invalid Schema'; $('resultSummary').textContent = e.message; return; }
     try { output = JSON.parse($('output').value); }
-    catch (e) { $('resultBadge').className = 'bad-badge'; $('resultBadge').textContent = 'Invalid LLM Output'; $('resultSummary').textContent = e.message + ' — the LLM did not return valid JSON.'; return; }
+    catch (e) { $('resultBadge').className = 'bad-badge'; $('resultBadge').textContent = 'Invalid LLM Output'; $('resultSummary').textContent = e.message + '  — the LLM did not return valid JSON.'; return; }
 
     var errors = [];
     walk(output, schema, '', errors);

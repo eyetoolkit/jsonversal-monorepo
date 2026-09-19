@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "cURL to Fetch Converter";
-const description = "Parse a curl command and generate browser or Node fetch() code using async/await — methods, headers, JSON bodies, cookies and basic auth included.";
+const description = "Parse a curl command and generate browser or Node fetch() code using async/await  — methods, headers, JSON bodies, cookies and basic auth included.";
 const faqs = [
   {
     "question": "How do I convert curl to JavaScript fetch?",
@@ -37,7 +37,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </section>
 
   <section class="card mt-2" id="result" style="display:none;">
-    <strong>Output — fetch() code</strong>
+    <strong>Output  — fetch() code</strong>
     <pre id="out" class="mt-2"></pre>
     <div style="margin-top:8px;display:flex;gap:8px;">
       <button class="ghost" id="copy">Copy</button>
@@ -55,8 +55,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </ul>
 
   <h2>About cURL to Fetch Converter</h2>
-  <p class="text-muted">A browser tab cannot execute curl — it is a command-line tool — and hand-writing the equivalent fetch() call is easy to get wrong. This converter turns a curl command copied from docs or shell history into modern async/await fetch code you can paste straight into a script, a test, or the DevTools console.</p>
-  <p class="text-muted">The two differ in defaults: curl sends Content-Type: application/x-www-form-urlencoded for -d payloads, while fetch() sets no content type unless you add one; HTTP headers are case-insensitive, so the converter preserves the exact casing you typed. The mapping is not complete — options like --cookie-jar, TLS certificates (-k, --cacert) and retries have no fetch equivalent and are skipped.</p>
+  <p class="text-muted">A browser tab cannot execute curl  — it is a command-line tool  — and hand-writing the equivalent fetch() call is easy to get wrong. This converter turns a curl command copied from docs or shell history into modern async/await fetch code you can paste straight into a script, a test, or the DevTools console.</p>
+  <p class="text-muted">The two differ in defaults: curl sends Content-Type: application/x-www-form-urlencoded for -d payloads, while fetch() sets no content type unless you add one; HTTP headers are case-insensitive, so the converter preserves the exact casing you typed. The mapping is not complete  — options like --cookie-jar, TLS certificates (-k, --cacert) and retries have no fetch equivalent and are skipped.</p>
 </ToolPage>
 
 <style>
@@ -194,7 +194,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
         out += '  },\n';
       }
       if (body !== null) {
-        if (addedJsonType) out += '  // payload starts with { — serialized as JSON, Content-Type added\n';
+        if (addedJsonType) out += '  // payload starts with {  — serialized as JSON, Content-Type added\n';
         out += '  body: ' + body + ',\n';
       }
       out += '});\n';

@@ -44,7 +44,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     </div>
     <pre id="output">—</pre>
     <p class="text-dim" style="margin-top:8px;font-size:.85rem;">
-      Requires <code>pydantic</code> — install with <code>pip install pydantic</code>
+      Requires <code>pydantic</code>  — install with <code>pip install pydantic</code>
     </p>
   </section>
 
@@ -56,7 +56,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <h2>How it works</h2>
   <ul>
     <li>Paste a JSON sample representing your expected data shape.</li>
-    <li>Click <strong>Generate Pydantic Model</strong> — nested objects become their own <code>BaseModel</code> classes, arrays become <code>List[...]</code>, and nullable values become <code>Optional[...]</code>.</li>
+    <li>Click <strong>Generate Pydantic Model</strong>  — nested objects become their own <code>BaseModel</code> classes, arrays become <code>List[...]</code>, and nullable values become <code>Optional[...]</code>.</li>
     <li>Copy the generated classes into your Python project and use them for validation, serialization, and type hints.</li>
   </ul>
 
@@ -70,7 +70,7 @@ print(user.name, user.address.city)</pre>
 
   <h2>About JSON to Pydantic Model</h2>
   <p class="text-muted">Pydantic is the standard data-validation library for Python, using type hints to validate and serialize data at runtime. Generating BaseModel classes from a JSON sample saves you from hand-writing the boilerplate for API responses, configuration objects, and LLM structured output, while keeping your code type-checkable.</p>
-  <p class="text-muted">Use it when you receive untyped JSON — from a REST API, a database row, or an LLM call — and want runtime guarantees in Python. As with any inferred model, the output is only as accurate as the sample: add optional fields, unions, and constraints by hand after generation, and remember that an empty array becomes <code>List[Any]</code> because the sample carries no element type.</p>
+  <p class="text-muted">Use it when you receive untyped JSON  — from a REST API, a database row, or an LLM call  — and want runtime guarantees in Python. As with any inferred model, the output is only as accurate as the sample: add optional fields, unions, and constraints by hand after generation, and remember that an empty array becomes <code>List[Any]</code> because the sample carries no element type.</p>
 </ToolPage>
 
 <style>

@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "X.509 Certificate Decoder";
-const description = "Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs and extensions. A compact DER/ASN.1 parser, nothing uploaded.";
+const description = "Decode PEM X.509 certificates in your browser  — subject, issuer, validity, public key, SANs and extensions. A compact DER/ASN.1 parser, nothing uploaded.";
 const faqs = [
   {
     "question": "How do I decode an X.509 certificate?",
@@ -52,12 +52,12 @@ import BaseLayout from '@versal/ui/BaseLayout';
     <li>Paste a PEM certificate (the <code>-----BEGIN CERTIFICATE-----</code> block from a <code>.crt</code>, <code>.pem</code>, or TLS handshake).</li>
     <li>The tool base64-decodes the body into DER and walks the ASN.1 structure: version, serial, signature, issuer, validity, subject, public key, and extensions.</li>
     <li>Subject Alternative Names (DNS / IP / email / URI) and key usage flags are decoded from the standard X.509 extension OIDs.</li>
-    <li>Everything is parsed on your device — certificates are public by design, but your data still never leaves the browser.</li>
+    <li>Everything is parsed on your device  — certificates are public by design, but your data still never leaves the browser.</li>
   </ul>
 
   <h2>About X.509 Certificate Decoder</h2>
-  <p class="text-muted">X.509 certificates are the public keys of TLS and PKI. A certificate is an ASN.1 DER structure base64-encoded into PEM: who issued it (issuer), who it belongs to (subject), the validity window, the public key and algorithm, and extensions such as Subject Alternative Names (the hostnames the certificate is valid for) and key usage. Reading these fields by hand means decoding DER byte by byte — this tool does that for you so you can quickly answer questions like &ldquo;when does this cert expire?&rdquo;, &ldquo;which domains is it valid for?&rdquo;, or &ldquo;is it CA-signed?&rdquo;.</p>
-  <p class="text-muted">This decoder is for inspection only — it does not verify the trust chain or the signature (that requires the issuer&rsquo;s public key and a CA store). For trust validation use a proper TLS stack. Note that certificates are public information; still, this tool runs locally so you can inspect internal-PKI certs, customer certs, or key-material-adjacent data without third-party servers seeing them.</p>
+  <p class="text-muted">X.509 certificates are the public keys of TLS and PKI. A certificate is an ASN.1 DER structure base64-encoded into PEM: who issued it (issuer), who it belongs to (subject), the validity window, the public key and algorithm, and extensions such as Subject Alternative Names (the hostnames the certificate is valid for) and key usage. Reading these fields by hand means decoding DER byte by byte  — this tool does that for you so you can quickly answer questions like &ldquo;when does this cert expire?&rdquo;, &ldquo;which domains is it valid for?&rdquo;, or &ldquo;is it CA-signed?&rdquo;.</p>
+  <p class="text-muted">This decoder is for inspection only  — it does not verify the trust chain or the signature (that requires the issuer&rsquo;s public key and a CA store). For trust validation use a proper TLS stack. Note that certificates are public information; still, this tool runs locally so you can inspect internal-PKI certs, customer certs, or key-material-adjacent data without third-party servers seeing them.</p>
 </ToolPage>
 
 <style>

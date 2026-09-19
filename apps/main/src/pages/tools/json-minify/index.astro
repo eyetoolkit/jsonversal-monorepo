@@ -56,13 +56,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>The minifier parses your JSON with strict <code>JSON.parse</code>, which naturally strips every comment, trailing comma, and inconsistent indentation — then re-serializes with zero whitespace.</li>
+    <li>The minifier parses your JSON with strict <code>JSON.parse</code>, which naturally strips every comment, trailing comma, and inconsistent indentation  — then re-serializes with zero whitespace.</li>
     <li>If your input is not valid JSON (trailing commas, JavaScript object literals), the tool tries a lenient fallback parser that accepts common browser-style JSON.</li>
-    <li>Statistics show the input size, compressed size, savings percentage, and an estimated gzipped output — useful when comparing payload sizes for API responses.</li>
+    <li>Statistics show the input size, compressed size, savings percentage, and an estimated gzipped output  — useful when comparing payload sizes for API responses.</li>
   </ul>
 
   <h2>About Minifying JSON</h2>
-  <p class="text-muted">Minifying JSON removes all spaces, tabs, and newlines between tokens. For typical real-world payloads this saves 30–60% of the byte size, which matters when embedding JSON in URL query strings (where there is a 2048-character soft limit), HTML data attributes, CSS <code>--var</code> declarations, email templates, or any bandwidth-sensitive transport. The output is <em>byte-identical</em> to the input for the parser — any program that accepts the pretty version will accept the minified version.</p>
+  <p class="text-muted">Minifying JSON removes all spaces, tabs, and newlines between tokens. For typical real-world payloads this saves 30–60% of the byte size, which matters when embedding JSON in URL query strings (where there is a 2048-character soft limit), HTML data attributes, CSS <code>--var</code> declarations, email templates, or any bandwidth-sensitive transport. The output is <em>byte-identical</em> to the input for the parser  — any program that accepts the pretty version will accept the minified version.</p>
 </ToolPage>
 
 <style>
@@ -85,7 +85,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   function gzipSize(str) {
     try {
-      // Rough estimate using simple byte counting — actual gzip varies
+      // Rough estimate using simple byte counting  — actual gzip varies
       const enc = new TextEncoder().encode(str);
       // Heuristic: gzip typically achieves 50-70% on JSON
       return Math.round(enc.length * 0.35);

@@ -2,11 +2,11 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "Mock Data Generator";
-const description = "Generate realistic fake JSON from a sample or schema — infers types, patterns and ranges. Output any number of records to seed databases and test APIs.";
+const description = "Generate realistic fake JSON from a sample or schema  — infers types, patterns and ranges. Output any number of records to seed databases and test APIs.";
 const faqs = [
   {
     "question": "How do I generate mock JSON data?",
-    "answer": "There are two modes: Sample mode — paste one real JSON record and the tool automatically infers the type, range, and pattern of every field (email fields become random emails, numbers stay in the same range). Schema mode — paste a JSON Schema and the tool generates data that satisfies every constraint. Click Generate and pick how many records to produce."
+    "answer": "There are two modes: Sample mode  — paste one real JSON record and the tool automatically infers the type, range, and pattern of every field (email fields become random emails, numbers stay in the same range). Schema mode  — paste a JSON Schema and the tool generates data that satisfies every constraint. Click Generate and pick how many records to produce."
   },
   {
     "question": "What types of mock data are available?",
@@ -58,9 +58,9 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li><strong>Sample mode</strong> — paste one real record and the tool infers the type, range, and pattern of every field. Email fields become random emails, age fields become integers in the same range, boolean fields flip randomly.</li>
-    <li><strong>Schema mode</strong> — paste a JSON Schema (draft-07 / 2020-12) and every constraint is honored: enums stay within their options, strings respect minLength/maxLength/pattern, numbers respect minimum/maximum/multipleOf, and required properties are never omitted.</li>
-    <li>Output is a JSON array with the requested number of records — ready to paste into your test suite or import script.</li>
+    <li><strong>Sample mode</strong>  — paste one real record and the tool infers the type, range, and pattern of every field. Email fields become random emails, age fields become integers in the same range, boolean fields flip randomly.</li>
+    <li><strong>Schema mode</strong>  — paste a JSON Schema (draft-07 / 2020-12) and every constraint is honored: enums stay within their options, strings respect minLength/maxLength/pattern, numbers respect minimum/maximum/multipleOf, and required properties are never omitted.</li>
+    <li>Output is a JSON array with the requested number of records  — ready to paste into your test suite or import script.</li>
   </ul>
 </ToolPage>
 

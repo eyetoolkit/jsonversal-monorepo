@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JWT Decoder — Decode and Verify Tokens';
+const title = 'JWT Decoder  — Decode and Verify Tokens';
 const description = 'Decode JWT tokens instantly. View header, payload, and signature. Check expiration and verify signatures. 100% browser-based, nothing sent to servers.';
 const faqs = [
   {
@@ -65,14 +65,14 @@ const faqs = [
   <h2>How it works</h2>
   <ul>
     <li>A JWT has three Base64URL-encoded parts separated by dots (<code>header.payload.signature</code>).</li>
-    <li>The header and payload are decoded and parsed as JSON — they are <strong>not encrypted</strong>, anyone can read them.</li>
+    <li>The header and payload are decoded and parsed as JSON  — they are <strong>not encrypted</strong>, anyone can read them.</li>
     <li>The signature proves the token was issued by whoever holds the secret key. Without a key you can decode but not verify.</li>
-    <li>All decoding runs locally in your browser — your JWT is never sent to any server.</li>
+    <li>All decoding runs locally in your browser  — your JWT is never sent to any server.</li>
   </ul>
 
   <h2>About JWT Decoder</h2>
-  <p class="text-muted">JWT (JSON Web Token) is a compact standard (RFC 7519) for transmitting claims between parties as a signed, URL-safe token. A JWT consists of three parts: the header declares the algorithm, the payload holds the claims (user ID, roles, expiration, etc.), and the signature binds and verifies them. Because the header and payload are merely Base64-encoded (not encrypted), never put sensitive data like passwords inside a JWT — treat it like a wearing a transparent ID badge that anyone can read.</p>
-  <p class="text-muted">Use this decoder to inspect tokens from Auth0, Firebase, Supabase, or your own service during development and debugging. For production verification with HMAC (HS*) secrets or RSA (RS*) keys, you need the corresponding secret or public key — use it alongside the JWT Generator on this site to create and verify a matching pair.</p>
+  <p class="text-muted">JWT (JSON Web Token) is a compact standard (RFC 7519) for transmitting claims between parties as a signed, URL-safe token. A JWT consists of three parts: the header declares the algorithm, the payload holds the claims (user ID, roles, expiration, etc.), and the signature binds and verifies them. Because the header and payload are merely Base64-encoded (not encrypted), never put sensitive data like passwords inside a JWT  — treat it like a wearing a transparent ID badge that anyone can read.</p>
+  <p class="text-muted">Use this decoder to inspect tokens from Auth0, Firebase, Supabase, or your own service during development and debugging. For production verification with HMAC (HS*) secrets or RSA (RS*) keys, you need the corresponding secret or public key  — use it alongside the JWT Generator on this site to create and verify a matching pair.</p>
 </ToolPage>
 
 <style>

@@ -71,13 +71,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <h2>How it works</h2>
   <ul>
     <li><strong>Escape</strong> serializes the input with JSON.stringify: quotes, backslashes, newlines, tabs and control characters become the short \u-escapes that JSON requires, wrapped in double quotes.</li>
-    <li><strong>Unescape</strong> parses the literal back with JSON.parse, restoring the original text — handy for decoding API logs, CSV dumps, or generated payloads.</li>
+    <li><strong>Unescape</strong> parses the literal back with JSON.parse, restoring the original text  — handy for decoding API logs, CSV dumps, or generated payloads.</li>
     <li>The <strong>For JavaScript source</strong> row shows the same literal with U+2028 and U+2029 also escaped, so the string is safe to paste into older JS engines that reject those characters in source code.</li>
     <li>Byte counts (UTF-8) for input and output are shown under the result.</li>
   </ul>
 
   <h2>About JSON Escape & Unescape</h2>
-  <p class="text-muted">Escaping is the price of putting arbitrary text inside a JSON document: quotes and backslashes must be marked, and control characters cannot appear literally. Getting the escaping wrong produces invalid JSON — a leading cause of broken configs, failed API calls, and corrupted import scripts.</p>
+  <p class="text-muted">Escaping is the price of putting arbitrary text inside a JSON document: quotes and backslashes must be marked, and control characters cannot appear literally. Getting the escaping wrong produces invalid JSON  — a leading cause of broken configs, failed API calls, and corrupted import scripts.</p>
   <p class="text-muted">This tool removes the guesswork. Escape raw text before embedding it in a config file, a request body, or a test fixture; unescape when you pull an escaped literal out of logs and want to read it. Both directions run locally, so sensitive payloads never leave your browser.</p>
 </ToolPage>
 

@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "SQL Validator — Check SQL Syntax Online";
+const title = "SQL Validator  — Check SQL Syntax Online";
 const description = "Validate SQL syntax for MySQL, PostgreSQL, SQLite, and SQL Server instantly. Paste your SQL and get error locations and explanations. 100% browser-based.";
 const faqs = [
   {
@@ -72,15 +72,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>The validator parses your SQL using a browser-native parser — <strong>no database connection required</strong>.</li>
-    <li>Select the correct dialect: MySQL, PostgreSQL, SQLite, or SQL Server — each has slightly different syntax rules.</li>
+    <li>The validator parses your SQL using a browser-native parser  — <strong>no database connection required</strong>.</li>
+    <li>Select the correct dialect: MySQL, PostgreSQL, SQLite, or SQL Server  — each has slightly different syntax rules.</li>
     <li>Common errors caught: missing keywords, unclosed quotes, invalid column names, type mismatches, and more.</li>
-    <li>All processing is local — your SQL is never sent to any server.</li>
+    <li>All processing is local  — your SQL is never sent to any server.</li>
   </ul>
 
   <h2>About SQL Validation</h2>
-  <p class="text-muted">SQL validators use a parser to read your SQL statement and check it conforms to the grammar rules of your target database. Unlike running <code>EXPLAIN</code> or <code>DESCRIBE</code>, this works without a live database connection and catches purely syntactic errors — missing keywords, mismatched parentheses, invalid identifiers — before you even try to run it. Use this to quickly check a query before pasting it into your application code, or to learn SQL by seeing immediate feedback on mistakes.</p>
-  <p class="text-muted">Note: a valid SQL statement doesn't mean the query is correct or efficient — check that your column and table names match your schema, that the logic does what you intend, and that you have appropriate indexes for any WHERE clauses. For performance, use <code>EXPLAIN</code> on a real database.</p>
+  <p class="text-muted">SQL validators use a parser to read your SQL statement and check it conforms to the grammar rules of your target database. Unlike running <code>EXPLAIN</code> or <code>DESCRIBE</code>, this works without a live database connection and catches purely syntactic errors  — missing keywords, mismatched parentheses, invalid identifiers  — before you even try to run it. Use this to quickly check a query before pasting it into your application code, or to learn SQL by seeing immediate feedback on mistakes.</p>
+  <p class="text-muted">Note: a valid SQL statement doesn't mean the query is correct or efficient  — check that your column and table names match your schema, that the logic does what you intend, and that you have appropriate indexes for any WHERE clauses. For performance, use <code>EXPLAIN</code> on a real database.</p>
 
   <h2>Supported Dialects</h2>
   <table class="mt-1" style="width:100%;border-collapse:collapse;font-size:.9rem;">
@@ -255,7 +255,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
         // Missing SELECT keyword before columns
         if (u === 'WHERE' && !tokens.slice(0,i).some(tk => tk.type === 'word' && tk.upper === 'SELECT')) {
-          errors.push({ msg: 'WHERE without SELECT — statement must start with SELECT, INSERT, UPDATE, or DELETE.', line, col });
+          errors.push({ msg: 'WHERE without SELECT  — statement must start with SELECT, INSERT, UPDATE, or DELETE.', line, col });
         }
         if (u === 'GROUP' && !tokens.slice(0,i).some(tk => tk.type === 'word' && tk.upper === 'SELECT')) {
           errors.push({ msg: 'GROUP BY without SELECT.', line, col });
@@ -275,7 +275,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     }
 
     if (parenDepth > 0) {
-      errors.push({ msg: `Unclosed parenthesis — ${parenDepth} opening parenthesis(es) not closed.`, line, col });
+      errors.push({ msg: `Unclosed parenthesis  — ${parenDepth} opening parenthesis(es) not closed.`, line, col });
     }
 
     // Basic structural checks
@@ -313,7 +313,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     $('fmt-section').style.display = 'none';
 
     if (errors.length === 0) {
-      $('ok-msg').textContent = `Valid ${dialect} SQL — no syntax errors found.`;
+      $('ok-msg').textContent = `Valid ${dialect} SQL  — no syntax errors found.`;
       $('ok-section').style.display = 'block';
     } else {
       const lines = errors.map(e => `• Line ${e.line}: ${e.msg}`).join('\n');

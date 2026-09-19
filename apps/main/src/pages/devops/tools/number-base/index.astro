@@ -70,14 +70,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Enter a value and pick its base — or switch to <strong>ASCII text</strong> to pack up to 8 characters into a 64-bit integer (big-endian byte order).</li>
-    <li>Binary is grouped in nibbles, octal gets the <code>0o</code> prefix, hex the <code>0x</code> prefix, and all arithmetic is exact BigInt — no float rounding up to 64 bits.</li>
+    <li>Enter a value and pick its base  — or switch to <strong>ASCII text</strong> to pack up to 8 characters into a 64-bit integer (big-endian byte order).</li>
+    <li>Binary is grouped in nibbles, octal gets the <code>0o</code> prefix, hex the <code>0x</code> prefix, and all arithmetic is exact BigInt  — no float rounding up to 64 bits.</li>
     <li>If the value fits a Unicode code point, the character is shown; values with the high bit set also get their signed 8/16/32/64-bit interpretations.</li>
     <li>Invalid digits for the selected base (for example <code>2</code> in binary) produce a clear error instead of a wrong answer.</li>
   </ul>
 
   <h2>About Number Base Converter</h2>
-  <p class="text-muted">Binary, octal, decimal, and hex are the same number in different uniforms — bit flags, color channels, and network masks are far easier to read in the right base. This converter shows every base at once, so you can flip between them without re-entering anything, and it accepts 0x / 0b / 0o prefixes so you can paste a value exactly as it appears in code.</p>
+  <p class="text-muted">Binary, octal, decimal, and hex are the same number in different uniforms  — bit flags, color channels, and network masks are far easier to read in the right base. This converter shows every base at once, so you can flip between them without re-entering anything, and it accepts 0x / 0b / 0o prefixes so you can paste a value exactly as it appears in code.</p>
   <p class="text-muted">Because browsers compute integers losslessly only up to 2^53, this tool uses BigInt throughout: values up to 64 bits convert exactly. The signed interpretation rows are the usual two&rsquo;s-complement reading for 8/16/32/64-bit widths, which is what debuggers and CPU registers show when the high bit is set.</p>
 </ToolPage>
 
@@ -172,7 +172,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
           for (const ch of text) v = (v << 8n) | BigInt(ch.charCodeAt(0));
           value = v;
         } else {
-          asciiNote = 'Text is ' + text.length + ' chars (> 8) — cannot fit in 64 bits; showing per-char codes instead.';
+          asciiNote = 'Text is ' + text.length + ' chars (> 8)  — cannot fit in 64 bits; showing per-char codes instead.';
         }
       } else {
         value = parseBigInt($('value').value, parseInt($('base').value, 10));

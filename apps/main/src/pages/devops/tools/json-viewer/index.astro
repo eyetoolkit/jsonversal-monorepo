@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "JSON Tree Viewer";
-const description = "Paste any JSON and explore it as a collapsible, color-coded tree — objects, arrays, keys, and values at a glance.";
+const description = "Paste any JSON and explore it as a collapsible, color-coded tree  — objects, arrays, keys, and values at a glance.";
 const faqs = [
   {
     "question": "How do I view JSON in a tree format?",
@@ -58,15 +58,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Validates with strict <code>JSON.parse</code> — no trailing commas, comments, or single quotes.</li>
+    <li>Validates with strict <code>JSON.parse</code>  — no trailing commas, comments, or single quotes.</li>
     <li>Builds nested <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> elements, so any node can be expanded or collapsed.</li>
     <li>Colors keys and values by type and shows a type badge with the child count on every object or array.</li>
-    <li>All processing happens in your browser — nothing is uploaded.</li>
+    <li>All processing happens in your browser  — nothing is uploaded.</li>
   </ul>
 
   <h2>About JSON Tree Viewer</h2>
-  <p class="text-muted">Raw JSON is written as one long line, and even pretty-printed JSON forces you to count braces and brackets by eye. A tree viewer turns the document into nested collapsible rows, so you can fold away whole subtrees and jump straight to the field you care about — the indentation does the counting for you, and color-coding makes types recognizable at a glance.</p>
-  <p class="text-muted">Reach for a tree view when you are debugging API responses, inspecting generated configuration files, or exploring any deeply nested document where a flat text dump is hard to scan. For very large payloads, rendering thousands of nodes in the browser can slow down or freeze a page, so this tool caps input at 2 MB — if your data is bigger, query the API directly or reduce the response size before pasting it in.</p>
+  <p class="text-muted">Raw JSON is written as one long line, and even pretty-printed JSON forces you to count braces and brackets by eye. A tree viewer turns the document into nested collapsible rows, so you can fold away whole subtrees and jump straight to the field you care about  — the indentation does the counting for you, and color-coding makes types recognizable at a glance.</p>
+  <p class="text-muted">Reach for a tree view when you are debugging API responses, inspecting generated configuration files, or exploring any deeply nested document where a flat text dump is hard to scan. For very large payloads, rendering thousands of nodes in the browser can slow down or freeze a page, so this tool caps input at 2 MB  — if your data is bigger, query the API directly or reduce the response size before pasting it in.</p>
 </ToolPage>
 
 <style is:global>

@@ -60,13 +60,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <ul>
     <li>The header and payload are encoded as Base64URL, then concatenated as <code>header.payload</code>.</li>
     <li>The signature is an HMAC-SHA2 over that string, keyed with your secret, per RFC 7519 / RFC 7515.</li>
-    <li>Signing runs in your browser with <code>crypto.subtle</code> — the secret is never sent anywhere.</li>
+    <li>Signing runs in your browser with <code>crypto.subtle</code>  — the secret is never sent anywhere.</li>
     <li><strong>Insert now</strong> / <strong>Insert exp</strong> fill common <code>iat</code> / <code>exp</code> timestamps for testing.</li>
   </ul>
 
   <h2>About JWT Generator & Signer</h2>
-  <p class="text-muted">JWTs are compact, URL-safe tokens used for authentication and authorization — typically a header declaring the algorithm, a payload of claims, and a signature that proves the token was issued by whoever holds the secret. HMAC-signed (HS*) tokens are symmetric: the same secret both signs and verifies, so it must live only on the server. This tool is for local testing, crafting fixtures, and understanding the format — use it alongside the JWT decoder on devops.jsonversal.com to verify what you produced.</p>
-  <p class="text-muted">Keep your secret out of the payload and out of the header: the header and payload of an HMAC JWT are only base64-encoded, not encrypted — anyone can read them. Never place passwords or sensitive data inside claims, prefer short-lived tokens with an <code>exp</code> claim, and use an asymmetric algorithm (RS256/ES256) when multiple parties must verify tokens without sharing a secret.</p>
+  <p class="text-muted">JWTs are compact, URL-safe tokens used for authentication and authorization  — typically a header declaring the algorithm, a payload of claims, and a signature that proves the token was issued by whoever holds the secret. HMAC-signed (HS*) tokens are symmetric: the same secret both signs and verifies, so it must live only on the server. This tool is for local testing, crafting fixtures, and understanding the format  — use it alongside the JWT decoder on devops.jsonversal.com to verify what you produced.</p>
+  <p class="text-muted">Keep your secret out of the payload and out of the header: the header and payload of an HMAC JWT are only base64-encoded, not encrypted  — anyone can read them. Never place passwords or sensitive data inside claims, prefer short-lived tokens with an <code>exp</code> claim, and use an asymmetric algorithm (RS256/ES256) when multiple parties must verify tokens without sharing a secret.</p>
 </ToolPage>
 
 <style>

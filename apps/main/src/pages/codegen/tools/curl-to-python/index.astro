@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "cURL to Python (requests)";
-const description = "Parse a curl command and generate a runnable Python script with requests or httpx — method, headers, JSON and form bodies, cookies, auth and TLS options.";
+const description = "Parse a curl command and generate a runnable Python script with requests or httpx  — method, headers, JSON and form bodies, cookies, auth and TLS options.";
 const faqs = [
   {
     "question": "How do I convert a curl command to Python?",
@@ -67,8 +67,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </ul>
 
   <h2>About cURL to Python</h2>
-  <p class="text-muted">When you copy a request out of the browser network tab or a README, curl is the format you get — but a Python script, test or automation job wants <code>requests</code> or <code>httpx</code> instead. This converter reproduces the request semantics: repeated headers are merged into a dict, JSON-looking bodies become <code>json=</code> so they are serialized correctly, cookies become a <code>cookies=</code> dict, and basic auth becomes <code>auth=(user, password)</code>.</p>
-  <p class="text-muted">The generated script is complete and runnable: imports, a try/except around the call, a printed status code and response text. Options that have no Python equivalent — like <code>-o</code> file output or exotic curl flags — are kept as comments so you know what was skipped. Defaults differ in one notable way: curl sends <code>Content-Type: application/x-www-form-urlencoded</code> for <code>-d</code> payloads, while requests does not; the converter preserves the headers you actually passed.</p>
+  <p class="text-muted">When you copy a request out of the browser network tab or a README, curl is the format you get  — but a Python script, test or automation job wants <code>requests</code> or <code>httpx</code> instead. This converter reproduces the request semantics: repeated headers are merged into a dict, JSON-looking bodies become <code>json=</code> so they are serialized correctly, cookies become a <code>cookies=</code> dict, and basic auth becomes <code>auth=(user, password)</code>.</p>
+  <p class="text-muted">The generated script is complete and runnable: imports, a try/except around the call, a printed status code and response text. Options that have no Python equivalent  — like <code>-o</code> file output or exotic curl flags  — are kept as comments so you know what was skipped. Defaults differ in one notable way: curl sends <code>Content-Type: application/x-www-form-urlencoded</code> for <code>-d</code> payloads, while requests does not; the converter preserves the headers you actually passed.</p>
 </ToolPage>
 
 <style>
@@ -333,9 +333,9 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
     const notes = [];
     if (p.unknown.length) notes.push('# Skipped flags: ' + p.unknown.join(', '));
-    if (p.output) notes.push('# Note: -o/--output (' + p.output + ') ignored — the response is printed to stdout.');
+    if (p.output) notes.push('# Note: -o/--output (' + p.output + ') ignored  — the response is printed to stdout.');
     if (p.location) notes.push('# Note: --location redirects are followed automatically by ' + lib + '.');
-    if (p.compressed) notes.push('# Note: --compressed — ' + lib + ' handles gzip/deflate transparently.');
+    if (p.compressed) notes.push('# Note: --compressed  — ' + lib + ' handles gzip/deflate transparently.');
     if (notes.length) L.push(notes.join('\n'));
 
     const headerCount = Object.keys(headers).length;

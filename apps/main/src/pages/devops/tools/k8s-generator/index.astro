@@ -102,15 +102,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Pick a kind, fill the fields, and click <strong>Generate YAML</strong> — a valid manifest (apiVersion, metadata, spec) is built for you.</li>
+    <li>Pick a kind, fill the fields, and click <strong>Generate YAML</strong>  — a valid manifest (apiVersion, metadata, spec) is built for you.</li>
     <li><strong>Deployment</strong> scaffolds a workload with replicas, a container, and a container port; <strong>Service</strong> maps a port to a target port; <strong>Ingress</strong> routes a host + path to a service.</li>
     <li>Labels you enter are reused as the selector so Service ↔ Deployment wire up correctly.</li>
     <li>Apply with <code>kubectl apply -f -</code> after pasting.</li>
   </ul>
 
   <h2>About Kubernetes YAML Generator</h2>
-  <p class="text-muted">Kubernetes objects are YAML documents, and the common workflow — a Deployment for your pods, a Service for stable networking, an Ingress for external traffic — has a lot of repetitive boilerplate: apiVersion, kind, metadata, labels, selectors, and ports all need to agree. This generator produces consistent, minimal manifests so you start from something that works instead of from a blank file or a blog snippet you cannot fully trust.</p>
-  <p class="text-muted">The output targets current stable APIs: <code>apps/v1</code> for Deployments, <code>v1</code> for Services, and <code>networking.k8s.io/v1</code> for Ingress. Treat it as a starting point — add resource requests/limits, probes, config maps, and secrets for production, and remember that the Service selector must match the Deployment&rsquo;s pod labels, which this tool wires up for you automatically. If your cluster is older, check that the Ingress API version and class name are supported before applying.</p>
+  <p class="text-muted">Kubernetes objects are YAML documents, and the common workflow  — a Deployment for your pods, a Service for stable networking, an Ingress for external traffic  — has a lot of repetitive boilerplate: apiVersion, kind, metadata, labels, selectors, and ports all need to agree. This generator produces consistent, minimal manifests so you start from something that works instead of from a blank file or a blog snippet you cannot fully trust.</p>
+  <p class="text-muted">The output targets current stable APIs: <code>apps/v1</code> for Deployments, <code>v1</code> for Services, and <code>networking.k8s.io/v1</code> for Ingress. Treat it as a starting point  — add resource requests/limits, probes, config maps, and secrets for production, and remember that the Service selector must match the Deployment&rsquo;s pod labels, which this tool wires up for you automatically. If your cluster is older, check that the Ingress API version and class name are supported before applying.</p>
 </ToolPage>
 
 <style>
@@ -137,7 +137,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       const t = part.trim();
       if (!t) continue;
       const eq = t.indexOf('=');
-      if (eq < 1) throw new Error(`Bad label "${t}" — use key=value.`);
+      if (eq < 1) throw new Error(`Bad label "${t}"  — use key=value.`);
       out[t.slice(0, eq).trim()] = t.slice(eq + 1).trim();
     }
     return out;

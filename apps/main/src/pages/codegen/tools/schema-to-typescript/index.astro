@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "JSON Schema to TypeScript";
-const description = "Convert a JSON Schema (draft-07) into TypeScript interfaces and type aliases — properties, required, enums, unions, $refs and nested objects. No upload.";
+const description = "Convert a JSON Schema (draft-07) into TypeScript interfaces and type aliases  — properties, required, enums, unions, $refs and nested objects. No upload.";
 const faqs = [
   {
     "question": "How do I convert JSON Schema to TypeScript?",
@@ -71,15 +71,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <h2>How it works</h2>
   <ul>
     <li>Supports <code>type</code>, <code>properties</code> + <code>required</code>, <code>additionalProperties</code>, <code>items</code> (single schema or tuple array), <code>enum</code> → union literals, and <code>anyOf</code>/<code>oneOf</code> → unions.</li>
-    <li>Local <code>$ref</code>s into <code>#/$defs</code> or <code>#/definitions</code> are resolved — referenced definitions become named interfaces/aliases too.</li>
+    <li>Local <code>$ref</code>s into <code>#/$defs</code> or <code>#/definitions</code> are resolved  — referenced definitions become named interfaces/aliases too.</li>
     <li><code>"null"</code> in the <code>type</code> list or <code>x-nullable: true</code> produces <code>T | null</code>.</li>
     <li>Strict mode keeps <code>required</code> properties as non-optional (<code>: T</code>); otherwise every property becomes <code>?: T</code>.</li>
-    <li><code>format</code> and <code>pattern</code> are ignored — they don&rsquo;t affect the emitted type.</li>
+    <li><code>format</code> and <code>pattern</code> are ignored  — they don&rsquo;t affect the emitted type.</li>
   </ul>
 
   <h2>About JSON Schema to TypeScript</h2>
-  <p class="text-muted">API contracts, config files and data fixtures are increasingly described with JSON Schema — but consuming that schema in TypeScript usually means either hand-writing the interfaces or pulling in a heavy build-time plugin. This tool does the translation in one pass: object schemas become interfaces, everything else collapses to primitive or union types, and local <code>$defs</code>/<code>definitions</code> are emitted as their own named declarations so the output stays readable.</p>
-  <p class="text-muted">The generated code is plain TypeScript — no dependencies, no generics machinery — so you can paste it into a <code>.d.ts</code> file or an existing source file and start using it immediately. The strict-mode toggle matches the two common conventions (all-optional by default vs. required-only-non-optional), and the prefix control avoids name collisions when you generate types for several schemas into the same file.</p>
+  <p class="text-muted">API contracts, config files and data fixtures are increasingly described with JSON Schema  — but consuming that schema in TypeScript usually means either hand-writing the interfaces or pulling in a heavy build-time plugin. This tool does the translation in one pass: object schemas become interfaces, everything else collapses to primitive or union types, and local <code>$defs</code>/<code>definitions</code> are emitted as their own named declarations so the output stays readable.</p>
+  <p class="text-muted">The generated code is plain TypeScript  — no dependencies, no generics machinery  — so you can paste it into a <code>.d.ts</code> file or an existing source file and start using it immediately. The strict-mode toggle matches the two common conventions (all-optional by default vs. required-only-non-optional), and the prefix control avoids name collisions when you generate types for several schemas into the same file.</p>
 </ToolPage>
 
 <style>

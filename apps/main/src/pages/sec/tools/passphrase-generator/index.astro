@@ -77,14 +77,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Each word is picked with <code>crypto.getRandomValues</code> from a fixed list of 256 short, memorable words — the same idea as the classic diceware scheme (5 dice give 6⁵ = 7776 words; here one draw from 256 words gives log₂(256) = 8 bits).</li>
-    <li>Entropy is estimated as <code>words × 8 bits</code>, plus about 6.6 bits for a two-digit suffix and about 6 bits for a symbol. A 5-word passphrase with a digit therefore scores roughly 47 bits — comparable to a random 8-character password, but far easier to type.</li>
-    <li>Word selection uses rejection sampling so every word in the list is exactly equally likely — no modulo bias.</li>
+    <li>Each word is picked with <code>crypto.getRandomValues</code> from a fixed list of 256 short, memorable words  — the same idea as the classic diceware scheme (5 dice give 6⁵ = 7776 words; here one draw from 256 words gives log₂(256) = 8 bits).</li>
+    <li>Entropy is estimated as <code>words × 8 bits</code>, plus about 6.6 bits for a two-digit suffix and about 6 bits for a symbol. A 5-word passphrase with a digit therefore scores roughly 47 bits  — comparable to a random 8-character password, but far easier to type.</li>
+    <li>Word selection uses rejection sampling so every word in the list is exactly equally likely  — no modulo bias.</li>
     <li>Generation happens entirely on your device; nothing is transmitted or stored.</li>
   </ul>
 
   <h2>About Passphrase Generator</h2>
-  <p class="text-muted">A passphrase strings together ordinary words, and its strength comes from the number of words and the randomness of the draw — not from trick spellings like "p@ssw0rd". Because "correct horse battery staple" style passphrases are long but memorable, they resist both brute-force and human-factors failure better than short random strings that users write on sticky notes.</p>
+  <p class="text-muted">A passphrase strings together ordinary words, and its strength comes from the number of words and the randomness of the draw  — not from trick spellings like "p@ssw0rd". Because "correct horse battery staple" style passphrases are long but memorable, they resist both brute-force and human-factors failure better than short random strings that users write on sticky notes.</p>
   <p class="text-muted">Do not reuse a generated passphrase across services: treat it like any other secret, keep it in a password manager, and prefer longer word counts (6–8) for master passwords and encryption keys. The entropy estimate assumes an attacker knows your word list and exact generation options, which is the correct conservative assumption.</p>
 </ToolPage>
 

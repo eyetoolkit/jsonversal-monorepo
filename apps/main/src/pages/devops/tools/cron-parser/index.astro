@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "Crontab Parser — Explain cron expressions";
+const title = "Crontab Parser  — Explain cron expressions";
 const description = "Translate crontab expressions (5-field or 6-field) into plain English and preview the next 10 run times. Works for Linux cron, Kubernetes CronJobs and CI.";
 const faqs = [
   {
@@ -52,19 +52,19 @@ import BaseLayout from '@versal/ui/BaseLayout';
 * * * * *
 </pre>
   <ul>
-    <li><code>*</code> — every minute/hour/day/month</li>
-    <li><code>,</code> — list: <code>1,3,5</code> = 1, 3, and 5</li>
-    <li><code>-</code> — range: <code>9-17</code> = every hour from 9 to 17</li>
-    <li><code>/</code> — step: <code>*/15</code> = every 15 minutes; <code>0-59/5</code> = every 5 minutes</li>
-    <li><code>@yearly</code> / <code>@annually</code> — 0 0 1 1 *</li>
-    <li><code>@monthly</code> — 0 0 1 * *</li>
-    <li><code>@weekly</code> — 0 0 * * 0</li>
-    <li><code>@daily</code> / <code>@midnight</code> — 0 0 * * *</li>
-    <li><code>@hourly</code> — 0 * * * *</li>
+    <li><code>*</code>  — every minute/hour/day/month</li>
+    <li><code>,</code>  — list: <code>1,3,5</code> = 1, 3, and 5</li>
+    <li><code>-</code>  — range: <code>9-17</code> = every hour from 9 to 17</li>
+    <li><code>/</code>  — step: <code>*/15</code> = every 15 minutes; <code>0-59/5</code> = every 5 minutes</li>
+    <li><code>@yearly</code> / <code>@annually</code>  — 0 0 1 1 *</li>
+    <li><code>@monthly</code>  — 0 0 1 * *</li>
+    <li><code>@weekly</code>  — 0 0 * * 0</li>
+    <li><code>@daily</code> / <code>@midnight</code>  — 0 0 * * *</li>
+    <li><code>@hourly</code>  — 0 * * * *</li>
   </ul>
 
   <h2>How it works</h2>
-  <p class="text-muted">Type any crontab expression — the parser expands each field into a set of integer values, then converts that set into human-readable English ("At 02:00 every day" / "Every 15 minutes between 09:00 and 17:00 on weekdays"). It then walks forward from now to list the next ten concrete dates and times the scheduler would fire. Kubernetes CronJobs use the same syntax plus an optional leading seconds field; toggle the switch to parse 6-field expressions.</p>
+  <p class="text-muted">Type any crontab expression  — the parser expands each field into a set of integer values, then converts that set into human-readable English ("At 02:00 every day" / "Every 15 minutes between 09:00 and 17:00 on weekdays"). It then walks forward from now to list the next ten concrete dates and times the scheduler would fire. Kubernetes CronJobs use the same syntax plus an optional leading seconds field; toggle the switch to parse 6-field expressions.</p>
 </ToolPage>
 
 <style>
@@ -201,7 +201,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     }
     $('explain').textContent = explain(parsed);
     const runs = nextRuns(parsed, 10);
-    if (runs.length === 0) { $('nextRuns').textContent = 'No runs found in the next million minutes — check your expression.'; return; }
+    if (runs.length === 0) { $('nextRuns').textContent = 'No runs found in the next million minutes  — check your expression.'; return; }
     $('nextRuns').innerHTML = runs.map(r =>
       `<div>${r.toLocaleString()}</div><div class="text-dim" style="text-align:right;">${r.toISOString()}</div>`
     ).join('');

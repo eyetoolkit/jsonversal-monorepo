@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "JSON Schema Builder — Visual Schema Editor";
+const title = "JSON Schema Builder  — Visual Schema Editor";
 const description = "Build JSON Schemas by dragging types and nesting properties. Supports enums, required fields and allOf/anyOf/oneOf. Exports to draft-07 or 2020-12. Free.";
 const faqs = [
   {
@@ -88,12 +88,12 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <ul>
     <li><strong>Drag types</strong> from the left palette into the editor to add properties instantly. No clicking through menus.</li>
     <li><strong>Reorder</strong> properties by dragging them up or down within the same object.</li>
-    <li><strong>Nest</strong> structures by dragging a property onto an object-type property — it becomes a child schema.</li>
+    <li><strong>Nest</strong> structures by dragging a property onto an object-type property  — it becomes a child schema.</li>
     <li>Set constraints (min/max, minLength/maxLength, pattern, enum, format), toggle required, and the schema JSON updates in real time.</li>
   </ul>
 
   <h2>About JSON Schema Builder</h2>
-  <p class="text-muted">Writing JSON Schema by hand is tedious and error-prone. This visual builder lets you think in structure rather than syntax — drag types to build, reorder with a swipe, see nested schemas grow organically. The schema JSON stays valid as you work, ready to feed into an LLM's structured output endpoint or your API validation layer.</p>
+  <p class="text-muted">Writing JSON Schema by hand is tedious and error-prone. This visual builder lets you think in structure rather than syntax  — drag types to build, reorder with a swipe, see nested schemas grow organically. The schema JSON stays valid as you work, ready to feed into an LLM's structured output endpoint or your API validation layer.</p>
 </ToolPage>
 
 <style>
@@ -451,7 +451,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   }
 
   // =====================================================
-  // EVENT BINDING (editing values — names, types, constraints)
+  // EVENT BINDING (editing values  — names, types, constraints)
   // =====================================================
   function bindEditorEvents() {
     var editor = $('editor');
@@ -488,7 +488,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
           } else if (newType === 'array') {
             if (oldType !== 'array') { prop.items = 'string'; }
           } else {
-            // leaving object/array — clean up
+            // leaving object/array  — clean up
             if (prop.properties) { delete prop.properties; delete prop.required; }
             if (prop.items) { delete prop.items; }
           }
@@ -614,7 +614,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     });
   }
 
-  // Bind prop blocks — called every render (blocks are recreated)
+  // Bind prop blocks  — called every render (blocks are recreated)
   function bindPropBlockDnD() {
     var editor = $('editor');
     editor.querySelectorAll('.prop-block').forEach(function (block) {
@@ -718,7 +718,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
     if (dragState.kind === 'palette') {
       if (pos === 'inside') {
-        // drop as child of target — target must be object
+        // drop as child of target  — target must be object
         if (tgtNode.type !== 'object') { toast('Can only nest inside an object-type property'); return; }
         var childNode = newPropNode(pickName(dragState.newType), dragState.newType);
         insertAtPath(tgtPath, tgtNode.properties.length, childNode);

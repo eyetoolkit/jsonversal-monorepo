@@ -31,14 +31,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
 >
 
   <section class="card mt-2">
-    <h2 class="h2-card">Step 1 — Define fields</h2>
+    <h2 class="h2-card">Step 1  — Define fields</h2>
     <p class="text-dim" style="font-size:.875rem;">Add fields that the LLM should return. Each field becomes a JSON Schema property.</p>
     <div id="fields-list"></div>
     <button class="ghost mt-1" id="add-field">+ Add field</button>
   </section>
 
   <section class="card mt-2">
-    <h2 class="h2-card">Step 2 — Preview &amp; generate</h2>
+    <h2 class="h2-card">Step 2  — Preview &amp; generate</h2>
     <div class="row">
       <label class="text-muted" for="schema-id" style="min-width:120px;">Schema ID</label>
       <input id="schema-id" type="text" value="user_schema" style="max-width:300px;" />
@@ -115,8 +115,8 @@ message = client.messages.create(
     &#125;,
 )</pre>
   <h2>About JSON Schema Generator</h2>
-  <p class="text-muted">JSON Schema is a declarative format that describes the structure of JSON data — which fields are required, what types they have, and how nested objects are shaped. It plays a central role in LLM structured output: providers like OpenAI and Anthropic accept a JSON Schema in their response format or function-calling APIs to force the model to return valid, predictable JSON. This generator builds such a schema from simple field definitions.</p>
-  <p class="text-muted">Use it whenever you need reliable JSON back from a language model — for example, turning free-form responses into typed data your code can parse without error handling. A few notes: keep the schema strict but minimal (overly complex schemas can hurt model compliance), mark genuinely optional fields as optional, and test your schema with the built-in validator before deploying it in production.</p>
+  <p class="text-muted">JSON Schema is a declarative format that describes the structure of JSON data  — which fields are required, what types they have, and how nested objects are shaped. It plays a central role in LLM structured output: providers like OpenAI and Anthropic accept a JSON Schema in their response format or function-calling APIs to force the model to return valid, predictable JSON. This generator builds such a schema from simple field definitions.</p>
+  <p class="text-muted">Use it whenever you need reliable JSON back from a language model  — for example, turning free-form responses into typed data your code can parse without error handling. A few notes: keep the schema strict but minimal (overly complex schemas can hurt model compliance), mark genuinely optional fields as optional, and test your schema with the built-in validator before deploying it in production.</p>
 </ToolPage>
 
 <style>
@@ -264,7 +264,7 @@ message = client.messages.create(
       var out = $('validate-out');
       out.style.display = 'block';
       if (errors.length === 0) {
-        out.innerHTML = '<span class="success">✓ Valid — the sample matches the schema.</span>';
+        out.innerHTML = '<span class="success">✓ Valid  — the sample matches the schema.</span>';
       } else {
         out.innerHTML = '<span class="error">✗ Invalid:</span>\n' + errors.join('\n');
       }

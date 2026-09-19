@@ -65,13 +65,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li><strong>encodeURIComponent</strong> encodes every character that is not a safe URL character — spaces become <code>%20</code>, <code>&amp;</code> becomes <code>%26</code>, and Unicode characters get UTF-8 percent-encoded.</li>
-    <li><strong>encodeURI</strong> preserves URL structure — keeps <code>:</code>, <code>/</code>, <code>?</code>, <code>=</code>, <code>&amp;</code> intact so you can paste a full URL and only the value parts get encoded.</li>
+    <li><strong>encodeURIComponent</strong> encodes every character that is not a safe URL character  — spaces become <code>%20</code>, <code>&amp;</code> becomes <code>%26</code>, and Unicode characters get UTF-8 percent-encoded.</li>
+    <li><strong>encodeURI</strong> preserves URL structure  — keeps <code>:</code>, <code>/</code>, <code>?</code>, <code>=</code>, <code>&amp;</code> intact so you can paste a full URL and only the value parts get encoded.</li>
     <li><strong>Decode</strong> reverses both variants, converting any <code>%XX</code> sequence back to the original UTF-8 byte.</li>
   </ul>
 
   <h2>About URL Encoding</h2>
-  <p class="text-muted">URLs have a restricted alphabet — only letters, digits, and a small set of punctuation can appear literally. Everything else must be percent-encoded as <code>%XX</code> where XX is the hexadecimal UTF-8 code point. When you paste a URL containing Chinese characters, spaces, or ampersands into a terminal, a query, or an HTTP header, this tool ensures every byte is represented safely. Decoding is equally useful when you're reading server logs or inspecting URL-encoded payloads from webhooks.</p>
+  <p class="text-muted">URLs have a restricted alphabet  — only letters, digits, and a small set of punctuation can appear literally. Everything else must be percent-encoded as <code>%XX</code> where XX is the hexadecimal UTF-8 code point. When you paste a URL containing Chinese characters, spaces, or ampersands into a terminal, a query, or an HTTP header, this tool ensures every byte is represented safely. Decoding is equally useful when you're reading server logs or inspecting URL-encoded payloads from webhooks.</p>
 </ToolPage>
 
 <style>

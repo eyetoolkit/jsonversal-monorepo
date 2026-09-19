@@ -67,14 +67,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <h2>How it works</h2>
   <ul>
     <li>bcrypt embeds a random 16-byte salt and the cost factor directly in the hash string, which starts with <code>$2a$</code>, <code>$2b$</code>, or <code>$2y$</code>.</li>
-    <li>Hashing repeats its key schedule and Blowfish cipher <strong>2<sup>cost</sup></strong> times — cost 10 means 1,024 rounds, cost 12 means 4,096.</li>
+    <li>Hashing repeats its key schedule and Blowfish cipher <strong>2<sup>cost</sup></strong> times  — cost 10 means 1,024 rounds, cost 12 means 4,096.</li>
     <li>Verification re-derives the hash using the salt stored inside the given hash, then compares the result.</li>
-    <li>All computation happens locally via the bundled <code>bcryptjs</code> library — no password or hash ever leaves your browser.</li>
+    <li>All computation happens locally via the bundled <code>bcryptjs</code> library  — no password or hash ever leaves your browser.</li>
   </ul>
 
   <h2>About BCrypt</h2>
-  <p class="text-muted">bcrypt is a password hashing function designed to resist GPU and ASIC cracking. Unlike fast digests such as MD5 or SHA-1, it is deliberately slow and adaptive: every hash embeds a random salt, and a configurable <em>cost factor</em> scales the work so you can keep it slow enough as hardware improves. That combination — unique salt per password plus tunable cost — is why bcrypt (or argon2/scrypt) is the standard choice for storing passwords.</p>
-  <p class="text-muted">Use bcrypt whenever you store user passwords: hash them before saving and never store plaintext, and never use MD5, SHA-1, or plain SHA-256 for passwords, since those are fast enough to brute-force by the billions. The cost factor is a trade-off — higher cost means stronger hashes but slower logins and higher CPU load on your server (cost 10–12 is a common range in 2026). Finally, remember bcrypt is one-way: there is no decryption, so resetting a forgotten password means generating a new hash, not recovering the old one.</p>
+  <p class="text-muted">bcrypt is a password hashing function designed to resist GPU and ASIC cracking. Unlike fast digests such as MD5 or SHA-1, it is deliberately slow and adaptive: every hash embeds a random salt, and a configurable <em>cost factor</em> scales the work so you can keep it slow enough as hardware improves. That combination  — unique salt per password plus tunable cost  — is why bcrypt (or argon2/scrypt) is the standard choice for storing passwords.</p>
+  <p class="text-muted">Use bcrypt whenever you store user passwords: hash them before saving and never store plaintext, and never use MD5, SHA-1, or plain SHA-256 for passwords, since those are fast enough to brute-force by the billions. The cost factor is a trade-off  — higher cost means stronger hashes but slower logins and higher CPU load on your server (cost 10–12 is a common range in 2026). Finally, remember bcrypt is one-way: there is no decryption, so resetting a forgotten password means generating a new hash, not recovering the old one.</p>
 </ToolPage>
 
 <style>
@@ -147,12 +147,12 @@ import BaseLayout from '@versal/ui/BaseLayout';
       try {
         const match = await bcrypt.compare(pw, hash);
         out.innerHTML = match
-          ? '<span class="token-badge ok">✓ Match — the password matches the hash</span>'
-          : '<span class="token-badge fail">✗ No match — wrong password or hash</span>';
+          ? '<span class="token-badge ok">✓ Match  — the password matches the hash</span>'
+          : '<span class="token-badge fail">✗ No match  — wrong password or hash</span>';
         out.style.display = 'block';
       } catch (e) {
         out.style.display = 'none';
-        err.textContent = 'Error: ' + e.message + ' — check that the hash is a valid bcrypt string starting with $2a$, $2b$ or $2y$.';
+        err.textContent = 'Error: ' + e.message + '  — check that the hash is a valid bcrypt string starting with $2a$, $2b$ or $2y$.';
         err.style.display = 'block';
       }
     });

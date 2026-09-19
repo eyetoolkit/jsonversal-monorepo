@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "UUID v4 Generator";
-const description = "Generate RFC 4122 UUID v4 identifiers — single or in bulk, uppercase, no-hyphen or URN format. Validate any UUID version and variant. 100% client-side.";
+const description = "Generate RFC 4122 UUID v4 identifiers  — single or in bulk, uppercase, no-hyphen or URN format. Validate any UUID version and variant. 100% client-side.";
 const faqs = [
   {
     "question": "How do I generate a UUID v7?",
@@ -130,7 +130,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     if (variantByte >= 0 && variantByte <= 3) variant = 'NCS backward compatibility';
     else if (variantByte >= 8 && variantByte <= 9) variant = 'RFC 4122 / IETF';
     else if (variantByte >= 10 && variantByte <= 11) variant = 'Microsoft (COM)';
-    r.innerHTML = `<span class="v-ok">✓ Valid UUID</span> — version <strong>${version}</strong>, variant <strong>${variant}</strong>`;
+    r.innerHTML = `<span class="v-ok">✓ Valid UUID</span>  — version <strong>${version}</strong>, variant <strong>${variant}</strong>`;
   });
 
   // seed a default

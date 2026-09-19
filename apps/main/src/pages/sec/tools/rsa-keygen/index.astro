@@ -57,7 +57,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <section class="card mt-2" id="crypto-section" style="display:none;">
     <h2 class="h2-card">Encrypt / Decrypt with the generated pair</h2>
     <label for="plain" class="sr-only">PEM output</label>
-    <textarea id="plain" placeholder="Message to encrypt with the public key (RSA-OAEP, SHA-256). RSA can only encrypt small messages — a few hundred bytes at most."></textarea>
+    <textarea id="plain" placeholder="Message to encrypt with the public key (RSA-OAEP, SHA-256). RSA can only encrypt small messages  — a few hundred bytes at most."></textarea>
     <div class="row mt-1">
       <button class="ghost" id="encrypt">Encrypt</button>
       <button class="ghost" id="decrypt">Decrypt</button>
@@ -70,15 +70,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li><strong>Generate</strong> creates an RSA-OAEP key pair using <code>crypto.subtle.generateKey</code> — a pure software operation, fully local.</li>
+    <li><strong>Generate</strong> creates an RSA-OAEP key pair using <code>crypto.subtle.generateKey</code>  — a pure software operation, fully local.</li>
     <li>The public key is exported as SubjectPublicKeyInfo (SPKI) PEM, the private key as PKCS#8 PEM.</li>
     <li><strong>Encrypt</strong> signs with the public key; <strong>Decrypt</strong> reverses it with the private key, using RSA-OAEP with SHA-256.</li>
-    <li>RSA-OAEP is limited to small payloads (roughly modulus length / 8 minus overhead — about 190 bytes at 2048 bits), so use it for keys and short secrets, not large files.</li>
+    <li>RSA-OAEP is limited to small payloads (roughly modulus length / 8 minus overhead  — about 190 bytes at 2048 bits), so use it for keys and short secrets, not large files.</li>
   </ul>
 
   <h2>About RSA Key Pair Generator</h2>
-  <p class="text-muted">RSA remains one of the most widely supported asymmetric algorithms: a <em>public key</em> encrypts or verifies, and the matching <em>private key</em> decrypts or signs. Generating a pair locally means the private key is created and exported on your machine — it is never transmitted, and you are in control of storing it (and ideally protecting it with a passphrase) yourself.</p>
-  <p class="text-muted">For exchanging secrets, RSA is almost always used to wrap a symmetric key (hybrid encryption) rather than encrypt data directly, because of the small payload limit. For new designs, ECDH or ECDSA with P-256/384 are more efficient and give equivalent strength with smaller keys — this tool exists for interop with existing systems, key stores, and OpenSSL-based workflows. Keep the private key private: anyone holding it can decrypt anything encrypted to your public key.</p>
+  <p class="text-muted">RSA remains one of the most widely supported asymmetric algorithms: a <em>public key</em> encrypts or verifies, and the matching <em>private key</em> decrypts or signs. Generating a pair locally means the private key is created and exported on your machine  — it is never transmitted, and you are in control of storing it (and ideally protecting it with a passphrase) yourself.</p>
+  <p class="text-muted">For exchanging secrets, RSA is almost always used to wrap a symmetric key (hybrid encryption) rather than encrypt data directly, because of the small payload limit. For new designs, ECDH or ECDSA with P-256/384 are more efficient and give equivalent strength with smaller keys  — this tool exists for interop with existing systems, key stores, and OpenSSL-based workflows. Keep the private key private: anyone holding it can decrypt anything encrypted to your public key.</p>
 </ToolPage>
 
 <style>
@@ -160,7 +160,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       const dec = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, privateKey, b64ToBuf(cipher));
       $('plain').value = new TextDecoder().decode(dec);
     } catch (e) {
-      $('crypto-err').textContent = 'Decryption failed — wrong key or corrupt ciphertext: ' + e.message;
+      $('crypto-err').textContent = 'Decryption failed  — wrong key or corrupt ciphertext: ' + e.message;
       $('crypto-err').style.display = 'block';
     }
   });

@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "Random Password Generator";
-const description = "Generate strong random passwords with custom length and character sets, plus a live entropy estimate. Everything is generated locally — never transmitted.";
+const description = "Generate strong random passwords with custom length and character sets, plus a live entropy estimate. Everything is generated locally  — never transmitted.";
 const faqs = [
   {
     "question": "How do I generate a secure password?",
@@ -63,12 +63,12 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <ul>
     <li>Every character is drawn with <code>crypto.getRandomValues</code>, the browser's cryptographically secure pseudo-random number generator (CSPRNG).</li>
     <li>Each generated password includes at least one character from every selected character set, then is shuffled so no set is predictable in position.</li>
-    <li>Entropy is estimated as <code>bits ≈ length × log₂(charset size)</code> — the number of bits of uncertainty an attacker must brute-force.</li>
+    <li>Entropy is estimated as <code>bits ≈ length × log₂(charset size)</code>  — the number of bits of uncertainty an attacker must brute-force.</li>
     <li>Generation happens entirely on your device; nothing is transmitted or stored.</li>
   </ul>
 
   <h2>About Random Password Generator</h2>
-  <p class="text-muted">A strong password is unpredictable: each character multiplies the number of possibilities an attacker must try, so length and randomness matter far more than clever substitutions like "P@ssw0rd". This tool uses <code>crypto.getRandomValues</code>, a cryptographically secure random source, rather than <code>Math.random</code>, whose output is not designed for security and can be predictable. Entropy, measured in bits, expresses how much uncertainty the password holds — roughly the number of guesses needed to crack it.</p>
+  <p class="text-muted">A strong password is unpredictable: each character multiplies the number of possibilities an attacker must try, so length and randomness matter far more than clever substitutions like "P@ssw0rd". This tool uses <code>crypto.getRandomValues</code>, a cryptographically secure random source, rather than <code>Math.random</code>, whose output is not designed for security and can be predictable. Entropy, measured in bits, expresses how much uncertainty the password holds  — roughly the number of guesses needed to crack it.</p>
   <p class="text-muted">Use this generator when creating a new account, an API key, or an encryption passphrase. For maximum safety, save generated passwords in a password manager instead of reusing memorable ones, avoid patterns like consecutive digits or keyboard runs, and prefer longer passwords over adding more symbols. Remember that random generation solves the guessing problem, but not the theft problem: on a compromised device or a phishing page, even a perfect password is useless.</p>
 </ToolPage>
 

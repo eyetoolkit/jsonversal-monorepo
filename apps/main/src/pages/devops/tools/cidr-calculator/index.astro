@@ -55,8 +55,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </ul>
 
   <h2>About CIDR / Subnet Calculator</h2>
-  <p class="text-muted">CIDR (Classless Inter-Domain Routing) describes networks as <code>IP/prefix</code>, where the prefix is the number of leading 1-bits in the subnet mask. <code>/24</code> means 24 network bits and 8 host bits — 256 addresses. Knowing the network address, broadcast address, and usable host range is the first step in any IP planning task: assigning static addresses, sizing VPC/VNet subnets in AWS, Azure, or GCP, writing firewall rules, or debugging why two services cannot reach each other.</p>
-  <p class="text-muted">Remember that network and broadcast addresses are reserved in normal subnets, so a <code>/24</code> has 254 usable hosts, not 256. Point-to-point links often use <code>/31</code> (2 addresses, no broadcast) or <code>/30</code> (4 addresses, 2 usable). RFC 1918 private ranges (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>) are what most internal networks use — this tool helps you carve them correctly.</p>
+  <p class="text-muted">CIDR (Classless Inter-Domain Routing) describes networks as <code>IP/prefix</code>, where the prefix is the number of leading 1-bits in the subnet mask. <code>/24</code> means 24 network bits and 8 host bits  — 256 addresses. Knowing the network address, broadcast address, and usable host range is the first step in any IP planning task: assigning static addresses, sizing VPC/VNet subnets in AWS, Azure, or GCP, writing firewall rules, or debugging why two services cannot reach each other.</p>
+  <p class="text-muted">Remember that network and broadcast addresses are reserved in normal subnets, so a <code>/24</code> has 254 usable hosts, not 256. Point-to-point links often use <code>/31</code> (2 addresses, no broadcast) or <code>/30</code> (4 addresses, 2 usable). RFC 1918 private ranges (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>) are what most internal networks use  — this tool helps you carve them correctly.</p>
 </ToolPage>
 
 <style>

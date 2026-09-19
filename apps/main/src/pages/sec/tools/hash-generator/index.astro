@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "Hash & HMAC Generator — MD5, SHA-1 to SHA-512";
+const title = "Hash & HMAC Generator  — MD5, SHA-1 to SHA-512";
 const description = "Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes and HMAC signatures from text or files. Everything runs in your browser via the Web Crypto API.";
 const faqs = [
   {
@@ -71,9 +71,9 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li><strong>Hash</strong> — one-way function that maps any input size to a fixed-size fingerprint. The same input always produces the same output; tiny input changes produce completely different hashes (avalanche effect).</li>
-    <li><strong>HMAC</strong> — Hash-based Message Authentication Code. Combines a secret key with the input so that only someone with the key can produce the correct MAC. Used for API signature verification (AWS, Stripe, GitHub webhooks).</li>
-    <li><strong>MD5 / SHA-1</strong> are kept for legacy checksums — do not use them for security-sensitive operations.</li>
+    <li><strong>Hash</strong>  — one-way function that maps any input size to a fixed-size fingerprint. The same input always produces the same output; tiny input changes produce completely different hashes (avalanche effect).</li>
+    <li><strong>HMAC</strong>  — Hash-based Message Authentication Code. Combines a secret key with the input so that only someone with the key can produce the correct MAC. Used for API signature verification (AWS, Stripe, GitHub webhooks).</li>
+    <li><strong>MD5 / SHA-1</strong> are kept for legacy checksums  — do not use them for security-sensitive operations.</li>
     <li>All algorithms except MD5 use the browser's native Web Crypto API. MD5 is implemented in pure JS since the spec does not include it.</li>
   </ul>
 </ToolPage>

@@ -61,8 +61,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </ul>
 
   <h2>About JSON ↔ XML Converter</h2>
-  <p class="text-muted">JSON and XML both describe hierarchical data, but with very different conventions: JSON has objects, arrays, and a compact syntax, while XML has elements, attributes, text nodes, and namespaces. Converting between them is common when integrating JSON-first APIs with XML-based systems — SOAP web services, legacy enterprise middleware, RSS/Atom feeds, or configuration formats like Maven POM files.</p>
-  <p class="text-muted">No mapping is perfectly lossless in both directions: JSON has no notion of attributes, so this tool uses plain elements on the way out and puts XML attributes under <code>@</code>-prefixed keys on the way in; repeating XML elements collapse into arrays. Whitespace-only text nodes are dropped. For exotic documents (mixed content, namespaces, CDATA) review the output — but for typical API payloads the round trip is clean. Everything runs locally in your browser.</p>
+  <p class="text-muted">JSON and XML both describe hierarchical data, but with very different conventions: JSON has objects, arrays, and a compact syntax, while XML has elements, attributes, text nodes, and namespaces. Converting between them is common when integrating JSON-first APIs with XML-based systems  — SOAP web services, legacy enterprise middleware, RSS/Atom feeds, or configuration formats like Maven POM files.</p>
+  <p class="text-muted">No mapping is perfectly lossless in both directions: JSON has no notion of attributes, so this tool uses plain elements on the way out and puts XML attributes under <code>@</code>-prefixed keys on the way in; repeating XML elements collapse into arrays. Whitespace-only text nodes are dropped. For exotic documents (mixed content, namespaces, CDATA) review the output  — but for typical API payloads the round trip is clean. Everything runs locally in your browser.</p>
 </ToolPage>
 
 <style>

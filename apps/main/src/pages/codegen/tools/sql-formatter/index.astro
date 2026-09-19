@@ -71,11 +71,11 @@ LIMIT 10;</textarea>
     <li>A real tokenizer walks the SQL character by character, respecting single-quoted strings (with <code>''</code> escapes), double-quoted identifiers, backtick and <code>[bracketed]</code> identifiers, <code>--</code> line comments, <code>/* block */</code> comments, numbers and punctuation.</li>
     <li>Main clauses (<code>SELECT</code>, <code>FROM</code>, <code>WHERE</code>, <code>JOIN</code>, <code>GROUP BY</code>, <code>ORDER BY</code>, <code>HAVING</code>, <code>LIMIT</code>, <code>UNION</code>, <code>INSERT INTO</code>, <code>VALUES</code>, <code>UPDATE</code>, <code>SET</code>, <code>DELETE FROM</code>, <code>ON</code>…) start a new line; <code>AND</code>/<code>OR</code> inside <code>WHERE</code>/<code>ON</code> are indented one extra level and aligned.</li>
     <li>Commas stay at the end of the line, subqueries are indented by parenthesis depth, and strings, comments and identifiers keep their original case.</li>
-    <li>Minify strips whitespace and newlines outside strings and comments, keeping just enough spacing between tokens — the statement stays executable, just compact.</li>
+    <li>Minify strips whitespace and newlines outside strings and comments, keeping just enough spacing between tokens  — the statement stays executable, just compact.</li>
   </ul>
 
   <h2>About SQL Formatter</h2>
-  <p class="text-muted">SQL written by hand, dumped by ORMs, or pasted out of logs is almost always a single cramped line or an inconsistent jumble of casing and indentation. Formatting it safely is harder than it looks — a naive regex that adds newlines before keywords will happily split string literals that happen to contain those words. This tool tokenizes first, so quoted strings, comments and identifiers are treated as opaque units and never broken apart.</p>
+  <p class="text-muted">SQL written by hand, dumped by ORMs, or pasted out of logs is almost always a single cramped line or an inconsistent jumble of casing and indentation. Formatting it safely is harder than it looks  — a naive regex that adds newlines before keywords will happily split string literals that happen to contain those words. This tool tokenizes first, so quoted strings, comments and identifiers are treated as opaque units and never broken apart.</p>
   <p class="text-muted">The same token stream powers the minifier, which collapses whitespace while keeping keyword/identifier boundaries distinct, so the minified statement parses identically. Use Format to review and edit your query, then Minify to shrink it for embedding in code, configuration files or logs. Both directions preserve comments, string content and identifier casing exactly as written.</p>
 </ToolPage>
 

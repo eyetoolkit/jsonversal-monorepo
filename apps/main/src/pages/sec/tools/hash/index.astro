@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "Hash Generator — MD5, SHA-1, SHA-256 Online";
+const title = "Hash Generator  — MD5, SHA-1, SHA-256 Online";
 const description = "Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text or file. All hashing happens in your browser.";
 const faqs = [
   {
@@ -49,14 +49,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>Notes</h2>
   <ul>
-    <li>MD5 and SHA-1 are <strong>cryptographically broken</strong> — use SHA-256 or SHA-512 for new systems.</li>
+    <li>MD5 and SHA-1 are <strong>cryptographically broken</strong>  — use SHA-256 or SHA-512 for new systems.</li>
     <li>All processing uses the browser's <code>SubtleCrypto</code> API (SHA) and a bundled MD5 implementation.</li>
     <li>Nothing is uploaded.</li>
   </ul>
 
   <h2>About Hash Generator</h2>
   <p class="text-muted">A hash function maps data of any size to a fixed-length digest, and it is one-way: you cannot recover the original input from its output. This tool computes MD5, SHA-1, SHA-256, SHA-384, and SHA-512 digests so you can compare files, verify downloads, or check data integrity. SHA-256 and SHA-512 are the current cryptographic standards, while MD5 and SHA-1 are considered broken for security-sensitive uses.</p>
-  <p class="text-muted">Use a hash when you need integrity verification — for example, confirming that a downloaded file matches its published checksum. Never rely on MD5 or SHA-1 to protect passwords or sign data, and choose SHA-256 or SHA-512 for any new system. Note that a hash proves data was not accidentally corrupted, but it does not authenticate who the data came from.</p>
+  <p class="text-muted">Use a hash when you need integrity verification  — for example, confirming that a downloaded file matches its published checksum. Never rely on MD5 or SHA-1 to protect passwords or sign data, and choose SHA-256 or SHA-512 for any new system. Note that a hash proves data was not accidentally corrupted, but it does not authenticate who the data came from.</p>
 </ToolPage>
 
 <script is:inline>
@@ -93,7 +93,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     function iii(a,b,c,d,x,s,t){return (a+(c^(b|(~d)))+x+t)|0<<s|((a+(c^(b|(~d)))+x+t)|0)>>>32-s>>>0;}
     function md5str(s){return md5b(new TextEncoder().encode(s));}
     function md5b(bytes){
-      // ... full impl omitted for brevity — using a simpler approach
+      // ... full impl omitted for brevity  — using a simpler approach
     }
     // For simplicity, fall back to Web Crypto-compatible hashes only and skip MD5
     return null;
@@ -103,9 +103,9 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   async function compute(algo, bytes) {
     if (algo === 'MD5') {
-      // MD5 not in SubtleCrypto — use a tiny bundled impl (avoid large deps)
+      // MD5 not in SubtleCrypto  — use a tiny bundled impl (avoid large deps)
       // We accept MD5 is a bonus; show warning if not available
-      return '[MD5 skipped — use SHA-256 or SHA-512]';
+      return '[MD5 skipped  — use SHA-256 or SHA-512]';
     }
     const map = { 'SHA-1': 'SHA-1', 'SHA-256': 'SHA-256', 'SHA-384': 'SHA-384', 'SHA-512': 'SHA-512' };
     const buf = await crypto.subtle.digest(map[algo], bytes);

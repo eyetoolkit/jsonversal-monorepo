@@ -64,8 +64,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </ul>
 
   <h2>About HTML Entity Escaper</h2>
-  <p class="text-muted">An HTML entity is a sequence that starts with an ampersand and ends with a semicolon — for example, <code>&amp;lt;</code> renders the <code>&lt;</code> character. Browsers treat entities as literal characters instead of markup, which makes them the safe way to include reserved characters such as <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> and quotes in HTML text.</p>
-  <p class="text-muted">Escape code samples before pasting them into <code>&lt;pre&gt;</code> or <code>&lt;code&gt;</code> blocks so the tags inside your sample display as text instead of being parsed by the browser. Escaping also helps prevent XSS when user-generated content is inserted into a page, and it is a regular part of writing blog posts about code. Always escape the ampersand first, because every entity starts with one — escaping <code>&amp;</code> last would turn the ampersand of an already-escaped <code>&amp;lt;</code> into <code>&amp;amp;lt;</code>. And beware of double escaping: escaping the same text twice produces entities such as <code>&amp;amp;lt;</code>, which browsers display literally instead of decoding.</p>
+  <p class="text-muted">An HTML entity is a sequence that starts with an ampersand and ends with a semicolon  — for example, <code>&amp;lt;</code> renders the <code>&lt;</code> character. Browsers treat entities as literal characters instead of markup, which makes them the safe way to include reserved characters such as <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> and quotes in HTML text.</p>
+  <p class="text-muted">Escape code samples before pasting them into <code>&lt;pre&gt;</code> or <code>&lt;code&gt;</code> blocks so the tags inside your sample display as text instead of being parsed by the browser. Escaping also helps prevent XSS when user-generated content is inserted into a page, and it is a regular part of writing blog posts about code. Always escape the ampersand first, because every entity starts with one  — escaping <code>&amp;</code> last would turn the ampersand of an already-escaped <code>&amp;lt;</code> into <code>&amp;amp;lt;</code>. And beware of double escaping: escaping the same text twice produces entities such as <code>&amp;amp;lt;</code>, which browsers display literally instead of decoding.</p>
 </ToolPage>
 
 <style>
@@ -101,7 +101,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     if (!raw.trim()) { showError('Please enter some text first.'); return; }
     const dir = document.querySelector('input[name="dir"]:checked').value;
     const out = dir === 'escape' ? escapeHtml(raw) : unescapeHtml(raw);
-    $('resultTitle').textContent = dir === 'escape' ? 'Output — escaped HTML entities' : 'Output — plain text';
+    $('resultTitle').textContent = dir === 'escape' ? 'Output  — escaped HTML entities' : 'Output  — plain text';
     $('stats').textContent = raw.length + ' characters → ' + out.length + ' characters';
     $('out').textContent = out;
     $('result').style.display = 'block';

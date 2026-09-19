@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "Text Diff — Compare Two Texts Line by Line";
+const title = "Text Diff  — Compare Two Texts Line by Line";
 const description = "Compare two texts line by line with a side-by-side view and a git-style unified diff, powered by a fast LCS algorithm. Runs entirely in your browser.";
 const faqs = [
   {
@@ -66,7 +66,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     <li>The two texts are split into lines and aligned with a longest-common-subsequence (LCS) dynamic program, which finds the minimal set of insertions and deletions.</li>
     <li>The side-by-side view colors removed lines red and added lines green, with unchanged context in between; the unified view follows the git diff format with hunk headers.</li>
     <li>Documents up to 5,000 lines per side run through the full LCS table; anything larger falls back to a fast line-by-line comparison so the page never freezes.</li>
-    <li>Everything runs locally — config files, logs, and private snippets never leave your device.</li>
+    <li>Everything runs locally  — config files, logs, and private snippets never leave your device.</li>
   </ul>
 
   <h2>About Text Diff</h2>
@@ -266,7 +266,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     }
     $('stats').textContent = added + ' lines added · ' + removed + ' removed · ' + unchanged + ' unchanged';
     if (added === 0 && removed === 0) {
-      $('diff-view').innerHTML = '<p class="text-muted" style="padding:16px;">No differences — the two inputs are identical.</p>';
+      $('diff-view').innerHTML = '<p class="text-muted" style="padding:16px;">No differences  — the two inputs are identical.</p>';
     } else {
       renderRows(sideRows(ops));
     }

@@ -58,14 +58,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <h2>How it works</h2>
   <ul>
     <li>The selected file is read into memory with <code>FileReader</code>/<code>arrayBuffer()</code> and hashed with <code>crypto.subtle.digest</code>.</li>
-    <li>Each algorithm produces a fixed-length digest regardless of file size — 160 bits for SHA-1, 256/384/512 bits for the SHA-2 family.</li>
+    <li>Each algorithm produces a fixed-length digest regardless of file size  — 160 bits for SHA-1, 256/384/512 bits for the SHA-2 family.</li>
     <li>The checksum is shown in hexadecimal, which is the format used by most download pages and package managers.</li>
     <li>Hashing runs in your browser only; the file never leaves your machine.</li>
   </ul>
 
   <h2>About File Checksum Calculator</h2>
-  <p class="text-muted">A checksum (or file hash) is a short fingerprint that changes drastically when even a single bit of the file changes. Its main uses are verifying that a downloaded file matches the publisher's official copy, detecting accidental corruption during transfer or storage, and deduplicating identical files. SHA-256 is the current recommendation — it is fast, universally supported, and collision-resistant — while SHA-1 is considered broken for security purposes and should only be used to match checksums published long ago.</p>
-  <p class="text-muted">Use this tool whenever you download a binary, a firmware image, or an installer and want to confirm it was transferred intact. Keep in mind that a checksum only proves the file matches the value it was compared against; it does not prove the file is safe. A malicious actor who controls the download can simply publish a matching checksum — for real protection against tampering, verify cryptographically signed hashes from a trusted source (for example, GPG signatures or HTTPS package registries).</p>
+  <p class="text-muted">A checksum (or file hash) is a short fingerprint that changes drastically when even a single bit of the file changes. Its main uses are verifying that a downloaded file matches the publisher's official copy, detecting accidental corruption during transfer or storage, and deduplicating identical files. SHA-256 is the current recommendation  — it is fast, universally supported, and collision-resistant  — while SHA-1 is considered broken for security purposes and should only be used to match checksums published long ago.</p>
+  <p class="text-muted">Use this tool whenever you download a binary, a firmware image, or an installer and want to confirm it was transferred intact. Keep in mind that a checksum only proves the file matches the value it was compared against; it does not prove the file is safe. A malicious actor who controls the download can simply publish a matching checksum  — for real protection against tampering, verify cryptographically signed hashes from a trusted source (for example, GPG signatures or HTTPS package registries).</p>
 </ToolPage>
 
 <style>

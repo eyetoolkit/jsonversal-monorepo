@@ -52,7 +52,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Paste any valid JSON — the struct definition is inferred from the values: numbers, strings, booleans, arrays, and nested objects.</li>
+    <li>Paste any valid JSON  — the struct definition is inferred from the values: numbers, strings, booleans, arrays, and nested objects.</li>
     <li>Whole numbers become <code>int64</code>, decimals become <code>float64</code>, and <code>null</code> becomes <code>interface{}</code>.</li>
     <li>Arrays of objects become <code>[]Type</code> slices; arrays of mixed values become <code>[]interface{}</code>.</li>
     <li>Every field gets a Go field name and a <code>json:"..."</code> tag matching the original key.</li>
@@ -77,7 +77,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>About JSON to Go Struct</h2>
   <p class="text-muted">Go&rsquo;s <code>encoding/json</code> needs explicit struct types, and writing them by hand for a large API payload is slow and error-prone. This tool infers the struct skeleton from a representative JSON sample and emits idiomatic fields with <code>json</code> tags, so the decoder maps keys correctly even when Go field names differ. Nested objects become nested structs and arrays of objects become slices of structs.</p>
-  <p class="text-muted">Inferred output reflects only the sample: fields that are absent from the sample will be missing from the struct, and optional fields that happen to hold <code>null</code> become <code>interface{}</code>. After generating, review the result, add <code>omitempty</code> where you want zero values skipped, and consider <code>json.RawMessage</code> for polymorphic fields. The tool runs fully locally — paste production payloads safely.</p>
+  <p class="text-muted">Inferred output reflects only the sample: fields that are absent from the sample will be missing from the struct, and optional fields that happen to hold <code>null</code> become <code>interface{}</code>. After generating, review the result, add <code>omitempty</code> where you want zero values skipped, and consider <code>json.RawMessage</code> for polymorphic fields. The tool runs fully locally  — paste production payloads safely.</p>
 </ToolPage>
 
 <style>

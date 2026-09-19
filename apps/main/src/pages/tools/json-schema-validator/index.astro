@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "JSON Schema Validator — Draft 2020-12, Free";
+const title = "JSON Schema Validator  — Draft 2020-12";
 const description = "Validate JSON against a JSON Schema (draft 2020-12, 2019-09, draft-07) with detailed error messages. Ideal for LLM structured output and API contracts.";
 const faqs = [
   {
@@ -68,14 +68,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <h2>How it works</h2>
   <ul>
     <li>Paste a JSON Schema (any draft version) on the left and a JSON document on the right.</li>
-    <li>Click <strong>Validate</strong> — the schema is parsed and the document is validated against every constraint.</li>
+    <li>Click <strong>Validate</strong>  — the schema is parsed and the document is validated against every constraint.</li>
     <li>Errors show the exact path (e.g. <code>user.email</code>), the failed keyword (<code>type</code>, <code>required</code>, <code>pattern</code>, <code>enum</code>), and a human-readable message.</li>
     <li>Use the <strong>AI Template</strong> button to load a preset schema for OpenAI function calling / Claude tool use.</li>
   </ul>
 
   <h2>About JSON Schema Validator</h2>
-  <p class="text-muted">JSON Schema is a declarative vocabulary for describing the structure and constraints of JSON documents — types, required fields, ranges, patterns, enums, nested objects, and conditional logic. Every major AI platform now supports JSON Schema natively for structured outputs: OpenAI's <code>response_format.json_schema</code>, Anthropic's tool definitions, and Gemini's <code>genai.protos.Schema</code> all expect valid JSON Schema. When you define a schema for an LLM response, this tool lets you validate both the schema itself and the actual output the model produces — catching missing fields, wrong types, and constraint violations before they reach production code.</p>
-  <p class="text-muted">This validator supports <code>type</code>, <code>required</code>, <code>enum</code>, <code>const</code>, <code>properties</code>, <code>additionalProperties</code>, <code>patternProperties</code>, <code>allOf</code>, <code>anyOf</code>, <code>oneOf</code>, <code>not</code>, <code>if/then/else</code>, <code>minLength</code>/<code>maxLength</code>, <code>pattern</code>, <code>minimum</code>/<code>maximum</code>/<code>exclusiveMinimum</code>/<code>exclusiveMaximum</code>/<code>multipleOf</code>, <code>minItems</code>/<code>maxItems</code>/<code>uniqueItems</code>/<code>contains</code>, <code>items</code>, and <code>$ref</code> (local references only). All processing happens in your browser — no document or schema is uploaded anywhere.</p>
+  <p class="text-muted">JSON Schema is a declarative vocabulary for describing the structure and constraints of JSON documents  — types, required fields, ranges, patterns, enums, nested objects, and conditional logic. Every major AI platform now supports JSON Schema natively for structured outputs: OpenAI's <code>response_format.json_schema</code>, Anthropic's tool definitions, and Gemini's <code>genai.protos.Schema</code> all expect valid JSON Schema. When you define a schema for an LLM response, this tool lets you validate both the schema itself and the actual output the model produces  — catching missing fields, wrong types, and constraint violations before they reach production code.</p>
+  <p class="text-muted">This validator supports <code>type</code>, <code>required</code>, <code>enum</code>, <code>const</code>, <code>properties</code>, <code>additionalProperties</code>, <code>patternProperties</code>, <code>allOf</code>, <code>anyOf</code>, <code>oneOf</code>, <code>not</code>, <code>if/then/else</code>, <code>minLength</code>/<code>maxLength</code>, <code>pattern</code>, <code>minimum</code>/<code>maximum</code>/<code>exclusiveMinimum</code>/<code>exclusiveMaximum</code>/<code>multipleOf</code>, <code>minItems</code>/<code>maxItems</code>/<code>uniqueItems</code>/<code>contains</code>, <code>items</code>, and <code>$ref</code> (local references only). All processing happens in your browser  — no document or schema is uploaded anywhere.</p>
 </ToolPage>
 
 <style>
@@ -308,7 +308,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
             }
           }
         },
-        "reasoning": { "type": "string", "description": "Optional reasoning field — forces LLM to think" }
+        "reasoning": { "type": "string", "description": "Optional reasoning field  — forces LLM to think" }
       }
     }, null, 2);
   });

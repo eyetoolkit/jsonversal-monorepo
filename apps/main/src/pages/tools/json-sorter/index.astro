@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "JSON Sorter & Deduper";
-const description = "Sort object keys recursively, sort arrays alphabetically or numerically and dedupe items — then pretty-print the result with stats. Runs in your browser.";
+const description = "Sort object keys recursively, sort arrays alphabetically or numerically and dedupe items  — then pretty-print the result with stats. Runs in your browser.";
 const faqs = [
   {
     "question": "How do I sort JSON by key?",
@@ -77,7 +77,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Object keys are sorted recursively with localeCompare, so the whole document — nested objects included — becomes deterministic and diff-friendly.</li>
+    <li>Object keys are sorted recursively with localeCompare, so the whole document  — nested objects included  — becomes deterministic and diff-friendly.</li>
     <li>Arrays can be sorted ascending or descending. Primitive arrays sort by value; arrays of objects sort by their first key, which keeps records grouped consistently.</li>
     <li>Deduplication removes duplicate array items (primitives by value, objects by their serialized form) and reports how many were dropped.</li>
     <li>If the input is invalid, the error message points to the exact line and column of the problem.</li>

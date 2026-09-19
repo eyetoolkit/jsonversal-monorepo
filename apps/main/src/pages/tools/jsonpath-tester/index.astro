@@ -1,7 +1,7 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "JSONPath Tester — Test JSON Queries Online";
+const title = "JSONPath Tester  — Test JSON Queries Online";
 const description = "Test JSONPath expressions against your JSON document. See every match with its path and value, including wildcards and recursive descent.";
 const faqs = [
   {
@@ -55,17 +55,17 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>Supported syntax</h2>
   <ul>
-    <li><code>$</code> — root of the document</li>
-    <li><code>.key</code> / <code>['key']</code> — child by property name</li>
-    <li><code>[0]</code> — array index</li>
-    <li><code>[*]</code> / <code>.*</code> — wildcard over all children</li>
-    <li><code>..name</code> — recursive descent: find <code>name</code> at any depth</li>
-    <li><code>[1:3]</code> — array slice (start:end, end exclusive)</li>
+    <li><code>$</code>  — root of the document</li>
+    <li><code>.key</code> / <code>['key']</code>  — child by property name</li>
+    <li><code>[0]</code>  — array index</li>
+    <li><code>[*]</code> / <code>.*</code>  — wildcard over all children</li>
+    <li><code>..name</code>  — recursive descent: find <code>name</code> at any depth</li>
+    <li><code>[1:3]</code>  — array slice (start:end, end exclusive)</li>
   </ul>
 
   <h2>About JSONPath Tester</h2>
-  <p class="text-muted">JSONPath is a query language for extracting data from JSON documents, loosely inspired by XPath for XML. Expressions like <code>$.store.book[*].title</code> let you pull specific values out of deeply nested structures without writing loops — useful for inspecting API responses, configuration files, or any large JSON payload in a shell script or automation.</p>
-  <p class="text-muted">Use this tester to validate and debug expressions before embedding them in code or tooling. This implementation supports the core syntax (child access, wildcards, indices, slices, and recursive descent) but not filter predicates like <code>[?(@.price &gt; 10)]</code> — if you need filtering, run the expression in a full JSONPath library such as jsonpath-plus in your project.</p>
+  <p class="text-muted">JSONPath is a query language for extracting data from JSON documents, loosely inspired by XPath for XML. Expressions like <code>$.store.book[*].title</code> let you pull specific values out of deeply nested structures without writing loops  — useful for inspecting API responses, configuration files, or any large JSON payload in a shell script or automation.</p>
+  <p class="text-muted">Use this tester to validate and debug expressions before embedding them in code or tooling. This implementation supports the core syntax (child access, wildcards, indices, slices, and recursive descent) but not filter predicates like <code>[?(@.price &gt; 10)]</code>  — if you need filtering, run the expression in a full JSONPath library such as jsonpath-plus in your project.</p>
 </ToolPage>
 
 <style>

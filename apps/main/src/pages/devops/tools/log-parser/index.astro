@@ -64,14 +64,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Pick a format and paste your log lines — one per line. <strong>Parse</strong> runs each line through the matching parser.</li>
+    <li>Pick a format and paste your log lines  — one per line. <strong>Parse</strong> runs each line through the matching parser.</li>
     <li><strong>Nginx / Apache combined</strong> extract time, remote address, method + path from the request, status, bytes, referer, and user agent; status codes are color-coded (2xx green, 3xx blue, 4xx amber, 5xx red).</li>
     <li><strong>JSON lines</strong> flatten each object&rsquo;s top-level keys into table columns; <strong>Custom</strong> lets you supply your own regex with named groups.</li>
     <li>Below the table you get a summary: total lines, parsed, failed lines, and a status-code histogram. Copy JSON exports the parsed objects.</li>
   </ul>
 
   <h2>About Log Line Parser</h2>
-  <p class="text-muted">Access logs are the first place to look when something feels off — slow requests, 404 crawls, or a burst of 5xx. This parser turns raw combined-format lines into a readable table plus a histogram, so you can spot the pattern without firing up a full log-analysis stack.</p>
+  <p class="text-muted">Access logs are the first place to look when something feels off  — slow requests, 404 crawls, or a burst of 5xx. This parser turns raw combined-format lines into a readable table plus a histogram, so you can spot the pattern without firing up a full log-analysis stack.</p>
   <p class="text-muted">Everything runs locally: your log lines never leave the browser. The table caps at 200 displayed rows for performance, but the stats cover every line you paste. The custom mode uses JavaScript regular expressions with named groups, so any log format you can describe with a regex becomes a table.</p>
 </ToolPage>
 

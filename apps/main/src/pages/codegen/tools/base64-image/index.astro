@@ -78,13 +78,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
     <li>Base64 → Image: accepts a full <code>data:</code> URI or raw base64. The MIME type comes from the URI prefix, or is sniffed from the magic bytes when missing (PNG <code>iVBORw0KGgo=</code>, JPEG <code>/9j/</code>, GIF <code>R0lGOD</code>, WebP <code>UklGR</code>, SVG <code>PHN2Zw==</code>).</li>
     <li>Size is computed from the base64 length (<code>length × 3/4</code> minus padding), so you get the decoded byte count without downloading anything.</li>
     <li>The Download button rebuilds the original bytes into a Blob and saves it with the right file extension.</li>
-    <li>Image → Base64: pick a local file and it is read with <code>FileReader.readAsDataURL</code> — the result is shown as a text data URI ready to copy.</li>
+    <li>Image → Base64: pick a local file and it is read with <code>FileReader.readAsDataURL</code>  — the result is shown as a text data URI ready to copy.</li>
     <li>Everything runs locally; no image data is ever uploaded.</li>
   </ul>
 
   <h2>About Base64 Image Viewer</h2>
-  <p class="text-muted">Base64-encoded images show up everywhere — email HTML, CSS backgrounds, API payloads, JSON fixtures — and while they are easy to generate, they are hard to inspect: you cannot tell the format, the real size, or whether the payload is even valid just by looking at the string. This viewer decodes the payload in memory, reports the detected type and byte size, renders the actual image, and lets you download the original file again.</p>
-  <p class="text-muted">The reverse direction is just as useful: when you need an image inline — a placeholder, a test fixture, or an attachment payload — pick the file and copy the generated data URI. The tool detects invalid base64, flags PDFs and other non-image payloads, and handles SVG as text so it works with the browser&rsquo;s built-in encoding APIs without any external libraries.</p>
+  <p class="text-muted">Base64-encoded images show up everywhere  — email HTML, CSS backgrounds, API payloads, JSON fixtures  — and while they are easy to generate, they are hard to inspect: you cannot tell the format, the real size, or whether the payload is even valid just by looking at the string. This viewer decodes the payload in memory, reports the detected type and byte size, renders the actual image, and lets you download the original file again.</p>
+  <p class="text-muted">The reverse direction is just as useful: when you need an image inline  — a placeholder, a test fixture, or an attachment payload  — pick the file and copy the generated data URI. The tool detects invalid base64, flags PDFs and other non-image payloads, and handles SVG as text so it works with the browser&rsquo;s built-in encoding APIs without any external libraries.</p>
 </ToolPage>
 
 <style>

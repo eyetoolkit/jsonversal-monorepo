@@ -71,7 +71,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   async function loadYaml() {
     if (yamlLib) return yamlLib;
-    // 自托管（public/vendor/）—— 原先从第三方 CDN 动态拉取，会把访客 IP 暴露给该 CDN，
+    // 自托管（public/vendor/）— — 原先从第三方 CDN 动态拉取，会把访客 IP 暴露给该 CDN，
     // 与第三方字体 CDN 属同一类 GDPR 风险。请勿改回远程 URL。
     await import('/vendor/yaml-2.5.0.esm.js').then(m => yamlLib = m.default || m).catch(() => null);
     return yamlLib;
@@ -91,7 +91,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
         $('output').textContent = JSON.stringify(parsed, null, 2);
         $('output-kind').textContent = 'JSON';
       } catch (e) {
-        $('output').textContent = 'Error: ' + e.message + ' (complex YAML may require full parser — try simpler input)';
+        $('output').textContent = 'Error: ' + e.message + ' (complex YAML may require full parser  — try simpler input)';
       }
     }
   }
@@ -107,7 +107,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
         const curIndent = line.search(/\S/);
         if (curIndent < indent) break;
         if (line.startsWith('- ', curIndent)) {
-          // List — collect all items at this level
+          // List  — collect all items at this level
           const arr = [];
           while (i < lines.length && lines[i].startsWith('- ', curIndent)) {
             const itemText = lines[i].substring(curIndent + 2);

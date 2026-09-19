@@ -64,15 +64,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Paste a JSON array of objects — keys become columns, and types are inferred across all rows (integer → <code>INTEGER</code>, float → <code>REAL</code>/<code>DOUBLE</code>, string → <code>TEXT</code>/<code>VARCHAR</code>, boolean → <code>BOOLEAN</code>).</li>
+    <li>Paste a JSON array of objects  — keys become columns, and types are inferred across all rows (integer → <code>INTEGER</code>, float → <code>REAL</code>/<code>DOUBLE</code>, string → <code>TEXT</code>/<code>VARCHAR</code>, boolean → <code>BOOLEAN</code>).</li>
     <li>Nested objects/arrays become <code>TEXT</code> columns holding the JSON-encoded value.</li>
     <li>String values are escaped by doubling single quotes; booleans become <code>TRUE</code>/<code>FALSE</code>.</li>
     <li>Missing keys are emitted as <code>NULL</code>, so every row has the same column set.</li>
   </ul>
 
   <h2>About JSON to SQL Generator</h2>
-  <p class="text-muted">When you receive data as JSON — an export, an API response, a fixture — but need it in a relational database, writing the DDL and INSERT statements by hand is tedious and error-prone. This tool derives the table structure from the data itself: every key becomes a column, and the type for each column is decided by looking at the values across all rows, so one stray string doesn&rsquo;t make the whole column TEXT.</p>
-  <p class="text-muted">The generated statements target common dialects (MySQL, SQLite, PostgreSQL) and are safe to run: identifiers are validated, string literals are single-quote-escaped, and NULLs are explicit. This is a great way to seed test databases, convert spreadsheet-derived JSON, or move fixture data into SQL. For production use, review the column widths and add primary keys, constraints, and indexes — this tool focuses on getting the data in.</p>
+  <p class="text-muted">When you receive data as JSON  — an export, an API response, a fixture  — but need it in a relational database, writing the DDL and INSERT statements by hand is tedious and error-prone. This tool derives the table structure from the data itself: every key becomes a column, and the type for each column is decided by looking at the values across all rows, so one stray string doesn&rsquo;t make the whole column TEXT.</p>
+  <p class="text-muted">The generated statements target common dialects (MySQL, SQLite, PostgreSQL) and are safe to run: identifiers are validated, string literals are single-quote-escaped, and NULLs are explicit. This is a great way to seed test databases, convert spreadsheet-derived JSON, or move fixture data into SQL. For production use, review the column widths and add primary keys, constraints, and indexes  — this tool focuses on getting the data in.</p>
 </ToolPage>
 
 <style>

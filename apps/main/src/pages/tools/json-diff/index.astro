@@ -1,8 +1,8 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "JSON Diff — Compare Two JSON Files Online";
-const description = "Compare two JSON documents and see exactly what changed — added, removed, or modified values with their JSON paths.";
+const title = "JSON Diff  — Compare Two JSON Files Online";
+const description = "Compare two JSON documents and see exactly what changed  — added, removed, or modified values with their JSON paths.";
 const faqs = [
   {
     "question": "How do I compare two JSON documents?",
@@ -62,14 +62,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>Paste two JSON documents — the tool recursively compares them value by value.</li>
+    <li>Paste two JSON documents  — the tool recursively compares them value by value.</li>
     <li>Every difference is reported with its JSON path (e.g. <code>$.user.address.city</code>) and the change type.</li>
     <li><strong>Added</strong> keys or array items appear in B but not A; <strong>removed</strong> appear in A but not B; <strong>changed</strong> exist in both with different values.</li>
-    <li>Object key order is ignored — only values and structure are compared.</li>
+    <li>Object key order is ignored  — only values and structure are compared.</li>
   </ul>
 
   <h2>About JSON Diff</h2>
-  <p class="text-muted">Comparing two JSON documents by eye is error-prone once they grow beyond a few lines. A JSON diff computes the precise set of differences — new keys, deleted keys, and modified values — and reports each one with a path you can act on. This is especially useful when debugging API responses, configuration files, or generated schemas that change between deploys.</p>
+  <p class="text-muted">Comparing two JSON documents by eye is error-prone once they grow beyond a few lines. A JSON diff computes the precise set of differences  — new keys, deleted keys, and modified values  — and reports each one with a path you can act on. This is especially useful when debugging API responses, configuration files, or generated schemas that change between deploys.</p>
   <p class="text-muted">Use it whenever you need to answer "what actually changed?" between two data snapshots. Note that this is a structural comparison: it does not do semantic comparison (e.g. 1 vs 1.0 are different values) and it treats arrays positionally, so a reordered array appears as many individual changes rather than a single "moved" entry.</p>
 </ToolPage>
 
@@ -161,7 +161,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       };
       $('summary').textContent = stats.added + ' added · ' + stats.removed + ' removed · ' + stats.changed + ' changed';
       if (out.length === 0) {
-        result.innerHTML = '<p class="text-muted">No differences found — the two documents are structurally identical.</p>';
+        result.innerHTML = '<p class="text-muted">No differences found  — the two documents are structurally identical.</p>';
       } else {
         result.innerHTML = out.map((d) => {
           const lbl = d.type === 'added' ? 'added' : d.type === 'removed' ? 'removed' : 'changed';

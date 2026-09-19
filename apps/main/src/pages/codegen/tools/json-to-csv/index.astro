@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "JSON to CSV Converter";
-const description = "Convert a JSON array of objects into CSV — columns are the union of all keys, missing values stay blank, and rows use CRLF line endings per RFC 4180.";
+const description = "Convert a JSON array of objects into CSV  — columns are the union of all keys, missing values stay blank, and rows use CRLF line endings per RFC 4180.";
 const faqs = [
   {
     "question": "How do I convert JSON to CSV?",
@@ -36,7 +36,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </section>
 
   <section class="card mt-2" id="result" style="display:none;">
-    <strong>Output — CSV</strong>
+    <strong>Output  — CSV</strong>
     <p class="text-muted" id="stats" style="margin:4px 0 0;"></p>
     <pre id="out" class="mt-2"></pre>
     <div style="margin-top:8px;display:flex;gap:8px;">
@@ -57,7 +57,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>About JSON to CSV Converter</h2>
   <p class="text-muted">A JSON array of objects and a CSV table describe the same shape: each element is a row, each key is a column, and the value fills the cell. Converting between the two lets you move data out of APIs and scripts and into spreadsheets, or hand tabular data to tools that only speak CSV.</p>
-  <p class="text-muted">Reach for this tool when you need to export data to Excel or Google Sheets, or migrate records between systems. A few caveats: nested objects and arrays are serialized as JSON strings inside the cell rather than flattened; columns are the union of all keys in first-appearance order, so elements with missing keys simply leave those cells blank; and null or undefined values become empty cells — a null and an empty string look identical after conversion.</p>
+  <p class="text-muted">Reach for this tool when you need to export data to Excel or Google Sheets, or migrate records between systems. A few caveats: nested objects and arrays are serialized as JSON strings inside the cell rather than flattened; columns are the union of all keys in first-appearance order, so elements with missing keys simply leave those cells blank; and null or undefined values become empty cells  — a null and an empty string look identical after conversion.</p>
 </ToolPage>
 
 <style>
@@ -111,7 +111,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       showError('Please provide a JSON array at the top level, e.g. [{"name": "Alice"}].');
       return;
     }
-    if (parsed.length === 0) { showError('The array is empty — nothing to convert.'); return; }
+    if (parsed.length === 0) { showError('The array is empty  — nothing to convert.'); return; }
     let res;
     try { res = toCsv(parsed); }
     catch (err) { showError(err.message); return; }

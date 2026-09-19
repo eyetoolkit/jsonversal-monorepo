@@ -61,13 +61,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <h2>How it works</h2>
   <ul>
     <li>Add as many services as you need; each one has a name, image, host/container port pair, and optional volume and environment entries.</li>
-    <li>The tool emits a <code>docker-compose.yml</code> with proper YAML quoting — run it with <code>docker compose up -d</code>.</li>
+    <li>The tool emits a <code>docker-compose.yml</code> with proper YAML quoting  — run it with <code>docker compose up -d</code>.</li>
     <li>Volumes are listed as named mounts, and environment entries are written as a map.</li>
   </ul>
 
   <h2>About Docker Compose Generator</h2>
-  <p class="text-muted">Docker Compose describes multi-container applications in a single YAML file: each service maps to an image plus its ports, volumes, and environment. Writing that file from scratch means remembering the exact indentation and key names. This generator produces a valid compose file from a form so you can focus on the parts that matter — which images, which ports, which config — instead of YAML syntax.</p>
-  <p class="text-muted">Start services with <code>docker compose up -d</code>, view logs with <code>docker compose logs -f</code>, and tear everything down with <code>docker compose down</code>. The generated file uses the classic <code>version</code> key for compatibility with older tooling, but the format is largely optional in modern Compose — the file works either way. Add healthchecks, networks, and build contexts for production stacks; this tool covers the common local-development shape.</p>
+  <p class="text-muted">Docker Compose describes multi-container applications in a single YAML file: each service maps to an image plus its ports, volumes, and environment. Writing that file from scratch means remembering the exact indentation and key names. This generator produces a valid compose file from a form so you can focus on the parts that matter  — which images, which ports, which config  — instead of YAML syntax.</p>
+  <p class="text-muted">Start services with <code>docker compose up -d</code>, view logs with <code>docker compose logs -f</code>, and tear everything down with <code>docker compose down</code>. The generated file uses the classic <code>version</code> key for compatibility with older tooling, but the format is largely optional in modern Compose  — the file works either way. Add healthchecks, networks, and build contexts for production stacks; this tool covers the common local-development shape.</p>
 </ToolPage>
 
 <style>
@@ -165,7 +165,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
             const p = pair.trim();
             if (!p) continue;
             const eq = p.indexOf('=');
-            if (eq < 1) throw new Error(`Bad env entry "${p}" in "${s.name}" — use KEY=value.`);
+            if (eq < 1) throw new Error(`Bad env entry "${p}" in "${s.name}"  — use KEY=value.`);
             out.push(`      ${yamlStr(p.slice(0, eq))}: ${yamlStr(p.slice(eq + 1))}`);
           }
         }

@@ -76,7 +76,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>About AES Encryption / Decryption</h2>
   <p class="text-muted">AES (Advanced Encryption Standard) is a symmetric block cipher used worldwide to encrypt data with a shared secret key. This tool supports two modes: AES-GCM, which adds authentication so any tampering is detected, and AES-CBC, which encrypts without authentication and should not be used with untrusted data. A passphrase is stretched into the actual encryption key using PBKDF2-SHA256.</p>
-  <p class="text-muted">Use this tool when you need a quick client-side encryption experiment or want to see how AES modes behave with real inputs. Do not use it to process production keys — a web form is not a secure key-management environment. Prefer AES-GCM over CBC whenever possible, and keep passphrases long and unique, since PBKDF2 slows down but never fully prevents offline guessing.</p>
+  <p class="text-muted">Use this tool when you need a quick client-side encryption experiment or want to see how AES modes behave with real inputs. Do not use it to process production keys  — a web form is not a secure key-management environment. Prefer AES-GCM over CBC whenever possible, and keep passphrases long and unique, since PBKDF2 slows down but never fully prevents offline guessing.</p>
 </ToolPage>
 
 <script is:inline>
