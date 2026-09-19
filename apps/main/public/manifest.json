@@ -1,0 +1,77 @@
+{
+  "name": "jsonversal — Free JSON, Security, DevOps & Codegen Tools",
+  "short_name": "jsonversal",
+  "description": "69 free browser-based developer tools. JSON formatter, JWT decoder, crontab parser, .gitignore generator and more — all run locally, no upload.",
+  "id": "/?source=pwa",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#0b0d12",
+  "orientation": "portrait-primary",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon-main.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-sec.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon-devops.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon-codegen.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "JSON Formatter",
+      "url": "/tools/json-formatter/",
+      "description": "Pretty-print, validate, minify JSON"
+    },
+    {
+      "name": "JWT Decoder",
+      "url": "/sec/tools/jwt-decoder/",
+      "description": "Decode and inspect JWT tokens"
+    },
+    {
+      "name": "Password Generator",
+      "url": "/sec/tools/password-generator/",
+      "description": "Generate strong random passwords"
+    },
+    {
+      "name": "Crontab Parser",
+      "url": "/devops/tools/cron-parser/",
+      "description": "Translate cron expressions to plain English"
+    },
+    {
+      "name": ".gitignore Generator",
+      "url": "/codegen/tools/gitignore/",
+      "description": "Generate .gitignore by language"
+    },
+    {
+      "name": "Search (Ctrl+K)",
+      "url": "/?search=1",
+      "description": "Quick search across all 69 tools"
+    }
+  ]
+}

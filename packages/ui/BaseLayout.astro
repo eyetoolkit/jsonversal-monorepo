@@ -202,6 +202,9 @@ const jsonLd = schemaEntries.length > 1
     <link rel="icon" href={faviconHref} />
     <link rel="apple-touch-icon" href={faviconHref} />
 
+    {/* PWA manifest —— 安装到主屏（Chrome/Edge/Safari 17+） */}
+    <link rel="manifest" href="/manifest.json" />
+
     {/* 自托管字体预加载 —— 仅 preload 首屏必需的正文字体；
         Mono/Italic 由 @font-face + font-display: swap 按需加载，避免与 CSS/主文档竞争带宽 */}
     <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
