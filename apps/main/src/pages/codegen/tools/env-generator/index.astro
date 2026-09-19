@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = '.env Template Generator';
-const description = 'Generate a .env template from a JSON object or "key: value" text — keys become UPPER_SNAKE_CASE, values are serialized without quotes.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = ".env Template Generator";
+const description = "Generate a .env template from a JSON object or ";
 const faqs = [
   {
     "question": "How do I generate a .env file?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "Variables include DATABASE_URL, API_KEY, SECRET_KEY, PORT, NODE_ENV, and service-specific keys for AWS, Stripe, SendGrid, Firebase, and more \u2014 depending on your selections."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="codegen" title={title} description={description}
+
+<ToolPage
+  site="codegen"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/codegen/tools/env-generator/"
-  keywords={['.env generator', 'environment variables template', 'dotenv generator', 'env template generator', 'generate .env', 'env-generator', 'env-generator']}
   current="/codegen/tools/env-generator/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Input</h2>
@@ -65,7 +65,7 @@ const faqs = [
   <h2>About .env Template Generator</h2>
   <p class="text-muted">A .env file holds environment variables as plain KEY=value lines, letting the same codebase run with different configuration in different environments — a core idea of the 12-factor app methodology. Loaders such as Node's dotenv, Python's python-dotenv, and shell scripts read it at startup.</p>
   <p class="text-muted">Keys are conventionally written in UPPER_SNAKE_CASE, e.g. DATABASE_URL or API_KEY. Generate a template when you scaffold a project so contributors know which variables to fill in — ship it as .env.example. Never commit a real .env to git: add it to .gitignore and keep secrets like tokens and passwords out of version control.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   #error { color: var(--danger); border-color: var(--danger); }

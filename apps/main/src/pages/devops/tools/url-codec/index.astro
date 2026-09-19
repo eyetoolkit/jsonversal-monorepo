@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'URL Encoder & Decoder';
-const description = 'Percent-encode or decode URLs, query strings, form data and path segments. Supports full-URL and component encoding, plus hex and octal escapes. No upload.';
+const title = "URL Encoder & Decoder";
+const description = "Percent-encode or decode URLs, query strings, form data and path segments. Supports full-URL and component encoding, plus hex and octal escapes. No upload.";
 const faqs = [
   {
     "question": "How do I URL encode a string?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "All characters not safe in URLs are encoded: spaces, quotes, angle brackets, hash, percent, and non-ASCII characters. Alphanumeric and -_.~ are left unchanged (RFC 3986 safe set)."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/devops/tools/url-codec/" current="/devops/tools/url-codec/"
-  keywords={['URL encoder', 'URL decoder', 'percent encode', 'percent decode', 'encodeURIComponent', 'decodeURIComponent', 'URL encoding tool']}
+  canonical="https://jsonversal.com/devops/tools/url-codec/"
+  current="/devops/tools/url-codec/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;">
@@ -78,7 +72,7 @@ const faqs = [
 
   <h2>About URL Encoding</h2>
   <p class="text-muted">URLs have a restricted alphabet — only letters, digits, and a small set of punctuation can appear literally. Everything else must be percent-encoded as <code>%XX</code> where XX is the hexadecimal UTF-8 code point. When you paste a URL containing Chinese characters, spaces, or ampersands into a terminal, a query, or an HTTP header, this tool ensures every byte is represented safely. Decoding is equally useful when you're reading server logs or inspecting URL-encoded payloads from webhooks.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   textarea { width: 100%; box-sizing: border-box; font-family: var(--font-mono); font-size: .85rem; }

@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'YAML ↔ JSON Converter';
-const description = 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.';
+const title = "YAML ↔ JSON Converter";
+const description = "Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.";
 const faqs = [
   {
     "question": "How do I convert YAML to JSON?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Yes. YAML types like integers, floats, booleans, null, and dates are converted to their JSON equivalents. Strings remain strings. Anchors and aliases are resolved automatically so the output is always clean JSON."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout site="devops" title={title} description={description}
+<ToolPage
+  site="devops"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/devops/tools/yaml-json/"
-  keywords={['YAML to JSON', 'YAML formatter', 'convert YAML to JSON', 'YAML to JSON converter', 'YAML JSON互转', 'yaml-json', 'yaml-json']}
   current="/devops/tools/yaml-json/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
     <div class="card">
@@ -68,7 +62,7 @@ const faqs = [
   <h2>About YAML to JSON Converter</h2>
   <p class="text-muted">YAML and JSON are closely related data formats: since YAML 1.2, YAML is a strict superset of JSON, so any valid JSON document is also valid YAML. This converter lets you move between the two without losing data, translating YAML's indentation-based blocks into JSON's braces and brackets and back again. It is especially handy when you receive a YAML config file but your pipeline, API, or database expects JSON.</p>
   <p class="text-muted">Use YAML when humans will hand-edit the file, such as Kubernetes manifests, CI/CD pipelines, or Docker Compose, and use JSON when machines exchange data over HTTP or store it in documents. When converting, watch for YAML-only features that cannot round-trip: anchors and aliases are not representable in JSON, and YAML's type inference can turn unquoted values like yes, on, or 0123 into booleans or numbers. Quote strings explicitly to keep them as text.</p>
-</BaseLayout>
+</ToolPage>
 
 <script is:inline client:load>
 (function () {

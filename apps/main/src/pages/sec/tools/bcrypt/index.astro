@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'BCrypt Hash & Verify';
-const description = 'Generate bcrypt password hashes with a configurable cost factor, and verify a plaintext password against a bcrypt hash. Everything runs in your browser.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "BCrypt Hash & Verify";
+const description = "Generate bcrypt password hashes with a configurable cost factor, and verify a plaintext password against a bcrypt hash. Everything runs in your browser.";
 const faqs = [
   {
     "question": "How do I generate a bcrypt hash?",
@@ -17,18 +17,18 @@ const faqs = [
     "answer": "Use 10 for development and testing. For production, 12 is the current OWASP-recommended minimum. Higher values (14+) are more secure but slower \u2014 useful for high-value secrets. The default is 10."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="sec" title={title} description={description}
+
+<ToolPage
+  site="sec"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/sec/tools/bcrypt/"
-  keywords={['bcrypt generator', 'bcrypt hash online', 'bcrypt加密', 'bcrypt generator', 'password hash bcrypt', 'bcrypt verify', 'bcrypt']}
   current="/sec/tools/bcrypt/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Generate a hash</h2>
@@ -75,7 +75,7 @@ const faqs = [
   <h2>About BCrypt</h2>
   <p class="text-muted">bcrypt is a password hashing function designed to resist GPU and ASIC cracking. Unlike fast digests such as MD5 or SHA-1, it is deliberately slow and adaptive: every hash embeds a random salt, and a configurable <em>cost factor</em> scales the work so you can keep it slow enough as hardware improves. That combination — unique salt per password plus tunable cost — is why bcrypt (or argon2/scrypt) is the standard choice for storing passwords.</p>
   <p class="text-muted">Use bcrypt whenever you store user passwords: hash them before saving and never store plaintext, and never use MD5, SHA-1, or plain SHA-256 for passwords, since those are fast enough to brute-force by the billions. The cost factor is a trade-off — higher cost means stronger hashes but slower logins and higher CPU load on your server (cost 10–12 is a common range in 2026). Finally, remember bcrypt is one-way: there is no decryption, so resetting a forgotten password means generating a new hash, not recovering the old one.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

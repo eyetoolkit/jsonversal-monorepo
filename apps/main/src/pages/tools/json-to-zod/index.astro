@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON to Zod Schema';
-const description = 'Infer a Zod validation schema from any JSON sample. Paste your JSON and get a type-safe Zod schema you can copy directly into your project.';
+const title = "JSON to Zod Schema";
+const description = "Infer a Zod validation schema from any JSON sample. Paste your JSON and get a type-safe Zod schema you can copy directly into your project.";
 const faqs = [
   {
     "question": "How do I convert JSON to a Zod schema?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "The schema infers types from your sample data. For optional fields, empty arrays, and null values the tool marks them as optional or nullable. For precise type inference, provide a representative JSON sample that covers all fields you want validated."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/tools/json-to-zod/" current="/tools/json-to-zod/"
-  keywords={['JSON to Zod', 'Zod schema', 'schema inference', 'TypeScript validation']}
+  canonical="https://jsonversal.com/tools/json-to-zod/"
+  current="/tools/json-to-zod/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
@@ -84,7 +78,7 @@ if (result.success) &#123;
   <h2>About JSON to Zod Schema</h2>
   <p class="text-muted">Zod is a TypeScript-first schema declaration and validation library that checks your data at runtime and infers types at compile time. Because JSON carries no type information beyond its values, inferring a Zod schema from a JSON sample gives you a fast starting point instead of handwriting validators by hand. This tool performs that inference and outputs a schema you can drop straight into your project.</p>
   <p class="text-muted">Use it when you receive data from an external API, a database, or an LLM and want runtime guarantees about its shape. Remember that the inferred schema is only as good as your sample: if the sample is incomplete — missing optional fields, empty arrays, or null values — the generated schema may be too narrow or too wide, so review and adjust it before relying on it in production.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

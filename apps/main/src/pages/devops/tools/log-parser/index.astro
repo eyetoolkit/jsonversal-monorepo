@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Log Line Parser';
-const description = 'Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats. Runs entirely in your browser.';
+const title = "Log Line Parser";
+const description = "Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I parse log files online?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Apache combined/logformat, Nginx error/access logs, syslog (RFC 3164/5424), JSON Lines, and common custom formats with timestamps, levels, and messages. Auto-detection selects the most likely format."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
   canonical="https://jsonversal.com/devops/tools/log-parser/"
-  keywords={['log parser', 'JSON log analyzer', 'parse log file', 'log分析', 'structured log parser', 'log-parser', 'log-parser']}
   current="/devops/tools/log-parser/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input</h2>
@@ -80,7 +73,7 @@ const faqs = [
   <h2>About Log Line Parser</h2>
   <p class="text-muted">Access logs are the first place to look when something feels off — slow requests, 404 crawls, or a burst of 5xx. This parser turns raw combined-format lines into a readable table plus a histogram, so you can spot the pattern without firing up a full log-analysis stack.</p>
   <p class="text-muted">Everything runs locally: your log lines never leave the browser. The table caps at 200 displayed rows for performance, but the stats cover every line you paste. The custom mode uses JavaScript regular expressions with named groups, so any log format you can describe with a regex becomes a table.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

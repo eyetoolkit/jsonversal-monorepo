@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'File Checksum Calculator';
-const description = 'Compute the SHA-256, SHA-1, SHA-384, or SHA-512 checksum of any local file, with its size. Your file is processed locally and never uploaded.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "File Checksum Calculator";
+const description = "Compute the SHA-256, SHA-1, SHA-384, or SHA-512 checksum of any local file, with its size. Your file is processed locally and never uploaded.";
 const faqs = [
   {
     "question": "How do I compute a file checksum?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "MD5, SHA-1, SHA-256, SHA-384, and SHA-512 are all computed simultaneously. Note that MD5 and SHA-1 are considered weak for security purposes \u2014 use SHA-256 or stronger for cryptographic integrity checks."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="sec" title={title} description={description}
+
+<ToolPage
+  site="sec"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/sec/tools/file-checksum/"
-  keywords={['file checksum calculator', 'MD5 SHA256 file hash', 'file hash generator', '文件校验', 'checksum calculator', 'checksum', 'checksum']}
   current="/sec/tools/file-checksum/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Input</h2>
@@ -66,7 +66,7 @@ const faqs = [
   <h2>About File Checksum Calculator</h2>
   <p class="text-muted">A checksum (or file hash) is a short fingerprint that changes drastically when even a single bit of the file changes. Its main uses are verifying that a downloaded file matches the publisher's official copy, detecting accidental corruption during transfer or storage, and deduplicating identical files. SHA-256 is the current recommendation — it is fast, universally supported, and collision-resistant — while SHA-1 is considered broken for security purposes and should only be used to match checksums published long ago.</p>
   <p class="text-muted">Use this tool whenever you download a binary, a firmware image, or an installer and want to confirm it was transferred intact. Keep in mind that a checksum only proves the file matches the value it was compared against; it does not prove the file is safe. A malicious actor who controls the download can simply publish a matching checksum — for real protection against tampering, verify cryptographically signed hashes from a trusted source (for example, GPG signatures or HTTPS package registries).</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON Diff — Compare Two JSON Files Online';
-const description = 'Compare two JSON documents and see exactly what changed — added, removed, or modified values with their JSON paths.';
+const title = "JSON Diff — Compare Two JSON Files Online";
+const description = "Compare two JSON documents and see exactly what changed — added, removed, or modified values with their JSON paths.";
 const faqs = [
   {
     "question": "How do I compare two JSON documents?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. For primitive value changes the tool shows both the old and new value inline. For nested objects and arrays, the path to each changed field is displayed so you can locate it precisely in your document."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-diff/"
-  keywords={['JSON diff', 'JSON diff online', 'compare JSON files', 'JSON difference checker', 'JSON compare tool', 'JSON diff viewer', 'visual JSON diff']}
   current="/tools/json-diff/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input</h2>
@@ -78,7 +71,7 @@ const faqs = [
   <h2>About JSON Diff</h2>
   <p class="text-muted">Comparing two JSON documents by eye is error-prone once they grow beyond a few lines. A JSON diff computes the precise set of differences — new keys, deleted keys, and modified values — and reports each one with a path you can act on. This is especially useful when debugging API responses, configuration files, or generated schemas that change between deploys.</p>
   <p class="text-muted">Use it whenever you need to answer "what actually changed?" between two data snapshots. Note that this is a structural comparison: it does not do semantic comparison (e.g. 1 vs 1.0 are different values) and it treats arrays positionally, so a reordered array appears as many individual changes rather than a single "moved" entry.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

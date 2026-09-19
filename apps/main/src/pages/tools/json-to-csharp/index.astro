@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON to C# Class Generator — Online, Free';
-const description = 'Generate C# classes with Newtonsoft.Json attributes from a JSON sample. Handles nested classes, collections, and null fields. Runs entirely in your browser.';
+const title = "JSON to C# Class Generator — Online, Free";
+const description = "Generate C# classes with Newtonsoft.Json attributes from a JSON sample. Handles nested classes, collections, and null fields. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I convert JSON to C# classes?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. Toggle between class and record output. Records are useful for immutable data models in C# 9+. Both formats include the necessary using statements and namespace."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-to-csharp/"
-  keywords={['JSON to C# class', 'JSON to C#', 'generate C# from JSON', 'C# class generator', 'JSON to .NET', 'C# POCO from JSON', 'JSON to C# converter']}
   current="/tools/json-to-csharp/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
@@ -85,7 +78,7 @@ const faqs = [
   <h2>About JSON to C# Class</h2>
   <p class="text-muted">Deserializing JSON in .NET usually means writing POCO classes first, and hand-typing them for a large API response wastes time and invites typos. This tool generates plain C# classes from a JSON sample, complete with <code>[JsonProperty]</code> attributes so property names map back to the original keys — handy when the JSON uses snake_case, kebab-case, or abbreviations that differ from idiomatic C# property names. Nested objects become nested classes and arrays become <code>List&lt;T&gt;</code>.</p>
   <p class="text-muted">The output mirrors only what the sample shows: fields missing from the sample are absent from the class, and fields that appear as <code>null</code> become <code>object</code>. After generating, review the result and make value types nullable (<code>int?</code>) where a field can legitimately be absent, or switch to <code>System.Text.Json</code> by replacing the attributes with <code>[JsonPropertyName]</code>. Everything runs on your device, so private payloads stay private.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

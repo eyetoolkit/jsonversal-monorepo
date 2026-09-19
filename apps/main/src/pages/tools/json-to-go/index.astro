@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON to Go Struct';
-const description = 'Convert a JSON sample into a ready-to-use Go struct with json tags. Handles nested structs, slices, unions, and null fields. Runs entirely in your browser.';
+const title = "JSON to Go Struct";
+const description = "Convert a JSON sample into a ready-to-use Go struct with json tags. Handles nested structs, slices, unions, and null fields. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I convert JSON to a Go struct?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Types are inferred from your JSON sample: numbers become float64 (or int if whole numbers), booleans stay bool, arrays get a []T slice type. For precise types provide a representative sample covering all fields."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/tools/json-to-go/" current="/tools/json-to-go/"
-  keywords={['JSON to Go', 'Go struct generator', 'Go json tags', 'json to golang', 'struct generator']}
+  canonical="https://jsonversal.com/tools/json-to-go/"
+  current="/tools/json-to-go/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
@@ -84,7 +78,7 @@ const faqs = [
   <h2>About JSON to Go Struct</h2>
   <p class="text-muted">Go&rsquo;s <code>encoding/json</code> needs explicit struct types, and writing them by hand for a large API payload is slow and error-prone. This tool infers the struct skeleton from a representative JSON sample and emits idiomatic fields with <code>json</code> tags, so the decoder maps keys correctly even when Go field names differ. Nested objects become nested structs and arrays of objects become slices of structs.</p>
   <p class="text-muted">Inferred output reflects only the sample: fields that are absent from the sample will be missing from the struct, and optional fields that happen to hold <code>null</code> become <code>interface{}</code>. After generating, review the result, add <code>omitempty</code> where you want zero values skipped, and consider <code>json.RawMessage</code> for polymorphic fields. The tool runs fully locally — paste production payloads safely.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

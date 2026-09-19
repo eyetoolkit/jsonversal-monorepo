@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'JSON to CSV Converter';
-const description = 'Convert a JSON array of objects into CSV — columns are the union of all keys, missing values stay blank, and rows use CRLF line endings per RFC 4180.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "JSON to CSV Converter";
+const description = "Convert a JSON array of objects into CSV — columns are the union of all keys, missing values stay blank, and rows use CRLF line endings per RFC 4180.";
 const faqs = [
   {
     "question": "How do I convert JSON to CSV?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "The tool uses the union of all keys found across all objects. Objects missing a key get an empty value in that column. For best results, ensure all objects share the same schema."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="codegen" title={title} description={description}
+
+<ToolPage
+  site="codegen"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/codegen/tools/json-to-csv/"
-  keywords={['Json To Csv', 'Json To Csv online', 'free json to csv', 'Json To Csv tool', 'Json To Csv generator', 'online json to csv', 'best json to csv']}
   current="/codegen/tools/json-to-csv/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Paste your JSON</h2>
@@ -58,7 +58,7 @@ const faqs = [
   <h2>About JSON to CSV Converter</h2>
   <p class="text-muted">A JSON array of objects and a CSV table describe the same shape: each element is a row, each key is a column, and the value fills the cell. Converting between the two lets you move data out of APIs and scripts and into spreadsheets, or hand tabular data to tools that only speak CSV.</p>
   <p class="text-muted">Reach for this tool when you need to export data to Excel or Google Sheets, or migrate records between systems. A few caveats: nested objects and arrays are serialized as JSON strings inside the cell rather than flattened; columns are the union of all keys in first-appearance order, so elements with missing keys simply leave those cells blank; and null or undefined values become empty cells — a null and an empty string look identical after conversion.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   #error { color: var(--danger); border-color: var(--danger); }

@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Markdown Editor & Live Preview';
-const description = 'Write Markdown and see the rendered HTML as you type. A safe CommonMark-style parser with headings, lists, tables, task lists and code blocks — all local.';
+const title = "Markdown Editor & Live Preview";
+const description = "Write Markdown and see the rendered HTML as you type. A safe CommonMark-style parser with headings, lists, tables, task lists and code blocks — all local.";
 const faqs = [
   {
     "question": "How do I preview Markdown online?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. Tables, task lists, strikethrough, autolinks, and fenced code blocks with syntax highlighting are all supported. The preview matches how GitHub renders Markdown."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/markdown-preview/"
-  keywords={['markdown preview', 'markdown editor', 'online markdown', 'markdown viewer', 'markdown parser', 'edit markdown online', 'write markdown']}
   current="/tools/markdown-preview/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Markdown source</h2>
@@ -59,7 +52,7 @@ const faqs = [
   <h2>About Markdown Editor & Live Preview</h2>
   <p class="text-muted">Markdown is the de-facto format for READMEs, issue comments, chat messages, and docs. A live preview closes the loop between what you type and what readers see: formatting mistakes, broken table columns, and unclosed code fences become visible instantly instead of surfacing after you publish.</p>
   <p class="text-muted">The renderer implements a pragmatic subset of CommonMark with the two safety rules that matter most: all raw HTML is escaped, and every construct (links, images, code) is rendered from your input alone. Because parsing happens in your browser, you can draft confidential notes or internal documentation here with the same comfort as any local editor.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

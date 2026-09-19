@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON to TypeScript Interface';
-const description = 'Convert JSON data into clean TypeScript interfaces. Includes nested types, optional fields, arrays, and union types. Runs entirely in your browser.';
+const title = "JSON to TypeScript Interface";
+const description = "Convert JSON data into clean TypeScript interfaces. Includes nested types, optional fields, arrays, and union types. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I convert JSON to TypeScript types?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Types are inferred from your sample. Arrays get a union of all item types found. Optional keys are inferred from null values. For exact required vs optional fields, provide a representative JSON sample that covers all expected cases."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/tools/json-to-typescript/" current="/tools/json-to-typescript/"
-  keywords={['JSON to TypeScript', 'TypeScript interface', 'JSON schema to TypeScript', 'ts interface generator']}
+  canonical="https://jsonversal.com/tools/json-to-typescript/"
+  current="/tools/json-to-typescript/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
@@ -86,7 +80,7 @@ const faqs = [
   <h2>About JSON to TypeScript Interface</h2>
   <p class="text-muted">Generating TypeScript interfaces from JSON turns raw data samples into compile-time-checked type definitions. It is especially useful when consuming third-party APIs, database records, or LLM responses where you know the shape of the data but do not want to type it out by hand. This tool infers interfaces, nested types, arrays, and unions directly from the JSON you paste.</p>
   <p class="text-muted">Use it whenever you need a quick, accurate type for a JSON payload, or as a starting point that you then refine. Keep in mind that inferred types reflect only what the sample shows: fields absent from the sample are missing from the interface, null values become optional fields, and heterogeneous arrays become union types — so inspect the output and add optional fields or generics where your real data varies.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON Schema Sample Data Generator';
-const description = 'Generate realistic sample JSON from a JSON Schema. Great for creating mock data, test fixtures, and LLM structured-output examples.';
+const title = "JSON Schema Sample Data Generator";
+const description = "Generate realistic sample JSON from a JSON Schema. Great for creating mock data, test fixtures, and LLM structured-output examples.";
 const faqs = [
   {
     "question": "How do I generate mock data from a JSON Schema?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. You can set a optional seed for reproducible output, and control whether arrays should be empty or populated. All generated values respect the schema constraints (minLength, pattern, minimum, maximum, etc.)."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-schema-sample-generator/"
-  keywords={['random JSON generator', 'JSON test data generator', 'mock JSON online', 'fake JSON generator', 'generate JSON sample data', 'JSON dummy data', 'test JSON generator']}
   current="/tools/json-schema-sample-generator/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON Schema</h2>
@@ -69,7 +62,7 @@ const faqs = [
   <h2>About JSON Schema Sample Data Generator</h2>
   <p class="text-muted">Writing mock data by hand is tedious and drifts from your schema. This tool reads a JSON Schema and produces a sample document that satisfies it — respecting types, formats, required fields, and value constraints — so you get test fixtures and placeholder data that match your contract. With LLM structured output, a schema-compliant example is also a quick way to see what a model is expected to return.</p>
   <p class="text-muted">Use it when you need fixtures for unit tests, placeholder payloads for frontend development, or a concrete example to pair with a published schema. Generated values are deterministic per schema, but they are meant as plausible examples, not production data. Recursive schemas are depth-limited to keep output finite, and the implementation covers the common draft-07 keyword set listed above.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

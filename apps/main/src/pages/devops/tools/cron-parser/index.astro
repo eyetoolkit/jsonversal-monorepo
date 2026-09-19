@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Crontab Parser — Explain cron expressions';
-const description = 'Translate crontab expressions (5-field or 6-field) into plain English and preview the next 10 run times. Works for Linux cron, Kubernetes CronJobs and CI.';
+const title = "Crontab Parser — Explain cron expressions";
+const description = "Translate crontab expressions (5-field or 6-field) into plain English and preview the next 10 run times. Works for Linux cron, Kubernetes CronJobs and CI.";
 const faqs = [
   {
     "question": "How do I parse a cron expression?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Standard 5-field cron: minute (0-59), hour (0-23), day of month (1-31), month (1-12), day of week (0-6). It supports ranges, steps, lists, and special strings (@hourly, @daily, @weekly, @monthly, @yearly/@annually)."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/devops/tools/cron-parser/" current="/devops/tools/cron-parser/"
-  keywords={['cron parser', 'crontab explainer', 'cron expression to english', 'cron syntax', 'kubernetes cronjob parser', 'cron schedule explainer', 'cron expression tester']}
+  canonical="https://jsonversal.com/devops/tools/cron-parser/"
+  current="/devops/tools/cron-parser/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
@@ -71,7 +65,7 @@ const faqs = [
 
   <h2>How it works</h2>
   <p class="text-muted">Type any crontab expression — the parser expands each field into a set of integer values, then converts that set into human-readable English ("At 02:00 every day" / "Every 15 minutes between 09:00 and 17:00 on weekdays"). It then walks forward from now to list the next ten concrete dates and times the scheduler would fire. Kubernetes CronJobs use the same syntax plus an optional leading seconds field; toggle the switch to parse 6-field expressions.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

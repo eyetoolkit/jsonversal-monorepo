@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'LLM Structured Output Validator';
-const description = 'Validate JSON Schemas for LLM structured output. Presets for OpenAI, Anthropic and Gemini. Preview mock data and check real model output. No upload.';
+const title = "LLM Structured Output Validator";
+const description = "Validate JSON Schemas for LLM structured output. Presets for OpenAI, Anthropic and Gemini. Preview mock data and check real model output. No upload.";
 const faqs = [
   {
     "question": "How do I validate LLM structured output?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Yes. Paste multiple JSON objects (one per line or as a JSON array) and the tool validates each one, reporting which responses passed and which failed with specific error messages."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="codegen"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/codegen/tools/llm-structured-output-validator/" current="/codegen/tools/llm-structured-output-validator/"
-  keywords={['LLM structured output validator', 'OpenAI response_format validator', 'Anthropic tool use schema', 'Gemini structured output', 'JSON Schema AI validation', 'GPT function call validator', 'LLM schema test']}
+  canonical="https://jsonversal.com/codegen/tools/llm-structured-output-validator/"
+  current="/codegen/tools/llm-structured-output-validator/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/codegen/">CodeGen</a><span class="sep">·</span><a href="/codegen/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
@@ -80,7 +74,7 @@ const faqs = [
 
   <h2>About LLM Structured Outputs</h2>
   <p class="text-muted">Every major LLM platform — OpenAI, Anthropic, Google Gemini, and AWS Bedrock — now supports <em>structured output</em>: the ability to declare a JSON Schema and force the model to return data conforming to it. This turns unreliable free-text responses into typed, parseable data that your code can consume directly. But a bad schema — missing required fields, ambiguous types, or contradictions in allOf/oneOf — causes silent failures: the model silently omits fields, returns the wrong type, or your parser crashes. This tool validates both sides: the schema itself and any concrete LLM output you paste against it.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   textarea { width: 100%; box-sizing: border-box; }

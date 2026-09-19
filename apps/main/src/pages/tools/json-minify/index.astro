@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON Minify & Compress';
-const description = 'Strip whitespace and comments from JSON in one click, then compare input vs output size and compression ratio. Ideal for URLs and shrinking API payloads.';
+const title = "JSON Minify & Compress";
+const description = "Strip whitespace and comments from JSON in one click, then compare input vs output size and compression ratio. Ideal for URLs and shrinking API payloads.";
 const faqs = [
   {
     "question": "How do I minify JSON to a single line?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "No. Minifying only removes whitespace characters (spaces, tabs, newlines). The parsed value is identical; only the serialized representation is compressed. The original data is fully preserved."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/tools/json-minify/" current="/tools/json-minify/"
-  keywords={['JSON minify', 'JSON compress', 'minify JSON online', 'remove whitespace JSON', 'JSON one line', 'compress JSON', 'minify JSON tool']}
+  canonical="https://jsonversal.com/tools/json-minify/"
+  current="/tools/json-minify/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -69,7 +63,7 @@ const faqs = [
 
   <h2>About Minifying JSON</h2>
   <p class="text-muted">Minifying JSON removes all spaces, tabs, and newlines between tokens. For typical real-world payloads this saves 30–60% of the byte size, which matters when embedding JSON in URL query strings (where there is a 2048-character soft limit), HTML data attributes, CSS <code>--var</code> declarations, email templates, or any bandwidth-sensitive transport. The output is <em>byte-identical</em> to the input for the parser — any program that accepts the pretty version will accept the minified version.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   textarea { width: 100%; box-sizing: border-box; }

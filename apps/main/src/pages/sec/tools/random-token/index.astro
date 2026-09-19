@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'Random Token Generator';
-const description = 'Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser\'s CSPRNG.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "Random Token Generator";
+const description = "Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser\\";
 const faqs = [
   {
     "question": "How do I generate a random token?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "Alphanumeric uses a-z, A-Z, 0-9. Hex uses 0-9, a-f. URL-safe replaces + and / with - and _. Custom lets you define exactly which characters to use."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="sec" title={title} description={description}
+
+<ToolPage
+  site="sec"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/sec/tools/random-token/"
-  keywords={['random token generator', 'API token generator', 'random string generator', 'random token', 'secure token', 'random-token', 'random-token']}
   current="/sec/tools/random-token/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Options</h2>
@@ -76,7 +76,7 @@ const faqs = [
   <h2>About Random Token Generator</h2>
   <p class="text-muted">Random tokens are unpredictable strings used as credentials or one-time references: API keys, CSRF tokens, session identifiers, password-reset links, and email-verification codes. Their strength depends on how many bits of entropy they hold — 16 bytes (128 bits) is a common default, and 16–32 bytes is ample for most purposes. The encoding only changes the text length, not the entropy: hex renders 2 characters per byte (a 16-byte token becomes 32 characters), while base64 renders 4 characters per 3 bytes (24 characters, 22 without padding); base64url swaps <code>+ /</code> for <code>- _</code> and drops the padding so the token is safe in URLs, query strings, and filenames.</p>
   <p class="text-muted">Use this generator whenever you need a fresh random credential: a new API key, a session id, a CSRF token, or a one-time reset link. Entropy must come from a cryptographically secure source — this tool uses <code>crypto.getRandomValues</code>, while <code>Math.random</code> is not designed for security and must never be used for secrets. Store tokens the way you store passwords: hash them in the database so a leak does not expose working credentials, transmit them over HTTPS, and treat anything that cannot be re-derived (like a reset link) as single-use.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

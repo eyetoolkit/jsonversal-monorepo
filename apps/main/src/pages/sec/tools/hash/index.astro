@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'Hash Generator — MD5, SHA-1, SHA-256 Online';
-const description = 'Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text or file. All hashing happens in your browser.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "Hash Generator — MD5, SHA-1, SHA-256 Online";
+const description = "Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text or file. All hashing happens in your browser.";
 const faqs = [
   {
     "question": "How do I hash a string?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "No. A cryptographic hash is a one-way function \u2014 you cannot recover the original input from the hash. This is by design. If you need reversible encryption, use the AES or RSA tools instead."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="sec" title={title} description={description}
+
+<ToolPage
+  site="sec"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/sec/tools/hash/"
-  keywords={['hash generator', 'MD5 SHA1 SHA256 SHA512', 'hash online', 'hash生成器', 'cryptographic hash', 'hash', 'hash']}
   current="/sec/tools/hash/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Input</h2>
@@ -57,7 +57,7 @@ const faqs = [
   <h2>About Hash Generator</h2>
   <p class="text-muted">A hash function maps data of any size to a fixed-length digest, and it is one-way: you cannot recover the original input from its output. This tool computes MD5, SHA-1, SHA-256, SHA-384, and SHA-512 digests so you can compare files, verify downloads, or check data integrity. SHA-256 and SHA-512 are the current cryptographic standards, while MD5 and SHA-1 are considered broken for security-sensitive uses.</p>
   <p class="text-muted">Use a hash when you need integrity verification — for example, confirming that a downloaded file matches its published checksum. Never rely on MD5 or SHA-1 to protect passwords or sign data, and choose SHA-256 or SHA-512 for any new system. Note that a hash proves data was not accidentally corrupted, but it does not authenticate who the data came from.</p>
-</BaseLayout>
+</ToolPage>
 
 <script is:inline>
 (function(){

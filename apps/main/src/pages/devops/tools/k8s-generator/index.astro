@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Kubernetes YAML Generator';
-const description = 'Scaffold Kubernetes Deployment, Service, and Ingress manifests from a small form. Copy the YAML straight into kubectl. Runs entirely in your browser.';
+const title = "Kubernetes YAML Generator";
+const description = "Scaffold Kubernetes Deployment, Service, and Ingress manifests from a small form. Copy the YAML straight into kubectl. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I generate Kubernetes manifests?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. The tool can generate a full multi-resource bundle: Deployment + Service + ConfigMap + Ingress together as separate documents in one YAML file, ready for kubectl apply -f."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
   canonical="https://jsonversal.com/devops/tools/k8s-generator/"
-  keywords={['Kubernetes YAML generator', 'k8s manifest generator', 'Kubernetes config generator', 'K8s YAML', 'kubectl generator', 'k8s-generator', 'k8s-generator']}
   current="/devops/tools/k8s-generator/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Resource</h2>
@@ -118,7 +111,7 @@ const faqs = [
   <h2>About Kubernetes YAML Generator</h2>
   <p class="text-muted">Kubernetes objects are YAML documents, and the common workflow — a Deployment for your pods, a Service for stable networking, an Ingress for external traffic — has a lot of repetitive boilerplate: apiVersion, kind, metadata, labels, selectors, and ports all need to agree. This generator produces consistent, minimal manifests so you start from something that works instead of from a blank file or a blog snippet you cannot fully trust.</p>
   <p class="text-muted">The output targets current stable APIs: <code>apps/v1</code> for Deployments, <code>v1</code> for Services, and <code>networking.k8s.io/v1</code> for Ingress. Treat it as a starting point — add resource requests/limits, probes, config maps, and secrets for production, and remember that the Service selector must match the Deployment&rsquo;s pod labels, which this tool wires up for you automatically. If your cluster is older, check that the Ingress API version and class name are supported before applying.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'RSA Key Pair Generator';
-const description = 'Generate RSA key pairs (2048/3072/4096-bit) in your browser with Web Crypto, view PEM output, and encrypt/decrypt text. Private keys never leave your device.';
+const title = "RSA Key Pair Generator";
+const description = "Generate RSA key pairs (2048/3072/4096-bit) in your browser with Web Crypto, view PEM output, and encrypt/decrypt text. Private keys never leave your device.";
 const faqs = [
   {
     "question": "How do I generate an RSA key pair?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "The public key can be used to encrypt data or verify signatures. The private key decrypts ciphertext or creates signatures. Never share your private key \u2014 it stays in your browser and is not stored."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="sec"
   title={title}
   description={description}
   canonical="https://jsonversal.com/sec/tools/rsa-keygen/"
-  keywords={['RSA key pair generator', 'RSA key generator', 'generate RSA keys', 'RSA encryption keys', 'RSA keygen', 'rsa-keygen', 'rsa-keygen']}
   current="/sec/tools/rsa-keygen/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Generate key pair</h2>
@@ -86,7 +79,7 @@ const faqs = [
   <h2>About RSA Key Pair Generator</h2>
   <p class="text-muted">RSA remains one of the most widely supported asymmetric algorithms: a <em>public key</em> encrypts or verifies, and the matching <em>private key</em> decrypts or signs. Generating a pair locally means the private key is created and exported on your machine — it is never transmitted, and you are in control of storing it (and ideally protecting it with a passphrase) yourself.</p>
   <p class="text-muted">For exchanging secrets, RSA is almost always used to wrap a symmetric key (hybrid encryption) rather than encrypt data directly, because of the small payload limit. For new designs, ECDH or ECDSA with P-256/384 are more efficient and give equivalent strength with smaller keys — this tool exists for interop with existing systems, key stores, and OpenSSL-based workflows. Keep the private key private: anyone holding it can decrypt anything encrypted to your public key.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

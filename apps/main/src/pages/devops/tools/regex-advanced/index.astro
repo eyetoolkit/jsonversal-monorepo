@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Regex Tester with Explanations & Groups';
-const description = 'Test JavaScript and Python regex with live match highlighting. See groups, indices, captured values and match counts, plus common pattern presets.';
+const title = "Regex Tester with Explanations & Groups";
+const description = "Test JavaScript and Python regex with live match highlighting. See groups, indices, captured values and match counts, plus common pattern presets.";
 const faqs = [
   {
     "question": "How do I test advanced regex patterns?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "The advanced version adds pattern explanation (shows what each part of the regex does), match indices, lookbehind/lookahead visualisation, and substitution preview \u2014 useful for complex patterns."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/devops/tools/regex-advanced/" current="/devops/tools/regex-advanced/"
-  keywords={['regex tester', 'regex online', 'regular expression test', 'regex playground', 'regex match counter', 'regex visualizer', 'regex101 alternative', 'regex patterns']}
+  canonical="https://jsonversal.com/devops/tools/regex-advanced/"
+  current="/devops/tools/regex-advanced/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
@@ -76,7 +70,7 @@ const faqs = [
     <li>Click <strong>Explain</strong> to get a human-readable breakdown of what each token in your regex does.</li>
     <li>Pick a preset to instantly load a common pattern like email, URL, or IP address matching.</li>
   </ul>
-</BaseLayout>
+</ToolPage>
 
 <style>
   textarea, input[type=text] { width: 100%; box-sizing: border-box; }

@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'Random Password Generator';
-const description = 'Generate strong random passwords with custom length and character sets, plus a live entropy estimate. Everything is generated locally — never transmitted.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "Random Password Generator";
+const description = "Generate strong random passwords with custom length and character sets, plus a live entropy estimate. Everything is generated locally — never transmitted.";
 const faqs = [
   {
     "question": "How do I generate a secure password?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "Passwords are generated using crypto.getRandomValues() which is cryptographically secure. The entropy depends on length and character set size \u2014 a 16-character password with all four character classes has approximately 95 bits of entropy."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="sec" title={title} description={description}
+
+<ToolPage
+  site="sec"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/sec/tools/password-generator/"
-  keywords={['password generator', 'random password generator', 'secure password generator', '密码生成器', 'password maker', 'password-generator', 'password-generator']}
   current="/sec/tools/password-generator/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Options</h2>
@@ -70,7 +70,7 @@ const faqs = [
   <h2>About Random Password Generator</h2>
   <p class="text-muted">A strong password is unpredictable: each character multiplies the number of possibilities an attacker must try, so length and randomness matter far more than clever substitutions like "P@ssw0rd". This tool uses <code>crypto.getRandomValues</code>, a cryptographically secure random source, rather than <code>Math.random</code>, whose output is not designed for security and can be predictable. Entropy, measured in bits, expresses how much uncertainty the password holds — roughly the number of guesses needed to crack it.</p>
   <p class="text-muted">Use this generator when creating a new account, an API key, or an encryption passphrase. For maximum safety, save generated passwords in a password manager instead of reusing memorable ones, avoid patterns like consecutive digits or keyboard runs, and prefer longer passwords over adding more symbols. Remember that random generation solves the guessing problem, but not the theft problem: on a compromised device or a phishing page, even a perfect password is useless.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'X.509 Certificate Decoder';
-const description = 'Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs and extensions. A compact DER/ASN.1 parser, nothing uploaded.';
+const title = "X.509 Certificate Decoder";
+const description = "Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs and extensions. A compact DER/ASN.1 parser, nothing uploaded.";
 const faqs = [
   {
     "question": "How do I decode an X.509 certificate?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. The tool also decodes PKCS#10 Certificate Signing Requests, showing the subject, public key, and any requested extensions. Paste the PEM-encoded CSR to decode it."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="sec"
   title={title}
   description={description}
   canonical="https://jsonversal.com/sec/tools/x509-decoder/"
-  keywords={['X.509 certificate decoder', 'decode SSL certificate', 'certificate parser', 'SSL cert decoder', 'X.509解析', 'x509-decoder', 'x509-decoder']}
   current="/sec/tools/x509-decoder/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">PEM certificate</h2>
@@ -65,7 +58,7 @@ const faqs = [
   <h2>About X.509 Certificate Decoder</h2>
   <p class="text-muted">X.509 certificates are the public keys of TLS and PKI. A certificate is an ASN.1 DER structure base64-encoded into PEM: who issued it (issuer), who it belongs to (subject), the validity window, the public key and algorithm, and extensions such as Subject Alternative Names (the hostnames the certificate is valid for) and key usage. Reading these fields by hand means decoding DER byte by byte — this tool does that for you so you can quickly answer questions like &ldquo;when does this cert expire?&rdquo;, &ldquo;which domains is it valid for?&rdquo;, or &ldquo;is it CA-signed?&rdquo;.</p>
   <p class="text-muted">This decoder is for inspection only — it does not verify the trust chain or the signature (that requires the issuer&rsquo;s public key and a CA store). For trust validation use a proper TLS stack. Note that certificates are public information; still, this tool runs locally so you can inspect internal-PKI certs, customer certs, or key-material-adjacent data without third-party servers seeing them.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON Statistics & Structure Analyzer';
-const description = 'Analyze any JSON document — key count, max depth, type distribution and array lengths. Understand payload shapes and check schema compliance locally.';
+const title = "JSON Statistics & Structure Analyzer";
+const description = "Analyze any JSON document — key count, max depth, type distribution and array lengths. Understand payload shapes and check schema compliance locally.";
 const faqs = [
   {
     "question": "How do I analyse JSON statistics?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Yes. The statistics engine processes JSON incrementally in the browser, so large documents (10MB+) are handled without freezing the UI. The analysis runs entirely locally."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/tools/json-statistics/" current="/tools/json-statistics/"
-  keywords={['JSON statistics', 'JSON structure analyzer', 'JSON depth counter', 'JSON key count', 'JSON type distribution', 'JSON schema analyzer', 'JSON data analysis tool']}
+  canonical="https://jsonversal.com/tools/json-statistics/"
+  current="/tools/json-statistics/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -56,7 +50,7 @@ const faqs = [
     <li>It reports the maximum nesting depth, the number of keys at each level, the distribution of types across the document, and min/max/avg of numbers, arrays, and strings.</li>
     <li>Useful when you're schema-designing an API response, debugging a deeply nested document, or understanding the structure of third-party webhooks.</li>
   </ul>
-</BaseLayout>
+</ToolPage>
 
 <style>
   textarea { width: 100%; box-sizing: border-box; }

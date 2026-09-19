@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = '.gitignore Generator';
-const description = 'Generate a .gitignore file by selecting your language and frameworks. Templated from GitHub\'s gitignore repo.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = ".gitignore Generator";
+const description = "Generate a .gitignore file by selecting your language and frameworks. Templated from GitHub\\";
 const faqs = [
   {
     "question": "How do I generate a .gitignore file?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "Yes. You can edit the generated file before copying it. Add or remove patterns as needed. The tool creates a solid starting point that covers the most common cases for your selected stack."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="codegen" title={title} description={description}
+
+<ToolPage
+  site="codegen"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/codegen/tools/gitignore/"
-  keywords={['.gitignore generator', 'gitignore template', 'generate .gitignore', '.gitignore online', 'gitignore creator', 'gitignore', 'gitignore']}
   current="/codegen/tools/gitignore/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Select templates</h2>
@@ -49,7 +49,7 @@ const faqs = [
   <h2>About .gitignore Generator</h2>
   <p class="text-muted">A .gitignore file tells Git which files and directories to leave untracked, so generated artifacts and local environment files never end up in your repository. This tool builds one from maintained community templates instead of hand-writing ignore rules.</p>
   <p class="text-muted">Add it when you initialize a project, ideally before the first commit, to keep node_modules, build output, and secrets like .env out of version control. Note that .gitignore only affects untracked files — if a file was already committed, run git rm --cached &lt;file&gt; to stop tracking it without deleting it locally.</p>
-</BaseLayout>
+</ToolPage>
 
 <script is:inline>
 (function(){

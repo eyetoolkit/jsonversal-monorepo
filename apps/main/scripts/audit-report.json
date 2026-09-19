@@ -1,0 +1,1520 @@
+[
+  {
+    "path": "/codegen/tools/base64-image/",
+    "url": "https://jsonversal.com/codegen/tools/base64-image/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Base64 Image Viewer | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/csv-to-json/",
+    "url": "https://jsonversal.com/codegen/tools/csv-to-json/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "CSV to JSON Converter | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/curl-to-fetch/",
+    "url": "https://jsonversal.com/codegen/tools/curl-to-fetch/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "cURL to Fetch Converter | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/curl-to-python/",
+    "url": "https://jsonversal.com/codegen/tools/curl-to-python/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "cURL to Python (requests) | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/docker-compose/",
+    "url": "https://jsonversal.com/codegen/tools/docker-compose/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Docker Compose Generator | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/env-generator/",
+    "url": "https://jsonversal.com/codegen/tools/env-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": ".env Template Generator | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/gitignore/",
+    "url": "https://jsonversal.com/codegen/tools/gitignore/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": ".gitignore Generator | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/html-escaper/",
+    "url": "https://jsonversal.com/codegen/tools/html-escaper/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "HTML Entity Escaper | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/json-to-csv/",
+    "url": "https://jsonversal.com/codegen/tools/json-to-csv/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to CSV Converter | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/json-to-python/",
+    "url": "https://jsonversal.com/codegen/tools/json-to-python/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to Python Dict | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/json-xml/",
+    "url": "https://jsonversal.com/codegen/tools/json-xml/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON ↔ XML Converter | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/llm-structured-output-validator/",
+    "url": "https://jsonversal.com/codegen/tools/llm-structured-output-validator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "LLM Structured Output Validator | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/schema-to-typescript/",
+    "url": "https://jsonversal.com/codegen/tools/schema-to-typescript/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Schema to TypeScript | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/sql-formatter/",
+    "url": "https://jsonversal.com/codegen/tools/sql-formatter/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "SQL Formatter | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/sql-generator/",
+    "url": "https://jsonversal.com/codegen/tools/sql-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to SQL Generator | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/codegen/tools/sql-validator/",
+    "url": "https://jsonversal.com/codegen/tools/sql-validator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "SQL Validator — Check SQL Syntax Online | codegen.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/base64/",
+    "url": "https://jsonversal.com/devops/tools/base64/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Base64 Encoder / Decoder | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/basic-auth-generator/",
+    "url": "https://jsonversal.com/devops/tools/basic-auth-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Basic Auth Header Generator | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/cidr-calculator/",
+    "url": "https://jsonversal.com/devops/tools/cidr-calculator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "CIDR / Subnet Calculator | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/cron-parser/",
+    "url": "https://jsonversal.com/devops/tools/cron-parser/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Crontab Parser — Explain cron expressions | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/crontab/",
+    "url": "https://jsonversal.com/devops/tools/crontab/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Crontab Explainer | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/json-viewer/",
+    "url": "https://jsonversal.com/devops/tools/json-viewer/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Tree Viewer | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/k8s-generator/",
+    "url": "https://jsonversal.com/devops/tools/k8s-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Kubernetes YAML Generator | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/log-parser/",
+    "url": "https://jsonversal.com/devops/tools/log-parser/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Log Line Parser | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/number-base/",
+    "url": "https://jsonversal.com/devops/tools/number-base/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Number Base Converter | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/qr-code-generator/",
+    "url": "https://jsonversal.com/devops/tools/qr-code-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "QR Code Generator — Create QR Codes Free | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/regex-advanced/",
+    "url": "https://jsonversal.com/devops/tools/regex-advanced/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Regex Tester with Explanations & Groups | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/regex/",
+    "url": "https://jsonversal.com/devops/tools/regex/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Regex Tester — Test Regular Expressions | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/timestamp/",
+    "url": "https://jsonversal.com/devops/tools/timestamp/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Unix Timestamp Converter | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/url-codec/",
+    "url": "https://jsonversal.com/devops/tools/url-codec/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "URL Encoder & Decoder | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/uuid-generator/",
+    "url": "https://jsonversal.com/devops/tools/uuid-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "UUID v4 Generator | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/devops/tools/yaml-json/",
+    "url": "https://jsonversal.com/devops/tools/yaml-json/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "YAML ↔ JSON Converter | devops.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/aes/",
+    "url": "https://jsonversal.com/sec/tools/aes/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "AES Encryption / Decryption | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/bcrypt/",
+    "url": "https://jsonversal.com/sec/tools/bcrypt/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "BCrypt Hash & Verify | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 3,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/file-checksum/",
+    "url": "https://jsonversal.com/sec/tools/file-checksum/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "File Checksum Calculator | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/hash-generator/",
+    "url": "https://jsonversal.com/sec/tools/hash-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Hash & HMAC Generator — MD5, SHA-1 to SHA-512 | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/hash/",
+    "url": "https://jsonversal.com/sec/tools/hash/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Hash Generator — MD5, SHA-1, SHA-256 Online | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/hmac/",
+    "url": "https://jsonversal.com/sec/tools/hmac/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "HMAC Generator — Sign Messages with SHA-256 | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/jwt-decoder/",
+    "url": "https://jsonversal.com/sec/tools/jwt-decoder/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JWT Decoder — Decode and Verify Tokens | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/jwt-generator/",
+    "url": "https://jsonversal.com/sec/tools/jwt-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JWT Generator & Signer | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/passphrase-generator/",
+    "url": "https://jsonversal.com/sec/tools/passphrase-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Passphrase Generator (Diceware-style) | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/password-generator/",
+    "url": "https://jsonversal.com/sec/tools/password-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Random Password Generator | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/random-token/",
+    "url": "https://jsonversal.com/sec/tools/random-token/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Random Token Generator | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/rsa-keygen/",
+    "url": "https://jsonversal.com/sec/tools/rsa-keygen/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "RSA Key Pair Generator | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/secret-scanner/",
+    "url": "https://jsonversal.com/sec/tools/secret-scanner/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Secret & API Key Scanner | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/sec/tools/x509-decoder/",
+    "url": "https://jsonversal.com/sec/tools/x509-decoder/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "X.509 Certificate Decoder | sec.versal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-diff/",
+    "url": "https://jsonversal.com/tools/json-diff/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Diff — Compare Two JSON Files Online | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-escape/",
+    "url": "https://jsonversal.com/tools/json-escape/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Escape & Unescape | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-formatter/",
+    "url": "https://jsonversal.com/tools/json-formatter/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Formatter & Validator | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-minify/",
+    "url": "https://jsonversal.com/tools/json-minify/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Minify & Compress | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-schema-builder/",
+    "url": "https://jsonversal.com/tools/json-schema-builder/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Schema Builder — Visual Schema Editor | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-schema-generator/",
+    "url": "https://jsonversal.com/tools/json-schema-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Schema Generator | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-schema-sample-generator/",
+    "url": "https://jsonversal.com/tools/json-schema-sample-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Schema Sample Data Generator | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-schema-validator/",
+    "url": "https://jsonversal.com/tools/json-schema-validator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Schema Validator — Draft 2020-12, Free | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-sorter/",
+    "url": "https://jsonversal.com/tools/json-sorter/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Sorter & Deduper | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-statistics/",
+    "url": "https://jsonversal.com/tools/json-statistics/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON Statistics & Structure Analyzer | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-to-csharp/",
+    "url": "https://jsonversal.com/tools/json-to-csharp/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to C# Class Generator — Online, Free | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-to-go/",
+    "url": "https://jsonversal.com/tools/json-to-go/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to Go Struct | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-to-pydantic/",
+    "url": "https://jsonversal.com/tools/json-to-pydantic/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to Pydantic Model | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-to-typescript/",
+    "url": "https://jsonversal.com/tools/json-to-typescript/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to TypeScript Interface | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/json-to-zod/",
+    "url": "https://jsonversal.com/tools/json-to-zod/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSON to Zod Schema | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/jsonpath-tester/",
+    "url": "https://jsonversal.com/tools/jsonpath-tester/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "JSONPath Tester — Test JSON Queries Online | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/llm-token-calculator/",
+    "url": "https://jsonversal.com/tools/llm-token-calculator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "LLM Token & Pricing Calculator | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/markdown-preview/",
+    "url": "https://jsonversal.com/tools/markdown-preview/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Markdown Editor & Live Preview | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/mock-data-generator/",
+    "url": "https://jsonversal.com/tools/mock-data-generator/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Mock Data Generator | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/text-diff/",
+    "url": "https://jsonversal.com/tools/text-diff/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "Text Diff — Compare Two Texts Line by Line | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/uuid-v7/",
+    "url": "https://jsonversal.com/tools/uuid-v7/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "UUID v7 Generator & Timestamp Decoder | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 6,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/xml-formatter/",
+    "url": "https://jsonversal.com/tools/xml-formatter/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "XML Formatter & Validator | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  },
+  {
+    "path": "/tools/yaml-formatter/",
+    "url": "https://jsonversal.com/tools/yaml-formatter/",
+    "levels": {
+      "L0": {
+        "ok": true,
+        "status": 200,
+        "security": []
+      },
+      "L1": {
+        "issues": [],
+        "title": "YAML Formatter & Validator | jsonversal",
+        "hasH1": true
+      },
+      "L2": {
+        "scripts": 4,
+        "issues": []
+      }
+    },
+    "summary": "✅ PASS",
+    "allIssues": []
+  }
+]

@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'JSON to Python Dict';
-const description = 'Convert a JSON sample into a Python dict literal — valid identifier keys stay bare, invalid keys get quoted, and true/false/null become True/False/None.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "JSON to Python Dict";
+const description = "Convert a JSON sample into a Python dict literal — valid identifier keys stay bare, invalid keys get quoted, and true/false/null become True/False/None.";
 const faqs = [
   {
     "question": "How do I convert JSON to Python?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "Yes. The output is valid Python 3 code using standard dict literals with bare identifiers for valid keys and quoted strings for keys that are not valid Python identifiers. It can be copied directly into your project."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="codegen" title={title} description={description}
+
+<ToolPage
+  site="codegen"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/codegen/tools/json-to-python/"
-  keywords={['JSON to Python', 'JSON to Python dict', 'convert JSON to Python', 'JSON Python converter', 'JSON to Python online', 'json-to-python', 'json-to-python']}
   current="/codegen/tools/json-to-python/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Paste your JSON</h2>
@@ -56,7 +56,7 @@ const faqs = [
   <h2>About JSON to Python</h2>
   <p class="text-muted">JSON and Python dict literals look similar but differ in the details: <code>true</code>/<code>false</code>/<code>null</code> become <code>True</code>/<code>False</code>/<code>None</code>, and while JSON requires every key to be double-quoted, Python lets valid identifiers be written bare and quotes anything else — like keys with hyphens or leading digits.</p>
   <p class="text-muted">Reach for this tool when you are writing a Python script that needs test fixtures or a hard-coded dictionary copied from an API response. Watch out for deeply nested payloads (the indentation grows fast), and for numbers: the JSON passes through JavaScript numbers, so very large integers or floats can lose precision.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   #error { color: var(--danger); border-color: var(--danger); }

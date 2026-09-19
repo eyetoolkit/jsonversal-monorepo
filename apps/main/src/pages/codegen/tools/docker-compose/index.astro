@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Docker Compose Generator';
-const description = 'Scaffold a docker-compose.yml with services, ports, volumes, and environment variables from a simple form. Runs entirely in your browser.';
+const title = "Docker Compose Generator";
+const description = "Scaffold a docker-compose.yml with services, ports, volumes, and environment variables from a simple form. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I generate a docker-compose.yml?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. The generated file is fully editable. Add custom services or modify the generated ones before copying the final docker-compose.yml to your project."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="codegen"
   title={title}
   description={description}
   canonical="https://jsonversal.com/codegen/tools/docker-compose/"
-  keywords={['Docker Compose generator', 'docker-compose.yml generator', 'docker compose template', 'docker-compose template', 'generate docker compose', 'docker-compose', 'docker-compose']}
   current="/codegen/tools/docker-compose/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Project</h2>
@@ -75,7 +68,7 @@ const faqs = [
   <h2>About Docker Compose Generator</h2>
   <p class="text-muted">Docker Compose describes multi-container applications in a single YAML file: each service maps to an image plus its ports, volumes, and environment. Writing that file from scratch means remembering the exact indentation and key names. This generator produces a valid compose file from a form so you can focus on the parts that matter — which images, which ports, which config — instead of YAML syntax.</p>
   <p class="text-muted">Start services with <code>docker compose up -d</code>, view logs with <code>docker compose logs -f</code>, and tear everything down with <code>docker compose down</code>. The generated file uses the classic <code>version</code> key for compatibility with older tooling, but the format is largely optional in modern Compose — the file works either way. Add healthchecks, networks, and build contexts for production stacks; this tool covers the common local-development shape.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

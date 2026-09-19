@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'HMAC Generator — Sign Messages with SHA-256';
-const description = 'Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures for any message and secret key, in hex and base64. Runs locally with Web Crypto.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "HMAC Generator — Sign Messages with SHA-256";
+const description = "Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures for any message and secret key, in hex and base64. Runs locally with Web Crypto.";
 const faqs = [
   {
     "question": "How do I compute an HMAC?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "A regular hash (SHA-256) is not authenticated \u2014 anyone can compute it. HMAC adds a secret key to the computation, producing a tamper-evident digest. If the message or key changes, the HMAC value changes. Used for API signatures and message authentication."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="sec" title={title} description={description}
+
+<ToolPage
+  site="sec"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/sec/tools/hmac/"
-  keywords={['HMAC generator', 'HMAC SHA256 online', 'HMAC calculator', 'HMAC生成器', 'keyed hash', 'hmac', 'hmac']}
   current="/sec/tools/hmac/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Input</h2>
@@ -69,7 +69,7 @@ const faqs = [
   <h2>About HMAC</h2>
   <p class="text-muted">HMAC (Hash-based Message Authentication Code) is a keyed hash: it combines a hash function such as SHA-256 with a shared secret to produce a signature that verifies both integrity and authenticity. Unlike a plain hash, which anyone can recompute, an HMAC is unpredictable without the key — changing even one bit of the message produces a completely different signature. The secret is the root of trust, and the message can be stored or transmitted openly.</p>
   <p class="text-muted">Use HMAC whenever two parties share a secret and need to prove messages were not tampered with or forged: API request signing, webhook payload verification, and session tokens are the most common cases. Never use a plain hash for these — an attacker can recompute MD5 or SHA-256 without the key. Keep the secret key out of client-side code, rotate it periodically, and use separate keys for different purposes. The signature authenticates, but it does not encrypt: if confidentiality is also needed, combine HMAC with encryption (for example, AES-GCM).</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

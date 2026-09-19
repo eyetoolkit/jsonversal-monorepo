@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'HTML Entity Escaper';
-const description = 'Escape text and code into HTML entities (ampersand, angle brackets, quotes) and unescape it back. Handy before pasting code into pre or code blocks.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "HTML Entity Escaper";
+const description = "Escape text and code into HTML entities (ampersand, angle brackets, quotes) and unescape it back. Handy before pasting code into pre or code blocks.";
 const faqs = [
   {
     "question": "How do I escape HTML special characters?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "Escape HTML when inserting user-generated content into a web page to prevent XSS attacks, or when displaying code snippets that contain HTML characters. Always escape before rendering untrusted content."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="codegen" title={title} description={description}
+
+<ToolPage
+  site="codegen"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/codegen/tools/html-escaper/"
-  keywords={['HTML entity escaper', 'escape HTML', 'HTML special characters', 'HTML转义', 'HTML entity encoder', 'html-escaper', 'html-escaper']}
   current="/codegen/tools/html-escaper/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Input</h2>
@@ -66,7 +66,7 @@ const faqs = [
   <h2>About HTML Entity Escaper</h2>
   <p class="text-muted">An HTML entity is a sequence that starts with an ampersand and ends with a semicolon — for example, <code>&amp;lt;</code> renders the <code>&lt;</code> character. Browsers treat entities as literal characters instead of markup, which makes them the safe way to include reserved characters such as <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> and quotes in HTML text.</p>
   <p class="text-muted">Escape code samples before pasting them into <code>&lt;pre&gt;</code> or <code>&lt;code&gt;</code> blocks so the tags inside your sample display as text instead of being parsed by the browser. Escaping also helps prevent XSS when user-generated content is inserted into a page, and it is a regular part of writing blog posts about code. Always escape the ampersand first, because every entity starts with one — escaping <code>&amp;</code> last would turn the ampersand of an already-escaped <code>&amp;lt;</code> into <code>&amp;amp;lt;</code>. And beware of double escaping: escaping the same text twice produces entities such as <code>&amp;amp;lt;</code>, which browsers display literally instead of decoding.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   #error { color: var(--danger); border-color: var(--danger); }

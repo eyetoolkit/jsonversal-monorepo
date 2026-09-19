@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'QR Code Generator \u2014 Create QR Codes Free';
-const description = 'Generate QR codes for URLs, text, WiFi, contacts, and more. Customize size and colors. Download as PNG or SVG. 100% browser-based, nothing uploaded.';
+const title = "QR Code Generator \\u2014 Create QR Codes Free";
+const description = "Generate QR codes for URLs, text, WiFi, contacts, and more. Customize size and colors. Download as PNG or SVG. 100% browser-based, nothing uploaded.";
 const faqs = [
   {
     "question": "How do I generate a QR code?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Text, URLs (auto-detected), WiFi credentials (SSID, password, encryption type), vCard contacts, and arbitrary text. All QR codes use error correction level M (15% recovery) for reliable scanning."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
   canonical="https://jsonversal.com/devops/tools/qr-code-generator/"
-  keywords={['QR code generator', 'QR code generator online', 'free QR code maker', 'generate QR code', 'create QR code', 'QR code creator', 'qr-code-generator']}
   current="/devops/tools/qr-code-generator/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">\u00b7</span><a href="/tools/">Tools</a><span class="sep">\u00b7</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Content</h2>
@@ -132,7 +125,7 @@ const faqs = [
   <h2>About QR Code Generator</h2>
   <p class="text-muted">A QR code (Quick Response code) is a two-dimensional barcode that can store URLs, text, WiFi credentials, contact information, and more. Unlike a standard 1D barcode, a QR code can encode hundreds to thousands of alphanumeric characters and is scanned by smartphone cameras or dedicated QR readers. The QR code in this tool is generated entirely in your browser using the qrcode-generator algorithm \u2014 no image is uploaded anywhere, making it safe for sensitive URLs, private WiFi networks, or business card contacts.</p>
   <p class="text-muted">Tip: if you are sharing a WiFi network, encode the password in the QR so guests can scan instead of typing \u2014 most smartphone camera apps detect the WiFi QR code and offer to join with one tap. Use the "H" error correction level when the QR code will be printed on textured or curved surfaces, and test your QR code with a few different scanners before finalizing.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

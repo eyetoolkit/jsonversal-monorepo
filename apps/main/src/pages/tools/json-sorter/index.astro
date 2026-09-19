@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON Sorter & Deduper';
-const description = 'Sort object keys recursively, sort arrays alphabetically or numerically and dedupe items — then pretty-print the result with stats. Runs in your browser.';
+const title = "JSON Sorter & Deduper";
+const description = "Sort object keys recursively, sort arrays alphabetically or numerically and dedupe items — then pretty-print the result with stats. Runs in your browser.";
 const faqs = [
   {
     "question": "How do I sort JSON by key?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "No. Sorting only reorders key-value pairs within objects and item order within arrays. The data values themselves are never modified."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-sorter/"
-  keywords={['JSON sorter', 'sort JSON', 'JSON deduplicate', 'JSON dedupe', 'remove duplicate JSON', 'sort JSON by key', 'order JSON keys']}
   current="/tools/json-sorter/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
@@ -93,7 +86,7 @@ const faqs = [
   <h2>About JSON Sorter & Deduper</h2>
   <p class="text-muted">Unsorted JSON is hard to eyeball: equivalent documents differ, review diffs grow noisy, and duplicate entries inflate payloads. A deterministic sort turns a hand-edited blob into a canonical form you can diff, cache, or commit with confidence.</p>
   <p class="text-muted">Use it to normalize config files before committing, to shrink response payloads by removing duplicate items, or to prepare stable fixtures for tests and examples. Sorting and deduplication happen locally, so private schemas and payloads never leave your browser.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

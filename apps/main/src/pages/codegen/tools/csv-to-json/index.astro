@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'CSV to JSON Converter';
-const description = 'Convert CSV, TSV or semicolon-separated files into JSON with optional type inference. Handles quoted fields, embedded commas and newlines. No upload.';
+const title = "CSV to JSON Converter";
+const description = "Convert CSV, TSV or semicolon-separated files into JSON with optional type inference. Handles quoted fields, embedded commas and newlines. No upload.";
 const faqs = [
   {
     "question": "How do I convert CSV to JSON?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. Use the JSON to CSV tool which takes a JSON array of objects and converts it back to CSV format. You can choose whether to include a header row and which separator to use (comma, tab, or semicolon)."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="codegen"
   title={title}
   description={description}
   canonical="https://jsonversal.com/codegen/tools/csv-to-json/"
-  keywords={['CSV to JSON', 'CSV to JSON converter', 'convert CSV to JSON', 'CSV转JSON', 'CSV to JSON online', 'csv-to-json', 'csv-to-json']}
   current="/codegen/tools/csv-to-json/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">CSV input</h2>
@@ -79,7 +72,7 @@ const faqs = [
   <h2>About CSV to JSON Converter</h2>
   <p class="text-muted">CSV is everywhere — spreadsheet exports, database dumps, analytics downloads — but its text format is awkward to consume in code. Converting to JSON gives you structured data you can feed directly into JavaScript, Python, or any API tooling. This converter parses CSV properly, not with a naive <code>split(",")</code>: fields wrapped in quotes can contain commas, quotes, and even newlines, and a correct parser keeps those intact.</p>
   <p class="text-muted">Export from Excel, Google Sheets, or your database, paste it here, and get JSON you can use immediately. Type inference keeps your numbers as numbers instead of strings, which matters for anything you will later sum, average, or chart. Pair this with the JSON to CSV tool on this site to go back the other way, or with the JSON Formatter on jsonversal.com to tidy the output.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

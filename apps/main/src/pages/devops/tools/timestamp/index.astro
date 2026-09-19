@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Unix Timestamp Converter';
-const description = 'Convert Unix timestamps (seconds or milliseconds) to local or UTC dates and back. Auto-detects units, shows ISO 8601 and RFC 2822. Applies time offsets.';
+const title = "Unix Timestamp Converter";
+const description = "Convert Unix timestamps (seconds or milliseconds) to local or UTC dates and back. Auto-detects units, shows ISO 8601 and RFC 2822. Applies time offsets.";
 const faqs = [
   {
     "question": "How do I convert between Unix timestamps and dates?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Yes. Enter multiple timestamps (one per line) and the tool converts all of them simultaneously, displaying results in a table with all format columns."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/devops/tools/timestamp/" current="/devops/tools/timestamp/"
-  keywords={['unix timestamp converter', 'epoch to date', 'timestamp generator', 'unix time', 'epoch converter', 'seconds to date', 'milliseconds converter', 'epoch calculator']}
+  canonical="https://jsonversal.com/devops/tools/timestamp/"
+  current="/devops/tools/timestamp/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">
@@ -70,7 +64,7 @@ const faqs = [
     <li>Every conversion shows local time, UTC time, ISO 8601, and RFC 2822 — the formats developers need across languages and APIs.</li>
     <li>The <strong>Common Timestamps</strong> section gives you one-click values for daily batch jobs, cron schedules, and event planning.</li>
   </ul>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

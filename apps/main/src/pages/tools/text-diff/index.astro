@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Text Diff — Compare Two Texts Line by Line';
-const description = 'Compare two texts line by line with a side-by-side view and a git-style unified diff, powered by a fast LCS algorithm. Runs entirely in your browser.';
+const title = "Text Diff — Compare Two Texts Line by Line";
+const description = "Compare two texts line by line with a side-by-side view and a git-style unified diff, powered by a fast LCS algorithm. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I compare two text files?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "The current tool compares two versions side by side. For multi-version comparison, use the Compare button to swap the left and right panels after making edits."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/text-diff/"
-  keywords={['text diff', 'compare text files', 'text compare', 'text difference checker', 'diff tool', 'text comparison tool', 'word diff online']}
   current="/tools/text-diff/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Inputs</h2>
@@ -79,7 +72,7 @@ const faqs = [
   <h2>About Text Diff</h2>
   <p class="text-muted">A good diff shows not just that two texts differ, but exactly where and how. Line-based comparison is the right granularity for configuration files, server logs, generated code, or any change review: a single moved block reads clearly as removed-plus-added instead of a wall of red.</p>
   <p class="text-muted">Use this tool to sanity-check config changes before deploying, to review what a teammate actually changed in a pasted snippet, or to build a patch you can paste into a PR description. Because the comparison happens on your machine, even confidential log excerpts or private configs can be diffed safely.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

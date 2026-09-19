@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSONPath Tester — Test JSON Queries Online';
-const description = 'Test JSONPath expressions against your JSON document. See every match with its path and value, including wildcards and recursive descent.';
+const title = "JSONPath Tester — Test JSON Queries Online";
+const description = "Test JSONPath expressions against your JSON document. See every match with its path and value, including wildcards and recursive descent.";
 const faqs = [
   {
     "question": "How do I test a JSONPath expression?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "The tool supports the standard JSONPath syntax: dot notation ($.name), bracket notation ($['name']), wildcards ($..*), filters ($[?(@.price>10)]), and recursive descent ($..). It follows the JSONPath specification."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/jsonpath-tester/"
-  keywords={['JSONPath tester', 'JSONPath online', 'query JSON online', 'JSONPath evaluator', 'test JSONPath expression', 'JSONPath query tool']}
   current="/tools/jsonpath-tester/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input</h2>
@@ -73,7 +66,7 @@ const faqs = [
   <h2>About JSONPath Tester</h2>
   <p class="text-muted">JSONPath is a query language for extracting data from JSON documents, loosely inspired by XPath for XML. Expressions like <code>$.store.book[*].title</code> let you pull specific values out of deeply nested structures without writing loops — useful for inspecting API responses, configuration files, or any large JSON payload in a shell script or automation.</p>
   <p class="text-muted">Use this tester to validate and debug expressions before embedding them in code or tooling. This implementation supports the core syntax (child access, wildcards, indices, slices, and recursive descent) but not filter predicates like <code>[?(@.price &gt; 10)]</code> — if you need filtering, run the expression in a full JSONPath library such as jsonpath-plus in your project.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

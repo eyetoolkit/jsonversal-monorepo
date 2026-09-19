@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Regex Tester — Test Regular Expressions';
-const description = 'Test regular expressions with live match highlighting, capture groups and explanations. Supports JavaScript flags: global, case-insensitive and multiline.';
+const title = "Regex Tester — Test Regular Expressions";
+const description = "Test regular expressions with live match highlighting, capture groups and explanations. Supports JavaScript flags: global, case-insensitive and multiline.";
 const faqs = [
   {
     "question": "How do I test a regular expression online?",
@@ -18,23 +17,18 @@ const faqs = [
     "answer": "Yes. Enter one or more test strings separated by newlines. All matches across all lines are highlighted simultaneously, with match groups shown for each occurrence."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout site="devops" title={title} description={description}
+<ToolPage
+  site="devops"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/devops/tools/regex/"
-  keywords={['regex tester online', 'regular expression tester', 'regex visualizer', '正则测试器', 'test regex online', 'regex', 'regex']}
   current="/devops/tools/regex/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card">
     <div style="display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;">
@@ -72,7 +66,7 @@ const faqs = [
   <h2>About Regex Visualizer</h2>
   <p class="text-muted">A regular expression (regex) is a compact pattern language for describing text: character classes, quantifiers, anchors, alternation, and capture groups combine to match everything from email addresses to log lines. This visualizer runs your pattern against sample input, highlights every match, and shows what each capture group captured so you can see exactly how the engine interprets the pattern.</p>
   <p class="text-muted">Reach for regex when you need text validation, log parsing, extraction, or search-and-replace in scripts and code. Be careful with greedy quantifiers like .* which consume as much as possible — add ? to make them lazy when needed. Also mind the risks: patterns with nested quantifiers can cause catastrophic backtracking (ReDoS) on untrusted input, and different engines differ in features, so a pattern using lookaheads or backreferences may work in PCRE or JavaScript but not in RE2, Go, or MySQL.</p>
-</BaseLayout>
+</ToolPage>
 
 
 <script is:inline client:load>

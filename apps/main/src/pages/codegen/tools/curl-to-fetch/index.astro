@@ -1,8 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
-const title = 'cURL to Fetch Converter';
-const description = 'Parse a curl command and generate browser or Node fetch() code using async/await — methods, headers, JSON bodies, cookies and basic auth included.';
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "cURL to Fetch Converter";
+const description = "Parse a curl command and generate browser or Node fetch() code using async/await — methods, headers, JSON bodies, cookies and basic auth included.";
 const faqs = [
   {
     "question": "How do I convert curl to JavaScript fetch?",
@@ -13,18 +13,18 @@ const faqs = [
     "answer": "Yes. Basic auth, Bearer tokens, API keys in headers, and custom headers are all preserved in the generated fetch code. Form data and JSON bodies are handled appropriately."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
-<BaseLayout site="codegen" title={title} description={description}
+
+<ToolPage
+  site="codegen"
+  title={title}
+  description={description}
   canonical="https://jsonversal.com/codegen/tools/curl-to-fetch/"
-  keywords={['cURL to Fetch converter', 'convert curl to fetch', 'curl to JavaScript', 'curl to JS', 'cURL fetch converter', 'curl-to-fetch', 'curl-to-fetch']}
   current="/codegen/tools/curl-to-fetch/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span></nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-1">
     <h2 class="h2-card">Paste your curl command</h2>
@@ -57,7 +57,7 @@ const faqs = [
   <h2>About cURL to Fetch Converter</h2>
   <p class="text-muted">A browser tab cannot execute curl — it is a command-line tool — and hand-writing the equivalent fetch() call is easy to get wrong. This converter turns a curl command copied from docs or shell history into modern async/await fetch code you can paste straight into a script, a test, or the DevTools console.</p>
   <p class="text-muted">The two differ in defaults: curl sends Content-Type: application/x-www-form-urlencoded for -d payloads, while fetch() sets no content type unless you add one; HTTP headers are case-insensitive, so the converter preserves the exact casing you typed. The mapping is not complete — options like --cookie-jar, TLS certificates (-k, --cacert) and retries have no fetch equivalent and are skipped.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   #error { color: var(--danger); border-color: var(--danger); }

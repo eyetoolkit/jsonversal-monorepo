@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Basic Auth Header Generator';
-const description = 'Generate HTTP Basic Auth headers from any username and password, and decode existing values back to credentials. Works with curl, Postman and API clients.';
+const title = "Basic Auth Header Generator";
+const description = "Generate HTTP Basic Auth headers from any username and password, and decode existing values back to credentials. Works with curl, Postman and API clients.";
 const faqs = [
   {
     "question": "How do I generate HTTP Basic Auth credentials?",
@@ -14,23 +13,18 @@ const faqs = [
     "answer": "Basic Auth transmits credentials with every request. Always use HTTPS to encrypt the connection. For better security, consider using OAuth 2.0 or API keys with proper scoping instead."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/devops/tools/basic-auth-generator/" current="/devops/tools/basic-auth-generator/"
-  keywords={['basic auth generator', 'Authorization header', 'Basic auth encode', 'Basic auth decode', 'Base64 auth header', 'HTTP authentication', 'curl basic auth']}
+  canonical="https://jsonversal.com/devops/tools/basic-auth-generator/"
+  current="/devops/tools/basic-auth-generator/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/devops/">DevOps</a><span class="sep">·</span><a href="/devops/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;">
@@ -78,7 +72,7 @@ const faqs = [
     <li>This tool handles non-ASCII credentials using UTF-8 encoding, and can decode any existing Basic auth header back to plain credentials.</li>
     <li>All encoding happens in your browser — your password never leaves your device.</li>
   </ul>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

@@ -1,20 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON Formatter & Validator';
-const description = 'Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.';
-const howtos = [
-  {
-    name: 'How to format JSON in 3 steps',
-    description: 'Format any JSON document with this free browser-based tool.',
-    steps: [
-      { name: 'Paste your JSON', text: 'Paste your raw or minified JSON into the input textarea above.' },
-      { name: 'Choose indentation', text: 'Select 2 spaces, 4 spaces, or a tab character from the indent dropdown.' },
-      { name: 'Click Format', text: 'Click Format to pretty-print your JSON. Use Minify to compress it back.' },
-    ],
-  },
-];
+const title = "JSON Formatter & Validator";
+const description = "Pretty-print, validate, and minify JSON with configurable indentation, detailed error positions, and document statistics. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I format JSON online for free?",
@@ -33,24 +21,30 @@ const faqs = [
     "answer": "Yes. Click Minify to strip all unnecessary whitespace. This produces the smallest possible valid JSON, useful for API payloads, URL query parameters, or log entries."
   }
 ];
+const howtos = [
+  {
+    name: 'How to format JSON in 3 steps',
+    description: 'Format any JSON document with this free browser-based tool.',
+    steps: [
+      { name: 'Paste your JSON', text: 'Paste your raw or minified JSON into the input textarea above.' },
+      { name: 'Choose indentation', text: 'Select 2 spaces, 4 spaces, or a tab character from the indent dropdown.' },
+      { name: 'Click Format', text: 'Click Format to pretty-print your JSON. Use Minify to compress it back.' },
+    ],
+  },
+];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
-  canonical="https://jsonversal.com/tools/json-formatter/" current="/tools/json-formatter/"
-  keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
-  howtos={howtos}
+  canonical="https://jsonversal.com/tools/json-formatter/"
+  current="/tools/json-formatter/"
   faqs={faqs}
+  howtos={howtos}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
@@ -97,7 +91,7 @@ const faqs = [
   <h2>About JSON Formatter & Validator</h2>
   <p class="text-muted">Pretty-printing turns a wall of JSON into an indented, readable tree, which makes nested structures and subtle mistakes — a missing comma, a trailing comma, a stray quote — far easier to spot. Formatting never changes the meaning of the document: it only re-serializes the parsed value, so the output is guaranteed to be valid JSON.</p>
   <p class="text-muted">Use this tool before sharing JSON in code review, pasting payloads into documentation, or debugging API responses. Minify when you need the smallest payload for a URL query, a storage cell, or a log line. Since parsing happens on your device, even sensitive configuration or private API responses can be formatted without ever leaving your browser.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

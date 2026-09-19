@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'Number Base Converter';
-const description = 'Convert between binary, octal, decimal, hex, and ASCII text with exact 64-bit BigInt math. Runs entirely in your browser.';
+const title = "Number Base Converter";
+const description = "Convert between binary, octal, decimal, hex, and ASCII text with exact 64-bit BigInt math. Runs entirely in your browser.";
 const faqs = [
   {
     "question": "How do I convert between number bases?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Binary (base-2), octal (base-8), decimal (base-10), hex (base-16), and custom bases from 2 to 64 using RFC 4648 alphabet. You can also use custom digit alphabets."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="devops"
   title={title}
   description={description}
   canonical="https://jsonversal.com/devops/tools/number-base/"
-  keywords={['number base converter', 'hex decimal binary converter', '进制转换器', 'base converter', 'hex to decimal', 'number-base', 'number-base']}
   current="/devops/tools/number-base/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input</h2>
@@ -86,7 +79,7 @@ const faqs = [
   <h2>About Number Base Converter</h2>
   <p class="text-muted">Binary, octal, decimal, and hex are the same number in different uniforms — bit flags, color channels, and network masks are far easier to read in the right base. This converter shows every base at once, so you can flip between them without re-entering anything, and it accepts 0x / 0b / 0o prefixes so you can paste a value exactly as it appears in code.</p>
   <p class="text-muted">Because browsers compute integers losslessly only up to 2^53, this tool uses BigInt throughout: values up to 64 bits convert exactly. The signed interpretation rows are the usual two&rsquo;s-complement reading for 8/16/32/64-bit widths, which is what debuggers and CPU registers show when the high bit is set.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

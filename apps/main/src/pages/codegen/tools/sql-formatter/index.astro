@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'SQL Formatter';
-const description = 'Format messy SQL into clean, indented statements or minify it to a single line. Handles strings, comments, identifiers and subqueries. No upload.';
+const title = "SQL Formatter";
+const description = "Format messy SQL into clean, indented statements or minify it to a single line. Handles strings, comments, identifiers and subqueries. No upload.";
 const faqs = [
   {
     "question": "How do I format SQL online?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "Yes. If the SQL contains a syntax error, the tool reports the error position. The formatter handles complex queries with JOINs, subqueries, CTEs, window functions, and CTAS (CREATE TABLE AS SELECT) statements."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="codegen"
   title={title}
   description={description}
   canonical="https://jsonversal.com/codegen/tools/sql-formatter/"
-  keywords={['SQL formatter', 'format SQL online', 'SQL prettifier', 'SQL格式化', 'pretty print SQL', 'sql-formatter', 'sql-formatter']}
   current="/codegen/tools/sql-formatter/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">SQL</h2>
@@ -84,7 +77,7 @@ LIMIT 10;</textarea>
   <h2>About SQL Formatter</h2>
   <p class="text-muted">SQL written by hand, dumped by ORMs, or pasted out of logs is almost always a single cramped line or an inconsistent jumble of casing and indentation. Formatting it safely is harder than it looks — a naive regex that adds newlines before keywords will happily split string literals that happen to contain those words. This tool tokenizes first, so quoted strings, comments and identifiers are treated as opaque units and never broken apart.</p>
   <p class="text-muted">The same token stream powers the minifier, which collapses whitespace while keeping keyword/identifier boundaries distinct, so the minified statement parses identically. Use Format to review and edit your query, then Minify to shrink it for embedding in code, configuration files or logs. Both directions preserve comments, string content and identifier casing exactly as written.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

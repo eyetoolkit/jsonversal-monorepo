@@ -1,9 +1,8 @@
 ---
-import ToolNav from '@versal/ui/ToolNav.astro';
-import BaseLayout from '@versal/ui/BaseLayout';
+import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = 'JSON to Pydantic Model';
-const description = 'Generate Pydantic v2 BaseModel classes from a JSON sample. Get type-safe Python models for API responses, configs, and LLM structured output.';
+const title = "JSON to Pydantic Model";
+const description = "Generate Pydantic v2 BaseModel classes from a JSON sample. Get type-safe Python models for API responses, configs, and LLM structured output.";
 const faqs = [
   {
     "question": "How do I convert JSON to a Pydantic model?",
@@ -14,24 +13,18 @@ const faqs = [
     "answer": "It generates Pydantic v2 compatible code using the BaseModel class, model_validator, and Field syntax. It also produces FastAPI-compatible response models with from_dict and to_dict helper methods."
   }
 ];
+import ToolNav from '@versal/ui/ToolNav.astro';
+import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout
+<ToolPage
   site="main"
   title={title}
   description={description}
   canonical="https://jsonversal.com/tools/json-to-pydantic/"
-  keywords={['JSON to Pydantic', 'JSON to Pydantic model', 'Pydantic model generator', 'generate Pydantic from JSON', 'Python Pydantic validation', 'JSON to Python Pydantic']}
   current="/tools/json-to-pydantic/"
   faqs={faqs}
 >
-  <ToolNav currentHref={Astro.url.pathname} />
-
-  <nav aria-label="Breadcrumb" class="crumbs">
-    <a href="/">Home</a><span class="sep">·</span><a href="/tools/">Tools</a><span class="sep">·</span><span class="current">{title}</span>
-  </nav>
-  <h1>{title}</h1>
-  <p class="text-muted">{description}</p>
 
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>
@@ -78,7 +71,7 @@ print(user.name, user.address.city)</pre>
   <h2>About JSON to Pydantic Model</h2>
   <p class="text-muted">Pydantic is the standard data-validation library for Python, using type hints to validate and serialize data at runtime. Generating BaseModel classes from a JSON sample saves you from hand-writing the boilerplate for API responses, configuration objects, and LLM structured output, while keeping your code type-checkable.</p>
   <p class="text-muted">Use it when you receive untyped JSON — from a REST API, a database row, or an LLM call — and want runtime guarantees in Python. As with any inferred model, the output is only as accurate as the sample: add optional fields, unions, and constraints by hand after generation, and remember that an empty array becomes <code>List[Any]</code> because the sample carries no element type.</p>
-</BaseLayout>
+</ToolPage>
 
 <style>
   .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
