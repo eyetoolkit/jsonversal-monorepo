@@ -1,5 +1,6 @@
 ---
 import '@versal/ui/styles';
+import './versal-brand.css';
 import { tokens, sitesSEO } from '@versal/ui';
 import Header from '@versal/ui/Header.astro';
 import Footer from '@versal/ui/Footer.astro';
@@ -48,6 +49,15 @@ const {
 const seo = sitesSEO[site];
 const t = tokens.sites[site];
 const pageTitle = title ? `${title} | ${t.name}` : seo.title;
+
+// versal site key for [data-site] on body — align with versal-brand.css presets
+const SITE_KEY = {
+  main: 'json',
+  devops: 'devops',
+  codegen: 'codegen',
+  sec: 'sec',
+};
+const versalSiteKey = SITE_KEY[site as keyof typeof SITE_KEY] || 'json';
 const pageDesc = description || seo.description;
 const pageUrl = canonical || seo.canonical;
 const pageKeywords = keywords?.join(', ') || seo.keywords;
@@ -261,7 +271,7 @@ const jsonLd = schemaEntries.length > 1
     {/* 子站可插入额外的 <head> 内容（如页面级结构化数据） */}
     <slot name="head" />
   </head>
-  <body class={`site-${site}`}>
+  <body class={`site-${site}`} data-site={versalSiteKey} data-theme="dark">
     <a class="skip-link" href="#main">Skip to content</a>
 
     {/* Toast 容器 —— 非阻塞通知，替代原生 alert() */}

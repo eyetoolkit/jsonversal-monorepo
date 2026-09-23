@@ -6,124 +6,92 @@ export interface Props {
 }
 
 const { site } = Astro.props as Props;
-const t = tokens.sites[site];
 const year = new Date().getFullYear();
 
-const sections = [
-  {
-    title: 'Tools',
-    links: [
-      { label: 'JSON / LLM Tools', href: '/tools/' },
-      { label: 'Security Tools', href: '/sec/' },
-      { label: 'DevOps Tools', href: '/devops/' },
-      { label: 'Code Generators', href: '/codegen/' },
-    ],
-  },
-  {
-    title: 'Company',
-    links: [
-      { label: 'Privacy Policy', href: '/privacy/' },
-      { label: 'Terms of Use', href: '/terms/' },
-      { label: 'Licenses', href: '/licenses/' },
-      { label: 'Do Not Sell/Share My Info', href: '/privacy/' },
-      { label: 'Contact', href: 'mailto:hello@jsonversal.com' },
-    ],
-  },
-];
+const SITE_KEY: Record<string, string> = {
+  main: 'json', devops: 'devops', codegen: 'codegen', sec: 'sec',
+};
+const siteKey = SITE_KEY[site] || 'json';
+
+const POPULAR: Record<string, Array<{ label: string; href: string }>> = {
+  main: [
+    { label: 'JSON Formatter', href: '/tools/json-formatter/' },
+    { label: 'JSON Schema Generator', href: '/tools/json-schema-generator/' },
+    { label: 'JSON → Zod', href: '/tools/json-to-zod/' },
+    { label: 'LLM Token Calculator', href: '/tools/llm-token-calculator/' },
+    { label: 'UUID v7', href: '/tools/uuid-v7/' },
+  ],
+  devops: [
+    { label: 'YAML ↔ JSON', href: '/devops/tools/yaml-json/' },
+    { label: 'Base64', href: '/devops/tools/base64/' },
+    { label: 'Regex tester', href: '/devops/tools/regex/' },
+    { label: 'CIDR', href: '/devops/tools/cidr-calculator/' },
+    { label: 'Timestamp', href: '/devops/tools/timestamp/' },
+  ],
+  codegen: [
+    { label: '.gitignore', href: '/codegen/tools/gitignore/' },
+    { label: 'Docker Compose', href: '/codegen/tools/docker-compose/' },
+    { label: 'JSON Schema → TS', href: '/codegen/tools/schema-to-typescript/' },
+    { label: 'SQL Formatter', href: '/codegen/tools/sql-formatter/' },
+    { label: 'cURL → fetch', href: '/codegen/tools/curl-to-fetch/' },
+  ],
+  sec: [
+    { label: 'Password', href: '/sec/tools/password-generator/' },
+    { label: 'Hash', href: '/sec/tools/hash-generator/' },
+    { label: 'JWT decoder', href: '/sec/tools/jwt-decoder/' },
+    { label: 'AES', href: '/sec/tools/aes/' },
+    { label: 'RSA keygen', href: '/sec/tools/rsa-keygen/' },
+  ],
+};
+const popular = POPULAR[site] || POPULAR.main;
 ---
 
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="/" class="f-brand">
-          <span class="f-mark" aria-hidden="true">{t.emoji}</span>
-          <span class="f-name"><span class="brand-json">json</span><span class="brand-versal">versal</span></span>
-        </a>
-        <p>
-          Browser-based developer tools. {t.tagline}.
-          Everything runs locally — your data never leaves your device.
-        </p>
-      </div>
+<footer class="v-footer">
+  <div class="v-wrap">
+    <nav class="v-matrix-strip" aria-label="All versal products">
+      <a href="https://mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal everyday</a>
+      <a href="https://finance.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#059669"></span>versal finance</a>
+      <a href="https://health.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#e11d48"></span>versal health</a>
+      <a href="https://cover.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#0f766e"></span>versal cover</a>
+      <a href="/" aria-current={site === 'main' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal json</a>
+      <a href="/devops/" aria-current={site === 'devops' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#14b8a6"></span>versal devops</a>
+      <a href="/codegen/" aria-current={site === 'codegen' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#f59e0b"></span>versal codegen</a>
+      <a href="/sec/" aria-current={site === 'sec' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#ef4444"></span>versal sec</a>
+    </nav>
 
-      {sections.map(s => (
-        <nav class="footer-col" aria-label={s.title}>
-          <h4>{s.title}</h4>
-          <ul>
-            {s.links.map(l => (
-              <li><a href={l.href}>{l.label}</a></li>
-            ))}
-          </ul>
-        </nav>
-      ))}
+    <div class="v-footer__cols">
+      <div>
+        <div class="v-footer__brand"><span class="v-logo__mark">V</span>versal</div>
+        <p class="v-footer__about">A toolbox brand. Eight small sites, one shared design language. Each tool runs in your browser; we don't see your input.</p>
+      </div>
+      <div class="v-footer__col">
+        <h4>Popular</h4>
+        <ul>
+          {popular.map(l => <li><a href={l.href}>{l.label}</a></li>)}
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/sitemap.xml">Sitemap</a></li>
+          <li><a href="https://mquickcalc.com">Other versal tools</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy/">Privacy</a></li>
+          <li><a href="/terms/">Terms</a></li>
+          <li><a href="/licenses/">Licenses</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="footer-bottom">
-      <span>© {year} jsonversal.com</span>
-      <span class="tag">100% in-browser · No signup · No upload · No cookies, no trackers</span>
+    <div class="v-footer__bottom">
+      <span>© {year} versal · jsonversal.com</span>
+      <span>Runs in your browser. We see nothing.</span>
     </div>
   </div>
 </footer>
-
-<style>
-  .site-footer {
-    margin-top: 80px;
-    border-top: 1px solid var(--border);
-    background: var(--bg-deep);
-    color: var(--text-muted);
-    font-size: .9rem;
-    padding-top: 48px;
-  }
-  .footer-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 40px;
-    padding-bottom: 40px;
-  }
-  .footer-brand p { margin: 14px 0 0; max-width: 340px; line-height: 1.6; }
-  .f-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none !important;
-  }
-  .f-mark {
-    display: grid; place-items: center;
-    width: 32px; height: 32px;
-    border-radius: 10px;
-    font-size: 16px;
-    background: var(--surface-2);
-    border: 1px solid var(--border-strong);
-  }
-  .f-name { font-weight: 800; font-size: 1.1rem; }
-  .brand-json { color: var(--text); }
-  .brand-versal { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-
-  .footer-col h4 {
-    margin: 0 0 14px;
-    font-size: .8rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .footer-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-  .footer-col a { color: var(--text-muted); }
-  .footer-col a:hover { color: var(--text); text-decoration: none; }
-
-  .footer-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    border-top: 1px solid var(--border);
-    padding: 20px 0;
-    font-size: .85rem;
-    color: var(--text-dim);
-  }
-  .tag { color: var(--text-dim); }
-
-  @media (max-width: 760px) {
-    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
-  }
-</style>

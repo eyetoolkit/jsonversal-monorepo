@@ -1,54 +1,258 @@
 ---
-import BaseLayout from '@versal/ui/BaseLayout';
-import Hero from '@versal/ui/Hero.astro';
-import ToolGrid from '@versal/ui/ToolGrid.astro';
-import ToolCard from '@versal/ui/ToolCard.astro';
+import '@versal/ui/versal-brand.css';
 
 const tools = [
-  { title: 'Base64 Encoder / Decoder', description: 'Encode any text to Base64, or decode Base64 back to text. Supports standard and URL-safe variants.', href: '/devops/tools/base64/' },
-  { title: 'Basic Auth Header Generator', description: 'Generate HTTP Basic Auth headers from any username and password, and decode existing values back to credentials. Works with curl, Postman and API clients.', href: '/devops/tools/basic-auth-generator/' },
-  { title: 'CIDR / Subnet Calculator', description: 'Calculate network address, broadcast, host ranges, masks, and address counts for any CIDR block. Runs entirely in your browser.', href: '/devops/tools/cidr-calculator/' },
-  { title: 'Crontab Explainer', description: 'Translate a crontab expression into human-readable schedule and list the next 10 scheduled runs.', href: '/devops/tools/crontab/' },
-  { title: 'Crontab Parser — Explain cron expressions', description: 'Translate crontab expressions (5-field or 6-field) into plain English and preview the next 10 run times. Works for Linux cron, Kubernetes CronJobs and CI.', href: '/devops/tools/cron-parser/' },
-  { title: 'JSON Tree Viewer', description: 'Paste any JSON and explore it as a collapsible, color-coded tree — objects, arrays, keys, and values at a glance.', href: '/devops/tools/json-viewer/' },
-  { title: 'Kubernetes YAML Generator', description: 'Scaffold Kubernetes Deployment, Service, and Ingress manifests from a small form. Copy the YAML straight into kubectl. Runs entirely in your browser.', href: '/devops/tools/k8s-generator/' },
-  { title: 'Log Line Parser', description: 'Parse nginx, Apache, JSON, or custom-regex log lines into a color-coded table with stats. Runs entirely in your browser.', href: '/devops/tools/log-parser/' },
-  { title: 'Number Base Converter', description: 'Convert between binary, octal, decimal, hex, and ASCII text with exact 64-bit BigInt math. Runs entirely in your browser.', href: '/devops/tools/number-base/' },
-  { title: 'QR Code Generator — Create QR Codes Free', description: 'Generate QR codes for URLs, text, WiFi, contacts, and more. Customize size and colors. Download as PNG or SVG. 100% browser-based, nothing uploaded.', href: '/devops/tools/qr-code-generator/' },
-  { title: 'Regex Tester — Test Regular Expressions', description: 'Test regular expressions with live match highlighting, capture groups and explanations. Supports JavaScript flags: global, case-insensitive and multiline.', href: '/devops/tools/regex/' },
-  { title: 'Regex Tester with Explanations & Groups', description: 'Test JavaScript and Python regex with live match highlighting. See groups, indices, captured values and match counts, plus common pattern presets.', href: '/devops/tools/regex-advanced/' },
-  { title: 'Unix Timestamp Converter', description: 'Convert Unix timestamps (seconds or milliseconds) to local or UTC dates and back. Auto-detects units, shows ISO 8601 and RFC 2822. Applies time offsets.', href: '/devops/tools/timestamp/' },
-  { title: 'URL Encoder & Decoder', description: 'Percent-encode or decode URLs, query strings, form data and path segments. Supports full-URL and component encoding, plus hex and octal escapes. No upload.', href: '/devops/tools/url-codec/' },
-  { title: 'UUID v4 Generator', description: 'Generate RFC 4122 UUID v4 identifiers — single or in bulk, uppercase, no-hyphen or URN format. Validate any UUID version and variant. 100% client-side.', href: '/devops/tools/uuid-generator/' },
-  { title: 'YAML ↔ JSON Converter', description: 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, and minify. All in your browser.', href: '/devops/tools/yaml-json/' },
+  { title: 'Base64 Encoder / Decoder', description: 'Encode any text to Base64, or decode Base64 back. Standard and URL-safe.', href: '/devops/tools/base64/' },
+  { title: 'Basic Auth Header Generator', description: 'Generate and decode HTTP Basic Auth headers for curl, Postman, APIs.', href: '/devops/tools/basic-auth-generator/' },
+  { title: 'CIDR / Subnet Calculator', description: 'Network, broadcast, host range, mask, address count for any CIDR block.', href: '/devops/tools/cidr-calculator/' },
+  { title: 'Crontab Explainer', description: 'Translate cron expressions into plain English and list next 10 runs.', href: '/devops/tools/crontab/' },
+  { title: 'Kubernetes YAML Generator', description: 'Scaffold Deployment, Service, Ingress manifests from a small form.', href: '/devops/tools/k8s-generator/' },
+  { title: 'Log Line Parser', description: 'Parse nginx, Apache, JSON, or custom-regex log lines into a colour-coded table.', href: '/devops/tools/log-parser/' },
+  { title: 'Number Base Converter', description: 'Binary, octal, decimal, hex, ASCII with exact 64-bit BigInt math.', href: '/devops/tools/number-base/' },
+  { title: 'QR Code Generator', description: 'URL, text, WiFi, contacts. Custom size and colour. Download as PNG or SVG.', href: '/devops/tools/qr-code-generator/' },
+  { title: 'Regex Tester', description: 'Live match highlighting, capture groups, explanations.', href: '/devops/tools/regex/' },
+  { title: 'Regex Tester — Advanced', description: 'Groups, indices, captured values, match counts, common pattern presets.', href: '/devops/tools/regex-advanced/' },
+  { title: 'Unix Timestamp Converter', description: 'Seconds or milliseconds, local or UTC, ISO 8601 and RFC 2822.', href: '/devops/tools/timestamp/' },
+  { title: 'URL Encoder & Decoder', description: 'Percent-encode / decode URLs, query strings, form data, path segments.', href: '/devops/tools/url-codec/' },
+  { title: 'UUID v4 Generator', description: 'Single or bulk, uppercase, no-hyphen or URN. Validate any UUID version.', href: '/devops/tools/uuid-generator/' },
+  { title: 'YAML ↔ JSON Converter', description: 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, minify.', href: '/devops/tools/yaml-json/' },
+  { title: 'JSON Tree Viewer', description: 'Paste any JSON and explore it as a collapsible, colour-coded tree.', href: '/devops/tools/json-viewer/' },
 ];
 ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>versal devops — Convert, decode &amp; inspect, in your browser</title>
+<meta name="description" content="YAML/JSON, Base64, JWT, crontab, regex, CIDR, Kubernetes, nginx — running in your browser. No sign-up, no upload, your configs and secrets never leave your device.">
+<link rel="canonical" href="https://jsonversal.com/devops/">
+<meta property="og:title" content="versal devops — DevOps tools in your browser">
+<meta property="og:description" content="Convert, decode, inspect. 100% client-side. Your configs and logs never leave your device.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jsonversal.com/devops/">
+</head>
+<body data-site="devops" data-theme="light">
 
-<BaseLayout site="devops" current="/devops/">
-  <Hero
-    overline="DevOps · operations tooling in your browser"
-    sub="No signup, no upload. Every tool runs 100% locally — your configs, secrets and logs never leave your device."
-  >
-    DevOps tools that <span class="grad">run in your browser.</span>
-    <Fragment slot="actions">
-      <a class="button button-primary" href="/devops/tools/">Browse all devops tools</a>
-      <a class="button button-ghost" href="/devops/tools/yaml-json/">Convert YAML ↔ JSON</a>
-    </Fragment>
-  </Hero>
-
-  <div class="section-head">
-    <span class="overline">DevOps toolkit</span>
-    <h2>Convert, decode &amp; inspect</h2>
-    <p>YAML/JSON, Base64, JWT, crontab, regex, CIDR, Kubernetes, nginx and more — all processed on-device.</p>
-  </div>
-  <ToolGrid tools={tools} />
-
-  <div class="brand-strip">
-    <h2>Related — from the jsonversal brand</h2>
-    <div class="grid">
-      <ToolCard title="JSON / LLM Tools" description="jsonversal — JSON to TypeScript, UUID v7, LLM token calculator." href="/tools/" />
-      <ToolCard title="Code Generators" description="codegen — .gitignore, license, CI workflow generator." href="/codegen/" />
-      <ToolCard title="Security Tools" description="sec — Hash, AES, password strength, CSP generator." href="/sec/" />
+<header class="v-header">
+  <div class="v-header__inner">
+    <a class="v-logo" href="/">
+      <span class="v-logo__mark">V</span>
+      <span>versal</span>
+      <span class="v-logo__sep">·</span>
+      <span class="v-logo__product">devops</span>
+    </a>
+    <nav class="v-nav">
+      <a href="#tools">All tools</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <div class="v-header__end">
+      <button class="v-theme" id="vTheme" aria-label="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <details class="v-matrix-btn">
+        <summary>All products <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="v-matrix-pop">
+          <a href="https://mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal everyday<small>mquickcalc.com</small></a>
+          <a href="https://finance.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#059669"></span>versal finance<small>finance.mquickcalc.com</small></a>
+          <a href="https://health.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#e11d48"></span>versal health<small>health.mquickcalc.com</small></a>
+          <a href="https://cover.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#0f766e"></span>versal cover<small>cover.mquickcalc.com</small></a>
+          <a href="/"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal json<small>jsonversal.com</small></a>
+          <a href="/devops/"><span class="v-matrix-pop__dot" style="background:#14b8a6"></span>versal devops<small>jsonversal.com/devops</small></a>
+          <a href="/codegen/"><span class="v-matrix-pop__dot" style="background:#f59e0b"></span>versal codegen<small>jsonversal.com/codegen</small></a>
+          <a href="/sec/"><span class="v-matrix-pop__dot" style="background:#ef4444"></span>versal sec<small>jsonversal.com/sec</small></a>
+        </div>
+      </details>
     </div>
   </div>
-</BaseLayout>
+</header>
+
+<main>
+
+<section class="v-hero v-wrap">
+  <span class="v-hero__kicker">16 DevOps tools · YAML, JSON, Base64, regex, CIDR, K8s, crontab</span>
+  <h1>Tools that fit between you and the terminal.</h1>
+  <p class="v-hero__sub">Convert, decode, inspect — all on-device. Your configs, secrets and log lines never leave the browser, so there's no copy you have to remember to delete.</p>
+
+  <div class="v-demo" role="region" aria-label="Try the YAML to JSON converter">
+    <div class="v-demo__head"><span class="dot"></span>YAML ↔ JSON · live</div>
+    <div class="v-demo__grid" style="grid-template-columns:1fr 24px 1fr">
+      <div class="v-demo__field">
+        <label for="yamlIn">YAML</label>
+        <textarea id="yamlIn" rows="6" style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:13px var(--v-mono);color:var(--v-ink);background:var(--v-paper);resize:vertical">name: versal
+version: 4
+tools:
+  - json
+  - devops
+  - codegen
+  - sec
+features:
+  local: true
+  signup: false</textarea>
+      </div>
+      <div class="v-demo__arrow" aria-hidden="true">→</div>
+      <div class="v-demo__field">
+        <label for="jsonOut">JSON</label>
+        <textarea id="jsonOut" rows="6" readonly style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:13px var(--v-mono);color:var(--v-ink);background:var(--v-paper);resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="v-demo__result">Parses and round-trips in your browser · no server round-trip<small>editor-grade YAML parser — supports comments, anchors, multi-doc</small></div>
+  </div>
+
+  <div class="v-chips">
+    <a class="v-chip" href="/devops/tools/base64/"><span class="v-chip__dot"></span>Base64</a>
+    <a class="v-chip" href="/devops/tools/regex/"><span class="v-chip__dot"></span>Regex</a>
+    <a class="v-chip" href="/devops/tools/yaml-json/"><span class="v-chip__dot"></span>YAML ↔ JSON</a>
+    <a class="v-chip" href="/devops/tools/cidr-calculator/"><span class="v-chip__dot"></span>CIDR</a>
+    <a class="v-chip" href="/devops/tools/crontab/"><span class="v-chip__dot"></span>Crontab</a>
+    <a class="v-chip" href="/devops/tools/k8s-generator/"><span class="v-chip__dot"></span>K8s YAML</a>
+    <a class="v-chip" href="/devops/tools/timestamp/"><span class="v-chip__dot"></span>Timestamp</a>
+    <a class="v-chip" href="/devops/tools/uuid-generator/"><span class="v-chip__dot"></span>UUID</a>
+  </div>
+</section>
+
+<section class="v-wrap">
+  <div class="v-trust">
+    <div class="v-trust__item">
+      <div class="v-trust__num">16<small>tools</small></div>
+      <div class="v-trust__lbl">Convert, decode, inspect. From YAML to crontab.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">100<small>% local</small></div>
+      <div class="v-trust__lbl">Your config, your log lines, your regex. Nothing uploaded.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">0<small>sign-up, telemetry, "AI insights"</small></div>
+      <div class="v-trust__lbl">Not a CLI-as-a-service. A tool that respects your input.</div>
+    </div>
+  </div>
+</section>
+
+<section class="v-section v-wrap" id="tools">
+  <div class="v-section__head">
+    <div class="v-section__kicker">DevOps toolkit</div>
+    <h2>Convert, decode &amp; inspect.</h2>
+    <p class="v-section__sub">YAML/JSON, Base64, JWT, crontab, regex, CIDR, Kubernetes, nginx and more — all processed on-device.</p>
+  </div>
+
+  <div class="v-tools-grid">
+    {tools.map(t => (
+      <a class="v-tool" href={t.href}><svg class="v-tool__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9,7 4,12 9,17"/><polyline points="15,7 20,12 15,17"/></svg>{t.title}</a>
+    ))}
+  </div>
+</section>
+
+<section class="v-wrap">
+  <div class="v-cta">
+    <div>
+      <h3>Free forever. No sign-up.</h3>
+      <p>Open the tool, paste your YAML, copy the JSON. Don't add us to your incident report.</p>
+    </div>
+    <a class="v-btn large" href="/devops/tools/yaml-json/">Open YAML converter</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="v-footer">
+  <div class="v-wrap">
+    <nav class="v-matrix-strip" aria-label="All versal products">
+      <a href="https://mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal everyday</a>
+      <a href="https://finance.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#059669"></span>versal finance</a>
+      <a href="https://health.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#e11d48"></span>versal health</a>
+      <a href="https://cover.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#0f766e"></span>versal cover</a>
+      <a href="/"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal json</a>
+      <a href="/devops/" aria-current="page"><span class="v-matrix-strip__dot" style="background:#14b8a6"></span>versal devops</a>
+      <a href="/codegen/"><span class="v-matrix-strip__dot" style="background:#f59e0b"></span>versal codegen</a>
+      <a href="/sec/"><span class="v-matrix-strip__dot" style="background:#ef4444"></span>versal sec</a>
+    </nav>
+
+    <div class="v-footer__cols">
+      <div>
+        <div class="v-footer__brand"><span class="v-logo__mark">V</span>versal</div>
+        <p class="v-footer__about">A toolbox brand. Eight small sites, one shared design language. Each tool runs in your browser; we don't see your input.</p>
+      </div>
+      <div class="v-footer__col">
+        <h4>Popular</h4>
+        <ul>
+          <li><a href="/devops/tools/yaml-json/">YAML ↔ JSON</a></li>
+          <li><a href="/devops/tools/base64/">Base64</a></li>
+          <li><a href="/devops/tools/regex/">Regex tester</a></li>
+          <li><a href="/devops/tools/cidr-calculator/">CIDR</a></li>
+          <li><a href="/devops/tools/timestamp/">Timestamp</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/sitemap.xml">Sitemap</a></li>
+          <li><a href="/">Other versal tools</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="v-footer__bottom">
+      <span>© 2026 versal · jsonversal.com/devops</span>
+      <span>Runs in your browser. We see nothing.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var KEY='versal-theme';
+  var saved=localStorage.getItem(KEY);
+  if(saved) document.body.setAttribute('data-theme',saved);
+  var btn=document.getElementById('vTheme');
+  if(btn){btn.addEventListener('click',function(){var cur=document.body.getAttribute('data-theme')==='dark'?'light':'dark';document.body.setAttribute('data-theme',cur);localStorage.setItem(KEY,cur);});}
+  var yi=document.getElementById('yamlIn'),jo=document.getElementById('jsonOut');
+  function yamlToJson(y){
+    var lines=y.replace(/\t/g,'  ').split('\n').filter(function(l){return l.trim() && !l.trim().startsWith('#');});
+    var out=[], stack=[{indent:-1,arr:false,key:null,obj:{}}], cur=stack[0].obj;
+    lines.forEach(function(line){
+      var ind=0; while(line[ind]==' ') ind++;
+      var body=line.slice(ind);
+      while(stack.length>1 && ind<=stack[stack.length-1].indent){ stack.pop(); cur=stack[stack.length-1].obj; }
+      var top=stack[stack.length-1];
+      if(body.trimStart().startsWith('- ')){
+        var v=body.trimStart().slice(2).trim();
+        if(top.arr) top.arr.push(/^[a-z0-9_]+:/i.test(v)?'':parseVal(v));
+      } else {
+        var m=body.match(/^([\w\-]+)\s*:\s*(.*)$/);
+        if(!m) return;
+        var k=m[1], v=m[2].trim();
+        if(v===''){
+          var holder={indent:ind,arr:false,key:k,obj:{}};
+          stack.push(holder); cur=k;
+        } else {
+          top.obj[k]=parseVal(v);
+        }
+      }
+    });
+    function parseVal(v){
+      if(v==='true') return true;
+      if(v==='false') return false;
+      if(v==='null') return null;
+      if(/^-?\d+$/.test(v)) return parseInt(v);
+      if(/^-?\d*\.\d+$/.test(v)) return parseFloat(v);
+      return v.replace(/^["']|["']$/g,'');
+    }
+    return JSON.stringify(cur,null,2);
+  }
+  function recalc(){ try{ jo.value=yamlToJson(yi.value);}catch(e){jo.value='// '+e.message;} }
+  if(yi) yi.addEventListener('input',recalc);
+  recalc();
+})();
+</script>
+</body>
+</html>

@@ -1,54 +1,227 @@
 ---
-import BaseLayout from '@versal/ui/BaseLayout';
-import Hero from '@versal/ui/Hero.astro';
-import ToolGrid from '@versal/ui/ToolGrid.astro';
-import ToolCard from '@versal/ui/ToolCard.astro';
+import '@versal/ui/versal-brand.css';
 
 const tools = [
-  { title: '.env Template Generator', description: 'Generate a .env template from a JSON object or "key: value" text — keys become UPPER_SNAKE_CASE, values are serialized without quotes.', href: '/codegen/tools/env-generator/' },
-  { title: '.gitignore Generator', description: 'Generate a .gitignore file by selecting your language and frameworks. Templated from GitHub\\\'s gitignore repo.', href: '/codegen/tools/gitignore/' },
-  { title: 'Base64 Image Viewer', description: 'Convert a base64 data URI into a viewable, downloadable image, or turn an image file into a base64 data URI. Auto-detects PNG, JPEG, GIF, WebP and SVG.', href: '/codegen/tools/base64-image/' },
-  { title: 'CSV to JSON Converter', description: 'Convert CSV, TSV or semicolon-separated files into JSON with optional type inference. Handles quoted fields, embedded commas and newlines. No upload.', href: '/codegen/tools/csv-to-json/' },
-  { title: 'cURL to Fetch Converter', description: 'Parse a curl command and generate browser or Node fetch() code using async/await — methods, headers, JSON bodies, cookies and basic auth included.', href: '/codegen/tools/curl-to-fetch/' },
-  { title: 'cURL to Python (requests)', description: 'Parse a curl command and generate a runnable Python script with requests or httpx — method, headers, JSON and form bodies, cookies, auth and TLS options.', href: '/codegen/tools/curl-to-python/' },
-  { title: 'Docker Compose Generator', description: 'Scaffold a docker-compose.yml with services, ports, volumes, and environment variables from a simple form. Runs entirely in your browser.', href: '/codegen/tools/docker-compose/' },
-  { title: 'HTML Entity Escaper', description: 'Escape text and code into HTML entities (ampersand, angle brackets, quotes) and unescape it back. Handy before pasting code into pre or code blocks.', href: '/codegen/tools/html-escaper/' },
-  { title: 'JSON ↔ XML Converter', description: 'Convert JSON to XML or XML to JSON with a single click. Handles nested objects, arrays, attributes, and text nodes. Runs entirely in your browser.', href: '/codegen/tools/json-xml/' },
-  { title: 'JSON Schema to TypeScript', description: 'Convert a JSON Schema (draft-07) into TypeScript interfaces and type aliases — properties, required, enums, unions, $refs and nested objects. No upload.', href: '/codegen/tools/schema-to-typescript/' },
-  { title: 'JSON to CSV Converter', description: 'Convert a JSON array of objects into CSV — columns are the union of all keys, missing values stay blank, and rows use CRLF line endings per RFC 4180.', href: '/codegen/tools/json-to-csv/' },
-  { title: 'JSON to Python Dict', description: 'Convert a JSON sample into a Python dict literal — valid identifier keys stay bare, invalid keys get quoted, and true/false/null become True/False/None.', href: '/codegen/tools/json-to-python/' },
-  { title: 'JSON to SQL Generator', description: 'Generate CREATE TABLE and INSERT statements from a JSON array. Infers column types and safely escapes string values. Runs entirely in your browser.', href: '/codegen/tools/sql-generator/' },
-  { title: 'LLM Structured Output Validator', description: 'Validate JSON Schemas for LLM structured output. Presets for OpenAI, Anthropic and Gemini. Preview mock data and check real model output. No upload.', href: '/codegen/tools/llm-structured-output-validator/' },
-  { title: 'SQL Formatter', description: 'Format messy SQL into clean, indented statements or minify it to a single line. Handles strings, comments, identifiers and subqueries. No upload.', href: '/codegen/tools/sql-formatter/' },
-  { title: 'SQL Validator — Check SQL Syntax Online', description: 'Validate SQL syntax for MySQL, PostgreSQL, SQLite, and SQL Server instantly. Paste your SQL and get error locations and explanations. 100% browser-based.', href: '/codegen/tools/sql-validator/' },
+  { title: '.env Template Generator', description: 'Generate a .env template from a JSON object or "key: value" text — keys become UPPER_SNAKE_CASE.', href: '/codegen/tools/env-generator/' },
+  { title: '.gitignore Generator', description: 'Generate a .gitignore by selecting your language and frameworks. Templated from GitHub\'s gitignore repo.', href: '/codegen/tools/gitignore/' },
+  { title: 'Base64 Image Viewer', description: 'Convert a base64 data URI into a viewable, downloadable image, or turn an image into a data URI.', href: '/codegen/tools/base64-image/' },
+  { title: 'CSV to JSON Converter', description: 'Convert CSV, TSV or semicolon-separated files into JSON with optional type inference.', href: '/codegen/tools/csv-to-json/' },
+  { title: 'cURL to Fetch Converter', description: 'Parse a curl command and generate browser or Node fetch() code using async/await.', href: '/codegen/tools/curl-to-fetch/' },
+  { title: 'cURL to Python (requests)', description: 'Parse a curl command and generate a runnable Python script with requests or httpx.', href: '/codegen/tools/curl-to-python/' },
+  { title: 'Docker Compose Generator', description: 'Scaffold a docker-compose.yml with services, ports, volumes, and env vars from a form.', href: '/codegen/tools/docker-compose/' },
+  { title: 'HTML Entity Escaper', description: 'Escape text into HTML entities and unescape it back.', href: '/codegen/tools/html-escaper/' },
+  { title: 'JSON ↔ XML Converter', description: 'Convert JSON to XML or XML to JSON. Nested objects, arrays, attributes, text nodes.', href: '/codegen/tools/json-xml/' },
+  { title: 'JSON Schema to TypeScript', description: 'Convert a JSON Schema (draft-07) into TypeScript interfaces and type aliases.', href: '/codegen/tools/schema-to-typescript/' },
+  { title: 'JSON to CSV Converter', description: 'Convert a JSON array of objects into CSV — columns are the union of all keys.', href: '/codegen/tools/json-to-csv/' },
+  { title: 'JSON to Python Dict', description: 'Convert a JSON sample into a Python dict literal — true/false/null become True/False/None.', href: '/codegen/tools/json-to-python/' },
+  { title: 'JSON to SQL Generator', description: 'Generate CREATE TABLE and INSERT statements from a JSON array.', href: '/codegen/tools/sql-generator/' },
+  { title: 'LLM Structured Output Validator', description: 'Validate JSON Schemas for LLM structured output. Presets for OpenAI, Anthropic, Gemini.', href: '/codegen/tools/llm-structured-output-validator/' },
+  { title: 'SQL Formatter', description: 'Format messy SQL into clean, indented statements or minify to a single line.', href: '/codegen/tools/sql-formatter/' },
+  { title: 'SQL Validator', description: 'Validate SQL syntax for MySQL, PostgreSQL, SQLite, and SQL Server instantly.', href: '/codegen/tools/sql-validator/' },
 ];
 ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>versal codegen — Type a config, copy the file</title>
+<meta name="description" content=".gitignore, docker-compose, JSON Schema → TypeScript, SQL, CSV/JSON, cURL → fetch. Running in your browser. No sign-up, no upload.">
+<link rel="canonical" href="https://jsonversal.com/codegen/">
+<meta property="og:title" content="versal codegen — Config &amp; code generators in your browser">
+<meta property="og:description" content="Type a config, copy the file. 100% client-side.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jsonversal.com/codegen/">
+</head>
+<body data-site="codegen" data-theme="light">
 
-<BaseLayout site="codegen" current="/codegen/">
-  <Hero
-    overline="Codegen · generate configs &amp; code in your browser"
-    sub="No signup, no upload. Every generator runs 100% locally — your templates never leave your device."
-  >
-    Code generators that <span class="grad">run in your browser.</span>
-    <Fragment slot="actions">
-      <a class="button button-primary" href="/codegen/tools/">Browse all generators</a>
-      <a class="button button-ghost" href="/codegen/tools/gitignore/">Generate a .gitignore</a>
-    </Fragment>
-  </Hero>
-
-  <div class="section-head">
-    <span class="overline">Codegen toolkit</span>
-    <h2>Generate code &amp; config files</h2>
-    <p>.gitignore, license, README, CI workflow, commit messages, SQL, Docker Compose and more — instantly.</p>
-  </div>
-  <ToolGrid tools={tools} />
-
-  <div class="brand-strip">
-    <h2>Related — from the jsonversal brand</h2>
-    <div class="grid">
-      <ToolCard title="DevOps Tools" description="devops — YAML/JSON, Base64, JWT, crontab, regex." href="/devops/" />
-      <ToolCard title="JSON / LLM Tools" description="jsonversal — UUID v7, JSON to TS, LLM token calculator." href="/tools/" />
-      <ToolCard title="Security Tools" description="sec — Hash, AES, password strength." href="/sec/" />
+<header class="v-header">
+  <div class="v-header__inner">
+    <a class="v-logo" href="/">
+      <span class="v-logo__mark">V</span>
+      <span>versal</span>
+      <span class="v-logo__sep">·</span>
+      <span class="v-logo__product">codegen</span>
+    </a>
+    <nav class="v-nav">
+      <a href="#tools">All tools</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <div class="v-header__end">
+      <button class="v-theme" id="vTheme" aria-label="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <details class="v-matrix-btn">
+        <summary>All products <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="v-matrix-pop">
+          <a href="https://mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal everyday<small>mquickcalc.com</small></a>
+          <a href="https://finance.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#059669"></span>versal finance<small>finance.mquickcalc.com</small></a>
+          <a href="https://health.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#e11d48"></span>versal health<small>health.mquickcalc.com</small></a>
+          <a href="https://cover.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#0f766e"></span>versal cover<small>cover.mquickcalc.com</small></a>
+          <a href="/"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal json<small>jsonversal.com</small></a>
+          <a href="/devops/"><span class="v-matrix-pop__dot" style="background:#14b8a6"></span>versal devops<small>jsonversal.com/devops</small></a>
+          <a href="/codegen/"><span class="v-matrix-pop__dot" style="background:#f59e0b"></span>versal codegen<small>jsonversal.com/codegen</small></a>
+          <a href="/sec/"><span class="v-matrix-pop__dot" style="background:#ef4444"></span>versal sec<small>jsonversal.com/sec</small></a>
+        </div>
+      </details>
     </div>
   </div>
-</BaseLayout>
+</header>
+
+<main>
+
+<section class="v-hero v-wrap">
+  <span class="v-hero__kicker">16 generators · .gitignore, docker-compose, SQL, JSON Schema → TS</span>
+  <h1>Type a config, copy the file.</h1>
+  <p class="v-hero__sub">No signup, no upload. Every generator runs 100% locally — your templates, your schemas, your curl commands never leave your device.</p>
+
+  <div class="v-demo" role="region" aria-label="Try the .gitignore generator">
+    <div class="v-demo__head"><span class="dot"></span>.gitignore · live</div>
+    <div class="v-demo__grid" style="grid-template-columns:1fr 24px 2fr">
+      <div class="v-demo__field">
+        <label>Stack</label>
+        <select id="stack"><option value="node" selected>Node</option><option value="python">Python</option><option value="go">Go</option><option value="rust">Rust</option><option value="java">Java</option><option value="macos">macOS</option><option value="windows">Windows</option><option value="vscode">VS Code</option><option value="terraform">Terraform</option></select>
+      </div>
+      <div class="v-demo__arrow" aria-hidden="true">→</div>
+      <div class="v-demo__field">
+        <label>.gitignore</label>
+        <textarea id="out" rows="8" readonly style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:12px var(--v-mono);color:var(--v-ink);background:var(--v-paper);resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="v-demo__result" id="demoResult">Pick a stack, copy the output · based on github/gitignore<small>Node · Python · Go · Rust · Java · Terraform · macOS · Windows · VS Code</small></div>
+  </div>
+
+  <div class="v-chips">
+    <a class="v-chip" href="/codegen/tools/gitignore/"><span class="v-chip__dot"></span>.gitignore</a>
+    <a class="v-chip" href="/codegen/tools/docker-compose/"><span class="v-chip__dot"></span>docker-compose</a>
+    <a class="v-chip" href="/codegen/tools/schema-to-typescript/"><span class="v-chip__dot"></span>JSON Schema → TS</a>
+    <a class="v-chip" href="/codegen/tools/sql-formatter/"><span class="v-chip__dot"></span>SQL formatter</a>
+    <a class="v-chip" href="/codegen/tools/curl-to-fetch/"><span class="v-chip__dot"></span>cURL → fetch</a>
+    <a class="v-chip" href="/codegen/tools/env-generator/"><span class="v-chip__dot"></span>.env</a>
+    <a class="v-chip" href="/codegen/tools/json-to-python/"><span class="v-chip__dot"></span>JSON → Python</a>
+    <a class="v-chip" href="/codegen/tools/json-to-csv/"><span class="v-chip__dot"></span>JSON → CSV</a>
+  </div>
+</section>
+
+<section class="v-wrap">
+  <div class="v-trust">
+    <div class="v-trust__item">
+      <div class="v-trust__num">16<small>generators</small></div>
+      <div class="v-trust__lbl">Config files, code snippets, schema definitions.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">100<small>% local</small></div>
+      <div class="v-trust__lbl">Templates, schemas and commands stay in your browser.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">0<small>AI credits, generation quotas, "pro" tiers</small></div>
+      <div class="v-trust__lbl">Deterministic output. No model in the loop.</div>
+    </div>
+  </div>
+</section>
+
+<section class="v-section v-wrap" id="tools">
+  <div class="v-section__head">
+    <div class="v-section__kicker">Codegen toolkit</div>
+    <h2>Generate code &amp; config files.</h2>
+    <p class="v-section__sub">.gitignore, license, README, CI workflow, SQL, Docker Compose and more — instantly.</p>
+  </div>
+
+  <div class="v-tools-grid">
+    {tools.map(t => (
+      <a class="v-tool" href={t.href}><svg class="v-tool__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16,3 21,3 21,8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21,16 21,21 16,21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>{t.title}</a>
+    ))}
+  </div>
+</section>
+
+<section class="v-wrap">
+  <div class="v-cta">
+    <div>
+      <h3>Free forever. No sign-up.</h3>
+      <p>Generate, copy, paste. Don't add us to your commit message.</p>
+    </div>
+    <a class="v-btn large" href="/codegen/tools/gitignore/">Open .gitignore generator</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="v-footer">
+  <div class="v-wrap">
+    <nav class="v-matrix-strip" aria-label="All versal products">
+      <a href="https://mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal everyday</a>
+      <a href="https://finance.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#059669"></span>versal finance</a>
+      <a href="https://health.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#e11d48"></span>versal health</a>
+      <a href="https://cover.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#0f766e"></span>versal cover</a>
+      <a href="/"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal json</a>
+      <a href="/devops/"><span class="v-matrix-strip__dot" style="background:#14b8a6"></span>versal devops</a>
+      <a href="/codegen/" aria-current="page"><span class="v-matrix-strip__dot" style="background:#f59e0b"></span>versal codegen</a>
+      <a href="/sec/"><span class="v-matrix-strip__dot" style="background:#ef4444"></span>versal sec</a>
+    </nav>
+
+    <div class="v-footer__cols">
+      <div>
+        <div class="v-footer__brand"><span class="v-logo__mark">V</span>versal</div>
+        <p class="v-footer__about">A toolbox brand. Eight small sites, one shared design language. Each tool runs in your browser; we don't see your input.</p>
+      </div>
+      <div class="v-footer__col">
+        <h4>Popular</h4>
+        <ul>
+          <li><a href="/codegen/tools/gitignore/">.gitignore</a></li>
+          <li><a href="/codegen/tools/docker-compose/">docker-compose</a></li>
+          <li><a href="/codegen/tools/schema-to-typescript/">JSON Schema → TS</a></li>
+          <li><a href="/codegen/tools/sql-formatter/">SQL formatter</a></li>
+          <li><a href="/codegen/tools/curl-to-fetch/">cURL → fetch</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/sitemap.xml">Sitemap</a></li>
+          <li><a href="/">Other versal tools</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="v-footer__bottom">
+      <span>© 2026 versal · jsonversal.com/codegen</span>
+      <span>Runs in your browser. We see nothing.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var KEY='versal-theme';
+  var saved=localStorage.getItem(KEY);
+  if(saved) document.body.setAttribute('data-theme',saved);
+  var btn=document.getElementById('vTheme');
+  if(btn){btn.addEventListener('click',function(){var cur=document.body.getAttribute('data-theme')==='dark'?'light':'dark';document.body.setAttribute('data-theme',cur);localStorage.setItem(KEY,cur);});}
+  var T={
+    node:["# Dependencies","/node_modules","/pnp.*.js","","# Build output","/build","/dist","/.next","/.out","","# Logs","npm-debug.log*","yarn-debug.log*","yarn-error.log*","pnpm-debug.log*","","# Env",".env",".env.local",".env.*.local",""],
+    python:["# Byte-compiled","__pycache__/","*.py[cod]","*$py.class","","# Virtual env",".venv/","venv/","env/",""],
+    go:["# Binaries","/bin/","*.exe","*.dll","*.so","*.dylib","","# Test binary","*.test","*.out",""],
+    rust:["/target/",".idea/",""],
+    java:["*.class","*.log","hs_err_pid*",".idea/",".vscode/","target/",""],
+    macos:[".DS_Store",".AppleDouble",".LSOverride","._*",""],
+    windows:["Thumbs.db","ehthumbs.db","Desktop.ini","$RECYCLE.BIN/",""],
+    vscode:[".vscode/*","!.vscode/settings.json","!.vscode/tasks.json","!.vscode/launch.json",""],
+    terraform:[".terraform/","*.tfstate","*.tfstate.backup",".terraform.tfstate.lock.info",""]
+  };
+  var stack=document.getElementById('stack'),out=document.getElementById('out');
+  function recalc(){ out.value=(T[stack.value]||[]).join('\n'); }
+  stack.addEventListener('change',recalc); recalc();
+})();
+</script>
+</body>
+</html>

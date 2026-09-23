@@ -1,52 +1,222 @@
 ---
-import BaseLayout from '@versal/ui/BaseLayout';
-import Hero from '@versal/ui/Hero.astro';
-import ToolGrid from '@versal/ui/ToolGrid.astro';
-import ToolCard from '@versal/ui/ToolCard.astro';
+import '@versal/ui/versal-brand.css';
 
 const tools = [
-  { title: 'AES Encryption / Decryption', description: 'Encrypt and decrypt text with AES-GCM or AES-CBC using your own key. All cryptographic operations run locally in your browser.', href: '/sec/tools/aes/' },
-  { title: 'BCrypt Hash & Verify', description: 'Generate bcrypt password hashes with a configurable cost factor, and verify a plaintext password against a bcrypt hash. Everything runs in your browser.', href: '/sec/tools/bcrypt/' },
-  { title: 'File Checksum Calculator', description: 'Compute the SHA-256, SHA-1, SHA-384, or SHA-512 checksum of any local file, with its size. Your file is processed locally and never uploaded.', href: '/sec/tools/file-checksum/' },
-  { title: 'Hash & HMAC Generator — MD5, SHA-1 to SHA-512', description: 'Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes and HMAC signatures from text or files. Everything runs in your browser via the Web Crypto API.', href: '/sec/tools/hash-generator/' },
-  { title: 'Hash Generator — MD5, SHA-1, SHA-256 Online', description: 'Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text or file. All hashing happens in your browser.', href: '/sec/tools/hash/' },
-  { title: 'HMAC Generator — Sign Messages with SHA-256', description: 'Compute HMAC-SHA256, HMAC-SHA384, or HMAC-SHA512 signatures for any message and secret key, in hex and base64. Runs locally with Web Crypto.', href: '/sec/tools/hmac/' },
-  { title: 'JWT Decoder — Decode and Verify Tokens', description: 'Decode JWT tokens instantly. View header, payload, and signature. Check expiration and verify signatures. 100% browser-based, nothing sent to servers.', href: '/sec/tools/jwt-decoder/' },
-  { title: 'JWT Generator & Signer', description: 'Build and sign JWTs with HS256, HS384, or HS512 in your browser. Edit header and payload, supply a secret, and get a ready-to-use token. Nothing is uploaded.', href: '/sec/tools/jwt-generator/' },
-  { title: 'Passphrase Generator (Diceware-style)', description: 'Generate memorable passphrases from a 256-word diceware-style list, with separators, digits, symbols and live entropy estimates. All randomness is local.', href: '/sec/tools/passphrase-generator/' },
-  { title: 'Random Password Generator', description: 'Generate strong random passwords with custom length and character sets, plus a live entropy estimate. Everything is generated locally — never transmitted.', href: '/sec/tools/password-generator/' },
-  { title: 'Random Token Generator', description: 'Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser\\\'s CSPRNG.', href: '/sec/tools/random-token/' },
-  { title: 'RSA Key Pair Generator', description: 'Generate RSA key pairs (2048/3072/4096-bit) in your browser with Web Crypto, view PEM output, and encrypt/decrypt text. Private keys never leave your device.', href: '/sec/tools/rsa-keygen/' },
-  { title: 'Secret & API Key Scanner', description: 'Paste logs or config files to detect leaked credentials — AWS keys, GitHub and GitLab tokens, Stripe, Slack, OpenAI, JWTs and private keys. Scans locally.', href: '/sec/tools/secret-scanner/' },
-  { title: 'X.509 Certificate Decoder', description: 'Decode PEM X.509 certificates in your browser — subject, issuer, validity, public key, SANs and extensions. A compact DER/ASN.1 parser, nothing uploaded.', href: '/sec/tools/x509-decoder/' },
+  { title: 'AES Encryption / Decryption', description: 'Encrypt and decrypt text with AES-GCM or AES-CBC using your own key.', href: '/sec/tools/aes/' },
+  { title: 'BCrypt Hash & Verify', description: 'Generate bcrypt password hashes with a configurable cost factor, and verify plaintext against a bcrypt hash.', href: '/sec/tools/bcrypt/' },
+  { title: 'File Checksum Calculator', description: 'Compute SHA-256, SHA-1, SHA-384, or SHA-512 checksum of any local file.', href: '/sec/tools/file-checksum/' },
+  { title: 'Hash & HMAC Generator', description: 'Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes and HMAC signatures from text or files.', href: '/sec/tools/hash-generator/' },
+  { title: 'Hash Generator', description: 'Compute MD5, SHA-1, SHA-256, SHA-384, SHA-512 of any text or file.', href: '/sec/tools/hash/' },
+  { title: 'HMAC Generator', description: 'Compute HMAC-SHA256, HMAC-SHA384, HMAC-SHA512 signatures for any message and secret key.', href: '/sec/tools/hmac/' },
+  { title: 'JWT Decoder', description: 'Decode JWT tokens. View header, payload, signature. Check expiration and verify signatures.', href: '/sec/tools/jwt-decoder/' },
+  { title: 'JWT Generator & Signer', description: 'Build and sign JWTs with HS256, HS384, or HS512 in your browser.', href: '/sec/tools/jwt-generator/' },
+  { title: 'Passphrase Generator', description: 'Memorable passphrases from a 256-word diceware-style list, with live entropy estimates.', href: '/sec/tools/passphrase-generator/' },
+  { title: 'Random Password Generator', description: 'Strong random passwords with custom length and character sets, plus live entropy estimate.', href: '/sec/tools/password-generator/' },
+  { title: 'Random Token Generator', description: 'Cryptographically secure random tokens in hex, base64, base64url, or UUID.', href: '/sec/tools/random-token/' },
+  { title: 'RSA Key Pair Generator', description: 'RSA key pairs (2048/3072/4096-bit) with Web Crypto, view PEM output, encrypt/decrypt.', href: '/sec/tools/rsa-keygen/' },
+  { title: 'Secret & API Key Scanner', description: 'Detect leaked credentials — AWS, GitHub, GitLab, Stripe, Slack, OpenAI, JWTs, private keys.', href: '/sec/tools/secret-scanner/' },
+  { title: 'X.509 Certificate Decoder', description: 'Decode PEM X.509 certificates — subject, issuer, validity, public key, SANs and extensions.', href: '/sec/tools/x509-decoder/' },
 ];
 ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>versal sec — Cryptography that runs in your browser. We see nothing.</title>
+<meta name="description" content="Hash, encrypt, sign, decode — AES, bcrypt, HMAC, JWT, X.509, password &amp; token generators. Web Crypto API. No upload, no sign-up, no server logs.">
+<link rel="canonical" href="https://jsonversal.com/sec/">
+<meta property="og:title" content="versal sec — Cryptography that runs in your browser">
+<meta property="og:description" content="Keys, secrets, passwords — none of it leaves your device.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jsonversal.com/sec/">
+</head>
+<body data-site="sec" data-theme="light">
 
-<BaseLayout site="sec" current="/sec/">
-  <Hero
-    overline="Security · cryptography in your browser"
-    sub="No signup, no upload. Everything stays on your device — keys, secrets and passwords never leave your browser."
-  >
-    Security tools that <span class="grad">run in your browser.</span>
-    <Fragment slot="actions">
-      <a class="button button-primary" href="/sec/tools/">Browse all security tools</a>
-      <a class="button button-ghost" href="/sec/tools/password-generator/">Generate a password</a>
-    </Fragment>
-  </Hero>
-
-  <div class="section-head">
-    <span class="overline">Security toolkit</span>
-    <h2>Cryptography &amp; secrets, locally</h2>
-    <p>Hash, encrypt and inspect security primitives — AES, bcrypt, HMAC, TOTP, JWT, X.509, CSP and more. All client-side.</p>
-  </div>
-  <ToolGrid tools={tools} />
-
-  <div class="brand-strip">
-    <h2>Related — from the jsonversal brand</h2>
-    <div class="grid">
-      <ToolCard title="DevOps Tools" description="devops — YAML/JSON, Base64, JWT, crontab." href="/devops/" />
-      <ToolCard title="Code Generators" description="codegen — .gitignore, license, CI workflow." href="/codegen/" />
-      <ToolCard title="JSON / LLM Tools" description="jsonversal — UUID v7, JSON to TypeScript." href="/tools/" />
+<header class="v-header">
+  <div class="v-header__inner">
+    <a class="v-logo" href="/">
+      <span class="v-logo__mark">V</span>
+      <span>versal</span>
+      <span class="v-logo__sep">·</span>
+      <span class="v-logo__product">sec</span>
+    </a>
+    <nav class="v-nav">
+      <a href="#tools">All tools</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <div class="v-header__end">
+      <button class="v-theme" id="vTheme" aria-label="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <details class="v-matrix-btn">
+        <summary>All products <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="v-matrix-pop">
+          <a href="https://mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal everyday<small>mquickcalc.com</small></a>
+          <a href="https://finance.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#059669"></span>versal finance<small>finance.mquickcalc.com</small></a>
+          <a href="https://health.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#e11d48"></span>versal health<small>health.mquickcalc.com</small></a>
+          <a href="https://cover.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#0f766e"></span>versal cover<small>cover.mquickcalc.com</small></a>
+          <a href="/"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal json<small>jsonversal.com</small></a>
+          <a href="/devops/"><span class="v-matrix-pop__dot" style="background:#14b8a6"></span>versal devops<small>jsonversal.com/devops</small></a>
+          <a href="/codegen/"><span class="v-matrix-pop__dot" style="background:#f59e0b"></span>versal codegen<small>jsonversal.com/codegen</small></a>
+          <a href="/sec/"><span class="v-matrix-pop__dot" style="background:#ef4444"></span>versal sec<small>jsonversal.com/sec</small></a>
+        </div>
+      </details>
     </div>
   </div>
-</BaseLayout>
+</header>
+
+<main>
+
+<div class="v-wrap">
+  <div class="v-disclaim" role="note">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    <div><strong>Cryptography done in your browser.</strong> We never see your input or output. Verify the algorithm before relying on the result. For production secrets, use a hardware-backed key manager.</div>
+  </div>
+</div>
+
+<section class="v-hero v-wrap">
+  <span class="v-hero__kicker">14 tools · hash, encrypt, sign, decode — Web Crypto API</span>
+  <h1>Cryptography that runs in your browser. We see nothing.</h1>
+  <p class="v-hero__sub">Hash, encrypt, sign, decode — all via the browser's Web Crypto API. Your keys, secrets, passwords and JWTs are processed in this tab, not on a server somewhere.</p>
+
+  <div class="v-demo" role="region" aria-label="Try the SHA-256 hash generator">
+    <div class="v-demo__head"><span class="dot"></span>SHA-256 · live</div>
+    <div class="v-demo__grid" style="grid-template-columns:1fr 24px 2fr">
+      <div class="v-demo__field">
+        <label for="inp">Input text</label>
+        <textarea id="inp" rows="3" style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:13px var(--v-mono);color:var(--v-ink);background:var(--v-paper);resize:vertical">versal — one brand, eight products, runs in your browser.</textarea>
+      </div>
+      <div class="v-demo__arrow" aria-hidden="true">→</div>
+      <div class="v-demo__field">
+        <label>SHA-256</label>
+        <textarea id="out" rows="3" readonly style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:12px var(--v-mono);color:var(--v-accent);background:var(--v-paper);resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="v-demo__result" id="demoResult">SHA-256 of your input · recomputed on every keystroke<small>no upload · no log · nothing leaves your tab</small></div>
+  </div>
+
+  <div class="v-chips">
+    <a class="v-chip" href="/sec/tools/hash-generator/"><span class="v-chip__dot"></span>Hash</a>
+    <a class="v-chip" href="/sec/tools/jwt-decoder/"><span class="v-chip__dot"></span>JWT decode</a>
+    <a class="v-chip" href="/sec/tools/password-generator/"><span class="v-chip__dot"></span>Password</a>
+    <a class="v-chip" href="/sec/tools/aes/"><span class="v-chip__dot"></span>AES</a>
+    <a class="v-chip" href="/sec/tools/hmac/"><span class="v-chip__dot"></span>HMAC</a>
+    <a class="v-chip" href="/sec/tools/rsa-keygen/"><span class="v-chip__dot"></span>RSA keygen</a>
+    <a class="v-chip" href="/sec/tools/x509-decoder/"><span class="v-chip__dot"></span>X.509</a>
+    <a class="v-chip" href="/sec/tools/secret-scanner/"><span class="v-chip__dot"></span>Secret scanner</a>
+  </div>
+</section>
+
+<section class="v-wrap">
+  <div class="v-trust">
+    <div class="v-trust__item">
+      <div class="v-trust__num">14<small>tools</small></div>
+      <div class="v-trust__lbl">Hash, encrypt, sign, decode — every primitive a security workflow needs.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">0<small>bytes uploaded</small></div>
+      <div class="v-trust__lbl">Web Crypto API runs in the page. We don't see inputs, outputs, or keys.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">0<small>accounts, telemetry, "AI security insights"</small></div>
+      <div class="v-trust__lbl">Not a security theatre. Cryptography you can verify.</div>
+    </div>
+  </div>
+</section>
+
+<section class="v-section v-wrap" id="tools">
+  <div class="v-section__head">
+    <div class="v-section__kicker">Security toolkit</div>
+    <h2>Hash, encrypt, sign, decode.</h2>
+    <p class="v-section__sub">AES, bcrypt, HMAC, JWT, X.509, CSP and more. All client-side via Web Crypto API.</p>
+  </div>
+
+  <div class="v-tools-grid">
+    {tools.map(t => (
+      <a class="v-tool" href={t.href}><svg class="v-tool__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>{t.title}</a>
+    ))}
+  </div>
+</section>
+
+<div class="v-wrap">
+  <div class="v-disclaim" role="note">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    <div><strong>Verify the algorithm.</strong> Cryptography can be subtly wrong. Cross-check critical output against a second tool (e.g. <code>openssl</code>) before deploying. For production secrets, prefer a hardware-backed key manager (HSM, OS keychain) over browser-only generation.</div>
+  </div>
+</div>
+
+</main>
+
+<footer class="v-footer">
+  <div class="v-wrap">
+    <nav class="v-matrix-strip" aria-label="All versal products">
+      <a href="https://mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal everyday</a>
+      <a href="https://finance.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#059669"></span>versal finance</a>
+      <a href="https://health.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#e11d48"></span>versal health</a>
+      <a href="https://cover.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#0f766e"></span>versal cover</a>
+      <a href="/"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal json</a>
+      <a href="/devops/"><span class="v-matrix-strip__dot" style="background:#14b8a6"></span>versal devops</a>
+      <a href="/codegen/"><span class="v-matrix-strip__dot" style="background:#f59e0b"></span>versal codegen</a>
+      <a href="/sec/" aria-current="page"><span class="v-matrix-strip__dot" style="background:#ef4444"></span>versal sec</a>
+    </nav>
+
+    <div class="v-footer__cols">
+      <div>
+        <div class="v-footer__brand"><span class="v-logo__mark">V</span>versal</div>
+        <p class="v-footer__about">A toolbox brand. Eight small sites, one shared design language. Each tool runs in your browser; we don't see your input.</p>
+      </div>
+      <div class="v-footer__col">
+        <h4>Popular</h4>
+        <ul>
+          <li><a href="/sec/tools/password-generator/">Password</a></li>
+          <li><a href="/sec/tools/hash-generator/">Hash</a></li>
+          <li><a href="/sec/tools/jwt-decoder/">JWT decode</a></li>
+          <li><a href="/sec/tools/aes/">AES</a></li>
+          <li><a href="/sec/tools/rsa-keygen/">RSA keygen</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/sitemap.xml">Sitemap</a></li>
+          <li><a href="/">Other versal tools</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="v-footer__bottom">
+      <span>© 2026 versal · jsonversal.com/sec</span>
+      <span>Verify critical output. Use a real key manager for production secrets.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var KEY='versal-theme';
+  var saved=localStorage.getItem(KEY);
+  if(saved) document.body.setAttribute('data-theme',saved);
+  var btn=document.getElementById('vTheme');
+  if(btn){btn.addEventListener('click',function(){var cur=document.body.getAttribute('data-theme')==='dark'?'light':'dark';document.body.setAttribute('data-theme',cur);localStorage.setItem(KEY,cur);});}
+  var inp=document.getElementById('inp'),out=document.getElementById('out');
+  async function recalc(){
+    var d=new TextEncoder().encode(inp.value);
+    var h=await crypto.subtle.digest('SHA-256',d);
+    out.value=Array.from(new Uint8Array(h)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+  }
+  inp.addEventListener('input',recalc); recalc();
+})();
+</script>
+</body>
+</html>

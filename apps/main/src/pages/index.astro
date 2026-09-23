@@ -1,362 +1,324 @@
 ---
-import BaseLayout from '@versal/ui/BaseLayout';
-import Hero from '@versal/ui/Hero.astro';
-import ToolGrid from '@versal/ui/ToolGrid.astro';
-import ToolCard from '@versal/ui/ToolCard.astro';
-
-// 首页精选：4 个子站各推 2-5 个最具代表性的工具，让所有栏目在首屏曝光。
-// 排序：tools 最强流量 → 5 个；sec / devops / codegen 各 2 个
-const tools = [
-  // tools (5) —— JSON & LLM
-  {
-    title: 'LLM Token & Pricing Calculator',
-    description: 'Estimate tokens and cost across GPT, Claude, Llama and Gemini.',
-    href: '/tools/llm-token-calculator/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON Schema Generator',
-    description: 'Create strict JSON Schema for LLM structured output.',
-    href: '/tools/json-schema-generator/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON to Zod Schema',
-    description: 'Infer a Zod validation schema from a JSON sample.',
-    href: '/tools/json-to-zod/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JSON Formatter & Validator',
-    description: 'Pretty-print, validate, and minify JSON with configurable indentation.',
-    href: '/tools/json-formatter/',
-    status: 'live' as const,
-  },
-  {
-    title: 'UUID v7 Generator & Timestamp Decoder',
-    description: 'Generate RFC 9562 UUID v4 and v7 identifiers. Validate any UUID.',
-    href: '/tools/uuid-v7/',
-    status: 'live' as const,
-  },
-  // sec (2) —— Security
-  {
-    title: 'Random Password Generator',
-    description: 'Generate strong random passwords with custom length and character sets.',
-    href: '/sec/tools/password-generator/',
-    status: 'live' as const,
-  },
-  {
-    title: 'JWT Decoder',
-    description: 'Decode JWT tokens instantly — header, payload, signature, expiry.',
-    href: '/sec/tools/jwt-decoder/',
-    status: 'live' as const,
-  },
-  // devops (2) —— DevOps
-  {
-    title: 'Crontab Parser',
-    description: 'Translate cron expressions into plain English and preview next 10 runs.',
-    href: '/devops/tools/cron-parser/',
-    status: 'live' as const,
-  },
-  {
-    title: 'Base64 Encoder / Decoder',
-    description: 'Encode text to Base64 (URL-safe too), or decode Base64 back to text.',
-    href: '/devops/tools/base64/',
-    status: 'live' as const,
-  },
-  // codegen (2) —— Code Generators
-  {
-    title: '.gitignore Generator',
-    description: 'Generate a .gitignore file by selecting your language and frameworks.',
-    href: '/codegen/tools/gitignore/',
-    status: 'live' as const,
-  },
-  {
-    title: 'Docker Compose Generator',
-    description: 'Scaffold a docker-compose.yml with services, ports, volumes, env vars.',
-    href: '/codegen/tools/docker-compose/',
-    status: 'live' as const,
-  },
-];
-
-const faqs = [
-  {
-    question: 'Is my data sent to a server?',
-    answer: 'No. Every tool on jsonversal runs entirely in your browser using the Web Crypto API, File API, and Clipboard API. Nothing is ever uploaded — not even the JSON you paste in.',
-  },
-  {
-    question: 'Do I need to create an account?',
-    answer: 'No account, no email, no API key. All tools are free to use with no signup required.',
-  },
-  {
-    question: 'What happens to my data after I close the page?',
-    answer: 'Nothing. Your input is processed in-memory and discarded when you navigate away or close the tab. There is no server-side storage.',
-  },
-  {
-    question: 'Can I use these tools offline?',
-    answer: 'Yes. Once the page loads, all tools work offline. There are no external API calls or CDN dependencies at runtime.',
-  },
-  {
-    question: 'Which JSON Schema specification is supported?',
-    answer: 'JSON Schema draft-07, draft-2019-09, and draft-2020-12 are supported for both validation and generation.',
-  },
-];
-import fs from 'node:fs';
-import path from 'node:path';
-
-const pagesDir = path.join(process.cwd(), 'src', 'pages');
-
-// 构建时扫描文件系统生成完整目录 —— 新增工具页会自动出现, 无需手工维护本页清单
-const CATALOG_SECTIONS = [
-  { label: 'JSON & LLM Tools', base: 'tools',         hub: '/tools/' },
-  { label: 'Security Tools',   base: 'sec/tools',     hub: '/sec/tools/' },
-  { label: 'DevOps Tools',     base: 'devops/tools',  hub: '/devops/tools/' },
-  { label: 'Code Generators',  base: 'codegen/tools', hub: '/codegen/tools/' },
-];
-
-function pageTitle(relDir) {
-  const f = path.join(pagesDir, relDir, 'index.astro');
-  if (!fs.existsSync(f)) return null;
-  const code = fs.readFileSync(f, 'utf8');
-  const m = code.match(/^const title = '(.*?)';\s*$/m);
-  if (m) return m[1];
-  const m2 = code.match(/<BaseLayout\b[^>]*\stitle="([^"]*)"/);
-  return m2 ? m2[1] : null;
-}
-
-const catalog = CATALOG_SECTIONS.map(s => {
-  const root = path.join(pagesDir, s.base);
-  const items = fs.existsSync(root)
-    ? fs.readdirSync(root, { withFileTypes: true })
-        .filter(d => d.isDirectory())
-        .map(d => {
-          const title = pageTitle(path.join(s.base, d.name));
-          return title ? { title, href: `/${s.base}/${d.name}/` } : null;
-        })
-        .filter(Boolean)
-        .sort((a, b) => a.title.localeCompare(b.title))
-    : [];
-  return { ...s, items };
-});
-const catalogTotal = catalog.reduce((n, s) => n + s.items.length, 0);
-
-// 品牌实体 + 站点结构化数据 —— 提升品牌词检索与实体关联
-const orgSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "jsonversal",
-  "url": "https://jsonversal.com/"
-};
-
-const webSiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "jsonversal",
-  "url": "https://jsonversal.com/"
-};
+import '@versal/ui/versal-brand.css';
 ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>versal json — JSON &amp; LLM tools that run in your browser</title>
+<meta name="description" content="JSON formatter, validator, schema generator, LLM token calculator, type converters. 69 tools. No sign-up, no upload, your data never leaves your device.">
+<link rel="canonical" href="https://jsonversal.com/">
+<meta property="og:title" content="versal json — 69 JSON &amp; LLM tools in your browser">
+<meta property="og:description" content="Format, validate, transform. Web Crypto API. We see nothing.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jsonversal.com/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"versal json","url":"https://jsonversal.com/","publisher":{"@type":"Organization","name":"versal","url":"https://jsonversal.com/"}}</script>
+</head>
+<body data-site="json" data-theme="light">
 
-<BaseLayout site="main" current="/" title="Free JSON Tools — Format, Validate & Convert" description="Free browser-based JSON and LLM developer tools: formatter, validator, schema builder, token calculator and converters. No signup, no upload, no tracking." keywords={["JSON formatter","JSON validator","JSON to Zod","LLM token calculator","developer tools","structured output","JSON Schema generator"]} faqs={faqs} showRecent>
-  <Fragment slot="head">
-    <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
-    <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} />
-  </Fragment>
-  <Hero
-    overline="jsonversal — free in-browser toolkit"
-    sub="No signup, no upload, no accounts. Every tool runs 100% on your device — paste JSON, infer schemas, count LLM tokens, and estimate API costs without your data ever leaving your browser."
-  >
-    JSON &amp; LLM developer tools that <span class="grad">run in your browser.</span>
-    <Fragment slot="actions">
-      <a class="button button-primary" href="/tools/">Explore 69 tools</a>
-      <a class="button button-ghost" href="/tools/json-schema-generator/">Try JSON Schema Generator</a>
-    </Fragment>
-    <Fragment slot="chips">
-      <span class="chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg><strong>100% local</strong> — nothing uploaded</span>
-      <span class="chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><strong>0 sign-up</strong> — no accounts</span>
-      <span class="chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg><strong>Free &amp; unlimited</strong> — for devs</span>
-    </Fragment>
-  </Hero>
-
-  <div class="section-head">
-    <span class="overline">Core toolkit</span>
-    <h2>JSON &amp; LLM tools</h2>
-    <p>Format, validate, transform and generate JSON — plus LLM token counting, schema generation and structured output helpers.</p>
-  </div>
-  <ToolGrid tools={tools} />
-
-  <div class="section-head">
-    <span class="overline">Why local-first</span>
-    <h2>Your data never leaves your browser — GDPR-friendly by design</h2>
-    <p>
-      Most online tools upload your input, process it on a server and hand something back.
-      jsonversal does the opposite: every tool is a self-contained page that runs on your device.
-      There is no upload step, no queue, and no server-side copy — and no third-party CDN
-      watching you load it.
-    </p>
-  </div>
-  <div class="grid">
-    <article class="card value-card">
-      <span class="value-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-          <path d="m9 12 2 2 4-4" />
-        </svg>
-      </span>
-      <h3>Nothing is uploaded</h3>
-      <p>
-        Tools run on the Web Crypto, File and Clipboard APIs inside your tab. Paste a JWT,
-        a private key or a customer payload — it is never sent anywhere, so there is no
-        server-side log to leak and nothing to delete.
-      </p>
-    </article>
-
-    <article class="card value-card">
-      <span class="value-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M3 12h18" />
-          <path d="M12 3c2.6 3.2 2.6 14.8 0 18M12 3c-2.6 3.2-2.6 14.8 0 18" />
-        </svg>
-      </span>
-      <h3>No third-party CDNs</h3>
-      <p>
-        Fonts and libraries are served from this domain. Loading them from someone else's CDN
-        would hand that provider your IP address on every page load — which is exactly the
-        transfer European courts have ruled against.
-      </p>
-    </article>
-
-    <article class="card value-card">
-      <span class="value-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="m17 11 2 2 4-4" />
-        </svg>
-      </span>
-      <h3>No accounts, no profiling</h3>
-      <p>
-        No sign-up, no ad networks, no cross-site tracking — and no analytics at all.
-        We do not count page views, so there is no visitor profile to build and
-        no data to sell.
-      </p>
-    </article>
-  </div>
-
-  <div class="brand-strip">
-    <h2>More developer toolkits</h2>
-    <div class="grid">
-      <ToolCard
-        title="DevOps Tools"
-        description="YAML/JSON converter, Base64, crontab, JWT decoder, regex tester and more."
-        href="/devops/"
-      />
-      <ToolCard
-        title="Code Generators"
-        description=".gitignore, license, README, CI workflow, commit message and more."
-        href="/codegen/"
-      />
-      <ToolCard
-        title="Security Tools"
-        description="Hash, AES encryption, password strength, CSP generator, CSR decoder."
-        href="/sec/"
-      />
+<header class="v-header">
+  <div class="v-header__inner">
+    <a class="v-logo" href="/">
+      <span class="v-logo__mark">V</span>
+      <span>versal</span>
+      <span class="v-logo__sep">·</span>
+      <span class="v-logo__product">json</span>
+    </a>
+    <nav class="v-nav">
+      <a href="#tools">All tools</a>
+      <a href="#catalog">Catalog</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <div class="v-header__end">
+      <button class="v-theme" id="vTheme" aria-label="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <details class="v-matrix-btn">
+        <summary>All products <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="v-matrix-pop">
+          <a href="https://mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal everyday<small>mquickcalc.com</small></a>
+          <a href="https://finance.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#059669"></span>versal finance<small>finance.mquickcalc.com</small></a>
+          <a href="https://health.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#e11d48"></span>versal health<small>health.mquickcalc.com</small></a>
+          <a href="https://cover.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#0f766e"></span>versal cover<small>cover.mquickcalc.com</small></a>
+          <a href="/"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal json<small>jsonversal.com</small></a>
+          <a href="/devops/"><span class="v-matrix-pop__dot" style="background:#14b8a6"></span>versal devops<small>jsonversal.com/devops</small></a>
+          <a href="/codegen/"><span class="v-matrix-pop__dot" style="background:#f59e0b"></span>versal codegen<small>jsonversal.com/codegen</small></a>
+          <a href="/sec/"><span class="v-matrix-pop__dot" style="background:#ef4444"></span>versal sec<small>jsonversal.com/sec</small></a>
+        </div>
+      </details>
     </div>
   </div>
-  <div class="section-head">
-    <span class="overline">Full catalog</span>
-    <h2>Every tool, one click away</h2>
-    <p>All {catalogTotal} tools run locally in your browser — no signup, no upload. Browse a category or jump straight to a tool.</p>
+</header>
+
+<main>
+
+<section class="v-hero v-wrap">
+  <span class="v-hero__kicker">69 JSON &amp; LLM tools · Web Crypto API · zero upload</span>
+  <h1>JSON that runs in your browser.</h1>
+  <p class="v-hero__sub">Format, validate, transform, generate schemas, count LLM tokens. No sign-up, no upload, no API key. Your JSON never leaves your tab.</p>
+
+  <div class="v-demo" role="region" aria-label="Try the JSON formatter">
+    <div class="v-demo__head"><span class="dot"></span>JSON formatter · live</div>
+    <div class="v-demo__grid" style="grid-template-columns:1fr 24px 1fr">
+      <div class="v-demo__field">
+        <label for="jin">Input JSON</label>
+        <textarea id="jin" rows="7" style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:13px var(--v-mono);color:var(--v-ink);background:var(--v-paper);resize:vertical">{"name":"versal","version":4,"products":["everyday","finance","health","cover","json","devops","codegen","sec"],"features":{"local":true,"signup":false,"tracking":false}}</textarea>
+      </div>
+      <div class="v-demo__arrow" aria-hidden="true">→</div>
+      <div class="v-demo__field">
+        <label>Pretty</label>
+        <textarea id="jout" rows="7" readonly style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:12px var(--v-mono);color:var(--v-accent);background:var(--v-paper);resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="v-demo__result" id="demoResult">Pretty-print + validate + sort keys · all in one keystroke<small>strict parser · clear error line/column · no upload</small></div>
   </div>
-  <div class="catalog">
-    {catalog.map(sec => (
-      <section class="catalog-sec">
-        <h3 class="catalog-h">
-          <a href={sec.hub}>{sec.label}</a>
-          <span class="catalog-n">{sec.items.length}</span>
-        </h3>
-        <ul class="catalog-list">
-          {sec.items.map(it => (
-            <li><a href={it.href}>{it.title}</a></li>
-          ))}
+
+  <div class="v-chips">
+    <a class="v-chip" href="/tools/json-formatter/"><span class="v-chip__dot"></span>Formatter</a>
+    <a class="v-chip" href="/tools/json-schema-generator/"><span class="v-chip__dot"></span>Schema</a>
+    <a class="v-chip" href="/tools/json-to-zod/"><span class="v-chip__dot"></span>JSON → Zod</a>
+    <a class="v-chip" href="/tools/json-to-typescript/"><span class="v-chip__dot"></span>JSON → TS</a>
+    <a class="v-chip" href="/tools/json-to-python/"><span class="v-chip__dot"></span>JSON → Python</a>
+    <a class="v-chip" href="/tools/json-schema-validator/"><span class="v-chip__dot"></span>Validator</a>
+    <a class="v-chip" href="/tools/llm-token-calculator/"><span class="v-chip__dot"></span>LLM tokens</a>
+    <a class="v-chip" href="/tools/uuid-v7/"><span class="v-chip__dot"></span>UUID v7</a>
+  </div>
+</section>
+
+<section class="v-wrap">
+  <div class="v-trust">
+    <div class="v-trust__item">
+      <div class="v-trust__num">69<small>tools</small></div>
+      <div class="v-trust__lbl">JSON, LLM, schema, validation, conversion.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">100<small>% local</small></div>
+      <div class="v-trust__lbl">Web Crypto, File, Clipboard APIs. Nothing uploaded.</div>
+    </div>
+    <div class="v-trust__item">
+      <div class="v-trust__num">0<small>sign-up, telemetry, quota</small></div>
+      <div class="v-trust__lbl">No accounts. No third-party CDN. GDPR-friendly by design.</div>
+    </div>
+  </div>
+</section>
+
+<section class="v-section v-wrap" id="tools">
+  <div class="v-section__head">
+    <div class="v-section__kicker">JSON &amp; LLM toolkit</div>
+    <h2>Format, validate, transform, generate.</h2>
+    <p class="v-section__sub">Pretty-print, sort keys, infer schemas, generate TypeScript / Zod / Python, validate against draft-07 to 2020-12, count LLM tokens across GPT, Claude, Llama, Gemini.</p>
+  </div>
+
+  <div class="v-cat-grid">
+    <a class="v-cat" href="/tools/json-formatter/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h16"/></svg></div>
+      <h3 class="v-cat__title">Format &amp; validate</h3>
+      <p class="v-cat__desc">Pretty-print, minify, sort keys, validate strict JSON with line/column error.</p>
+      <span class="v-cat__count">4 tools</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+    <a class="v-cat" href="/tools/json-schema-generator/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></div>
+      <h3 class="v-cat__title">Schema generator</h3>
+      <p class="v-cat__desc">Infer JSON Schema from any sample. Draft-07 / 2019-09 / 2020-12.</p>
+      <span class="v-cat__count">3 tools</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+    <a class="v-cat" href="/tools/json-to-typescript/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h18v14H3z"/><path d="M7 9l3 3-3 3M14 15h3"/></svg></div>
+      <h3 class="v-cat__title">Convert to code</h3>
+      <p class="v-cat__desc">TypeScript, Zod, Python, Go, C#, Pydantic from a JSON sample.</p>
+      <span class="v-cat__count">6 tools</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+    <a class="v-cat" href="/tools/llm-token-calculator/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4zM5 14h14v8H5z"/></svg></div>
+      <h3 class="v-cat__title">LLM tokens</h3>
+      <p class="v-cat__desc">Token counts and price estimates for GPT, Claude, Llama, Gemini.</p>
+      <span class="v-cat__count">2 tools</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+    <a class="v-cat" href="/tools/uuid-v7/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="4" rx="1"/><rect x="3" y="14" width="18" height="4" rx="1"/></svg></div>
+      <h3 class="v-cat__title">UUID &amp; identifiers</h3>
+      <p class="v-cat__desc">Generate and validate UUID v4 / v7. Decode timestamp.</p>
+      <span class="v-cat__count">1 tool</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+    <a class="v-cat" href="/tools/jsonpath-tester/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-5"/></svg></div>
+      <h3 class="v-cat__title">Inspect &amp; query</h3>
+      <p class="v-cat__desc">JSONPath, statistics, sort, diff, tree viewer, mock data.</p>
+      <span class="v-cat__count">7 tools</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+    <a class="v-cat" href="/tools/markdown-preview/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h12M4 18h16"/></svg></div>
+      <h3 class="v-cat__title">Markdown &amp; text</h3>
+      <p class="v-cat__desc">Markdown preview, text diff, YAML/CSV/XML conversion.</p>
+      <span class="v-cat__count">6 tools</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+    <a class="v-cat" href="/tools/json-xml/">
+      <div class="v-cat__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-3M8 3v18M16 3v18"/></svg></div>
+      <h3 class="v-cat__title">Format bridges</h3>
+      <p class="v-cat__desc">JSON ↔ XML, JSON ↔ YAML, JSON ↔ CSV, JSON escape, minify.</p>
+      <span class="v-cat__count">8 tools</span>
+      <span class="v-cat__cta">Open</span>
+    </a>
+  </div>
+</section>
+
+<section class="v-section v-wrap" id="catalog">
+  <div class="v-section__head">
+    <div class="v-section__kicker">All 4 brands</div>
+    <h2>Every tool, by brand.</h2>
+    <p class="v-section__sub">versal is one brand with four toolkits: JSON for engineers, devops for ops, codegen for templates, sec for crypto.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px">
+    <div>
+      <h3 style="font-size:13px;color:#5b6b82;font-weight:600;margin:0 0 10px">versal json</h3>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <li><a href="/tools/json-formatter/" style="color:#4338ca;font-size:14px">JSON Formatter</a></li>
+        <li><a href="/tools/json-schema-generator/" style="color:#4338ca;font-size:14px">Schema Generator</a></li>
+        <li><a href="/tools/json-to-zod/" style="color:#4338ca;font-size:14px">JSON → Zod</a></li>
+        <li><a href="/tools/json-to-typescript/" style="color:#4338ca;font-size:14px">JSON → TypeScript</a></li>
+        <li><a href="/tools/json-to-python/" style="color:#4338ca;font-size:14px">JSON → Python</a></li>
+        <li><a href="/tools/llm-token-calculator/" style="color:#4338ca;font-size:14px">LLM Token Calculator</a></li>
+        <li><a href="/tools/uuid-v7/" style="color:#4338ca;font-size:14px">UUID v7</a></li>
+        <li><a href="/tools/" style="color:#4338ca;font-size:14px;font-weight:600">…and 24 more</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font-size:13px;color:#0f766e;font-weight:600;margin:0 0 10px">versal devops</h3>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <li><a href="/devops/tools/yaml-json/" style="color:#0d5c55;font-size:14px">YAML ↔ JSON</a></li>
+        <li><a href="/devops/tools/base64/" style="color:#0d5c55;font-size:14px">Base64</a></li>
+        <li><a href="/devops/tools/regex/" style="color:#0d5c55;font-size:14px">Regex tester</a></li>
+        <li><a href="/devops/tools/cidr-calculator/" style="color:#0d5c55;font-size:14px">CIDR</a></li>
+        <li><a href="/devops/tools/crontab/" style="color:#0d5c55;font-size:14px">Crontab</a></li>
+        <li><a href="/devops/tools/k8s-generator/" style="color:#0d5c55;font-size:14px">K8s YAML</a></li>
+        <li><a href="/devops/tools/timestamp/" style="color:#0d5c55;font-size:14px">Timestamp</a></li>
+        <li><a href="/devops/tools/" style="color:#0d5c55;font-size:14px;font-weight:600">…and 9 more</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font-size:13px;color:#b45309;font-weight:600;margin:0 0 10px">versal codegen</h3>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <li><a href="/codegen/tools/gitignore/" style="color:#b45309;font-size:14px">.gitignore</a></li>
+        <li><a href="/codegen/tools/docker-compose/" style="color:#b45309;font-size:14px">Docker Compose</a></li>
+        <li><a href="/codegen/tools/schema-to-typescript/" style="color:#b45309;font-size:14px">JSON Schema → TS</a></li>
+        <li><a href="/codegen/tools/sql-formatter/" style="color:#b45309;font-size:14px">SQL Formatter</a></li>
+        <li><a href="/codegen/tools/curl-to-fetch/" style="color:#b45309;font-size:14px">cURL → fetch</a></li>
+        <li><a href="/codegen/tools/env-generator/" style="color:#b45309;font-size:14px">.env</a></li>
+        <li><a href="/codegen/tools/json-to-python/" style="color:#b45309;font-size:14px">JSON → Python</a></li>
+        <li><a href="/codegen/tools/" style="color:#b45309;font-size:14px;font-weight:600">…and 9 more</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font-size:13px;color:#b91c1c;font-weight:600;margin:0 0 10px">versal sec</h3>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <li><a href="/sec/tools/password-generator/" style="color:#b91c1c;font-size:14px">Password</a></li>
+        <li><a href="/sec/tools/hash-generator/" style="color:#b91c1c;font-size:14px">Hash generator</a></li>
+        <li><a href="/sec/tools/jwt-decoder/" style="color:#b91c1c;font-size:14px">JWT decoder</a></li>
+        <li><a href="/sec/tools/aes/" style="color:#b91c1c;font-size:14px">AES</a></li>
+        <li><a href="/sec/tools/hmac/" style="color:#b91c1c;font-size:14px">HMAC</a></li>
+        <li><a href="/sec/tools/rsa-keygen/" style="color:#b91c1c;font-size:14px">RSA keygen</a></li>
+        <li><a href="/sec/tools/x509-decoder/" style="color:#b91c1c;font-size:14px">X.509</a></li>
+        <li><a href="/sec/tools/" style="color:#b91c1c;font-size:14px;font-weight:600">…and 7 more</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="v-wrap">
+  <div class="v-cta">
+    <div>
+      <h3>69 tools. Zero upload.</h3>
+      <p>Paste your JSON, get a TypeScript interface. Paste a curl, get a Python script. Nothing leaves the page.</p>
+    </div>
+    <a class="v-btn large" href="/tools/json-formatter/">Open JSON formatter</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="v-footer">
+  <div class="v-wrap">
+    <nav class="v-matrix-strip" aria-label="All versal products">
+      <a href="https://mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal everyday</a>
+      <a href="https://finance.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#059669"></span>versal finance</a>
+      <a href="https://health.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#e11d48"></span>versal health</a>
+      <a href="https://cover.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#0f766e"></span>versal cover</a>
+      <a href="/" aria-current="page"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal json</a>
+      <a href="/devops/"><span class="v-matrix-strip__dot" style="background:#14b8a6"></span>versal devops</a>
+      <a href="/codegen/"><span class="v-matrix-strip__dot" style="background:#f59e0b"></span>versal codegen</a>
+      <a href="/sec/"><span class="v-matrix-strip__dot" style="background:#ef4444"></span>versal sec</a>
+    </nav>
+
+    <div class="v-footer__cols">
+      <div>
+        <div class="v-footer__brand"><span class="v-logo__mark">V</span>versal</div>
+        <p class="v-footer__about">A toolbox brand. Eight small sites, one shared design language. Each tool runs in your browser; we don't see your input.</p>
+      </div>
+      <div class="v-footer__col">
+        <h4>Popular</h4>
+        <ul>
+          <li><a href="/tools/json-formatter/">JSON Formatter</a></li>
+          <li><a href="/tools/json-schema-generator/">Schema Generator</a></li>
+          <li><a href="/tools/json-to-zod/">JSON → Zod</a></li>
+          <li><a href="/tools/llm-token-calculator/">LLM Tokens</a></li>
+          <li><a href="/tools/uuid-v7/">UUID v7</a></li>
         </ul>
-      </section>
-    ))}
+      </div>
+      <div class="v-footer__col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/sitemap.xml">Sitemap</a></li>
+          <li><a href="https://mquickcalc.com">Other versal tools</a></li>
+        </ul>
+      </div>
+      <div class="v-footer__col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
+          <li><a href="/licenses">Licenses</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="v-footer__bottom">
+      <span>© 2026 versal · jsonversal.com</span>
+      <span>Runs in your browser. We see nothing.</span>
+    </div>
   </div>
+</footer>
 
-</BaseLayout>
-
-<style>
-  .value-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+<script>
+(function(){
+  var KEY='versal-theme';
+  var saved=localStorage.getItem(KEY);
+  if(saved) document.body.setAttribute('data-theme',saved);
+  var btn=document.getElementById('vTheme');
+  if(btn){btn.addEventListener('click',function(){var cur=document.body.getAttribute('data-theme')==='dark'?'light':'dark';document.body.setAttribute('data-theme',cur);localStorage.setItem(KEY,cur);});}
+  var ji=document.getElementById('jin'),jo=document.getElementById('jout');
+  function recalc(){
+    try{
+      var o=JSON.parse(ji.value);
+      var keys=function sortKeys(x){if(Array.isArray(x))return x.map(sortKeys);if(x&&typeof x==='object'){var r={};Object.keys(x).sort().forEach(function(k){r[k]=sortKeys(x[k])});return r;}return x;}(o);
+      jo.value=JSON.stringify(keys,null,2);
+      document.getElementById('demoResult').innerHTML='Valid JSON · '+(JSON.stringify(o).length)+' bytes · sorted &amp; pretty<small>strict parser · line/column error reporting</small>';
+    }catch(e){
+      jo.value='// '+e.message;
+    }
   }
-  .value-icon {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--accent-soft);
-    color: var(--accent-text);
-    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
-  }
-  .value-card h3 { margin: 4px 0 0; }
-  .value-card p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: .92rem;
-    line-height: 1.6;
-  }
-  .catalog {
-    /* 固定 4 列（与 4 个子站对应），大屏也保持一致而非 auto-fit 稀疏化 */
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 22px;
-  }
-  /* 小屏 fallback：自动调整 */
-  @media (max-width: 1100px) {
-    .catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (max-width: 640px) {
-    .catalog { grid-template-columns: 1fr; }
-  }
-  .catalog-sec { min-width: 0; }
-  .catalog-h {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 12px;
-    font-size: .98rem;
-    font-weight: 600;
-  }
-  .catalog-h a { color: var(--text); text-decoration: none; }
-  .catalog-h a:hover { color: var(--accent-text); }
-  .catalog-n {
-    font-size: .72rem;
-    color: var(--text-dim);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 1px 8px;
-  }
-  .catalog-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .catalog-list a {
-    display: block;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: .88rem;
-    line-height: 1.35;
-  }
-  .catalog-list a:hover { color: var(--accent-text); text-decoration: underline; }
-
-</style>
+  ji.addEventListener('input',recalc); recalc();
+})();
+</script>
+</body>
+</html>
