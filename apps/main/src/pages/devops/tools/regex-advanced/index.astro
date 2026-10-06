@@ -24,7 +24,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/regex-advanced/"
   current="/devops/tools/regex-advanced/"
   faqs={faqs}
->
+    about={[
+        [
+          "Groups, captures and what backreferences match",
+          [
+            "A capture group records the substring it matched so it can be referenced later — in the replacement string, in a conditional, or through a backreference such as `\\1`. Group numbering follows the order of opening parentheses, including groups inside lookarounds.",
+            "Named groups (`(?<name>...)` and `\\k<name>`) survive refactoring in a way numbered groups do not, and they make an expression self-documenting. They are supported in JavaScript and Python; support elsewhere varies by flavour."
+          ]
+        ],
+        [
+          "Lookarounds",
+          [
+            "A lookahead `(?=...)` asserts what follows without consuming it, a lookbehind `(?<=...)` asserts what precedes. This is how you match a word boundary that is not whitespace, or require quotes without consuming them, which keeps the match available to the surrounding pattern.",
+            "Lookbehind must be fixed-width in JavaScript, which rules out `(?<=a*)`. A character-class alternative such as `(?<=[^,])` is usually the workaround."
+          ]
+        ]
+      ]}
+  >
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">

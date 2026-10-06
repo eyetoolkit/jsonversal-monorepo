@@ -24,7 +24,22 @@ const faqs = [
   keywords={['UUID v7 generator', 'UUID generator online', 'generate UUID', 'UUID timestamp', 'UUID v7 vs v4', 'UUID generator tool', 'ULID alternative']}
   current="/tools/uuid-v7/"
   faqs={faqs}
->
+    about={[
+        [
+          "Why time-ordered identifiers matter",
+          [
+            "A v7 UUID begins with a 48-bit big-endian millisecond timestamp. Because primary key indexes are B-trees, random keys scatter inserts across the whole index, causing page splits and cache misses; time-ordered keys append near the end. On a large insert-heavy table this is the difference between an index that stays in memory and one that does not.",
+            "The timestamp is also recoverable: decoding a v7 UUID tells you exactly when it was created, which is useful when debugging without a timestamp column."
+          ]
+        ],
+        [
+          "Collision resistance",
+          [
+            "The random bits after the timestamp guarantee uniqueness within the same millisecond, and the monotonic variant additionally guarantees ordering for ids minted in the same millisecond. Two processes generating v7 ids concurrently will not collide."
+          ]
+        ]
+      ]}
+  >
   <section class="card mt-2">
     <h2 class="h2-card">Generate</h2>
     <label for="count" class="text-muted">Count</label>

@@ -24,7 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/base64/"
   current="/devops/tools/base64/"
   faqs={faqs}
->
+    about={[
+        [
+          "Encoding is not encryption",
+          [
+            "Base64 transforms bytes into a 65-character alphabet so they survive transports that only handle text. It is reversible by design: anyone who can decode the output can read exactly what you encoded. Treating Base64 output as if it were a secret is the most common mistake with this tool.",
+            "Use it for embedding binary in JSON, putting a small binary blob in a URL-safe string, or representing data that must survive a text-only channel. Do not use it to hide credentials."
+          ]
+        ],
+        [
+          "URL-safe variant",
+          [
+            "Standard Base64 uses `+` and `/`, both of which need percent-encoding in a URL or a filename. The URL-safe variant substitutes `-` and `_` and drops the padding `=` characters. JWTs, many cookie formats and most URL-embedded payloads use this variant.",
+            "When decoding output from elsewhere, try the standard alphabet first and switch on failure — that ordering avoids subtle corruption when a payload happens not to contain `+` or `/`."
+          ]
+        ],
+        [
+          "Limits",
+          [
+            "Encoding expands the data by about a third: three bytes become four characters. For binary data this is unavoidable in a text channel, but it means Base64 is the wrong choice for large payloads where the transport already handles binary."
+          ]
+        ]
+      ]}
+  >
 
   <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
     <div class="card">

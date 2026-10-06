@@ -23,7 +23,29 @@ const faqs = [
   keywords={['JWT decoder', 'JWT decoder online', 'decode JWT', 'JWT verifier', 'JWT debugger', 'JWT parser', 'JWT token decode']}
   current="/sec/tools/jwt-decoder/"
   faqs={faqs}
->
+    about={[
+        [
+          "What a JWT actually contains",
+          [
+            "A JWT is three base64url segments separated by dots: a header naming the algorithm, a payload carrying the claims, and a signature over the first two. Decoding is not verifying. Anyone can decode a token and read its contents; what requires a secret is confirming the signature was not altered.",
+            "Because the payload is only base64url-encoded and not encrypted, treat everything inside as visible to anyone holding the token. Putting a password or a private key in a claim is a common and serious mistake."
+          ]
+        ],
+        [
+          "Signature verification",
+          [
+            "For HS256, HS384 and HS512 the signature is an HMAC over the header and payload using a shared secret, computed with the Web Crypto API in this browser. If verification fails with a valid-looking token, the usual causes are a mismatched secret, a token that has expired, or a signing library that produced a non-standard HMAC.",
+            "RS256 and ES256 cannot be verified with a shared secret — they need the issuer's public key. The signing tool on this site produces HS-family tokens, which is the right choice for internal services but not for tokens a third party must verify."
+          ]
+        ],
+        [
+          "Claims worth checking",
+          [
+            "`exp` and `nbf` are timestamps in seconds since the epoch; an expired token is rejected even with a valid signature. `aud` should match the service receiving the token — a token minted for another service is still validly signed, just not for you. `iss` identifies the issuer and is how you decide which key to verify with."
+          ]
+        ]
+      ]}
+  >
   <section class="card mt-2">
     <h2 class="h2-card">JWT Token</h2>
     <label for="jwt-input" class="sr-only">JWT Token</label>

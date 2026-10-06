@@ -24,6 +24,19 @@ export interface Props {
   keywords?: string[];
   faqs?: Array<{ question: string; answer: string }>;
   howtos?: Array<{ name: string; description?: string; steps: Array<{ name: string; text: string }> }>;
+  /**
+   * 说明正文。竞品实测（jsonformatter.org 去导航后 1336 词）显示：
+   * 只有工具 UI + FAQ 的页面在长尾查询里几乎没有排名空间。
+   * 每页传入 2-3 段说明（原理 / 场景 / 注意事项）能同时喂给搜索和 AI 引用。
+   *
+   * 两种写法都支持：
+   *   about={[{ heading: 'How it works', body: ['...', '...'] }, ...]}
+   *   about={[['How it works', ['...', '...']], ...]}
+   */
+  about?: Array<
+    | { heading: string; body: string[] }
+    | [string, string[]]
+  >;
   /** 可选：跳过面包屑（landing 页不需要） */
   noBreadcrumb?: boolean;
   /** 可选：跳过 ToolNav（landing 页没有兄弟工具） */
@@ -39,9 +52,22 @@ const {
   keywords,
   faqs,
   howtos,
+  about,
   noBreadcrumb = false,
   noToolNav = false,
 } = Astro.props as Props;
+
+// 说明正文的锚点 slug：给每个小节一个稳定 id，便于目录与深链引用
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+// 归一化：数组写法 [heading, body] 与对象写法 {heading, body} 都接受
+type AboutSection = { heading: string; body: string[] };
+const aboutSections: AboutSection[] = (about ?? []).map((s) =>
+  Array.isArray(s)
+    ? { heading: (s[0] ?? '').toString(), body: (s[1] ?? []).map((p) => String(p)) }
+    : { heading: s.heading, body: (s.body ?? []).map((p) => String(p)) }
+).filter((s) => s.heading && s.body.length > 0);
 
 // —— 推断栏目名（用于面包屑和 ToolNav 激活判断）——
 const seg = current.split('/').filter(Boolean);
@@ -98,6 +124,31 @@ const allFaqs = faqs ? [...faqs, ...universalFaqs] : universalFaqs;
   <p class="text-muted">{description}</p>
 
   <slot />
+
+  {/* 说明正文 —— 只有传入 about 时才渲染。
+      TOC 只在有 2 个以上小节时出现：竞品与我们此前都没有目录，
+      对 1000+ 词的页面它既提升可读性，也给 AI 提供可引用的章节锚点。 */}
+  {aboutSections.length > 0 && (
+    <div class="about-block">
+      {aboutSections.length >= 2 && (
+        <nav class="toc" aria-label="On this page">
+          <p class="toc__label">On this page</p>
+          <ul>
+            {aboutSections.map((s) => (
+              <li><a href={`#${slugify(s.heading)}`}>{s.heading}</a></li>
+            ))}
+            <li><a href="#faq-title">Frequently asked questions</a></li>
+          </ul>
+        </nav>
+      )}
+      {aboutSections.map((s) => (
+        <section class="about-section">
+          <h2 class="h2-card" id={slugify(s.heading)}>{s.heading}</h2>
+          {s.body.map((p) => <p class="about-p">{p}</p>)}
+        </section>
+      ))}
+    </div>
+  )}
 
   {/* 工具流转推荐 —— 当前工具完成后，下一步可能用到的相关工具 */}
   <ToolSuggestions current={current} />

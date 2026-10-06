@@ -24,7 +24,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/uuid-generator/"
   current="/devops/tools/uuid-generator/"
   faqs={faqs}
->
+    about={[
+        [
+          "v4 and v7 solve different problems",
+          [
+            "A v4 UUID is 122 random bits with no structure. It is the right default for anything that must be unpredictable or globally unique without coordination — object identifiers, token values, anything where two systems might generate the same id.",
+            "A v7 UUID leads with a millisecond timestamp followed by random bits. That makes ids sortable by creation time, which turns an expensive \"find by created_at and filter by id\" query into an index range scan on the primary key. Use v7 for database primary keys where insert order matters.",
+            "If you are using v4 and find index fragmentation on large tables, switching to v7 is usually the fix."
+          ]
+        ],
+        [
+          "Version and variant bits",
+          [
+            "The version nibble and the two variant bits are fixed by RFC 9562; that is why not every 128-bit value is a valid UUID. The validator on this page reports the version and variant, and will flag a UUID that is well-formed but not RFC-compliant."
+          ]
+        ]
+      ]}
+  >
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">

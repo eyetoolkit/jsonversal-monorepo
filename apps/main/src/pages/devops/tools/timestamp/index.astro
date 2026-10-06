@@ -24,7 +24,22 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/timestamp/"
   current="/devops/tools/timestamp/"
   faqs={faqs}
->
+    about={[
+        [
+          "Seconds, milliseconds and the ambiguity",
+          [
+            "Unix time is seconds since 1970-01-01 UTC. JavaScript's Date uses milliseconds, which is the single most common source of wrong dates when values cross a language boundary: a millisecond value interpreted as seconds lands in the year 56000-something, and a second value read as milliseconds lands in January 1970.",
+            "This tool auto-detects which unit a value uses and shows the result in local time, UTC and ISO 8601 so you can confirm which reading was correct."
+          ]
+        ],
+        [
+          "Time zones and daylight saving",
+          [
+            "ISO 8601 strings carry an offset (`Z` means UTC, `+02:00` is a fixed offset). Naive strings carry neither, and interpreting one requires knowing which zone it was meant in — the assumption that it is UTC is a frequent cause of an off-by-hours bug in a scheduled job."
+          ]
+        ]
+      ]}
+  >
 
   <div class="card mt-2">
     <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;">

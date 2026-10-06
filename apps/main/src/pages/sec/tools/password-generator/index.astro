@@ -24,7 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/password-generator/"
   current="/sec/tools/password-generator/"
   faqs={faqs}
->
+    about={[
+        [
+          "Why the browser should generate the password",
+          [
+            "A password generated on your own machine never crosses a network, which removes an entire category of risk: no server logs it, no proxy sees it in transit, and no database breach can retroactively recover it. The trade-off is that you are responsible for storing it.",
+            "This tool uses crypto.getRandomValues, the browser's cryptographically secure random source. Tools built on Math.random() are not safe for this purpose — the sequence is predictable from a few observed outputs, and password generation is exactly the case where predictability is fatal."
+          ]
+        ],
+        [
+          "Length and character classes",
+          [
+            "Length is the dominant factor: an 8-character password is far weaker than a 16-character one even if both use every character class. Entropy grows exponentially with length, so adding characters beats adding symbol requirements.",
+            "For a passphrase, check the estimated entropy shown — aim for 80 bits or more for anything that matters. Avoid predictable substitutions: a passphrase built from dictionary words with the required symbol appended is weaker than its length suggests."
+          ]
+        ],
+        [
+          "What to avoid",
+          [
+            "Do not reuse a password across sites, and do not store generated passwords in a plain text file. If you want an automatic option, a password manager is the right tool: it generates, stores and autofills, which this page deliberately does not do."
+          ]
+        ]
+      ]}
+  >
 
   <section class="card mt-1">
     <h2 class="h2-card">Options</h2>

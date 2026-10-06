@@ -24,7 +24,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/qr-code-generator/"
   current="/devops/tools/qr-code-generator/"
   faqs={faqs}
->
+    about={[
+        [
+          "What is actually encoded",
+          [
+            "A QR code stores a payload as modules in a square grid, with error correction added at four levels (L, M, Q, H). Higher correction survives more damage but needs more modules, so a dense URL encoded at H may produce a code too large to scan reliably at a distance.",
+            "WiFi and vCard payloads encode structured data rather than a URL. A scanner reads them and offers to connect or save a contact, which is why the same code can behave differently depending on which app opens it."
+          ]
+        ],
+        [
+          "Getting a scannable code",
+          [
+            "Size and contrast matter more than export format. Keep quiet zones — the light margin around the code — clear of other content, and avoid placing the code on a photograph with similar density in the background.",
+            "Test with a second phone before printing anything. A code that reads on your screen at arm's length will usually print and scan, but a very high correction level on a long URL is the usual cause of a \"too dense to scan\" result."
+          ]
+        ]
+      ]}
+  >
 
   <section class="card mt-2">
     <h2 class="h2-card">Content</h2>

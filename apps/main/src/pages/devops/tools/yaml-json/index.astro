@@ -24,7 +24,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/yaml-json/"
   current="/devops/tools/yaml-json/"
   faqs={faqs}
->
+    about={[
+        [
+          "What the converter preserves",
+          [
+            "YAML is a superset of JSON, so JSON converts to YAML without loss, but the reverse is not always true. This converter handles anchors and aliases, multiple documents in a single stream, flow style, and custom tags, and will tell you when a construct has no JSON equivalent rather than silently dropping it.",
+            "Comments are the common exception: JSON has no comment syntax, so YAML comments are removed during conversion. If you are round-tripping a file and need them preserved, keep the YAML as the source of truth."
+          ]
+        ],
+        [
+          "When YAML is the wrong format",
+          [
+            "YAML's indentation-based syntax is forgiving to write and easy to break in ways JSON is not — a single misaligned list marker changes the structure rather than failing to parse. For machine-to-machine interchange where either side can read JSON, JSON is the safer contract.",
+            "For Kubernetes manifests, keep YAML as the authored source and convert to JSON only when talking to an API that requires it."
+          ]
+        ]
+      ]}
+  >
 
   <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
     <div class="card">

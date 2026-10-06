@@ -35,7 +35,29 @@ const faqs = [
   keywords={['JSON formatter', 'JSON validator', 'pretty print JSON', 'JSON minifier', 'format JSON']}
   current="/tools/json-formatter/"
   faqs={faqs}
-  howtos={howtos}
+    about={[
+        [
+          "What the formatter actually does",
+          [
+            "The formatter parses your JSON with a real parser rather than a regular expression, so it only reformats input that is genuinely valid. Indentation is configurable — two spaces, four spaces, or tabs — and the output is re-serialised from the parsed structure, which means key order is preserved exactly as it appeared in the input.",
+            "When validation fails, the error is reported with the line and column where parsing stopped, plus the token that caused it. That detail matters more than it sounds: \"Unexpected token }\" on a 4,000-line response tells you nothing, while line 2,041 column 18 narrows the search to a few characters."
+          ]
+        ],
+        [
+          "When to reach for it",
+          [
+            "Use it before committing a config file, when a hand-edited JSON file has lost its shape after a merge conflict. Use it when you receive minified JSON from an API and need to read it. Use it as a first pass before a schema validator — formatting first makes the error position readable.",
+            "It is not a schema validator. If you need to know whether a document matches a contract rather than merely whether it parses, follow this with the JSON Schema Validator on the same site."
+          ]
+        ],
+        [
+          "What it does not do",
+          [
+            "The tool never sends your JSON anywhere, so a very large document will be processed at whatever speed your own machine manages — there is no server-side queue to wait for. Duplicate keys are collapsed to the last occurrence, matching JavaScript object semantics, which is worth knowing if your source has duplicates you care about."
+          ]
+        ]
+      ]}
+    howtos={howtos}
 >
   <section class="card mt-2">
     <h2 class="h2-card">Input JSON</h2>

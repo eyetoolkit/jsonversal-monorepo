@@ -24,7 +24,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-schema-validator/"
   current="/tools/json-schema-validator/"
   faqs={faqs}
->
+    about={[
+        [
+          "What a schema does and does not enforce",
+          [
+            "A JSON Schema describes the shape of a document: which keys are required, what type each value is, what pattern a string matches, what range a number falls in. It does not validate semantics — a schema can confirm an age is a non-negative integer and still have no opinion about whether it is plausible.",
+            "The validator here supports draft 2020-12, 2019-09 and draft-07, and reports failures with the instance path so you can jump straight to the offending value in a large document."
+          ]
+        ],
+        [
+          "Validating LLM structured output",
+          [
+            "When a model is constrained to return a JSON object, the schema is the contract, and the failure mode is usually a mismatch between the schema you sent and the response you got. The presets on this page are shaped for the formats OpenAI, Anthropic and Gemini actually accept, including the strict-mode requirements those APIs impose.",
+            "Test with the worst realistic output, not a clean sample. The cases that break in production are optional fields omitted, an extra property added by a fine-tuned model, or a nested object returned as a string."
+          ]
+        ]
+      ]}
+  >
 
   <h1>JSON Schema Validator</h1>
   <div class="card mt-2">

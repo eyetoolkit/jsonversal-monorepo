@@ -24,7 +24,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/cidr-calculator/"
   current="/devops/tools/cidr-calculator/"
   faqs={faqs}
->
+    about={[
+        [
+          "Reading CIDR notation",
+          [
+            "A block such as 192.168.1.0/24 is a network address followed by the number of leading bits that identify the network. The remaining bits are the host portion, so /24 leaves 8 host bits — 254 usable addresses once the network and broadcast addresses are reserved.",
+            "The calculator shows the network address, broadcast address, first and last usable host, and the total host count, so you can check a block at a glance instead of counting by hand."
+          ]
+        ],
+        [
+          "Common mistakes",
+          [
+            "A host address inside the range is not the same as the network address. Configuring a gateway to 192.168.1.37/24 works at the OS level but the stated network should be the network address; some systems reject the difference.",
+            "Overlapping blocks are the usual cause of a routing conflict. Check the broadcast address of each range — two ranges whose broadcast addresses overlap cannot both be valid."
+          ]
+        ]
+      ]}
+  >
 
   <section class="card mt-2">
     <h2 class="h2-card">Network</h2>

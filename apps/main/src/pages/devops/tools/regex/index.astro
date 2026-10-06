@@ -28,7 +28,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/regex/"
   current="/devops/tools/regex/"
   faqs={faqs}
->
+    about={[
+        [
+          "Reading a pattern before you write one",
+          [
+            "A regular expression is read left to right, and each token consumes input or groups it. `\\d` is one digit, `\\w` is a word character, `.` is any character except a newline, and a quantifier such as `+` or `{3,}` applies to the token immediately before it. Getting that last relationship right is most of the difficulty in writing patterns.",
+            "Anchors change the scope of the match rather than what it matches: `^` requires the start of the string (or line, with the multiline flag) and `$` the end. For validation, an unanchored pattern that matches part of a string is almost never what you want."
+          ]
+        ],
+        [
+          "Greediness and backtracking",
+          [
+            "A quantifier is greedy by default — `.*` consumes as much as possible and then gives characters back when the rest of the pattern fails. When results are longer than expected, that backtracking is usually the cause, and `.*?` is the first thing to try.",
+            "Nested quantifiers such as `(a+)+` can trigger catastrophic backtracking on non-matching input, freezing the page for seconds or minutes. If a pattern is slow rather than wrong, look for nested repetition first."
+          ]
+        ],
+        [
+          "Flavours are not interchangeable",
+          [
+            "JavaScript, Python and PCRE agree on the basics and disagree on the edges: `\\d` excludes some Unicode digits in some flavours, lookbehind support varies, and named group syntax differs. Test a pattern in the engine that will actually run it."
+          ]
+        ]
+      ]}
+  >
 
   <div class="card">
     <div style="display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;">

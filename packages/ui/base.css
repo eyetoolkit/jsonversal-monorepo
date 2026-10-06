@@ -843,3 +843,61 @@ li { margin: 4px 0; }
   color: var(--text-muted);
   line-height: 1.55;
 }
+
+/* ---------- Tool page: explanatory prose + table of contents ----------
+   Added after the content-depth review: tool pages that are only a widget
+   plus a FAQ have very little to rank for or be quoted from. The .about
+   block is the 300-600 words of original explanation each tool now carries,
+   and .toc gives both readers and AI assistants stable section anchors.
+   No competitor in the comparison set ships a TOC, so this doubles as a
+   differentiator. */
+.about-block{margin-top:28px}
+.about-section{margin-top:26px}
+.about-section > .h2-card{
+  scroll-margin-top:88px; /* keep the heading clear of the sticky header */
+  position:relative;
+}
+.about-p{
+  margin:12px 0 0;color:var(--text-secondary,var(--text-muted));
+  line-height:1.72;max-width:74ch;
+}
+.about-p code{
+  background:var(--surface-2);border:1px solid var(--border);
+  padding:1px 5px;border-radius:4px;font-size:.92em;
+  font-family:var(--font-mono,ui-monospace,Menlo,monospace);
+}
+.about-p strong{color:var(--text);font-weight:600}
+
+/* Table of contents */
+.toc{
+  margin:26px 0 4px;padding:16px 20px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg,14px);
+  /* The header is sticky, so an in-page jump would land the target beneath
+     it. The scroll-margin on the headings handles anchors; this keeps the
+     TOC itself clear of the bar when it is the scroll target. */
+  scroll-margin-top:96px;
+}
+.toc__label{
+  margin:0 0 8px;font-size:.72rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);
+}
+.toc ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 20px}
+.toc a{
+  color:var(--accent);text-decoration:none;font-size:.94rem;
+  padding:2px 0;display:inline-block;
+}
+.toc a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* Anchor offset for the FAQ heading the TOC links to */
+#faq-title{scroll-margin-top:88px}
+
+@media (max-width:720px){
+  .toc{padding:14px 16px}
+  .toc ul{gap:4px 14px}
+  .about-p{font-size:.97rem;line-height:1.68}
+}
+
+/* ---------- Dark mode parity ---------- */
+[data-theme="dark"] .toc{background:var(--surface);border-color:var(--border)}
+[data-theme="dark"] .about-p code{background:var(--surface-2);border-color:var(--border)}

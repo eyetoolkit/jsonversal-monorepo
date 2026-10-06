@@ -24,7 +24,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-minify/"
   current="/tools/json-minify/"
   faqs={faqs}
->
+    about={[
+        [
+          "What minification removes",
+          [
+            "Minification strips insignificant whitespace between tokens. It cannot change the contents of a string, so a value that contains meaningful spaces or newlines survives intact — only the whitespace between structural elements is removed.",
+            "The size comparison shown next to the result gives the actual saving. For a typical API response the reduction is 40–60%, which is the difference between a payload that fits comfortably in a header and one that does not."
+          ]
+        ],
+        [
+          "When minifying is the wrong move",
+          [
+            "Do not minify a file you still need to read. Minified JSON is functionally identical but hostile to diffs, to code review, and to manual debugging — a single changed character shows up as a whole-line change in version control.",
+            "If the goal is to shrink a response, minify at build or deploy time rather than editing the source. If the goal is to embed JSON in a URL, check whether the consumer expects URL encoding as well."
+          ]
+        ]
+      ]}
+  >
 
   <div class="card mt-2">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
