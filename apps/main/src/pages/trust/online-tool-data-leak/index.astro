@@ -1,0 +1,474 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const faqs = [
+  {
+    question: "Which tools were affected by the 2025 leak?",
+    answer:
+      "In November 2025, security firm watchTowr Labs disclosed that JSONFormatter.org and CodeBeautify.org had exposed years of user-submitted data. The exposed surface was their 'Recent Links' / save-and-share feature, not every paste into the formatter.",
+  },
+  {
+    question: "What kind of data was exposed?",
+    answer:
+      "Researchers retrieved 80,000+ saved snippets totalling over 5 GB. The contents included Active Directory credentials, database and cloud keys (AWS / Azure / GCP), private keys, CI/CD secrets, production JWTs, OAuth tokens, SSH keys, and PII / KYC data from organisations in government, finance, healthcare, aerospace and telecoms.",
+  },
+  {
+    question: "Does this mean every online developer tool leaks data?",
+    answer:
+      "No. The failure came from a specific server-side 'save and share' feature that persisted inputs. Many online tools do not retain submissions. The durable lesson is architectural: if a tool can store your input on a server, you must assume it might — until you verify otherwise. Client-side tools remove that assumption entirely.",
+  },
+  {
+    question: "How is jsonversal different?",
+    answer:
+      "jsonversal processes everything in your browser. There is no server that receives your input and nothing is persisted, so there is no database of your data to be exposed. The same verification test applies: open DevTools → Network, and you will see no request carrying your input.",
+  },
+];
+
+const howtos = [
+  {
+    name: "How to verify a developer tool runs 100% client-side",
+    description:
+      "A 10-second check using your browser's built-in DevTools to confirm no user data is sent to a server.",
+    steps: [
+      {
+        name: "Open DevTools",
+        text: "Open the tool in your browser and press F12 (Windows/Linux) or Cmd+Option+I (macOS) to open developer tools.",
+      },
+      {
+        name: "Open the Network tab",
+        text: "Click the Network tab and press the clear button (⊘) so no requests are listed.",
+      },
+      {
+        name: "Trigger the tool",
+        text: "Paste your input and run the action (Format, Encode, Decode, Generate, etc.).",
+      },
+      {
+        name: "Watch for outgoing requests",
+        text: "If no new request appears, processing happened locally. If a POST or GET carrying your input appears, the tool sent your data to a server.",
+      },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  site="main"
+  title="The 2025 JSON formatter data leak — and why client-side tools avoid this risk"
+  description="In Nov 2025, watchTowr Labs disclosed that JSONFormatter.org and CodeBeautify.org exposed 80,000+ saved snippets (5 GB+) of credentials and secrets. Here is what happened, why, and how client-side tools like jsonversal eliminate the risk."
+  canonical="https://jsonversal.com/trust/online-tool-data-leak/"
+  faqs={faqs}
+  howtos={howtos}
+>
+  <section class="trust-hero">
+    <span class="trust-hero__kicker">Incident breakdown</span>
+    <h1>The 2025 formatter leak — and the architecture that prevents it.</h1>
+    <p class="trust-hero__sub">
+      In November 2025, security researchers showed that two of the most-used online JSON tools had been quietly
+      exposing years of user-submitted data. The root cause was architectural. Here is the factual timeline and why a
+      browser-only tool like <a href="/">jsonversal</a> cannot have the same failure.
+    </p>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">What happened</div>
+      <h2>watchTowr Labs' November 2025 disclosure</h2>
+    </div>
+    <p class="t-lead">
+      Security firm <strong>watchTowr Labs</strong> disclosed that <strong>JSONFormatter.org</strong> and
+      <strong>CodeBeautify.org</strong> had exposed large volumes of user-submitted data. The exposed surface was a
+      <strong>"Recent Links" / save-and-share</strong> feature: formatted output could be saved and shared via a URL,
+      and those URLs followed a predictable pattern with no authentication, so the saved content was reachable by
+      anyone who guessed the format.
+    </p>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat__num">80,000+</div>
+        <div class="stat__lbl">saved snippets retrieved</div>
+      </div>
+      <div class="stat">
+        <div class="stat__num">5 GB+</div>
+        <div class="stat__lbl">of exposed user data</div>
+      </div>
+      <div class="stat">
+        <div class="stat__num">48 hrs</div>
+        <div class="stat__lbl">to active exploitation</div>
+      </div>
+    </div>
+    <p class="t-body">
+      Among the retrieved data were Active Directory credentials, database and cloud keys (AWS / Azure / GCP), private
+      keys, CI/CD secrets, production JWTs, OAuth tokens, SSH keys, and PII / KYC information — originating from
+      organisations in government, critical infrastructure, finance, aerospace, healthcare and telecoms. Researchers
+      also demonstrated active abuse: credentials they planted were probed by third parties within 48 hours of the
+      supposedly-expired link. The finding was covered by The Hacker News, BleepingComputer, and Help Net Security.
+    </p>
+    <p class="t-note">
+      Source: watchTowr Labs disclosure (watchtowr.com), November 2025; reported by The Hacker News, BleepingComputer,
+      and Help Net Security.
+    </p>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">The important nuance</div>
+      <h2>It was a saved-share feature — not every paste</h2>
+    </div>
+    <p class="t-body">
+      To keep this honest: the leak came from a specific <strong>server-side "save and share"</strong> feature that
+      persisted inputs, not from the act of pasting into the formatter itself. Many online tools do not retain
+      submissions at all, and some sites changed their behaviour after the disclosure. This is
+      <strong>not</strong> a blanket "all online tools leak" story.
+    </p>
+    <p class="t-callout">
+      The durable lesson is architectural: <em>if a tool can store your input on a server, your threat model has to
+      assume it might — until you verify otherwise.</em> The only way to guarantee that assumption is false is to never
+      send the data to a server in the first place.
+    </p>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">Why it happened</div>
+      <h2>Server-side processing + persistence = a database of your data</h2>
+    </div>
+    <div class="flow flow--bad">
+      <div class="flow-node">Your browser</div>
+      <div class="flow-arrow">→&nbsp; POST /format &nbsp;→</div>
+      <div class="flow-node flow-node--bad">Their server</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--bad">Database (retained)</div>
+    </div>
+    <p class="flow-note flow-note--bad">
+      Once your input reaches their server, its safety depends entirely on their access controls, retention policy, and
+      whether their infrastructure is compromised. Years of snippets accumulated with weak controls — and were found
+      from the outside.
+    </p>
+    <div class="flow">
+      <div class="flow-node">Your browser</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">jsonversal engine<small>runs in your tab</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Output</div>
+    </div>
+    <p class="flow-note">↳ no server, no database, nothing to leak</p>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">Side by side</div>
+      <h2>Server-side formatter vs jsonversal</h2>
+    </div>
+    <div class="cmp">
+      <div class="cmp__row cmp__row--head">
+        <div class="cmp__cell">Property</div>
+        <div class="cmp__cell cmp__cell--bad">Server-side formatter</div>
+        <div class="cmp__cell cmp__cell--good">jsonversal (client-side)</div>
+      </div>
+      <div class="cmp__row">
+        <div class="cmp__cell">Does your input leave the browser?</div>
+        <div class="cmp__cell cmp__cell--bad">Yes — sent to their server</div>
+        <div class="cmp__cell cmp__cell--good">No — processed locally</div>
+      </div>
+      <div class="cmp__row">
+        <div class="cmp__cell">Stored on a server?</div>
+        <div class="cmp__cell cmp__cell--bad">Often, for save/share &amp; history</div>
+        <div class="cmp__cell cmp__cell--good">Never</div>
+      </div>
+      <div class="cmp__row">
+        <div class="cmp__cell">Needs an account?</div>
+        <div class="cmp__cell cmp__cell--bad">Sometimes</div>
+        <div class="cmp__cell cmp__cell--good">No account, ever</div>
+      </div>
+      <div class="cmp__row">
+        <div class="cmp__cell">Third-party requests at runtime?</div>
+        <div class="cmp__cell cmp__cell--bad">Possible (analytics, CDN)</div>
+        <div class="cmp__cell cmp__cell--good">None</div>
+      </div>
+      <div class="cmp__row">
+        <div class="cmp__cell">Breach blast radius</div>
+        <div class="cmp__cell cmp__cell--bad">Every stored snippet</div>
+        <div class="cmp__cell cmp__cell--good">Zero — no data exists</div>
+      </div>
+      <div class="cmp__row">
+        <div class="cmp__cell">You can verify it yourself?</div>
+        <div class="cmp__cell cmp__cell--bad">Only by trusting their policy</div>
+        <div class="cmp__cell cmp__cell--good">Yes — DevTools Network tab</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">How to check any tool</div>
+      <h2>The 10-second verification test</h2>
+      <p class="t-section__sub">Works on any developer tool — including ours. No trust required.</p>
+    </div>
+    <ol class="t-steps">
+      <li><strong>Open DevTools</strong> — <code>F12</code> (Windows/Linux) or <code>Cmd+Option+I</code> (macOS).</li>
+      <li><strong>Network tab</strong> → press clear (⊘).</li>
+      <li><strong>Run the tool</strong> on some sample input.</li>
+      <li>
+        <strong>No new request?</strong> It is client-side. A <code>POST</code>/<code>GET</code> carrying your input?
+        Your data left the browser.
+      </li>
+    </ol>
+  </section>
+
+  <section class="t-cta">
+    <div>
+      <h3>Don't gamble your secrets on a server you don't control.</h3>
+      <p>Open any jsonversal tool and run the test above — you'll see nothing leaves your tab.</p>
+    </div>
+    <div class="t-cta__links">
+      <a class="v-btn" href="/tools/json-formatter/">Open JSON formatter</a>
+      <a class="v-btn v-btn--ghost" href="/trust/">Back to Trust Center →</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .trust-hero {
+    padding: var(--v-s-12) 0 var(--v-s-8);
+    max-width: 880px;
+  }
+  .trust-hero__kicker {
+    display: inline-block;
+    font-size: var(--v-fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--v-accent-ink);
+    background: var(--v-accent-soft);
+    padding: 4px 10px;
+    border-radius: var(--v-r-pill);
+    margin-bottom: var(--v-s-4);
+  }
+  .trust-hero h1 {
+    font-size: var(--v-fs-3xl);
+    line-height: 1.12;
+    margin: 0 0 var(--v-s-4);
+    letter-spacing: -0.02em;
+  }
+  .trust-hero__sub {
+    font-size: var(--v-fs-lg);
+    color: var(--v-mute);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .trust-hero__sub a { color: var(--v-accent-ink); font-weight: 600; }
+
+  .t-section {
+    padding: var(--v-s-10) 0;
+    border-top: 1px solid var(--v-line);
+  }
+  .t-section__head { margin-bottom: var(--v-s-6); }
+  .t-section__kicker {
+    font-size: var(--v-fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--v-accent);
+  }
+  .t-section__head h2 {
+    font-size: var(--v-fs-2xl);
+    margin: var(--v-s-2) 0 var(--v-s-3);
+    letter-spacing: -0.01em;
+  }
+  .t-section__sub {
+    font-size: var(--v-fs-base);
+    color: var(--v-mute);
+    max-width: 720px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .t-lead {
+    font-size: var(--v-fs-lg);
+    color: var(--v-ink-soft);
+    line-height: 1.65;
+    margin: 0 0 var(--v-s-6);
+  }
+  .t-lead a { color: var(--v-accent-ink); font-weight: 600; }
+  .t-body {
+    color: var(--v-ink-soft);
+    line-height: 1.7;
+    margin: 0 0 var(--v-s-4);
+  }
+  .t-note {
+    font-size: var(--v-fs-xs);
+    color: var(--v-hush);
+    border-top: 1px dashed var(--v-line);
+    padding-top: var(--v-s-3);
+    margin: 0;
+  }
+  .t-callout {
+    margin: var(--v-s-5) 0 0;
+    padding: var(--v-s-5);
+    border-left: 4px solid var(--v-accent);
+    background: var(--v-accent-soft);
+    border-radius: 0 var(--v-r-md) var(--v-r-md) 0;
+    color: var(--v-ink-soft);
+    line-height: 1.65;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--v-s-4);
+    margin: var(--v-s-6) 0;
+  }
+  .stat {
+    background: var(--v-paper);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-lg);
+    padding: var(--v-s-5);
+    text-align: center;
+    box-shadow: var(--v-sh-xs);
+  }
+  .stat__num {
+    font-size: var(--v-fs-2xl);
+    font-weight: 800;
+    color: var(--v-accent-ink);
+    line-height: 1;
+  }
+  .stat__lbl {
+    margin-top: var(--v-s-2);
+    font-size: var(--v-fs-xs);
+    color: var(--v-mute);
+  }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--v-s-4);
+    padding: var(--v-s-6);
+    background: var(--v-mist);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-lg);
+  }
+  .flow--bad {
+    border-color: color-mix(in srgb, #ef4444 30%, var(--v-line));
+    background: color-mix(in srgb, #ef4444 6%, var(--v-mist));
+  }
+  .flow-node {
+    background: var(--v-paper);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-md);
+    padding: var(--v-s-4) var(--v-s-5);
+    font-weight: 600;
+    color: var(--v-ink);
+    text-align: center;
+    box-shadow: var(--v-sh-xs);
+  }
+  .flow-node small {
+    display: block;
+    font-weight: 500;
+    font-size: var(--v-fs-xs);
+    color: var(--v-hush);
+    margin-top: 4px;
+  }
+  .flow-node--accent {
+    border-color: var(--v-accent);
+    background: var(--v-accent-soft);
+    color: var(--v-accent-ink);
+  }
+  .flow-node--bad {
+    border-color: #ef4444;
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+  .flow-arrow {
+    font-weight: 700;
+    color: var(--v-hush);
+    font-size: var(--v-fs-base);
+  }
+  .flow-note {
+    font-size: var(--v-fs-sm);
+    color: var(--v-mute);
+    margin: var(--v-s-3) 0 0;
+  }
+  .flow-note--bad { color: #b91c1c; }
+
+  .cmp {
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-lg);
+    overflow: hidden;
+    box-shadow: var(--v-sh-xs);
+  }
+  .cmp__row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    border-top: 1px solid var(--v-line);
+  }
+  .cmp__row:first-child { border-top: none; }
+  .cmp__cell {
+    padding: var(--v-s-4) var(--v-s-5);
+    font-size: var(--v-fs-sm);
+    color: var(--v-ink-soft);
+    border-left: 1px solid var(--v-line);
+  }
+  .cmp__cell:first-child { border-left: none; font-weight: 600; color: var(--v-ink); }
+  .cmp__row--head .cmp__cell {
+    font-weight: 700;
+    background: var(--v-mist);
+    color: var(--v-ink);
+  }
+  .cmp__cell--bad { background: color-mix(in srgb, #ef4444 7%, var(--v-paper)); color: #b91c1c; }
+  .cmp__cell--good { background: color-mix(in srgb, #059669 8%, var(--v-paper)); color: #047857; font-weight: 600; }
+
+  .t-steps {
+    margin: 0;
+    padding-left: var(--v-s-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--v-s-3);
+    color: var(--v-ink-soft);
+    line-height: 1.6;
+  }
+  .t-steps code {
+    background: var(--v-fog);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+
+  .t-cta {
+    margin-top: var(--v-s-10);
+    padding: var(--v-s-8);
+    background: var(--v-mist);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-xl);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--v-s-6);
+    align-items: center;
+    justify-content: space-between;
+  }
+  .t-cta h3 { margin: 0 0 var(--v-s-2); font-size: var(--v-fs-xl); }
+  .t-cta p { margin: 0; color: var(--v-mute); max-width: 520px; line-height: 1.55; }
+  .t-cta__links { display: flex; gap: var(--v-s-3); flex-wrap: wrap; }
+  .v-btn {
+    display: inline-block;
+    background: var(--v-accent);
+    color: #fff;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: var(--v-r-md);
+    text-decoration: none;
+    box-shadow: var(--v-sh-sm);
+  }
+  .v-btn--ghost {
+    background: transparent;
+    color: var(--v-accent-ink);
+    border: 1px solid var(--v-accent);
+    box-shadow: none;
+  }
+
+  @media (max-width: 720px) {
+    .cmp__row { grid-template-columns: 1fr; }
+    .cmp__cell { border-left: none; border-top: 1px solid var(--v-line); }
+    .cmp__cell:first-child { border-top: none; }
+    .flow { flex-direction: column; align-items: stretch; }
+    .flow-arrow { transform: rotate(90deg); text-align: center; }
+  }
+</style>

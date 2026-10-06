@@ -1,0 +1,449 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+
+const faqs = [
+  {
+    question: "Can jsonversal see or store the data I paste into a tool?",
+    answer:
+      "No. Every tool runs entirely in your browser using JavaScript, the Web Crypto API, and the File API. Your input never leaves the device — there is no server round-trip, no account, and nothing is uploaded, logged, or stored by us.",
+  },
+  {
+    question: "How can I verify that no data leaves my browser?",
+    answer:
+      "Open the tool, press F12 (or Cmd+Option+I) to open DevTools, switch to the Network tab, clear it, then paste your input and run the tool. On a client-side tool like ours, no outgoing request carrying your data appears. That test is definitive and needs no trust in any privacy policy.",
+  },
+  {
+    question: "Do you use analytics, cookies, or third-party trackers?",
+    answer:
+      "No. The site runs no analytics of any kind and sets no tracking cookies. No requests go to third-party CDNs, ad networks, or social widgets at runtime. The only thing stored locally is your light/dark theme preference.",
+  },
+  {
+    question: "If you don't collect data, what about Cloudflare / hosting?",
+    answer:
+      "The site is served by Cloudflare Pages, so connection metadata such as your IP address is processed by the host — as it is for any website. What we avoid is processing the content you submit: tool inputs are never sent to a server, so there is nothing about your payloads for us or our host to collect.",
+  },
+  {
+    question: "Can I inspect the code that runs my data?",
+    answer:
+      "The tools are delivered as static pages and execute in the open inside your browser tab. You can inspect the network traffic and the page logic directly. See the /licenses/ page for the full list of open-source components we build on.",
+  },
+];
+
+const howtos = [
+  {
+    name: "How to verify a developer tool runs 100% client-side",
+    description:
+      "A 10-second check using your browser's built-in DevTools to confirm no user data is sent to a server.",
+    steps: [
+      {
+        name: "Open DevTools",
+        text: "Open the tool in your browser and press F12 (Windows/Linux) or Cmd+Option+I (macOS) to open developer tools.",
+      },
+      {
+        name: "Open the Network tab",
+        text: "Click the Network tab and press the clear button (⊘) so no requests are listed.",
+      },
+      {
+        name: "Trigger the tool",
+        text: "Paste your input and run the action (Format, Encode, Decode, Generate, etc.).",
+      },
+      {
+        name: "Watch for outgoing requests",
+        text: "If no new request appears, processing happened locally — your data never left the browser. If a POST or GET request carrying your input appears, the tool sent your data to a server.",
+      },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  site="main"
+  title="Trust Center — your data never leaves your browser"
+  description="Every jsonversal tool runs 100% in your browser: no upload, no account, no cookies, no analytics. Verify it yourself in 10 seconds with your browser's DevTools."
+  canonical="https://jsonversal.com/trust/"
+  faqs={faqs}
+  howtos={howtos}
+>
+  <section class="trust-hero">
+    <span class="trust-hero__kicker">Trust Center</span>
+    <h1>Your data never leaves your browser.</h1>
+    <p class="trust-hero__sub">
+      All 69 jsonversal tools run entirely on your device. We have no server that receives your input, no
+      accounts, no cookies, and no analytics. Paste an API key, a <code>.env</code> file, or a production payload —
+      it stays on your machine.
+    </p>
+    <div class="trust-hero__badges">
+      <span class="tbadge">🔒 Zero upload</span>
+      <span class="tbadge">👤 No account</span>
+      <span class="tbadge">🍪 No cookies</span>
+      <span class="tbadge">📡 No third-party requests</span>
+    </div>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">How it works</div>
+      <h2>Browser-only by architecture</h2>
+      <p class="t-section__sub">
+        Your input is processed by JavaScript running in the page. The result is rendered back to you. There is no
+        step where the data is transmitted anywhere.
+      </p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-node">Your browser</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">
+        jsonversal engine
+        <small>Web Crypto · File API · pure JS</small>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Output in your tab</div>
+    </div>
+    <p class="flow-note">↳ no network request is ever made with your data</p>
+
+    <div class="flow flow--bad">
+      <div class="flow-node">Your browser</div>
+      <div class="flow-arrow">→&nbsp; POST /format &nbsp;→</div>
+      <div class="flow-node flow-node--bad">Their server + database</div>
+    </div>
+    <p class="flow-note flow-note--bad">
+      ↳ a server-side tool transmits and often stores your input — the failure mode behind the 2025 formatter leak
+      (<a href="/trust/online-tool-data-leak/">read the breakdown →</a>)
+    </p>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">What we don't do</div>
+      <h2>The things a "free" tool usually takes from you</h2>
+    </div>
+    <div class="t-cards">
+      <div class="t-card">
+        <div class="t-card__ic">🚫</div>
+        <h3>No upload</h3>
+        <p>Your text, files, and secrets are processed locally. Nothing is sent to our infrastructure.</p>
+      </div>
+      <div class="t-card">
+        <div class="t-card__ic">🙅</div>
+        <h3>No account</h3>
+        <p>There is no sign-up, no profile, and no user ID. We cannot link activity to a person.</p>
+      </div>
+      <div class="t-card">
+        <div class="t-card__ic">🍪</div>
+        <h3>No cookies or analytics</h3>
+        <p>We run no analytics and set no tracking cookies — not even in aggregate form.</p>
+      </div>
+      <div class="t-card">
+        <div class="t-card__ic">🌐</div>
+        <h3>No third-party CDN</h3>
+        <p>Fonts and libraries are self-hosted. At runtime the site makes no calls to ad, social, or tracking networks.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">Prove it yourself</div>
+      <h2>Verify any tool in 10 seconds</h2>
+      <p class="t-section__sub">
+        You do not have to take our word for it. This test is definitive and works on any developer tool.
+      </p>
+    </div>
+    <ol class="t-steps">
+      <li><strong>Open DevTools.</strong> Press <code>F12</code> (Windows/Linux) or <code>Cmd+Option+I</code> (macOS).</li>
+      <li><strong>Open the Network tab</strong> and press the clear button (⊘).</li>
+      <li><strong>Trigger the tool</strong> — paste input and click Format / Encode / Generate / etc.</li>
+      <li>
+        <strong>Watch the requests.</strong> On a client-side tool like ours, <em>nothing new appears</em>. If a
+        <code>POST</code> or <code>GET</code> carrying your input shows up, that tool sent your data to a server.
+      </li>
+    </ol>
+  </section>
+
+  <section class="t-section">
+    <div class="t-section__head">
+      <div class="t-section__kicker">Why it matters</div>
+      <h2>The data people actually paste into formatters</h2>
+    </div>
+    <ul class="t-list">
+      <li><strong>API keys &amp; secrets</strong> — AWS / Stripe / GitHub tokens pasted to debug a response.</li>
+      <li><strong><code>.env</code> files</strong> — full environment configs with database URLs and passwords.</li>
+      <li><strong>JWTs &amp; OAuth tokens</strong> — production session credentials.</li>
+      <li><strong>Private keys</strong> — SSH, RSA, or X.509 keys being inspected or converted.</li>
+      <li><strong>Customer &amp; PII data</strong> — payloads that must never leave your compliance boundary.</li>
+    </ul>
+    <p class="t-callout">
+      If a tool <em>can</em> persist your input on a server, your threat model has to assume it <em>might</em> — until
+      proven otherwise. Client-side tools remove that risk by construction.
+    </p>
+  </section>
+
+  <section class="t-cta">
+    <div>
+      <h3>Read the full policy, or see the incident that proved the point.</h3>
+      <p>Our privacy policy is the legal version; the 2025 formatter leak explainer shows why architecture is the only real defense.</p>
+    </div>
+    <div class="t-cta__links">
+      <a class="v-btn" href="/privacy/">Privacy policy</a>
+      <a class="v-btn v-btn--ghost" href="/trust/online-tool-data-leak/">The 2025 data leak →</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .trust-hero {
+    padding: var(--v-s-12) 0 var(--v-s-8);
+    max-width: 880px;
+  }
+  .trust-hero__kicker {
+    display: inline-block;
+    font-size: var(--v-fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--v-accent-ink);
+    background: var(--v-accent-soft);
+    padding: 4px 10px;
+    border-radius: var(--v-r-pill);
+    margin-bottom: var(--v-s-4);
+  }
+  .trust-hero h1 {
+    font-size: var(--v-fs-4xl);
+    line-height: 1.08;
+    margin: 0 0 var(--v-s-4);
+    letter-spacing: -0.02em;
+  }
+  .trust-hero__sub {
+    font-size: var(--v-fs-lg);
+    color: var(--v-mute);
+    line-height: 1.6;
+    margin: 0 0 var(--v-s-6);
+  }
+  .trust-hero__sub code {
+    background: var(--v-fog);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+  .trust-hero__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--v-s-3);
+  }
+  .tbadge {
+    font-size: var(--v-fs-sm);
+    font-weight: 600;
+    color: var(--v-ink-soft);
+    background: var(--v-paper);
+    border: 1px solid var(--v-line);
+    padding: 6px 12px;
+    border-radius: var(--v-r-pill);
+    box-shadow: var(--v-sh-xs);
+  }
+
+  .t-section {
+    padding: var(--v-s-10) 0;
+    border-top: 1px solid var(--v-line);
+  }
+  .t-section__head {
+    margin-bottom: var(--v-s-6);
+  }
+  .t-section__kicker {
+    font-size: var(--v-fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--v-accent);
+  }
+  .t-section__head h2 {
+    font-size: var(--v-fs-2xl);
+    margin: var(--v-s-2) 0 var(--v-s-3);
+    letter-spacing: -0.01em;
+  }
+  .t-section__sub {
+    font-size: var(--v-fs-base);
+    color: var(--v-mute);
+    max-width: 720px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--v-s-4);
+    padding: var(--v-s-6);
+    background: var(--v-mist);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-lg);
+  }
+  .flow--bad {
+    margin-top: var(--v-s-4);
+    border-color: color-mix(in srgb, #ef4444 30%, var(--v-line));
+    background: color-mix(in srgb, #ef4444 6%, var(--v-mist));
+  }
+  .flow-node {
+    background: var(--v-paper);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-md);
+    padding: var(--v-s-4) var(--v-s-5);
+    font-weight: 600;
+    color: var(--v-ink);
+    text-align: center;
+    box-shadow: var(--v-sh-xs);
+  }
+  .flow-node small {
+    display: block;
+    font-weight: 500;
+    font-size: var(--v-fs-xs);
+    color: var(--v-hush);
+    margin-top: 4px;
+  }
+  .flow-node--accent {
+    border-color: var(--v-accent);
+    background: var(--v-accent-soft);
+    color: var(--v-accent-ink);
+  }
+  .flow-node--bad {
+    border-color: #ef4444;
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+  .flow-arrow {
+    font-weight: 700;
+    color: var(--v-hush);
+    font-size: var(--v-fs-lg);
+  }
+  .flow-note {
+    font-size: var(--v-fs-sm);
+    color: var(--v-mute);
+    margin: var(--v-s-3) 0 0;
+  }
+  .flow-note--bad {
+    color: #b91c1c;
+  }
+  .flow-note a {
+    color: var(--v-accent-ink);
+    font-weight: 600;
+  }
+
+  .t-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--v-s-5);
+  }
+  .t-card {
+    background: var(--v-paper);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-lg);
+    padding: var(--v-s-6);
+    box-shadow: var(--v-sh-xs);
+  }
+  .t-card__ic {
+    font-size: 26px;
+    margin-bottom: var(--v-s-3);
+  }
+  .t-card h3 {
+    margin: 0 0 var(--v-s-2);
+    font-size: var(--v-fs-lg);
+  }
+  .t-card p {
+    margin: 0;
+    color: var(--v-mute);
+    font-size: var(--v-fs-sm);
+    line-height: 1.55;
+  }
+
+  .t-steps {
+    margin: 0;
+    padding-left: var(--v-s-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--v-s-3);
+    color: var(--v-ink-soft);
+    line-height: 1.6;
+  }
+  .t-steps code {
+    background: var(--v-fog);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+
+  .t-list {
+    margin: 0;
+    padding-left: var(--v-s-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--v-s-3);
+    color: var(--v-ink-soft);
+    line-height: 1.6;
+  }
+  .t-list code {
+    background: var(--v-fog);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+  .t-callout {
+    margin: var(--v-s-6) 0 0;
+    padding: var(--v-s-5);
+    border-left: 4px solid var(--v-accent);
+    background: var(--v-accent-soft);
+    border-radius: 0 var(--v-r-md) var(--v-r-md) 0;
+    color: var(--v-ink-soft);
+    line-height: 1.6;
+  }
+
+  .t-cta {
+    margin-top: var(--v-s-10);
+    padding: var(--v-s-8);
+    background: var(--v-mist);
+    border: 1px solid var(--v-line);
+    border-radius: var(--v-r-xl);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--v-s-6);
+    align-items: center;
+    justify-content: space-between;
+  }
+  .t-cta h3 {
+    margin: 0 0 var(--v-s-2);
+    font-size: var(--v-fs-xl);
+  }
+  .t-cta p {
+    margin: 0;
+    color: var(--v-mute);
+    max-width: 520px;
+    line-height: 1.55;
+  }
+  .t-cta__links {
+    display: flex;
+    gap: var(--v-s-3);
+    flex-wrap: wrap;
+  }
+  .v-btn {
+    display: inline-block;
+    background: var(--v-accent);
+    color: #fff;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: var(--v-r-md);
+    text-decoration: none;
+    box-shadow: var(--v-sh-sm);
+  }
+  .v-btn--ghost {
+    background: transparent;
+    color: var(--v-accent-ink);
+    border: 1px solid var(--v-accent);
+    box-shadow: none;
+  }
+
+  @media (max-width: 640px) {
+    .trust-hero h1 { font-size: var(--v-fs-3xl); }
+    .flow { flex-direction: column; align-items: stretch; }
+    .flow-arrow { transform: rotate(90deg); text-align: center; }
+  }
+</style>
