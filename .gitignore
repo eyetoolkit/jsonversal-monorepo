@@ -45,3 +45,6 @@ yarn-error.log*
 # one-off local scripts, superseded by the GitHub Actions pipeline
 deploy.js
 install-cloudflared.sh
+
+# local verification scratch
+.verify/
