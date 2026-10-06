@@ -4,6 +4,19 @@
   "description": "jsonversal MCP Server — 25 deterministic tools (JSON/YAML/CSV/Base64/URL/number-base/timestamp/UUID/password/JSONPath/Regex/JWT/BCrypt/hash) for AI Agents. MCP (stdio) + REST (HTTP).",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "jsonversal-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
