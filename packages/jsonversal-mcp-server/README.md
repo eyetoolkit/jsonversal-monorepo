@@ -1,9 +1,12 @@
 # @jsonversal/mcp-server
 
-JSON 处理全家桶 + Regex + JWT + BCrypt — MCP Server / REST API 双模版
+JSON / 编码 / 转换 / 生成 全家桶 — 25 个确定性工具，专为 AI Agent 设计。MCP Server（stdio）+ REST API（HTTP）双模版。
 
-## 11 个工具
+> 所有工具均为纯函数、服务端运行、零外部依赖、无网络请求、无状态。Agent 可安全调用。
 
+## 工具清单（25）
+
+### JSON 核心
 | 工具 | MCP name | 说明 |
 |------|----------|------|
 | JSON 格式化 | `json_format` | 缩进美化 |
@@ -11,12 +14,34 @@ JSON 处理全家桶 + Regex + JWT + BCrypt — MCP Server / REST API 双模版
 | JSON 压缩 | `json_minify` | 去空格 |
 | JSON 差异 | `json_diff` | 两 JSON 对比 |
 | JSON → Zod | `json_to_zod` | 生成 Zod Schema |
-| JSON → TypeScript | `json_to_typescript` | 生成 TS 类型 |
-| Token 计算 | `json_token_count` | LLM token 估算 |
-| 正则测试 | `regex_test` | pattern 测试 |
+| JSON → TypeScript | `json_to_typescript` | 生成 TS 类型（数组含对象用 union，保证可编译） |
+| JSON → Python | `json_to_python` | 生成合法 Python dict |
+| JSON → Pydantic | `json_to_pydantic` | 生成 Pydantic v2 模型（支持嵌套/数组） |
+| Token 估算 | `json_token_count` | LLM token 粗估（标注为估算值） |
+| JSONPath 查询 | `jsonpath_query` | 子集：$.a.b / [n] / [*] / ..递归 / [?(@.k>1)] 过滤 |
+
+### 编码 / 转换
+| 工具 | MCP name | 说明 |
+|------|----------|------|
+| Base64 编码 | `base64_encode` | UTF-8 安全 |
+| Base64 解码 | `base64_decode` | 支持 URL-safe |
+| URL 编码 | `url_encode` | encodeURIComponent |
+| URL 解码 | `url_decode` | decodeURIComponent |
+| 进制转换 | `number_base` | 2..36 进制（BigInt 无精度损失） |
+| 时间戳转换 | `timestamp_convert` | Unix 秒/毫秒 ↔ ISO/UTC |
+| CSV → JSON | `csv_to_json` | 支持引号/转义/换行 |
+| JSON → CSV | `json_to_csv` | 数组对象 → 表头 CSV |
+
+### 生成 / 安全
+| 工具 | MCP name | 说明 |
+|------|----------|------|
+| 正则测试 | `regex_test` | pattern 测试 + 捕获组 |
 | JWT 解码 | `jwt_decode` | header/payload/过期 |
 | BCrypt 验证 | `bcrypt_verify` | 密码比对 |
 | 哈希生成 | `hash_generate` | MD5/SHA/BCrypt |
+| UUID 生成 | `uuid_generate` | v4 / v7 |
+| 随机 Token | `random_token` | hex / base64 / base64url |
+| 密码生成 | `password_generate` | 强随机，每类字符至少一个 |
 
 ## 部署
 

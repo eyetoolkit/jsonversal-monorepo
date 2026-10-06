@@ -4,6 +4,7 @@
 
 import { createHash } from 'crypto';
 import bcrypt from 'bcryptjs';
+import { extraHandlers, extraTools } from './tools-extra.js';
 
 // ─── JSON Utilities ─────────────────────────────────────────
 
@@ -171,6 +172,8 @@ export const handlers = {
     }
   },
 };
+
+Object.assign(handlers, extraHandlers);
 
 // ─── Schema Validation ──────────────────────────────────────
 
@@ -349,6 +352,8 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { text: { type: 'string' }, algorithm: { type: 'string' } }, required: ['text', 'algorithm'] } },
 ];
 
+TOOLS.push(...(extraTools as any[]));
+
 // ─── MCP Transport (stdio) ─────────────────────────────────
 
 function sendResponse(response) {
@@ -500,9 +505,12 @@ async function startHttpServer() {
 // ─── Entry Point ───────────────────────────────────────────
 
 const MODE = process.env.STDIO_MODE || process.env.STDOUT_MODE || 'mcp';
-if (MODE === 'http') {
-  startHttpServer();
-} else {
-  startStdio();
-  process.stderr.write('jsonversal MCP Server ready (stdio)\n');
+const isEntry = !!process.argv[1] && process.argv[1].endsWith('index.js');
+if (isEntry) {
+  if (MODE === 'http') {
+    startHttpServer();
+  } else {
+    startStdio();
+    process.stderr.write('jsonversal MCP Server ready (stdio)\n');
+  }
 }
