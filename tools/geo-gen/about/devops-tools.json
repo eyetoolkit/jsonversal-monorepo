@@ -3,8 +3,8 @@
     {
       "heading": "The five-field grammar, field by field",
       "body": [
-        "Every field expands independently into a sorted set of integers, and a minute fires when all five sets contain the matching component. Expansion runs a small pipeline per comma-separated token: split off a `/step`, rewrite a bare `*` base to the field minimum, then walk the range by `step`. Because only a literal `*` is rewritten, `*/15` yields 0, 15, 30, 45 while `0/15` collapses to the single value 0 — Vixie cron reads that form as 0-59/15.",
-        "Names resolve before any of that, and only as whole tokens. The month and weekday tables hold full English names, so `monday` and `january` resolve while `mon`, `jan` and `mon-fri` do not: the lookup matches the entire token, so `mon-fri` falls through to the numeric range branch, `Number('mon')` is NaN, and the field ends up empty — a schedule that silently never fires."
+        "Every field expands independently into a sorted set of integers, and a minute fires when the time fields match and the day rule below is satisfied. Expansion runs a small pipeline per comma-separated token: split off a `/step`, resolve the base — `*` or `?` becomes the field's whole range, `a-b` becomes that range, and a bare value becomes either that single value or, when a step is present, `value-max` — then walk it by `step`. So `*/15` and `0/15` both yield 0, 15, 30, 45, matching Vixie cron, and a field that resolves to nothing is reported as an error rather than silently never firing.",
+        "Names resolve per range endpoint, as full names or as prefixes of at least three characters, so `monday`, `mon` and `mon-fri` all work in the weekday field and `january`, `jan` and `jan-mar` work in the month field. Values outside the field's range are dropped rather than kept, so minute `99` is an error instead of a value that can never match."
       ]
     },
     {
@@ -17,7 +17,8 @@
     {
       "heading": "Where cron implementations disagree",
       "body": [
-        "Field combination is the largest divergence. Standard cron unions day-of-month with day-of-week when both are restricted, so `0 0 13 * 5` fires on the 13th and on every Friday; the intersection used here runs only on 13ths that are also Fridays. Kubernetes CronJob controllers are stricter again: `.spec.schedule` takes five fields, rejects `@daily` and the other shorthands, and evaluates in the controller's own UTC. Out-of-range values slip through too — minute `99` is accepted into the set and never matches, and seven-field input is truncated to the first five."
+        "Field combination is where implementations diverge most, and this tool follows the Vixie rule: when day-of-month and day-of-week are both restricted the two are ORed, so `0 0 13 * 5` fires on the 13th and on every Friday. When only one of them is restricted the other acts as a filter, so `0 0 * * 5` is every Friday and `0 0 13 * *` is every 13th. Some schedulers intersect instead, which turns `0 0 13 * 5` into the much rarer \"13th that is also a Friday\" — check your runtime if that distinction matters.",
+        "Kubernetes CronJob controllers are stricter again: `.spec.schedule` takes five fields, rejects `@daily` and the other shorthands, and evaluates in the controller's own UTC, so a manifest built from a browser-local preview can fire at a different wall-clock hour than the one shown here. Seven-field input is truncated to the first five."
       ]
     }
   ],
@@ -94,7 +95,7 @@
       "heading": "Deployment, Service, Ingress and the label contract",
       "body": [
         "The three objects are three different jobs, and the generator's real contribution is making the one thing that commonly breaks agree across all of them. A Deployment needs a selector that matches its own pod template; a Service needs a selector that matches pods it should route to. Both are filled from the same single label input, which is emitted three times in the Deployment — `metadata.labels`, `spec.selector.matchLabels`, and `spec.template.metadata.labels` — so a mismatch is structurally impossible here rather than merely unlikely.",
-        "Ingress does not use labels at all. It names a backend service and a backend port, which is why its fields are separate from the Service's: the object it points at is a Service, and the port it names is that Service's `port`, not the container's."
+        "Ingress does not use a label selector. It names a backend service and a backend port, which is why its fields are separate from the Service's: the object it points at is a Service, and the port it names is that Service's `port`, not the container's. Labels entered for an Ingress are written to `metadata.labels` only, and have no effect on routing."
       ]
     },
     {
@@ -108,7 +109,7 @@
       "heading": "What the generated YAML leaves out",
       "body": [
         "There is no `resources` block, which means every pod is BestEffort QoS: first in line for eviction under node pressure, and invisible to a scheduler that bin-packs on requests. There are no probes either, so a rolling update will happily route traffic to a container that is running but not ready. Neither is fatal for a manifest you apply while learning; both matter the moment replicas actually serve traffic.",
-        "The Ingress is inert YAML until an ingress controller with a matching `ingressClassName` is watching that namespace — the object alone does nothing. And the namespace is written into `metadata.namespace` but never created, so `kubectl apply` fails outright if it does not already exist."
+        "The Ingress is inert YAML until an ingress controller with a matching `ingressClassName` is watching that namespace — the object alone does nothing. The namespace is written into `metadata.namespace` but never created, so `kubectl apply` fails outright if it does not already exist. Names are checked against DNS-1123 and at least one label is required, since the Deployment selector cannot be empty; ports are range-checked, and an empty Ingress path falls back to `/`."
       ]
     }
   ],

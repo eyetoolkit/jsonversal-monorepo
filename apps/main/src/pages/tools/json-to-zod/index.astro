@@ -28,22 +28,22 @@ import BaseLayout from '@versal/ui/BaseLayout';
     {
       "heading": "Inference rules, including the string heuristics",
       "body": [
-        "Beyond the obvious type mapping, the generator sniffs string contents with three regexes and promotes the result: a bare `YYYY-MM-DD` becomes `z.string().datetime()`, an address-shaped value becomes `.email()`, and an `http` or `https` prefix becomes `.url()`. The first is over-eager — `.datetime()` in Zod requires a full RFC 3339 timestamp with a time component, so a date-only string will fail validation against its own generated schema. Use `.date()` for those instead.",
-        "Numbers become `z.number().int()` when the value is whole, so a field that is sometimes `98` and sometimes `98.5` rejects the fractional case outright. `null` becomes `z.null()` and its property is marked `.nullable()`, which admits null without permitting the key to be missing — add `.optional()` if absence is also legal."
+        "Beyond the obvious type mapping, the generator sniffs string contents and promotes the result: a bare `YYYY-MM-DD` becomes `z.string().date()`, a value with a date and a time component becomes `z.string().datetime({ offset: true })` — the offset option is what lets a timestamp without a trailing `Z` validate — an address-shaped value becomes `.email()`, and an `http` or `https` prefix becomes `.url()`. All four are guesses from one sample value, so a field that is a URL in this record and a plain string in the next will reject the second.",
+        "Numbers become `z.number().int()` when the value is whole, so a field that is sometimes `98` and sometimes `98.5` rejects the fractional case outright — drop the `.int()` if the field is ever fractional. `null` becomes `z.null()` and its property is marked `.nullable()`, which admits null without permitting the key to be missing — add `.optional()` if absence is also legal."
       ]
     },
     {
       "heading": "How the schema is assembled",
       "body": [
-        "Nested objects are hoisted into separate `const XSchema` declarations placed before the root schema, each emitted from a flattened one-level view of its object. Arrays merge their object elements the same way, and heterogeneous arrays become `z.union([...])` inside `z.array()`. An empty array becomes `z.array(z.unknown())` and an empty object becomes `z.record(z.unknown())`, both of which validate far more than the sample implies.",
+        "Nested objects of any depth are hoisted into their own `const XSchema` declarations, each emitted above the schema that references it, so a document nested three levels deep produces three named schemas and a root that composes them. Names come from capitalising the key and appending `Schema`; two keys that capitalise alike, such as `items` and `Items`, get a numeric suffix rather than colliding. Arrays merge their object elements the same way and become `z.array(ElementSchema)`, and heterogeneous arrays become `z.array(z.union([...]))`. An empty array becomes `z.array(z.unknown())` and an empty object becomes `z.record(z.unknown())`, both of which validate far more than the sample implies.",
         "`Make strict` appends `.strict()` to the outermost schema only — the substitution targets the final closing parenthesis of the output — so nested object schemas keep default behaviour and will silently drop unknown keys instead of rejecting them. Toggling off removes every `.strict()` occurrence, including any you added yourself."
       ]
     },
     {
-      "heading": "Nesting depth is the real ceiling",
+      "heading": "Where the generated schema stops",
       "body": [
-        "Only one level of nesting is actually rendered. A document nested three levels deep produces a reference to an undefined schema, and the generated const declarations chain incorrectly, with the root prefix wrapping a nested `const` statement rather than following it. Two-level structures come out fine; deeper ones need editing by hand, or should be modelled with the TypeScript generator, which handles arbitrary nesting depth without this failure mode.",
-        "Zod is also the strictest of these validators about unknown keys, which is the point of using it — a schema inferred from one sample will reject any field that sample did not contain. Loosen it with `.partial()`, `.passthrough()`, or explicit optional keys before pointing it at live traffic, or every legitimate addition upstream becomes a validation error."
+        "`Make strict` appends `.strict()` to the outermost schema only — the substitution targets the final closing parenthesis of the output — so nested object schemas keep default behaviour and will silently drop unknown keys instead of rejecting them. Toggling off removes every `.strict()` occurrence, including any you added yourself.",
+        "Zod is the strictest of these validators about unknown keys, which is the point of using it — a schema inferred from one sample will reject any field that sample did not contain. Loosen it with `.partial()`, `.passthrough()`, or explicit optional keys before pointing it at live traffic, or every legitimate addition upstream becomes a validation error."
       ]
     }
   ]}
@@ -116,85 +116,104 @@ if (result.success) &#123;
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
-  function jsonToZod(obj, name, isArrayItem) {
-    if (obj === null) return 'z.null()';
-    if (typeof obj === 'boolean') return 'z.boolean()';
-    if (typeof obj === 'number') {
-      return Number.isInteger(obj) ? 'z.number().int()' : 'z.number()';
+  // Returns a schema expression for `value`. Any `const XSchema = ...` it needs
+  // is appended to `decls`, children before parents, so every identifier the
+  // output references is also declared above it.
+  function jsonToZod(root, rootName) {
+    rootName = rootName || 'Root';
+    const decls = [];
+    const used = new Set();
+
+    function isPlainObject(v) {
+      return v !== null && typeof v === 'object' && !Array.isArray(v);
     }
-    if (typeof obj === 'string') {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(obj)) return 'z.string().datetime()';
-      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(obj)) return 'z.string().email()';
-      if (/^https?:\/\//.test(obj)) return 'z.string().url()';
+
+    function ensureUnique(base) {
+      let candidate = base, i = 2;
+      while (used.has(candidate)) candidate = base + (i++);
+      used.add(candidate);
+      return candidate;
+    }
+
+    function unique(base) {
+      let n = String(base == null ? '' : base).replace(/[^A-Za-z0-9_$]/g, '');
+      if (!n || !/^[A-Za-z_$]/.test(n)) n = 'Item' + n;
+      n = n.charAt(0).toUpperCase() + n.slice(1);
+      if (!/Schema$/.test(n)) n += 'Schema';
+      return ensureUnique(n);
+    }
+
+    function mergeObjects(objs) {
+      const merged = {};
+      for (const item of objs) {
+        for (const [k, v] of Object.entries(item)) {
+          if (!(k in merged)) merged[k] = v;
+        }
+      }
+      return merged;
+    }
+
+    function stringSchema(value) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'z.string().date()';
+      if (/^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}/.test(value)) return 'z.string().datetime({ offset: true })';
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'z.string().email()';
+      if (/^https?:\/\//.test(value)) return 'z.string().url()';
       return 'z.string()';
     }
-    if (Array.isArray(obj)) {
-      if (obj.length === 0) return 'z.array(z.unknown())';
-      const types = new Set();
-      const objectItems = [];
-      for (const item of obj) {
-        if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
-          objectItems.push(item);
-        } else {
-          types.add(jsonToZod(item, '', true));
-        }
-      }
-      if (objectItems.length > 0) {
-        const merged = {};
-        for (const item of objectItems) {
-          for (const [k, v] of Object.entries(item)) {
-            if (!(k in merged)) merged[k] = v;
+
+    function schemaExpr(value, name) {
+      if (value === null) return 'z.null()';
+      if (typeof value === 'boolean') return 'z.boolean()';
+      if (typeof value === 'number') return Number.isInteger(value) ? 'z.number().int()' : 'z.number()';
+      if (typeof value === 'string') return stringSchema(value);
+      if (Array.isArray(value)) {
+        if (value.length === 0) return 'z.array(z.unknown())';
+        const seen = [];
+        const objects = [];
+        for (const item of value) {
+          if (isPlainObject(item)) {
+            objects.push(item);
+          } else {
+            const t = schemaExpr(item, '');
+            if (seen.indexOf(t) === -1) seen.push(t);
           }
         }
-        const inner = jsonToZod(merged, capitalize(name || 'Item'), true);
-        if (types.size === 0) return 'z.array(' + inner + ')';
-        types.add(inner);
-        const arr = Array.from(types);
-        return 'z.array(' + (arr.length === 1 ? arr[0] : 'z.union([' + arr.join(', ') + '])') + ')';
+        if (objects.length > 0) {
+          const inner = schemaExpr(mergeObjects(objects), name);
+          if (seen.indexOf(inner) === -1) seen.push(inner);
+        }
+        const joined = seen.length === 1 ? seen[0] : 'z.union([' + seen.join(', ') + '])';
+        return 'z.array(' + joined + ')';
       }
-      const arr = Array.from(types);
-      return 'z.array(' + (arr.length === 1 ? arr[0] : 'z.union([' + arr.join(', ') + '])') + ')';
+      if (isPlainObject(value)) {
+        const schemaName = unique(name);
+        decls.push('const ' + schemaName + ' = ' + objectSchema(value) + ';');
+        return schemaName;
+      }
+      return 'z.unknown()';
     }
-    if (typeof obj === 'object') {
+
+    function objectSchema(obj) {
       const entries = Object.entries(obj);
       if (entries.length === 0) return 'z.record(z.unknown())';
-      const typeName = name || 'RootSchema';
-      const defs = [];
       let s = 'z.object({\n';
       for (const [k, v] of entries) {
         const safeKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
-        const isOpt = v === null;
-        const val = isOpt ? null : v;
-        let t;
-        if (Array.isArray(val)) {
-          t = jsonToZod(val, capitalize(k), false);
-        } else if (val !== null && typeof val === 'object') {
-          const subName = capitalize(k);
-          defs.push({ obj: val, name: subName });
-          t = subName;
-        } else {
-          t = jsonToZod(val, '', false);
-        }
-        s += '  ' + safeKey + (isOpt ? ': ' : ': ') + t + (isOpt ? '.nullable()' : '') + ',\n';
+        const isNull = v === null;
+        const t = isNull ? 'z.null()' : schemaExpr(v, capitalize(k));
+        s += '  ' + safeKey + ': ' + t + (isNull ? '.nullable()' : '') + ',\n';
       }
-      s += '})';
-      let all = s;
-      for (const sub of defs) {
-        all = 'const ' + sub.name + 'Schema = z.object({\n' +
-          Object.entries(sub.obj).map(([k, v]) => {
-            const sk = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
-            const isOpt = v === null;
-            const val = isOpt ? null : v;
-            let t;
-            if (Array.isArray(val)) t = jsonToZod(val, capitalize(k), false);
-            else if (val !== null && typeof val === 'object') t = capitalize(k);
-            else t = jsonToZod(val, '', false);
-            return '  ' + sk + ': ' + t + (isOpt ? '.nullable()' : '');
-          }).join(',\n') + '\n});\n\n' + all;
-      }
-      return 'const ' + typeName + ' = ' + all + ';';
+      return s + '})';
     }
-    return 'z.unknown()';
+
+    const rootSchema = schemaExpr(root, isPlainObject(root) ? rootName : 'Item');
+    let out = decls.join('\n\n');
+    if (!isPlainObject(root)) {
+      // A scalar or array root has no object of its own; emit a named const so
+      // the output is a complete, importable schema.
+      out = (out ? out + '\n\n' : '') + 'const ' + unique(rootName) + ' = ' + rootSchema + ';';
+    }
+    return out;
   }
 
   const $ = (id) => document.getElementById(id);
@@ -209,7 +228,7 @@ if (result.success) &#123;
     if (!raw) { showToast('Please paste some JSON first.'); return; }
     try {
       const obj = JSON.parse(raw);
-      const schema = jsonToZod(obj, 'RootSchema', false);
+      const schema = jsonToZod(obj, 'Root');
       output.textContent = schema;
       outputSection.style.display = 'block';
       errorSection.style.display = 'none';

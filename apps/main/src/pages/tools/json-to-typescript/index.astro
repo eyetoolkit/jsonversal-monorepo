@@ -40,10 +40,10 @@ import BaseLayout from '@versal/ui/BaseLayout';
       ]
     },
     {
-      "heading": "A case that produces invalid output",
+      "heading": "Arrays, unions and name collisions",
       "body": [
-        "When an array of objects appears as a field, the array branch calls the object renderer and appends `[]` to the result — but that renderer returns a complete `interface` declaration, not a type name. The output is an interface declaration in expression position, which will not compile. Arrays of objects therefore need manual correction, or you can convert that particular shape with the Go generator, which emits a named type instead.",
-        "Everything else is sound: heterogeneous arrays become union element types, empty arrays become `unknown[]`, and an empty object becomes `Record<string, unknown>`. Inferring from a sample remains the core caveat — when you need an exact contract rather than a starting point, write the interface against the JSON Schema Validator output."
+        "An array of objects produces one merged element interface — every element is folded into a single shape, with the first value winning for any key that appears with differing types across elements — and the field is annotated `Element[]`. A heterogeneous array becomes a parenthesised union, `(number | string | Mixed)[]`, so the brackets bind to the whole union rather than to its last member. An empty array becomes `unknown[]`, and an empty object becomes a `type X = Record<string, unknown>` alias rather than an empty interface.",
+        "Interface names are derived from the key, capitalised, so two keys that capitalise alike — `items` and `Items` — would declare the same identifier twice. A suffix is appended instead, and a key that is not a legal identifier is stripped to one that is, so `odd-key` yields `Oddkey`. Inferring from a sample remains the core caveat: when you need an exact contract rather than a starting point, write the interface against the JSON Schema Validator output."
       ]
     }
   ]}
@@ -118,74 +118,97 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 <script is:inline>
 (function () {
-  function jsonToTs(json, name) {
-    if (json === null) return 'null';
-    if (typeof json === 'boolean') return 'boolean';
-    if (typeof json === 'number') return 'number';
-    if (typeof json === 'string') return 'string';
-    if (Array.isArray(json)) {
-      if (json.length === 0) return 'unknown[]';
-      const types = new Set();
-      const objectTypes = [];
-      for (const item of json) {
-        if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
-          objectTypes.push(item);
-        } else {
-          types.add(jsonToTs(item, ''));
+  // Returns a type expression for `value`. Any named interface it needs is
+  // appended to `decls`, children before parents, so every name it references
+  // is also declared.
+  function jsonToTs(root, rootName) {
+    rootName = rootName || 'RootObject';
+    const decls = [];
+    const used = new Set();
+
+    function isPlainObject(v) {
+      return v !== null && typeof v === 'object' && !Array.isArray(v);
+    }
+
+    function ensureUnique(base) {
+      let candidate = base, i = 2;
+      while (used.has(candidate)) candidate = base + (i++);
+      used.add(candidate);
+      return candidate;
+    }
+
+    // Interface names come from key names, so collisions are possible
+    // (`items` and `Items` both capitalise to `Items`). Suffix instead of
+    // emitting two declarations with the same identifier.
+    function unique(base) {
+      let n = String(base == null ? '' : base).replace(/[^A-Za-z0-9_$]/g, '');
+      if (!n || !/^[A-Za-z_$]/.test(n)) n = 'Item' + n;
+      return ensureUnique(n.charAt(0).toUpperCase() + n.slice(1));
+    }
+
+    function mergeObjects(objs) {
+      const result = {};
+      for (const obj of objs) {
+        for (const [k, v] of Object.entries(obj)) {
+          if (!(k in result)) result[k] = v;
         }
       }
-      if (objectTypes.length > 0) {
-        const merged = mergeObjects(objectTypes);
-        const inner = tsType(merged, '');
-        if (types.size === 0) return inner + '[]';
-        types.add(inner);
-        return Array.from(types).join(' | ') + '[]';
-      }
-      const arr = Array.from(types);
-      return (arr.length === 1 ? arr[0] : arr.join(' | ')) + '[]';
+      return result;
     }
-    if (typeof json === 'object') {
-      return tsType(json, name);
-    }
-    return 'unknown';
-  }
 
-  function mergeObjects(objs) {
-    const result = {};
-    for (const obj of objs) {
-      for (const [k, v] of Object.entries(obj)) {
-        if (!(k in result)) result[k] = v;
+    function typeExpr(value, name) {
+      if (value === null) return 'null';
+      if (typeof value === 'boolean') return 'boolean';
+      if (typeof value === 'number') return 'number';
+      if (typeof value === 'string') return 'string';
+      if (Array.isArray(value)) {
+        if (value.length === 0) return 'unknown[]';
+        const seen = [];
+        const objects = [];
+        for (const item of value) {
+          if (isPlainObject(item)) {
+            objects.push(item);
+          } else {
+            const t = typeExpr(item, '');
+            if (seen.indexOf(t) === -1) seen.push(t);
+          }
+        }
+        if (objects.length > 0) {
+          const inner = typeExpr(mergeObjects(objects), name);
+          if (seen.indexOf(inner) === -1) seen.push(inner);
+        }
+        const joined = seen.length === 1 ? seen[0] : '(' + seen.join(' | ') + ')';
+        return joined + '[]';
       }
+      if (isPlainObject(value)) {
+        const typeName = unique(name);
+        decls.push(objectDecl(value, typeName));
+        return typeName;
+      }
+      return 'unknown';
     }
-    return result;
-  }
 
-  function tsType(obj, name) {
-    const entries = Object.entries(obj);
-    if (entries.length === 0) return 'Record<string, unknown>';
-    const typeName = name || 'RootObject';
-    let s = 'interface ' + typeName + ' {\n';
-    const subNames = [];
-    for (const [k, v] of entries) {
-      const safeKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
-      const isOpt = v === null;
-      const val = isOpt ? null : v;
-      let t;
-      if (Array.isArray(val)) {
-        t = jsonToTs(val, capitalize(k));
-      } else if (val !== null && typeof val === 'object') {
-        t = capitalize(k);
-        subNames.push({ obj: val, name: capitalize(k) });
-      } else {
-        t = jsonToTs(val, '');
+    function objectDecl(obj, typeName) {
+      const entries = Object.entries(obj);
+      if (entries.length === 0) return 'type ' + typeName + ' = Record<string, unknown>;';
+      let s = 'interface ' + typeName + ' {\n';
+      for (const [k, v] of entries) {
+        const safeKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
+        const isOpt = v === null;
+        const t = isOpt ? 'null' : typeExpr(v, capitalize(k));
+        s += '  ' + safeKey + (isOpt ? '?: ' : ': ') + t + ';\n';
       }
-      s += '  ' + safeKey + (isOpt ? '?: ' : ': ') + t + ';\n';
+      return s + '}';
     }
-    s += '}';
-    for (const sub of subNames) {
-      s = jsonToTs(sub.obj, sub.name) + '\n\n' + s;
+
+    const rootType = typeExpr(root, isPlainObject(root) ? rootName : rootName + 'Item');
+    let out = decls.join('\n\n');
+    if (!isPlainObject(root)) {
+      // A scalar or array root has no interface of its own; emit a named alias
+      // so the output is a complete, usable declaration set.
+      out = (out ? out + '\n\n' : '') + 'type ' + ensureUnique(rootName) + ' = ' + rootType + ';';
     }
-    return s;
+    return out;
   }
 
   function capitalize(s) {

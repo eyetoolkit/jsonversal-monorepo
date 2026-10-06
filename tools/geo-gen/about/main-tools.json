@@ -222,8 +222,8 @@
     {
       "heading": "How arrays and nested models are emitted",
       "body": [
-        "Nested objects each become their own `BaseModel` class, declared before the model that references them, and the root becomes `RootModel`. Arrays are annotated `List[...]`, with heterogeneous element types collapsed into a `Union`. An empty array becomes `List[Any]`, since an empty sample carries no element type at all — fill it in yourself rather than leaving it unvalidated.",
-        "There is a real limitation in how arrays of objects are handled: the element type is named `ItemModel`, but the class body for that element is never emitted, so the annotation references a name the file does not define and the module fails at import. If your payload contains an array of objects, add the missing `ItemModel` by hand, or model that shape with the TypeScript or Go generator instead."
+        "Nested objects of any depth each become their own `BaseModel` class, declared above the model that references them, and the root becomes `RootModel`. Arrays are annotated `List[...]`, with heterogeneous element types collapsed into a `Union`, and an array of objects emits its own element class — `items: List[ItemsModel]` — rather than referencing a name the file never defines. Class names come from the key, so two keys that differ only by capitalisation get a numeric suffix instead of colliding. An empty array becomes `List[Any]`, since an empty sample carries no element type at all — fill it in yourself rather than leaving it unvalidated.",
+        "Aliases and optionality interact in one way worth knowing: a field whose JSON key needed sanitising is emitted as `Field(alias=\"original\")`, and a `null` value is emitted as `Optional[Any] = None`. When both apply the default is folded into the `Field` call as `Field(None, alias=\"...\")`, so the field stays optional instead of becoming required. A key starting with a digit is prefixed with `field_`, because Pydantic rejects field names with a leading underscore."
       ]
     },
     {
@@ -250,10 +250,10 @@
       ]
     },
     {
-      "heading": "A case that produces invalid output",
+      "heading": "Arrays, unions and name collisions",
       "body": [
-        "When an array of objects appears as a field, the array branch calls the object renderer and appends `[]` to the result — but that renderer returns a complete `interface` declaration, not a type name. The output is an interface declaration in expression position, which will not compile. Arrays of objects therefore need manual correction, or you can convert that particular shape with the Go generator, which emits a named type instead.",
-        "Everything else is sound: heterogeneous arrays become union element types, empty arrays become `unknown[]`, and an empty object becomes `Record<string, unknown>`. Inferring from a sample remains the core caveat — when you need an exact contract rather than a starting point, write the interface against the JSON Schema Validator output."
+        "An array of objects produces one merged element interface — every element is folded into a single shape, with the first value winning for any key that appears with differing types across elements — and the field is annotated `Element[]`. A heterogeneous array becomes a parenthesised union, `(number | string | Mixed)[]`, so the brackets bind to the whole union rather than to its last member. An empty array becomes `unknown[]`, and an empty object becomes a `type X = Record<string, unknown>` alias rather than an empty interface.",
+        "Interface names are derived from the key, capitalised, so two keys that capitalise alike — `items` and `Items` — would declare the same identifier twice. A suffix is appended instead, and a key that is not a legal identifier is stripped to one that is, so `odd-key` yields `Oddkey`. Inferring from a sample remains the core caveat: when you need an exact contract rather than a starting point, write the interface against the JSON Schema Validator output."
       ]
     }
   ],
@@ -261,22 +261,22 @@
     {
       "heading": "Inference rules, including the string heuristics",
       "body": [
-        "Beyond the obvious type mapping, the generator sniffs string contents with three regexes and promotes the result: a bare `YYYY-MM-DD` becomes `z.string().datetime()`, an address-shaped value becomes `.email()`, and an `http` or `https` prefix becomes `.url()`. The first is over-eager — `.datetime()` in Zod requires a full RFC 3339 timestamp with a time component, so a date-only string will fail validation against its own generated schema. Use `.date()` for those instead.",
-        "Numbers become `z.number().int()` when the value is whole, so a field that is sometimes `98` and sometimes `98.5` rejects the fractional case outright. `null` becomes `z.null()` and its property is marked `.nullable()`, which admits null without permitting the key to be missing — add `.optional()` if absence is also legal."
+        "Beyond the obvious type mapping, the generator sniffs string contents and promotes the result: a bare `YYYY-MM-DD` becomes `z.string().date()`, a value with a date and a time component becomes `z.string().datetime({ offset: true })` — the offset option is what lets a timestamp without a trailing `Z` validate — an address-shaped value becomes `.email()`, and an `http` or `https` prefix becomes `.url()`. All four are guesses from one sample value, so a field that is a URL in this record and a plain string in the next will reject the second.",
+        "Numbers become `z.number().int()` when the value is whole, so a field that is sometimes `98` and sometimes `98.5` rejects the fractional case outright — drop the `.int()` if the field is ever fractional. `null` becomes `z.null()` and its property is marked `.nullable()`, which admits null without permitting the key to be missing — add `.optional()` if absence is also legal."
       ]
     },
     {
       "heading": "How the schema is assembled",
       "body": [
-        "Nested objects are hoisted into separate `const XSchema` declarations placed before the root schema, each emitted from a flattened one-level view of its object. Arrays merge their object elements the same way, and heterogeneous arrays become `z.union([...])` inside `z.array()`. An empty array becomes `z.array(z.unknown())` and an empty object becomes `z.record(z.unknown())`, both of which validate far more than the sample implies.",
+        "Nested objects of any depth are hoisted into their own `const XSchema` declarations, each emitted above the schema that references it, so a document nested three levels deep produces three named schemas and a root that composes them. Names come from capitalising the key and appending `Schema`; two keys that capitalise alike, such as `items` and `Items`, get a numeric suffix rather than colliding. Arrays merge their object elements the same way and become `z.array(ElementSchema)`, and heterogeneous arrays become `z.array(z.union([...]))`. An empty array becomes `z.array(z.unknown())` and an empty object becomes `z.record(z.unknown())`, both of which validate far more than the sample implies.",
         "`Make strict` appends `.strict()` to the outermost schema only — the substitution targets the final closing parenthesis of the output — so nested object schemas keep default behaviour and will silently drop unknown keys instead of rejecting them. Toggling off removes every `.strict()` occurrence, including any you added yourself."
       ]
     },
     {
-      "heading": "Nesting depth is the real ceiling",
+      "heading": "Where the generated schema stops",
       "body": [
-        "Only one level of nesting is actually rendered. A document nested three levels deep produces a reference to an undefined schema, and the generated const declarations chain incorrectly, with the root prefix wrapping a nested `const` statement rather than following it. Two-level structures come out fine; deeper ones need editing by hand, or should be modelled with the TypeScript generator, which handles arbitrary nesting depth without this failure mode.",
-        "Zod is also the strictest of these validators about unknown keys, which is the point of using it — a schema inferred from one sample will reject any field that sample did not contain. Loosen it with `.partial()`, `.passthrough()`, or explicit optional keys before pointing it at live traffic, or every legitimate addition upstream becomes a validation error."
+        "`Make strict` appends `.strict()` to the outermost schema only — the substitution targets the final closing parenthesis of the output — so nested object schemas keep default behaviour and will silently drop unknown keys instead of rejecting them. Toggling off removes every `.strict()` occurrence, including any you added yourself.",
+        "Zod is the strictest of these validators about unknown keys, which is the point of using it — a schema inferred from one sample will reject any field that sample did not contain. Loosen it with `.partial()`, `.passthrough()`, or explicit optional keys before pointing it at live traffic, or every legitimate addition upstream becomes a validation error."
       ]
     }
   ],

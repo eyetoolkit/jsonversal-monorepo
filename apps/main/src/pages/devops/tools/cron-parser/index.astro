@@ -28,8 +28,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
     {
       "heading": "The five-field grammar, field by field",
       "body": [
-        "Every field expands independently into a sorted set of integers, and a minute fires when all five sets contain the matching component. Expansion runs a small pipeline per comma-separated token: split off a `/step`, rewrite a bare `*` base to the field minimum, then walk the range by `step`. Because only a literal `*` is rewritten, `*/15` yields 0, 15, 30, 45 while `0/15` collapses to the single value 0 — Vixie cron reads that form as 0-59/15.",
-        "Names resolve before any of that, and only as whole tokens. The month and weekday tables hold full English names, so `monday` and `january` resolve while `mon`, `jan` and `mon-fri` do not: the lookup matches the entire token, so `mon-fri` falls through to the numeric range branch, `Number('mon')` is NaN, and the field ends up empty — a schedule that silently never fires."
+        "Every field expands independently into a sorted set of integers, and a minute fires when the time fields match and the day rule below is satisfied. Expansion runs a small pipeline per comma-separated token: split off a `/step`, resolve the base — `*` or `?` becomes the field's whole range, `a-b` becomes that range, and a bare value becomes either that single value or, when a step is present, `value-max` — then walk it by `step`. So `*/15` and `0/15` both yield 0, 15, 30, 45, matching Vixie cron, and a field that resolves to nothing is reported as an error rather than silently never firing.",
+        "Names resolve per range endpoint, as full names or as prefixes of at least three characters, so `monday`, `mon` and `mon-fri` all work in the weekday field and `january`, `jan` and `jan-mar` work in the month field. Values outside the field's range are dropped rather than kept, so minute `99` is an error instead of a value that can never match."
       ]
     },
     {
@@ -42,7 +42,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
     {
       "heading": "Where cron implementations disagree",
       "body": [
-        "Field combination is the largest divergence. Standard cron unions day-of-month with day-of-week when both are restricted, so `0 0 13 * 5` fires on the 13th and on every Friday; the intersection used here runs only on 13ths that are also Fridays. Kubernetes CronJob controllers are stricter again: `.spec.schedule` takes five fields, rejects `@daily` and the other shorthands, and evaluates in the controller's own UTC. Out-of-range values slip through too — minute `99` is accepted into the set and never matches, and seven-field input is truncated to the first five."
+        "Field combination is where implementations diverge most, and this tool follows the Vixie rule: when day-of-month and day-of-week are both restricted the two are ORed, so `0 0 13 * 5` fires on the 13th and on every Friday. When only one of them is restricted the other acts as a filter, so `0 0 * * 5` is every Friday and `0 0 13 * *` is every 13th. Some schedulers intersect instead, which turns `0 0 13 * 5` into the much rarer \"13th that is also a Friday\" — check your runtime if that distinction matters.",
+        "Kubernetes CronJob controllers are stricter again: `.spec.schedule` takes five fields, rejects `@daily` and the other shorthands, and evaluates in the controller's own UTC, so a manifest built from a browser-local preview can fire at a different wall-clock hour than the one shown here. Seven-field input is truncated to the first five."
       ]
     }
   ]}
@@ -108,29 +109,49 @@ import BaseLayout from '@versal/ui/BaseLayout';
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
+  // Resolves one range endpoint: a number, a full name, or a name prefix of at
+  // least three characters (`mon`, `fri`). Returns null when it is neither.
+  function toNum(tok, namesLower, min) {
+    const t = String(tok == null ? '' : tok).trim();
+    if (!t) return null;
+    if (namesLower) {
+      const lower = t.toLowerCase();
+      let idx = namesLower.findIndex(n => n === lower);
+      if (idx < 0 && lower.length >= 3) idx = namesLower.findIndex(n => n.startsWith(lower));
+      if (idx >= 0) return idx + (min === 0 ? 0 : 1);
+    }
+    const n = parseInt(t, 10);
+    return isNaN(n) ? null : n;
+  }
+
   function expandField(token, min, max, names) {
     const namesLower = names ? names.map(n => n.toLowerCase()) : null;
     const result = new Set();
-    for (const part of token.split(',')) {
+    for (const part of String(token == null ? '' : token).split(',')) {
       let p = part.trim();
-      if (namesLower) {
-        const idx = namesLower.findIndex(n => n === p.toLowerCase());
-        if (idx >= 0) p = String(idx + (min === 0 ? 0 : min === 1 ? 1 : min));
-      }
+      if (!p) continue;
       let step = 1;
       if (p.includes('/')) {
-        const [base, stepStr] = p.split('/');
-        step = parseInt(stepStr);
-        p = base === '*' ? String(min) : base;
+        const slash = p.indexOf('/');
+        const s = parseInt(p.slice(slash + 1), 10);
+        if (!isNaN(s) && s >= 1) step = s;
+        p = p.slice(0, slash).trim();
       }
-      if (p === '*') {
-        for (let i = min; i <= max; i += step) result.add(i);
+      let lo, hi;
+      if (p === '*' || p === '?') {
+        lo = min; hi = max;
       } else if (p.includes('-')) {
-        const [a, b] = p.split('-').map(Number);
-        for (let i = a; i <= b; i += step) result.add(i);
+        const dash = p.indexOf('-');
+        lo = toNum(p.slice(0, dash), namesLower, min);
+        hi = toNum(p.slice(dash + 1), namesLower, min);
       } else {
-        const n = parseInt(p);
-        if (!isNaN(n)) result.add(n);
+        lo = toNum(p, namesLower, min);
+        // A bare value with a step reads as start-to-max (`0/15` = `0-59/15`).
+        hi = step > 1 ? max : lo;
+      }
+      if (lo === null || hi === null) continue;
+      for (let i = lo; i <= hi; i += step) {
+        if (i >= min && i <= max) result.add(i);
       }
     }
     return Array.from(result).sort((a,b) => a-b);
@@ -151,12 +172,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
     month = expandField(fields[offset+3], 1, 12, MONTHS);
     dow = expandField(fields[offset+4], 0, 6, DAYS);
 
-    return { seconds, minutes, hours, dom, month, dow, hasSeconds };
+    // A field that expands to nothing would silently never fire; report it
+    // instead of showing an empty schedule.
+    if (minutes.length === 0) return { error: 'The minute field has no valid values (expected 0-59).' };
+    if (hours.length === 0) return { error: 'The hour field has no valid values (expected 0-23).' };
+    if (dom.length === 0) return { error: 'The day-of-month field has no valid values (expected 1-31).' };
+    if (month.length === 0) return { error: 'The month field has no valid values (1-12, or a month name such as jan).' };
+    if (dow.length === 0) return { error: 'The day-of-week field has no valid values (0-6, or a weekday name such as mon).' };
+
+    // Vixie cron: when both day-of-month and day-of-week are restricted the
+    // two are ORed, so `0 0 13 * 5` runs on the 13th *or* on any Friday.
+    // Only when one of them is `*` (or `?`) does the other act as a filter.
+    // `?` is the Quartz spelling of "no specific value"; treat it as `*`.
+    const domRaw = String(fields[offset+2] || '').trim();
+    const dowRaw = String(fields[offset+4] || '').trim();
+    const domRestricted = domRaw !== '*' && domRaw !== '?';
+    const dowRestricted = dowRaw !== '*' && dowRaw !== '?';
+
+    return { seconds, minutes, hours, dom, month, dow, hasSeconds, domRestricted, dowRestricted };
   }
 
   function explain(parsed) {
     if (parsed.error) return parsed.error;
-    const { minutes, hours, dom, month, dow, hasSeconds } = parsed;
+    const { minutes, hours, dom, month, dow, hasSeconds, domRestricted, dowRestricted } = parsed;
     let parts = [];
 
     function describe(arr, unit, singular) {
@@ -182,20 +220,32 @@ import BaseLayout from '@versal/ui/BaseLayout';
       parts.push(`At minute ${describe(minutes,'minute','minute')} of hour ${describe(hours,'hour','hour')}`);
     }
 
-    if (dom.length === 31) { /* any */ }
-    else if (dom.length === 1) parts.push(`on day ${dom[0]}`);
-    else parts.push(`on days ${describe(dom,'dom','day')}`);
+    // Day-of-month and day-of-week: AND when only one is restricted, OR when
+    // both are (standard Vixie cron).
+    let domPhrase = '', dowPhrase = '';
+    if (domRestricted) domPhrase = dom.length === 1 ? `on day ${dom[0]}` : `on days ${describe(dom,'dom','day')}`;
+    if (dowRestricted) dowPhrase = `on ${describe(dow,'dow','day').split(',').map(d=>DAYS[parseInt(d)]||d).join(', ')}`;
+    if (domPhrase && dowPhrase) parts.push(`${domPhrase} or ${dowPhrase}`);
+    else if (domPhrase) parts.push(domPhrase);
+    else if (dowPhrase) parts.push(dowPhrase);
 
     if (month.length === 12) { /* any */ }
     else if (month.length === 1) parts.push(`in ${MONTHS[month[0]-1]}`);
     else parts.push(`in ${describe(month,'month','month').split(',').map(m=>MONTHS[parseInt(m)-1]||m).join(', ')}`);
 
-    if (dow.length === 7) { /* any */ }
-    else parts.push(`on ${describe(dow,'dow','day').split(',').map(d=>DAYS[parseInt(d)]||d).join(', ')}`);
-
     if (hasSeconds) parts.unshift('(6-field with seconds)');
 
     return parts.join(', ') + '.';
+  }
+
+  // Day matching follows Vixie cron: if both day-of-month and day-of-week are
+  // restricted the job runs when EITHER matches; if only one is restricted the
+  // other is `*`, which always matches, so the pair reduces to that one field.
+  function dayMatches(parsed, d) {
+    const domOk = parsed.dom.includes(d.getDate());
+    const dowOk = parsed.dow.includes(d.getDay());
+    if (parsed.domRestricted && parsed.dowRestricted) return domOk || dowOk;
+    return domOk && dowOk;
   }
 
   function nextRuns(parsed, count = 10) {
@@ -205,8 +255,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     for (let i = 0; runs.length < count && i < max; i++) {
       d.setMinutes(d.getMinutes() + 1);
       if (!parsed.month.includes(d.getMonth() + 1)) continue;
-      if (!parsed.dom.includes(d.getDate())) continue;
-      if (!parsed.dow.includes(d.getDay())) continue;
+      if (!dayMatches(parsed, d)) continue;
       if (!parsed.hours.includes(d.getHours())) continue;
       if (!parsed.minutes.includes(d.getMinutes())) continue;
       runs.push(new Date(d));

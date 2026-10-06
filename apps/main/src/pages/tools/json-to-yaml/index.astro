@@ -1,0 +1,173 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "JSON to YAML Converter";
+const description = "Convert JSON to clean, indented YAML in your browser. Handles nested objects, arrays, strings, numbers, booleans and null. No upload, no server, no size limit imposed by us.";
+const faqs = [
+  {
+    question: "What YAML features does this produce?",
+    answer: "It emits a structural subset: block mappings, block sequences, scalars, and the standard scalar forms for strings, numbers, booleans and null. It does not emit YAML anchors, aliases, multi-document streams, or custom tags — those are out of scope for a JSON-to-YAML translation and would have no JSON source."
+  },
+  {
+    question: "Will the YAML parse back to the same JSON?",
+    answer: "For the supported subset, yes. Strings that could be read as another type — numbers, true/false, null — are quoted so they survive a round trip. Feed the output to any YAML 1.1/1.2 parser and you get the same data structure back."
+  }
+];
+---
+
+<ToolPage
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-to-yaml/"
+  current="/tools/json-to-yaml/"
+  faqs={faqs}
+  about={[
+    {
+      heading: "How the conversion works",
+      body: [
+        "The input is parsed with `JSON.parse`, then serialised by a recursive writer that emits block-style YAML: objects become mappings (`key: value`), arrays become sequences (`- item`), and scalars are written in their natural form. Indentation is two spaces throughout, matching the most common YAML convention.",
+        "Strings that would otherwise be misinterpreted are double-quoted. Anything that looks like a number, a boolean, or the bare words `true`/`false`/`null`/`yes`/`no` gets quoted so the value you pasted is the value you get back, rather than being silently coerced."
+      ]
+    },
+    {
+      heading: "What is and isn't supported",
+      body: [
+        "This is a JSON-to-YAML translation, so the output is the faithful YAML image of your JSON: nested objects, arrays of objects, mixed arrays, and `null`. It is the inverse of the existing YAML ↔ JSON converter's JSON direction, with a cleaner hand-written emitter.",
+        "It deliberately does not produce anchors (`&`), aliases (`*`), multi-document streams (`---`), or custom tags. Those have no JSON equivalent to translate from, and emitting them would invent structure that was not in your input."
+      ]
+    },
+    {
+      heading: "Privacy and limits",
+      body: [
+        "Conversion runs entirely in your browser: the JSON is parsed and rewritten by JavaScript, nothing is uploaded, and there is no server call. Because there is no server, there is no artificial size cap — a large document only takes as long as your browser needs.",
+        "If the input is not valid JSON, the tool reports the parse error instead of guessing. Fix the JSON and convert again; the YAML side never receives malformed input."
+      ]
+    }
+  ]}
+>
+
+  <section class="card mt-2">
+    <h2 class="h2-card">Input JSON</h2>
+    <label for="input" class="sr-only">Input</label>
+    <textarea id="input" spellcheck="false" style="min-height:200px;" placeholder='&#123;&#10;  "name": "Ada",&#10;  "age": 36,&#10;  "active": true,&#10;  "tags": ["math", "cs"],&#10;  "address": &#123; "city": "London", "zip": "EC1" &#125;&#10;&#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="convert">Convert to YAML</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="output-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat">YAML</h2>
+      <button class="ghost" id="copy" style="margin-left:auto;">Copy</button>
+    </div>
+    <pre id="output" class="output-text">—</pre>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 class="h2-error">Error</h2>
+    <pre id="error-out" class="output-text" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste JSON and click <strong>Convert to YAML</strong>.</li>
+    <li>Objects become mappings, arrays become sequences, scalars keep their type.</li>
+    <li>Ambiguous strings are quoted so they round-trip safely.</li>
+    <li>Nothing is uploaded — conversion runs in your browser.</li>
+  </ul>
+
+  <h2>About JSON to YAML</h2>
+  <p class="text-muted">YAML is the human-friendly face of JSON: same data, fewer braces, more whitespace. Converting a JSON payload to YAML makes config files and documentation easier to read, and most tools that accept YAML also accept JSON — so the translation is bidirectional in practice.</p>
+  <p class="text-muted">Because the tool emits a structural subset (no anchors, aliases, or multi-document streams), the output is predictable and round-trippable. Use it when you want the readable form of a JSON document, not when you need YAML's more advanced graph features.</p>
+</ToolPage>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .output-text { min-height: 80px; white-space: pre; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function scalar(v) {
+    if (v === null) return 'null';
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'null';
+    const s = String(v);
+    if (s === '') return '""';
+    if (/^[+-]?[\d.]/.test(s) || /^(true|false|null|yes|no|~)$/i.test(s) ||
+        /[:#\[\]{}&*?|<>=!%@`"',]/.test(s) || s.indexOf('\n') >= 0 || s !== s.trim()) {
+      return JSON.stringify(s);
+    }
+    return s;
+  }
+  function quoteKey(k) { return /^[A-Za-z0-9_-]+$/.test(k) ? k : JSON.stringify(k); }
+
+  function toYaml(val, indent) {
+    const pad = '  '.repeat(indent);
+    if (Array.isArray(val)) {
+      if (val.length === 0) return pad + '[]';
+      const dashPad = '  '.repeat(indent);
+      const childPadLen = (indent + 1) * 2;
+      return val.map(function (item) {
+        if (item !== null && typeof item === 'object') {
+          const sub = toYaml(item, indent + 1);
+          const lines = sub.split('\n');
+          const first = dashPad + '- ' + lines[0].slice(childPadLen);
+          return lines.length > 1 ? first + '\n' + lines.slice(1).join('\n') : first;
+        }
+        return dashPad + '- ' + (item === null ? 'null' : scalar(item));
+      }).join('\n');
+    }
+    if (val !== null && typeof val === 'object') {
+      const keys = Object.keys(val);
+      if (keys.length === 0) return pad + '{}';
+      return keys.map(function (k) {
+        const v = val[k];
+        if (v !== null && typeof v === 'object') {
+          if (Array.isArray(v) && v.length === 0) return pad + quoteKey(k) + ': []';
+          if (!Array.isArray(v) && Object.keys(v).length === 0) return pad + quoteKey(k) + ': {}';
+          const sub = toYaml(v, indent + 1);
+          return pad + quoteKey(k) + ':\n' + sub;
+        }
+        return pad + quoteKey(k) + ': ' + (v === null ? 'null' : scalar(v));
+      }).join('\n');
+    }
+    return pad + (val === null ? 'null' : scalar(val));
+  }
+
+  function convert() {
+    const raw = $('input').value.trim();
+    const errS = $('error-section'), outS = $('output-section');
+    errS.style.display = 'none'; outS.style.display = 'none';
+    if (!raw) { showToast('Paste some JSON first.'); return; }
+    try {
+      const obj = JSON.parse(raw);
+      $('output').textContent = toYaml(obj, 0);
+      outS.style.display = 'block';
+    } catch (e) {
+      $('error-out').textContent = e.message;
+      errS.style.display = 'block';
+    }
+  }
+
+  $('convert').addEventListener('click', convert);
+  $('sample').addEventListener('click', function () {
+    $('input').value = JSON.stringify({
+      name: 'Ada Lovelace', age: 36, active: true, score: 91.5,
+      tags: ['math', 'cs'], address: { city: 'London', zip: 'EC1', primary: false }
+    }, null, 2);
+  });
+  $('clear').addEventListener('click', function () {
+    $('input').value = ''; outS.style.display = 'none'; errS.style.display = 'none';
+  });
+  $('copy').addEventListener('click', async function () {
+    try { await navigator.clipboard.writeText($('output').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+    catch { $('copy').textContent = 'Failed'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+  });
+})();
+</script>

@@ -1,0 +1,610 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = 'JSON Repair — Fix Invalid JSON';
+const description = 'Repair broken JSON in your browser: trailing commas, unquoted keys, single quotes, comments, truncated documents and missing closing braces. See every fix that was applied. No upload.';
+const faqs = [
+  {
+    question: 'What kinds of broken JSON can this repair?',
+    answer: 'Trailing commas, unquoted or single-quoted keys and values, // and /* */ comments, JavaScript literals such as undefined, NaN and Infinity, Python True/False/None, smart quotes from word processors, Markdown code fences and surrounding prose, missing commas between values, strings that are missing their closing quote, and documents truncated by a token limit that are missing their closing braces or brackets.',
+  },
+  {
+    question: 'Does it guarantee the repaired output is valid JSON?',
+    answer: 'The repaired text is parsed with JSON.parse before it is shown. If that parse fails, the tool tells you it could not repair the input rather than presenting something invalid. Some inputs are genuinely ambiguous — two missing quotes and a missing comma can be read several ways — and guessing silently would be worse than saying so.',
+  },
+  {
+    question: 'Is my JSON uploaded anywhere?',
+    answer: 'No. The repair runs as JavaScript in this page. There is no server call, no analytics beacon, and nothing is stored beyond your own clipboard when you press Copy.',
+  },
+];
+---
+
+<ToolPage
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-repair/"
+  keywords={['JSON repair', 'fix invalid JSON', 'broken JSON fixer', 'JSON lint fix', 'invalid JSON repair online']}
+  current="/tools/json-repair/"
+  faqs={faqs}
+  about={[
+    {
+      heading: 'How the repair is made',
+      body: [
+        'The input is not patched with regular expressions. It is walked one character at a time by a scanner that tracks whether it is inside a string, which containers are open, and whether an object currently expects a key or a value. Each token is rewritten into strictly valid JSON as it is read, and every rewrite records a line in the "What was repaired" list, so you can audit what changed instead of trusting a black box.',
+        'Because the result is re-emitted and then parsed with <code>JSON.parse</code>, you either get valid JSON or an explicit failure message. Nothing in between. That guarantee is the reason the tool refuses some inputs rather than inventing data.',
+      ],
+    },
+    {
+      heading: 'The judgement calls, and where they can be wrong',
+      body: [
+        'A quote inside a string closes that string only when what follows looks structural — a comma, a colon, a closing brace, or something shaped like the next object key. Without that rule <code>{"a": "x, "b": 2}</code> would run two values together; with it, an unescaped quote that really was meant as content gets escaped instead. Similarly, a newline inside a string is treated as content only when the following line does not look like it starts a new key — otherwise the string is closed at the break.',
+        'A token limit is not the only thing that truncates a document, and the harder ambiguity is structural. When an object was expecting a key and the token found there is not followed by a colon, the scanner drops the token and says so, because keeping it would require guessing whether it was a key without a value or a value without a key. Truncated documents hit this often: <code>{"id":2,"na</code> becomes <code>{"id":2}</code> with the fragment discarded, never <code>{"id":2,"na":""}</code>.',
+      ],
+    },
+    {
+      heading: 'What it deliberately does not do',
+      body: [
+        'It does not guess missing data. A key with no value after the colon becomes <code>null</code> and the fix list says precisely that; it never invents an empty string or a zero. It does not reorder anything, does not deduplicate keys, and does not attempt to recover a schema — a key absent from your document stays absent.',
+        'Since everything runs on your machine, very large documents take as long as your browser takes. The tool has no size limit imposed by a server because there is no server in the path, but a paste of several megabytes will block the page for as long as the scan takes. <code>undefined</code>, <code>NaN</code> and <code>Infinity</code> have no <a href="/tools/json-formatter/">JSON</a> equivalent and are mapped to <code>null</code> — check those conversions against what your application expects, because losing the distinction between "absent" and "not a number" is a real change to the meaning of a payload.',
+      ],
+    },
+  ]}
+>
+  <section class="card mt-2">
+    <h2 class="h2-card">Broken JSON input</h2>
+    <label for="input" class="sr-only">Input</label>
+    <textarea id="input" spellcheck="false" placeholder='&#123;"name": "Alice", "roles": ["admin",], // oops&#10;&#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="repair" data-primary-action>Repair JSON</button>
+      <button class="ghost" id="sample">Load broken sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="fixes-section" style="display:none;">
+    <h2 class="h2-card">What was repaired</h2>
+    <ol id="fixes" class="fixes"></ol>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat">Repaired JSON</h2>
+      <div class="row" style="gap:8px; margin-left:auto;">
+        <select id="indent" aria-label="Indentation">
+          <option value="2" selected>2 spaces</option>
+          <option value="4">4 spaces</option>
+          <option value="tab">Tab</option>
+        </select>
+        <button class="ghost" id="copy">Copy</button>
+      </div>
+    </div>
+    <pre id="out" class="output-text" style="min-height:120px;">—</pre>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 class="h2-error">Could not repair</h2>
+    <pre id="err-out" class="output-text" style="min-height:60px; color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste the broken JSON and click <strong>Repair JSON</strong>.</li>
+    <li>The scanner rewrites each token it finds into strictly valid JSON and lists what it changed.</li>
+    <li>The repaired text is parsed with <code>JSON.parse</code> before it is shown  — if that fails you get an error instead of invalid output.</li>
+    <li>Nothing leaves your browser. There is no request, no upload, and no storage of your input.</li>
+  </ul>
+
+  <h2>What this tool repairs</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Symptom</th><th>Before</th><th>After</th></tr></thead>
+    <tbody>
+      <tr><td>Trailing comma</td><td><code>&#123;&quot;a&quot;:1,&#125;</code></td><td><code>&#123;&quot;a&quot;:1&#125;</code></td></tr>
+      <tr><td>Unquoted key</td><td><code>&#123;name: &quot;Ada&quot;&#125;</code></td><td><code>&#123;&quot;name&quot;:&quot;Ada&quot;&#125;</code></td></tr>
+      <tr><td>Single quotes</td><td><code>&#123;&#39;a&#39;: &#39;b&#39;&#125;</code></td><td><code>&#123;&quot;a&quot;:&quot;b&quot;&#125;</code></td></tr>
+      <tr><td>Comments</td><td><code>&#123;&quot;a&quot;:1 // hi</code> <code>&#125;</code></td><td><code>&#123;&quot;a&quot;:1&#125;</code></td></tr>
+      <tr><td>Smart quotes</td><td><code>&#123;&quot;a&quot;: “x”&#125;</code></td><td><code>&#123;&quot;a&quot;:&quot;x&quot;&#125;</code></td></tr>
+      <tr><td>Truncated output</td><td><code>&#123;&quot;a&quot;:[1,2</code></td><td><code>&#123;&quot;a&quot;:[1,2]&#125;</code></td></tr>
+      <tr><td>JS literal</td><td><code>&#123;&quot;a&quot;: undefined&#125;</code></td><td><code>&#123;&quot;a&quot;:null&#125;</code></td></tr>
+      <tr><td>Prose wrapper</td><td><code>Sure! &#123;&quot;a&quot;:1&#125; hope that helps</code></td><td><code>&#123;&quot;a&quot;:1&#125;</code></td></tr>
+      <tr><td>Missing value</td><td><code>&#123;&quot;a&quot;: &#125;</code></td><td><code>&#123;&quot;a&quot;:null&#125;</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>About repairing JSON</h2>
+  <p class="text-muted">Model outputs, hand-edited config files and copy-pasted payloads fail JSON parsing for a small set of predictable reasons. A trailing comma that JavaScript tolerates, a single quote that Python tolerates, an unterminated string left behind when a response hit its token limit — none of these are hard to fix by hand, but doing it by hand on a 500-line payload is exactly the kind of work that deserves automation.</p>
+  <p class="text-muted">The important property of a repair tool is not how many cases it handles, but whether it tells you what it did. A silent rewrite that turns <code>undefined</code> into <code>null</code> inside a field your code treats as "not provided yet" changes behaviour, and you would not notice until it mattered. Every repair here is listed, and every conversion to <code>null</code> is called out explicitly.</p>
+</ToolPage>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 220px; }
+  .fixes { margin: 0; padding-left: 1.25rem; color: var(--text-muted); font-size: .95rem; }
+  .fixes li { margin: 4px 0; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-alt); color: var(--text-muted); }
+  td code { background: none; border: none; padding: 0; font-size: .85rem; word-break: break-word; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let lastValue = null;
+
+  const QUOTE_CLASS = {
+    '"': 'd', '\u201C': 'd', '\u201D': 'd',
+    "'": 's', '\u2018': 's', '\u2019': 's',
+  };
+
+  // Returns the first balanced {...} or [...] region, or null when there is none.
+  function extractRoot(s) {
+    const m = s.match(/[{\[]/);
+    if (!m) return null;
+    let depth = 0;
+    let j = m.index;
+    let inStr = false;
+    let q = '';
+    while (j < s.length) {
+      const c = s[j];
+      if (inStr) {
+        if (c === '\\') { j += 2; continue; }
+        if (c === q) inStr = false;
+        j++;
+        continue;
+      }
+      if (c === '"' || c === "'") { inStr = true; q = c; j++; continue; }
+      if (c === '/' && s[j + 1] === '/') { while (j < s.length && s[j] !== '\n' && s[j] !== '\r') j++; continue; }
+      if (c === '/' && s[j + 1] === '*') { const e = s.indexOf('*/', j + 2); j = e === -1 ? s.length : e + 2; continue; }
+      if (c === '{' || c === '[') { depth++; j++; continue; }
+      if (c === '}' || c === ']') { depth--; j++; if (depth === 0) return s.slice(m.index, j); continue; }
+      j++;
+    }
+    return s.slice(m.index);
+  }
+
+  // True when the text is only `key: value, key: value` with the braces missing.
+  function looksLikeObjectBody(s) {
+    let inStr = false;
+    let q = '';
+    for (let k = 0; k < s.length; k++) {
+      const c = s[k];
+      if (inStr) {
+        if (c === '\\') { k++; continue; }
+        if (c === q) { inStr = false; continue; }
+        continue;
+      }
+      if (c === '"' || c === "'") { inStr = true; q = c; continue; }
+      if (c === '{' || c === '[') return false;
+      if (c === ':') return true;
+    }
+    return false;
+  }
+
+  function repairJSON(input) {
+    const fixes = [];
+    const add = (msg) => { if (fixes.indexOf(msg) === -1) fixes.push(msg); };
+
+    let src = String(input == null ? '' : input);
+
+    if (src.charCodeAt(0) === 0xFEFF) {
+      src = src.slice(1);
+      add('Removed a byte-order mark (U+FEFF) from the start of the document.');
+    }
+
+    const fenced = src.match(/^\s*```[A-Za-z0-9_+-]*[ \t]*\r?\n([\s\S]*?)\r?\n?```\s*$/);
+    if (fenced) {
+      src = fenced[1];
+      add('Removed the Markdown ``` code fence wrapping the document.');
+    }
+
+    const firstChar = src.trim().charAt(0);
+    if (firstChar !== '' && '{["'.indexOf(firstChar) === -1 && !/[-0-9]/.test(firstChar)) {
+      const extracted = extractRoot(src);
+      if (extracted !== null) {
+        src = extracted;
+        add('Extracted the JSON document from surrounding prose.');
+      }
+    }
+
+    if (looksLikeObjectBody(src)) {
+      src = '{' + src + '}';
+      add('Wrapped a bare "key: value" fragment in braces so it becomes an object.');
+    }
+
+    const n = src.length;
+    let out = '';
+    let i = 0;
+    const stack = [];
+    let pendingValue = false;
+    let afterColon = false;
+    let stringClosed = true;
+
+    const top = () => (stack.length ? stack[stack.length - 1] : null);
+    const keyPosition = () => { const t = top(); return !!t && t.type === 'obj' && t.expectKey; };
+
+    const emitValue = () => {
+      if (pendingValue) { out += ','; add('Inserted a missing comma between two values.'); }
+      pendingValue = true;
+      afterColon = false;
+      const t = top();
+      if (t && t.type === 'obj') t.expectKey = true;
+    };
+
+    const flushMissingValue = () => {
+      if (afterColon) {
+        out += 'null';
+        add('Added null for a value that was missing after a colon.');
+        pendingValue = true;
+        afterColon = false;
+        const t = top();
+        if (t && t.type === 'obj') t.expectKey = true;
+      }
+    };
+
+    function skipAt(pos) {
+      let p = pos;
+      while (p < n) {
+        const c = src[p];
+        if (c === ' ' || c === '\t' || c === '\n' || c === '\r') { p++; continue; }
+        if (c === '/' && src[p + 1] === '/') { p += 2; while (p < n && src[p] !== '\n' && src[p] !== '\r') p++; continue; }
+        if (c === '/' && src[p + 1] === '*') { const e = src.indexOf('*/', p + 2); p = e === -1 ? n : e + 2; continue; }
+        break;
+      }
+      return p;
+    }
+    const skipWs = () => { i = skipAt(i); };
+    const nextMeaningful = (pos) => { const p = skipAt(pos); return p < n ? src[p] : ''; };
+
+    function looksLikeKeyAfter(pos) {
+      let p = pos;
+      while (p < n && (src[p] === ' ' || src[p] === '\t')) p++;
+      if (p >= n) return false;
+      if (src[p] === '"' || src[p] === "'" || src[p] === '\u201C') {
+        p++;
+        while (p < n && src[p] !== '"' && src[p] !== "'" && src[p] !== '\n' && src[p] !== '\r') p++;
+        p++;
+      } else {
+        while (p < n && /[\w$-]/.test(src[p])) p++;
+        if (src[p] === '"') p++;
+      }
+      while (p < n && (src[p] === ' ' || src[p] === '\t')) p++;
+      return src[p] === ':';
+    }
+
+    function isTerminatorAfter(pos) {
+      const nx = nextMeaningful(pos);
+      return nx === '' || ',}]:\n\r'.indexOf(nx) !== -1 || looksLikeKeyAfter(pos);
+    }
+
+    function newlineEndsString(pos) {
+      let p = pos;
+      if (src[p] === '\r' && src[p + 1] === '\n') p++;
+      p++;
+      while (p < n && (src[p] === ' ' || src[p] === '\t')) p++;
+      if (p >= n) return true;
+      return '"\'{}[]\u201C\u201D'.indexOf(src[p]) !== -1;
+    }
+
+    function readString(start) {
+      stringClosed = false;
+      const cls = QUOTE_CLASS[src[start]];
+      if (src[start] !== '"') {
+        add(cls === 'd'
+          ? 'Replaced curly double quotes with straight JSON quotes.'
+          : 'Replaced single (or curly single) quotes with double quotes.');
+      }
+      let j = start + 1;
+      out += '"';
+      let closed = false;
+      while (j < n) {
+        const c = src[j];
+        if (c === '\\') {
+          const nx = src[j + 1];
+          if (nx === undefined) { out += '\\\\'; j = n; break; }
+          if (cls === 's' && nx === "'") { out += "'"; j += 2; continue; }
+          if ('"\\/bfnrtu'.indexOf(nx) !== -1) { out += c + nx; j += 2; continue; }
+          if (nx === '\n') { out += '\\n'; j += 2; continue; }
+          out += '\\\\'; j += 1; continue;
+        }
+        if (c === '\n' || c === '\r') {
+          if (newlineEndsString(j)) {
+            out += '"'; closed = true; stringClosed = true; j += 1;
+            add('Closed a string that was missing its closing quote at a line break.');
+            break;
+          }
+          out += '\\n';
+          j += (c === '\r' && src[j + 1] === '\n') ? 2 : 1;
+          add('Escaped literal newlines inside a string so multi-line text survives.');
+          continue;
+        }
+        if (c === '"' || c === '\u201C' || c === '\u201D') {
+          if (cls === 's') { out += '\\"'; j += 1; continue; }
+          if (!isTerminatorAfter(j + 1)) {
+            out += '\\"'; j += 1;
+            add('Escaped an unescaped quote inside a string instead of ending it early.');
+            continue;
+          }
+          out += '"'; closed = true; stringClosed = true; j += 1; break;
+        }
+        if (c === "'" || c === '\u2018' || c === '\u2019') {
+          if (cls === 'd') { out += c; j += 1; continue; }
+          if (!isTerminatorAfter(j + 1)) { out += "'"; j += 1; continue; }
+          out += '"'; closed = true; stringClosed = true; j += 1; break;
+        }
+        out += c; j += 1;
+      }
+      if (!closed) {
+        out += '"';
+        add('Closed a string that ran to the end of the input without a closing quote.');
+      }
+      return j;
+    }
+
+    const BARE = /[A-Za-z0-9_$+.\-]/;
+    function readBare(start) {
+      let j = start;
+      while (j < n && BARE.test(src[j])) j++;
+      return j;
+    }
+
+    const LITERALS = { true: 'true', false: 'false', null: 'null' };
+
+    while (i < n) {
+      skipWs();
+      if (i >= n) break;
+      const c = src[i];
+
+      if (QUOTE_CLASS[c]) {
+        const wantsKey = keyPosition();
+        const mark = out.length;
+        const pv = pendingValue;
+        const ac = afterColon;
+        const ek = top() ? top().expectKey : false;
+        emitValue();
+        stringClosed = true;
+        i = readString(i);
+        if (!stringClosed && wantsKey && stack.length > 0) {
+          out = out.slice(0, mark);
+          pendingValue = pv; afterColon = ac;
+          top().expectKey = ek;
+          add('Dropped a truncated key fragment at the end of the document.');
+        }
+        continue;
+      }
+
+      if (c === '{') {
+        emitValue();
+        out += '{'; stack.push({ type: 'obj', expectKey: true });
+        pendingValue = false; i++;
+        continue;
+      }
+      if (c === '[') {
+        emitValue();
+        out += '['; stack.push({ type: 'arr', expectKey: false });
+        pendingValue = false; i++;
+        continue;
+      }
+      if (c === '}' || c === ']') {
+        const want = c === '}' ? 'obj' : 'arr';
+        if (stack.length === 0) {
+          i++;
+          add('Removed a stray closing ' + (c === '}' ? 'brace' : 'bracket') + ' that had nothing to close.');
+          continue;
+        }
+        if (top().type !== want) {
+          flushMissingValue();
+          out += stack.pop().type === 'obj' ? '}' : ']';
+          pendingValue = true;
+          add('Replaced a mismatched closing delimiter with the one the open container required.');
+          continue;
+        }
+        flushMissingValue();
+        stack.pop();
+        out += c; pendingValue = true; i++;
+        continue;
+      }
+      if (c === ',') {
+        const nx = nextMeaningful(i + 1);
+        if (nx === '}' || nx === ']') { i++; add('Removed a trailing comma before a closing brace or bracket.'); continue; }
+        if (nx === ',') { i++; add('Collapsed a doubled comma.'); continue; }
+        flushMissingValue();
+        out += ','; pendingValue = false; i++;
+        const t = top();
+        if (t && t.type === 'obj') t.expectKey = true;
+        continue;
+      }
+      if (c === ':') {
+        out += ':'; pendingValue = false; afterColon = true; i++;
+        const t = top();
+        if (t && t.type === 'obj') t.expectKey = false;
+        continue;
+      }
+
+      const numTok = (src.slice(i).match(/^[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/) || [''])[0];
+      if (numTok.length > 0) {
+        const followedByColon = nextMeaningful(i + numTok.length) === ':';
+        const stray = !followedByColon && keyPosition();
+        if (followedByColon) {
+          emitValue();
+          out += JSON.stringify(numTok);
+          add('Quoted an unquoted numeric object key (e.g. ' + numTok + ': becomes "' + numTok + '":).');
+        } else if (stray) {
+          add('Removed the stray numeric token ' + numTok + ' where an object key was expected.');
+        } else {
+          const tok = numTok[0] === '+' ? numTok.slice(1) : numTok;
+          const num = Number(tok);
+          emitValue();
+          if (!Number.isFinite(num)) {
+            out += 'null';
+            add('Replaced ' + numTok + ', which has no JSON number representation, with null.');
+          } else {
+            if (numTok[0] === '+') add('Removed a leading + from a number.');
+            out += JSON.stringify(num);
+          }
+        }
+        i += numTok.length;
+        continue;
+      }
+
+      if (/[A-Za-z_$]/.test(c)) {
+        const end = readBare(i);
+        const tok = src.slice(i, end);
+        const nx = nextMeaningful(end);
+        const lower = tok.toLowerCase();
+        if (nx === ':') {
+          emitValue();
+          out += JSON.stringify(tok);
+          add('Quoted unquoted object keys (e.g. ' + tok + ': becomes "' + tok + '":).');
+        } else if (!nx && keyPosition()) {
+          add('Dropped the truncated key fragment ' + JSON.stringify(tok) + ' at the end of an object.');
+        } else if (LITERALS[lower] !== undefined) {
+          if (lower !== tok) add('Lower-cased a capitalised literal (' + tok + ' becomes ' + lower + ').');
+          emitValue(); out += lower;
+        } else if (lower === 'undefined' || lower === 'nan' || lower === 'infinity') {
+          emitValue(); out += 'null';
+          add('Replaced the JavaScript-style literal ' + tok + ' with null — JSON has no equivalent.');
+        } else if (lower === 'none') {
+          emitValue(); out += 'null';
+          add('Replaced the Python literal None with null.');
+        } else if (keyPosition()) {
+          add('Removed the stray token ' + JSON.stringify(tok) + ' found where an object key was expected.');
+        } else {
+          emitValue(); out += JSON.stringify(tok);
+          add('Quoted an unquoted string value (' + tok + ').');
+        }
+        i = end;
+        continue;
+      }
+
+      i++;
+    }
+
+    let closes = 0;
+    while (stack.length > 0) {
+      flushMissingValue();
+      out = out.replace(/[ \t\r\n]*,$/, '');
+      out += stack.pop().type === 'obj' ? '}' : ']';
+      closes++;
+    }
+    if (closes > 0) {
+      add('Added ' + closes + ' missing closing ' + (closes === 1 ? 'delimiter' : 'delimiters') + ' to balance the document.');
+    }
+
+    return { text: out, fixes };
+  }
+
+  function positionIn(text, pos) {
+    const before = text.slice(0, pos).split('\n');
+    return 'line ' + before.length + ', column ' + (before[before.length - 1].length + 1);
+  }
+
+  function indentChoice() {
+    const choice = $('indent').value;
+    return choice === 'tab' ? '\t' : parseInt(choice, 10);
+  }
+
+  function render() {
+    if (lastValue === null) return;
+    const result = repairJSON(lastValue);
+    let parsed = null;
+    let err = null;
+    try { parsed = JSON.parse(result.text); } catch (e) { err = e; }
+
+    const fs = $('fixes-section');
+    $('fixes').innerHTML = '';
+    if (result.fixes.length) {
+      result.fixes.forEach(function (f) {
+        const li = document.createElement('li');
+        li.textContent = f;
+        $('fixes').appendChild(li);
+      });
+      fs.style.display = 'block';
+    } else {
+      fs.style.display = 'none';
+    }
+
+    if (err) {
+      let msg = err.message;
+      const m = msg.match(/position (\d+)/);
+      if (m) msg += '  (' + positionIn(result.text, parseInt(m[1], 10)) + ')';
+      $('err-out').textContent =
+        'This input could not be repaired automatically.\n\n' +
+        msg + '\n\n' +
+        'Most often this means the damage is ambiguous — two or more reasonable\n' +
+        'readings exist and guessing one silently would be worse than stopping.\n' +
+        'The repaired text attempted was:\n\n' + result.text;
+      $('err-section').style.display = 'block';
+      $('out-section').style.display = 'none';
+      return;
+    }
+
+    $('err-section').style.display = 'none';
+    $('out').textContent = JSON.stringify(parsed, null, indentChoice());
+    $('out-section').style.display = 'block';
+
+    if (result.fixes.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'No repairs were needed — the input was already valid JSON.';
+      $('fixes').appendChild(li);
+      fs.style.display = 'block';
+    }
+  }
+
+  $('repair').addEventListener('click', function () {
+    const raw = $('input').value;
+    if (!raw.trim()) { showToast('Paste the broken JSON first.'); return; }
+    lastValue = raw;
+    render();
+  });
+
+  $('indent').addEventListener('change', function () { if (lastValue !== null) render(); });
+
+  $('sample').addEventListener('click', function () {
+    $('input').value = [
+      "Sure! Here's the data you asked for:",
+      '',
+      '```json',
+      '{',
+      '  // users are ordered by signup date',
+      '  users: [',
+      '    { id: 1, name: "Ada Lovelace", roles: ["admin", "dev"], active: true, },',
+      '    { id: 2, name: "Alan Turing", roles: [], manager: undefined, last_login: null },',
+      "    { id: 3, name: 'Grace Hopper', roles: [\"dev\"], notes: “COBOL”, score: NaN }",
+      '  ],',
+      '  total: 3,',
+      '  next_cursor: "eyJvZmZzZXQiOjN9",',
+      '}',
+      '```',
+      '',
+      'Let me know if you need anything else.',
+    ].join('\n');
+    lastValue = null;
+    $('err-section').style.display = 'none';
+    $('out-section').style.display = 'none';
+    $('fixes-section').style.display = 'none';
+  });
+
+  $('clear').addEventListener('click', function () {
+    $('input').value = '';
+    lastValue = null;
+    $('fixes-section').style.display = 'none';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+
+  $('copy').addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText($('out').textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(function () { $('copy').textContent = 'Copy'; }, 1200);
+    } catch (e) {
+      $('copy').textContent = 'Failed';
+      setTimeout(function () { $('copy').textContent = 'Copy'; }, 1200);
+    }
+  });
+})();
+</script>

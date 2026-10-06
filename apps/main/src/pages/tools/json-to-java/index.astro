@@ -1,0 +1,299 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "JSON to Java Class Generator";
+const description = "Convert a JSON sample into Java records with typed fields, nested types, and List generics. Handles nulls, arrays, and deep nesting. Runs entirely in your browser.";
+const faqs = [
+  {
+    question: "Does the output work with Jackson or Gson?",
+    answer: "The generator emits Java 16+ records with typed fields, which Jackson 2.12+ and Gson both bind to JSON directly. For older Java, change `record` to `class` and add getters/setters. Field names mirror your JSON keys; a key that is not a legal Java identifier is sanitised, and you would add a @JsonProperty annotation to map it back."
+  },
+  {
+    question: "How are null values and mixed arrays handled?",
+    answer: "A null becomes `Object` because Java has no JSON `null` type. A JSON array whose elements are not all the same type collapses to `List<Object>`, since Java generics cannot express a union. For a precise `List<Type>`, give a sample whose array holds one element type."
+  }
+];
+---
+
+<ToolPage
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/json-to-java/"
+  current="/tools/json-to-java/"
+  faqs={faqs}
+  about={[
+    {
+      heading: "How the types are inferred",
+      body: [
+        "Integers are emitted as `int`, widening to `long` only when the magnitude exceeds a 32-bit `int` (2,147,483,647) — so a large database id stays `long` automatically. Fractional numbers become `double`, booleans become `boolean`, and strings become `String`.",
+        "A JSON array becomes `List<Type>`, using `java.util.List`, and the element type is the union of everything the array contains: objects are merged into one record, primitives are collapsed to their common type, and a mixture falls back to `List<Object>`. An empty array becomes `List<Object>` because no element reveals the intended type."
+      ]
+    },
+    {
+      heading: "Records, nesting and naming",
+      body: [
+        "Each nested object becomes its own `record` declared before the type that references it, named after the field key with the first letter capitalised. Two keys that capitalise alike collide, so a numeric suffix is appended instead of emitting a duplicate identifier.",
+        "Keys that are not legal Java identifiers are stripped to a valid name and the original JSON key is preserved in the data-binding annotation you would add. The core caveat is unchanged from every sample-based generator: fields absent from the sample are absent from the class, so a representative sample matters."
+      ]
+    },
+    {
+      heading: "What the output is and is not",
+      body: [
+        "The tool produces a compilable starting point, not a full DTO layer. It does not add validation annotations, builders, or equals/hashCode beyond what a record gives you for free. Treat it as the skeleton you then annotate for your serialisation library.",
+        "Everything runs in your browser: the JSON is parsed and walked by JavaScript, nothing is uploaded, and there is no server call. Large documents take as long as your browser needs, but they never leave the page."
+      ]
+    }
+  ]}
+>
+
+  <section class="card mt-2">
+    <h2 class="h2-card">Input JSON</h2>
+    <label for="input" class="sr-only">Input</label>
+    <textarea id="input" placeholder='&#123;&#10;  "id": 42,&#10;  "name": "Alice",&#10;  "active": true,&#10;  "tags": ["a", "b"],&#10;  "address": &#123; "city": "NYC", "zip": 10001 &#125;&#10;&#125;'></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="convert">Generate Java</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="output-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat">Java Records</h2>
+      <div class="row" style="gap:8px; margin-left:auto;">
+        <select id="style" aria-label="Output style">
+          <option value="record" selected>Records (Java 16+)</option>
+          <option value="class">POJO classes</option>
+        </select>
+        <button class="ghost" id="copy">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="output-text">—</pre>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 class="h2-error">Error</h2>
+    <pre id="error-out" class="output-text" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste a JSON sample on the left and click <strong>Generate Java</strong>.</li>
+    <li>Every nested object becomes a typed <code>record</code> (or <code>class</code>); arrays become <code>List&lt;Type&gt;</code>.</li>
+    <li>Switch the <strong>style</strong> selector to emit classic POJO classes with getters and setters instead of records.</li>
+    <li>Nothing is uploaded — the conversion runs in your browser.</li>
+  </ul>
+
+  <h2>Type mapping</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>JSON value</th><th>Java type</th></tr></thead>
+    <tbody>
+      <tr><td><code>42</code></td><td><code>int</code> (or <code>long</code> if large)</td></tr>
+      <tr><td><code>3.14</code></td><td><code>double</code></td></tr>
+      <tr><td><code>"hi"</code></td><td><code>String</code></td></tr>
+      <tr><td><code>true</code></td><td><code>boolean</code></td></tr>
+      <tr><td><code>null</code></td><td><code>Object</code></td></tr>
+      <tr><td><code>[1, 2, 3]</code></td><td><code>List&lt;Integer&gt;</code></td></tr>
+      <tr><td><code>[&#123;...&#125;]</code></td><td><code>List&lt;Nested&gt;</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>About JSON to Java</h2>
+  <p class="text-muted">Turning a JSON payload into Java types by hand is mechanical and error-prone, especially with nested objects and arrays of objects. This generator reads a sample and emits records or POJOs you can paste into a model package. It infers types from the values it sees, so a sample that covers the real shape of your data produces a more accurate class.</p>
+  <p class="text-muted">Remember that inference reflects only the sample: a field missing from the sample is missing from the output, and a heterogeneous array becomes <code>List&lt;Object&gt;</code>. Use it as a skeleton, then annotate with <code>@JsonProperty</code>, validation, and serialisation hints for your stack.</p>
+</ToolPage>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  textarea { min-height: 200px; }
+  .output-text { min-height: 80px; white-space: pre; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); }
+  th { background: var(--surface-alt); color: var(--text-muted); }
+  td code { background: none; border: none; padding: 0; font-size: .85rem; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function isPlainObject(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function sanitizeName(raw, fallbackPrefix) {
+    let n = String(raw == null ? '' : raw).replace(/[^A-Za-z0-9_$]/g, '');
+    if (!n || !/^[A-Za-z_$]/.test(n)) n = fallbackPrefix + n;
+    return n;
+  }
+
+  function buildJava(root) {
+    const decls = [];
+    const used = new Set();
+    let usesList = false;
+
+    function uniqueClassName(base) {
+      let n = sanitizeName(base, 'Item');
+      n = n.charAt(0).toUpperCase() + n.slice(1);
+      let cand = n, i = 2;
+      while (used.has(cand)) cand = n + (i++);
+      used.add(cand);
+      return cand;
+    }
+
+    function mergeObjects(objs) {
+      const r = {};
+      for (const o of objs) for (const [k, v] of Object.entries(o)) if (!(k in r)) r[k] = v;
+      return r;
+    }
+
+    function elementType(arr, name) {
+      const objs = [];
+      const prims = new Set();
+      for (const it of arr) {
+        if (isPlainObject(it)) objs.push(it);
+        else if (it !== null) { const t = scalarType(it); if (t) prims.add(t); }
+      }
+      if (objs.length && prims.size === 0) return typeExpr(mergeObjects(objs), name);
+      if (!objs.length && prims.size) return prims.size === 1 ? [...prims][0] : 'Object';
+      return 'Object';
+    }
+
+    function scalarType(v) {
+      if (v === null) return null;
+      if (typeof v === 'boolean') return 'boolean';
+      if (typeof v === 'number') {
+        if (Number.isInteger(v)) return Math.abs(v) > 2147483647 ? 'long' : 'int';
+        return 'double';
+      }
+      if (typeof v === 'string') return 'String';
+      return null;
+    }
+
+    function typeExpr(value, name) {
+      if (value === null) return 'Object';
+      if (typeof value === 'boolean') return 'boolean';
+      if (typeof value === 'number') {
+        if (Number.isInteger(value)) return Math.abs(value) > 2147483647 ? 'long' : 'int';
+        return 'double';
+      }
+      if (typeof value === 'string') return 'String';
+      if (Array.isArray(value)) {
+        usesList = true;
+        if (value.length === 0) return 'List<Object>';
+        const inner = elementType(value, name);
+        return 'List<' + inner + '>';
+      }
+      if (isPlainObject(value)) {
+        const tn = uniqueClassName(name);
+        decls.push(objectDecl(value, tn));
+        return tn;
+      }
+      return 'Object';
+    }
+
+    function ctorParams(obj) {
+      const lines = [];
+      for (const [k, v] of Object.entries(obj)) {
+        const safe = sanitizeName(k, 'field');
+        const t = v === null ? 'Object' : typeExpr(v, capitalize(k));
+        lines.push('  ' + t + ' ' + safe);
+      }
+      return lines;
+    }
+
+    function objectDecl(obj, tn) {
+      const entries = Object.entries(obj);
+      if (entries.length === 0) return 'public record ' + tn + '() {}';
+      if (style === 'class') {
+        const fields = [];
+        const getters = [];
+        const setters = [];
+        for (const [k, v] of entries) {
+          const safe = sanitizeName(k, 'field');
+          const t = v === null ? 'Object' : typeExpr(v, capitalize(k));
+          fields.push('  private ' + t + ' ' + safe + ';');
+          const cap = safe.charAt(0).toUpperCase() + safe.slice(1);
+          getters.push('  public ' + t + ' get' + cap + '() { return ' + safe + '; }');
+          setters.push('  public void set' + cap + '(' + t + ' ' + safe + ') { this.' + safe + ' = ' + safe + '; }');
+        }
+        return 'public class ' + tn + ' {\n' + fields.join('\n') + '\n\n' + getters.join('\n') + '\n\n' + setters.join('\n') + '\n}';
+      }
+      return 'public record ' + tn + '(\n' + ctorParams(obj).join(',\n') + '\n) {}';
+    }
+
+    let style = 'record';
+    const rootType = typeExpr(root, isPlainObject(root) ? 'Root' : 'Root');
+    let out = decls.join('\n\n');
+    if (!isPlainObject(root)) {
+      const rootName = uniqueClassName('Root');
+      const single = Array.isArray(root)
+        ? 'List<' + (root.length ? elementType(root, 'Item') : 'Object') + '> items'
+        : scalarType(root) + ' value';
+      const decl = style === 'class'
+        ? 'public class ' + rootName + ' {\n  private ' + single.split(' ')[0] + ' ' + single.split(' ')[1] + ';\n}'
+        : 'public record ' + rootName + '(' + single + ') {}';
+      out = (out ? out + '\n\n' : '') + decl;
+    }
+    if (usesList) out = 'import java.util.List;\n\n' + out;
+    return out;
+  }
+
+  const input = $('input');
+  const outputSection = $('output-section');
+  const errorSection = $('error-section');
+  const output = $('output');
+  const errorOut = $('error-out');
+
+  $('convert').addEventListener('click', function () {
+    const raw = input.value.trim();
+    if (!raw) { showToast('Paste some JSON first.'); return; }
+    try {
+      const obj = JSON.parse(raw);
+      const java = buildJava(obj);
+      output.textContent = java;
+      outputSection.style.display = 'block';
+      errorSection.style.display = 'none';
+    } catch (e) {
+      errorOut.textContent = e.message;
+      errorSection.style.display = 'block';
+      outputSection.style.display = 'none';
+    }
+  });
+
+  $('style').addEventListener('change', function () {
+    if (input.value.trim()) $('convert').click();
+  });
+
+  $('sample').addEventListener('click', function () {
+    input.value = JSON.stringify({
+      id: 42,
+      name: "Alice",
+      active: true,
+      score: 91.5,
+      tags: ["premium", "beta"],
+      address: { city: "New York", zip: 10001, primary: true }
+    }, null, 2);
+  });
+
+  $('clear').addEventListener('click', function () {
+    input.value = '';
+    outputSection.style.display = 'none';
+    errorSection.style.display = 'none';
+  });
+
+  $('copy').addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText(output.textContent);
+      $('copy').textContent = 'Copied!';
+      setTimeout(() => $('copy').textContent = 'Copy', 1200);
+    } catch {
+      $('copy').textContent = 'Failed';
+      setTimeout(() => $('copy').textContent = 'Copy', 1200);
+    }
+  });
+})();
+</script>

@@ -1,20 +1,24 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "LLM Token & Pricing Calculator";
-const description = "Estimate token count and cost across GPT-4o, Claude 3.5, Gemini, and Llama. Supports text, code, and JSON inputs.";
+const title = "LLM Token Estimate & Pricing Calculator";
+const description = "Get a rough order-of-magnitude token estimate and projected cost across GPT-4o, Claude, Gemini, Llama and DeepSeek. A fast sanity check, not a tokenizer - use the provider's own tokenizer for exact counts.";
 const faqs = [
   {
-    "question": "How do I calculate LLM token usage?",
-    "answer": "Enter your text prompt or paste a document, select the model (GPT-4o, Claude 3.5, Gemini 1.5, or Llama 3), and the tool estimates the token count and API cost instantly. Pricing uses each provider's current public rate."
+    "question": "How do I estimate LLM token usage?",
+    "answer": "Enter your text and the tool returns an estimate of roughly one token per two characters, then multiplies that by each model's published per-million rate. Treat the number as an upper bound on cost: the estimate runs about double what a real byte-pair tokenizer returns for English prose, and it over-counts code, JSON and especially CJK text."
   },
   {
     "question": "Which AI models are supported?",
-    "answer": "GPT-4o, GPT-4o-mini, GPT-3.5 Turbo, Claude 3.5 Sonnet, Claude 3 Opus, Gemini 1.5 Pro, Gemini 1.5 Flash, and Llama 3.1 70B are supported. Pricing is updated to current public rates."
+    "answer": "The pricing table covers GPT-4o, GPT-4o-mini, Claude 3.5 Sonnet, Claude 3.5 Haiku, Gemini 1.5 Pro, Gemini 1.5 Flash, Llama 3.1 70B, Llama 3.1 8B, DeepSeek V3 and DeepSeek R1. Rates are pinned in the page source and dated 2024-2025, so confirm current pricing with the provider before budgeting."
   },
   {
     "question": "Is my prompt sent to an API?",
-    "answer": "No. Token counting uses a local statistical model (cl100k_base for GPT models, o200k_base for Claude). Your text never leaves your browser and is not logged or stored anywhere."
+    "answer": "No. The estimate is computed in your browser from character length alone - no tokenizer vocabulary is bundled and no request leaves the page. Your text is not logged or stored."
+  },
+  {
+    "question": "How accurate is the token count?",
+    "answer": "Not very, by design. It is a character-count approximation rather than a byte-pair encoding, so it is useful for comparing models or checking whether a document plausibly fits a context window, and not for billing. For an exact count run tiktoken for OpenAI models or Anthropic's count-tokens endpoint."
   }
 ];
 import ToolNav from '@versal/ui/ToolNav.astro';
@@ -69,11 +73,11 @@ import BaseLayout from '@versal/ui/BaseLayout';
       <h2 class="h2-flat">Estimated token count</h2>
       <span class="token-badge" id="token-count">—</span>
     </div>
-    <p class="text-dim" style="font-size:.85rem;">Based on GPT-4 tokenizer approximation (cl100k_base).</p>
+    <p class="text-dim" style="font-size:.85rem;">Rough estimate — roughly one token per two characters, not a real tokenizer. Expect it to run about double the true count.</p>
   </section>
 
   <section class="card mt-2" id="pricing-section" style="display:none;">
-    <h2 class="h2-card">Estimated cost per 1M tokens</h2>
+    <h2 class="h2-card">Estimated cost for this input</h2>
     <div class="table-wrap">
     <table id="pricing-table">
       <thead>
@@ -92,7 +96,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </section>
 
   <h2>How token counting works</h2>
-  <p class="text-muted">This tool uses a tokenizer approximation based on GPT-4's cl100k_base encoding. Real token counts vary slightly by model. For exact counts, use the provider's own tokenizer.</p>
+  <p class="text-muted">This tool does not run a byte-pair tokenizer. It walks your text two characters at a time and counts one token per pair, so the result is approximately half the character length — an order-of-magnitude figure, not a billable one. Real tokenizers split on subword boundaries, so actual counts differ substantially and unevenly: expect roughly half this number for English prose, a wider gap for code and JSON, and a genuine mismatch for CJK text, where each ideograph is commonly its own token. For exact counts, use <code>tiktoken</code> for OpenAI models or Anthropic's count-tokens endpoint.</p>
 
   <h2>Supported models</h2>
   <ul>
@@ -104,8 +108,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </ul>
 
   <h2>About LLM Token Calculator</h2>
-  <p class="text-muted">Tokens are the chunks of text that language models read and generate; roughly one token equals about four characters or three-quarters of an English word. Because providers bill per token on both input and output, longer prompts and responses translate directly into higher API costs. This tool estimates the token count of your text and projects the cost across common models so you can budget before you build.</p>
-  <p class="text-muted">Use it before drafting a prompt, selecting a model, or checking whether your input fits inside a model's context window. Keep in mind that every provider uses its own tokenizer  — the estimate here is based on GPT-4's cl100k_base encoding  — so treat the numbers as a close approximation and verify exact counts with the provider's own tokenizer when precision matters.</p>
+  <p class="text-muted">Tokens are the chunks of text that language models read and generate; roughly one token equals about four characters or three-quarters of an English word. Because providers bill per token on both input and output, longer prompts and responses translate directly into higher API costs. This tool gives you a fast estimate of that cost so you can budget before you build.</p>
+  <p class="text-muted">The count here is deliberately approximate — it is derived from character length rather than from any model's vocabulary, and it typically lands around twice the true figure. Every provider tokenises differently, so use the number to compare models or to check whether a document plausibly fits inside a context window, and verify the exact count with the provider's own tokenizer whenever precision matters. Cost figures are an upper bound for the same reason.</p>
 </ToolPage>
 
 <style>

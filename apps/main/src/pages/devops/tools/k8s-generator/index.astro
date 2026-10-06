@@ -6,11 +6,15 @@ const description = "Scaffold Kubernetes Deployment, Service, and Ingress manife
 const faqs = [
   {
     "question": "How do I generate Kubernetes manifests?",
-    "answer": "Select the resource type (Deployment, Service, ConfigMap, Secret, Ingress, PVC), fill in the form fields (name, port, image, labels, replicas), and click Generate. The tool outputs a complete YAML manifest ready to apply with kubectl."
+    "answer": "Select the resource type (Deployment, Service or Ingress), fill in the form fields (name, namespace, labels, image, replicas, ports), and click Generate YAML. The tool outputs a minimal manifest for that one resource, ready to apply with kubectl."
   },
   {
     "question": "Can I generate multiple resources at once?",
-    "answer": "Yes. The tool can generate a full multi-resource bundle: Deployment + Service + ConfigMap + Ingress together as separate documents in one YAML file, ready for kubectl apply -f."
+    "answer": "Not in one click. The generator emits a single resource per run — pick Deployment, Service or Ingress, generate, then paste the documents into one file separated by --- if you want a multi-resource bundle. ConfigMap, Secret and PVC are not supported."
+  },
+  {
+    "question": "Is the generated manifest production-ready?",
+    "answer": "It is a valid starting point, not a production manifest. There is no resources block, so pods get BestEffort QoS, and there are no readiness or liveness probes. Add both before serving traffic, and create the namespace first — the manifests write metadata.namespace but never create it."
   }
 ];
 import ToolNav from '@versal/ui/ToolNav.astro';
@@ -29,7 +33,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       "heading": "Deployment, Service, Ingress and the label contract",
       "body": [
         "The three objects are three different jobs, and the generator's real contribution is making the one thing that commonly breaks agree across all of them. A Deployment needs a selector that matches its own pod template; a Service needs a selector that matches pods it should route to. Both are filled from the same single label input, which is emitted three times in the Deployment — `metadata.labels`, `spec.selector.matchLabels`, and `spec.template.metadata.labels` — so a mismatch is structurally impossible here rather than merely unlikely.",
-        "Ingress does not use labels at all. It names a backend service and a backend port, which is why its fields are separate from the Service's: the object it points at is a Service, and the port it names is that Service's `port`, not the container's."
+        "Ingress does not use a label selector. It names a backend service and a backend port, which is why its fields are separate from the Service's: the object it points at is a Service, and the port it names is that Service's `port`, not the container's. Labels entered for an Ingress are written to `metadata.labels` only, and have no effect on routing."
       ]
     },
     {
@@ -43,7 +47,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       "heading": "What the generated YAML leaves out",
       "body": [
         "There is no `resources` block, which means every pod is BestEffort QoS: first in line for eviction under node pressure, and invisible to a scheduler that bin-packs on requests. There are no probes either, so a rolling update will happily route traffic to a container that is running but not ready. Neither is fatal for a manifest you apply while learning; both matter the moment replicas actually serve traffic.",
-        "The Ingress is inert YAML until an ingress controller with a matching `ingressClassName` is watching that namespace — the object alone does nothing. And the namespace is written into `metadata.namespace` but never created, so `kubectl apply` fails outright if it does not already exist."
+        "The Ingress is inert YAML until an ingress controller with a matching `ingressClassName` is watching that namespace — the object alone does nothing. The namespace is written into `metadata.namespace` but never created, so `kubectl apply` fails outright if it does not already exist. Names are checked against DNS-1123 and at least one label is required, since the Deployment selector cannot be empty; ports are range-checked, and an empty Ingress path falls back to `/`."
       ]
     }
   ]}
@@ -188,6 +192,13 @@ import BaseLayout from '@versal/ui/BaseLayout';
       const ns = $('ns').value.trim();
       if (!name) throw new Error('Name is required.');
       const labels = parseLabels($('labels').value);
+      if (Object.keys(labels).length === 0) throw new Error('At least one label is required - the Deployment selector and Service selector are built from it.');
+      if (!/^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$/.test(name) || name.length > 253) {
+        throw new Error('Name must be lowercase alphanumeric, "-" or "." (DNS-1123), e.g. my-app.');
+      }
+      if (ns && (!/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(ns) || ns.length > 63)) {
+        throw new Error('Namespace must be a lowercase DNS-1123 label, e.g. default.');
+      }
 
       let yaml = '';
       if (kind === 'deployment') {
@@ -241,12 +252,11 @@ ${labelsYaml(matchLabels, 4)}
     protocol: TCP`;
       } else { // ingress
         const host = $('ing-host').value.trim();
-        const path = $('ing-path').value.trim();
+        const path = $('ing-path').value.trim() || '/';
         const service = $('ing-service').value.trim();
         const ingPort = parseInt($('ing-port').value, 10);
         const ingClass = $('ing-class').value.trim();
         if (!host) throw new Error('Host is required.');
-        if (!path) path; // default '/'
         if (!service) throw new Error('Backend service is required.');
         if (isNaN(ingPort) || ingPort < 1 || ingPort > 65535) throw new Error('Invalid backend port.');
         yaml = `apiVersion: networking.k8s.io/v1

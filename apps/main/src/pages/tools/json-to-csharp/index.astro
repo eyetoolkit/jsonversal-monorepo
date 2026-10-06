@@ -120,6 +120,16 @@ import BaseLayout from '@versal/ui/BaseLayout';
   const $ = id => document.getElementById(id);
 
   const defs = [];
+  const usedNames = new Set();
+
+  // Two keys can pascal-case to the same C# class name (`a` at two depths, or
+  // `user_id` and `userId`). Suffix rather than declare the class twice.
+  function uniqueName(base) {
+    let n = base, i = 2;
+    while (usedNames.has(n)) n = base + (i++);
+    usedNames.add(n);
+    return n;
+  }
 
   function pascal(s) {
     return s.replace(/[^a-zA-Z0-9]+/g, ' ').split(' ')
@@ -155,7 +165,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
         }
       }
       if (hasObj) {
-        const t = propName(key) + 'Item';
+        const t = uniqueName(propName(key) + 'Item');
         defs.push([t, merged]);
         return 'List<' + t + '>';
       }
@@ -163,7 +173,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       return 'List<object>';
     }
     if (typeof v === 'object') {
-      const t = propName(key);
+      const t = uniqueName(propName(key));
       defs.push([t, v]);
       return t;
     }
@@ -184,14 +194,21 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   function convert(raw) {
     defs.length = 0;
+    usedNames.clear();
     const obj = JSON.parse(raw);
     if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
       throw new Error('Top-level value must be a JSON object.');
     }
     defs.push(['Root', obj]);
+    usedNames.add('Root');
     const out = [];
+    // Nested classes are discovered while their parent is being rendered, so
+    // the root is rendered first to populate `defs` and placed last in the
+    // output. Draining with a `for` that re-reads `defs.length` also picks up
+    // classes discovered while rendering those nested classes.
+    const rootDef = renderDef(defs[0][0], defs[0][1]);
     for (let i = 1; i < defs.length; i++) out.push(renderDef(defs[i][0], defs[i][1]));
-    out.push(renderDef(defs[0][0], defs[0][1]));
+    out.push(rootDef);
     return out.join('\n\n');
   }
 

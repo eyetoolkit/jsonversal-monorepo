@@ -1,0 +1,197 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "XML to JSON Converter";
+const description = "Convert XML to JSON (and JSON back to XML) entirely in your browser. Attributes, nested elements, repeated tags and text are mapped automatically. No upload, no server.";
+const faqs = [
+  {
+    question: "How are XML attributes and repeated tags handled?",
+    answer: "Attributes are placed under an `@attributes` object on their element. Child elements with the same tag name are collected into a JSON array; a single child stays a single object. Element text is kept under `#text` when the element also has attributes or children."
+  },
+  {
+    question: "Can it convert JSON back to XML?",
+    answer: "Yes. Switch the mode to JSON → XML and the tool serialises your JSON: objects become nested elements, arrays repeat the parent's child element, and strings/numbers/booleans become text content. Root element name is configurable."
+  }
+];
+---
+
+<ToolPage
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/xml-to-json/"
+  current="/tools/xml-to-json/"
+  faqs={faqs}
+  about={[
+    {
+      heading: "The XML → JSON mapping",
+      body: [
+        "The converter parses the XML with the browser's DOM parser, then walks the resulting tree. Attributes surface as an `@attributes` object, text content as `#text`, and child elements as nested objects. When several children share a tag, they are gathered into an array so the structure round-trips predictably.",
+        "Namespaces and prefixes are preserved verbatim as tag and attribute names — the tool does not rewrite them. If your document uses default namespaces, expect the prefix to appear in the JSON keys; this keeps the mapping lossless rather than opinionated."
+      ]
+    },
+    {
+      heading: "JSON → XML direction",
+      body: [
+        "In the reverse direction, each object becomes a parent element containing its properties as child elements; an array repeats the child element once per item under the array's key. Scalars become text content, and `null` is emitted as an empty element.",
+        "The root element name is taken from the top-level object's single key when there is one, or from the configurable root name otherwise. This is a structural subset mapping — it does not model XML attributes on the JSON side, CDATA sections, or processing instructions."
+      ]
+    },
+    {
+      heading: "Privacy and limits",
+      body: [
+        "All parsing happens locally: the XML or JSON never leaves the page, there is no upload, and there is no analytics beacon. Large documents take as long as the browser needs but stay on your machine.",
+        "Because the mapping is intentionally simple, very large or deeply nested XML may produce verbose JSON. Treat the output as a faithful structural translation, not a semantically typed document."
+      ]
+    }
+  ]}
+>
+
+  <section class="card mt-2">
+    <div class="row" style="justify-content:space-between;">
+      <h2 class="h2-card" style="margin:0;">Convert</h2>
+      <select id="mode" aria-label="Conversion mode">
+        <option value="xml2json" selected>XML → JSON</option>
+        <option value="json2xml">JSON → XML</option>
+      </select>
+    </div>
+    <label for="input" class="sr-only">Input</label>
+    <textarea id="input" spellcheck="false" style="min-height:200px;" placeholder='<note>\n  <to>Ada</to>\n  <from>Linus</from>\n  <body>Hello!</body>\n</note>'></textarea>
+    <div class="row mt-1">
+      <label for="rootName" class="sr-only">Root name</label>
+      <input id="rootName" class="input" style="max-width:220px;" placeholder="root (for JSON→XML)" value="root">
+      <button class="primary" id="convert">Convert</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="output-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat" id="out-title">JSON</h2>
+      <button class="ghost" id="copy" style="margin-left:auto;">Copy</button>
+    </div>
+    <pre id="output" class="output-text">—</pre>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 class="h2-error">Error</h2>
+    <pre id="error-out" class="output-text" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Paste XML (or JSON in reverse mode) and click <strong>Convert</strong>.</li>
+    <li>Pick <strong>XML → JSON</strong> or <strong>JSON → XML</strong> from the mode selector.</li>
+    <li>Attributes map to <code>@attributes</code>, repeated tags become arrays.</li>
+    <li>Nothing is uploaded — conversion runs in your browser.</li>
+  </ul>
+
+  <h2>About XML ↔ JSON</h2>
+  <p class="text-muted">XML and JSON represent the same tree of data with different syntax, so moving between them is mostly a question of convention: where do attributes go, and how do repeated siblings become arrays? This tool uses the widely adopted convention that attributes live under <code>@attributes</code> and repeated tags become arrays, which keeps the conversion predictable and reversible.</p>
+  <p class="text-muted">Use it to bridge an XML API response into JSON your code consumes, or to emit XML from a JSON document. For round-tripping, the JSON view is the source of truth; re-converting it to XML produces a structurally equivalent document, though attribute ordering may differ from the original.</p>
+</ToolPage>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .input { width: 100%; }
+  .output-text { min-height: 80px; white-space: pre; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  function xmlToObj(node) {
+    if (node.nodeType === 3) return node.textContent;
+    if (node.nodeType !== 1) return null;
+    const obj = {};
+    if (node.attributes && node.attributes.length) {
+      obj['@attributes'] = {};
+      for (const a of node.attributes) obj['@attributes'][a.name] = a.value;
+    }
+    const childEls = Array.from(node.childNodes).filter(n => n.nodeType === 1);
+    const textEls = Array.from(node.childNodes).filter(n => n.nodeType === 3 && n.textContent.trim() !== '');
+    if (childEls.length === 0) {
+      const txt = textEls.map(n => n.textContent).join('').trim();
+      if (Object.keys(obj).length === 0) return txt;
+      if (txt) obj['#text'] = txt;
+      return obj;
+    }
+    const grouped = {};
+    for (const ch of childEls) {
+      const name = ch.tagName;
+      (grouped[name] = grouped[name] || []).push(xmlToObj(ch));
+    }
+    for (const [name, arr] of Object.entries(grouped)) {
+      obj[name] = arr.length === 1 ? arr[0] : arr;
+    }
+    const txt = textEls.map(n => n.textContent).join('').trim();
+    if (txt) obj['#text'] = txt;
+    return obj;
+  }
+
+  function escapeXml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function jsonToXml(val, name) {
+    if (val === null || val === undefined) return '<' + name + '></' + name + '>';
+    if (Array.isArray(val)) return val.map(x => jsonToXml(x, name)).join('');
+    if (typeof val === 'object') {
+      const inner = Object.keys(val).map(k => jsonToXml(val[k], k)).join('');
+      return '<' + name + '>' + inner + '</' + name + '>';
+    }
+    return '<' + name + '>' + escapeXml(val) + '</' + name + '>';
+  }
+
+  function convert() {
+    const mode = $('mode').value;
+    const raw = $('input').value.trim();
+    const errS = $('error-section'), outS = $('output-section');
+    errS.style.display = 'none'; outS.style.display = 'none';
+    if (!raw) { showToast('Paste some input first.'); return; }
+    try {
+      if (mode === 'xml2json') {
+        const doc = new DOMParser().parseFromString(raw, 'application/xml');
+        const errNode = doc.getElementsByTagName('parsererror');
+        if (errNode.length) throw new Error(errNode[0].textContent);
+        const result = xmlToObj(doc.documentElement);
+        $('output').textContent = JSON.stringify(result, null, 2);
+        $('out-title').textContent = 'JSON';
+      } else {
+        const data = JSON.parse(raw);
+        const root = $('rootName').value.trim() || 'root';
+        const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + jsonToXml(data, Object.keys(data).length === 1 ? Object.keys(data)[0] : root);
+        $('output').textContent = xml;
+        $('out-title').textContent = 'XML';
+      }
+      outS.style.display = 'block';
+    } catch (e) {
+      $('error-out').textContent = e.message;
+      errS.style.display = 'block';
+    }
+  }
+
+  $('convert').addEventListener('click', convert);
+  $('mode').addEventListener('change', function () {
+    $('input').placeholder = $('mode').value === 'xml2json'
+      ? '<note>\n  <to>Ada</to>\n  <body>Hello!</body>\n</note>'
+      : '{\n  "note": { "to": "Ada", "body": "Hello!" }\n}';
+    if ($('input').value.trim()) convert();
+  });
+  $('sample').addEventListener('click', function () {
+    if ($('mode').value === 'xml2json') {
+      $('input').value = '<note id="1">\n  <to>Ada</to>\n  <from>Linus</from>\n  <body>Hello!</body>\n</note>';
+    } else {
+      $('input').value = JSON.stringify({ note: { to: 'Ada', from: 'Linus', body: 'Hello!' } }, null, 2);
+    }
+  });
+  $('clear').addEventListener('click', function () {
+    $('input').value = ''; outS.style.display = 'none'; errS.style.display = 'none';
+  });
+  $('copy').addEventListener('click', async function () {
+    try { await navigator.clipboard.writeText($('output').textContent); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+    catch { $('copy').textContent = 'Failed'; setTimeout(() => $('copy').textContent = 'Copy', 1200); }
+  });
+})();
+</script>

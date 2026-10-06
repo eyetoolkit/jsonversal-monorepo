@@ -1,16 +1,20 @@
 ---
 import ToolPage from '@versal/ui/ToolPage.astro';
 
-const title = "YAML Formatter & Validator";
-const description = "Format, validate, convert, and pretty-print YAML online. Handles anchors, aliases, multi-document streams, tags, and flow style. 100 percent client-side.";
+const title = "YAML Formatter";
+const description = "Format, pretty-print, and convert block-style YAML online. Re-indents nested key: value mappings and can emit JSON. A structural subset, not a full YAML 1.2 parser - no anchors, sequences, or multi-document streams. 100 percent client-side.";
 const faqs = [
   {
     "question": "How do I format YAML?",
-    "answer": "Paste your YAML into the input and click Format. The tool parses and re-serializes it with consistent indentation. It also validates YAML syntax and reports errors with line numbers."
+    "answer": "Paste your YAML into the input and click Format. The tool re-scans your block mappings and re-emits them with consistent indentation. It is a cosmetic normaliser, not a validator: it does not detect syntax errors, so compare the output against your input rather than trusting a success message."
   },
   {
     "question": "Can I convert YAML to JSON at the same time?",
-    "answer": "Yes. The formatted YAML output can be sent directly to the JSON converter by clicking Convert to JSON. Both operations are local with no data upload."
+    "answer": "Yes. Set the Output dropdown to JSON and the parsed structure is serialised with JSON.stringify. Both operations run locally with no data upload."
+  },
+  {
+    "question": "Why does my list disappear?",
+    "answer": "Block sequences written as `- item` under a key are not modelled by the scanner; the key comes back as an empty object. Anchors, aliases and multi-document streams are not resolved either, and a quoted value containing a colon is truncated at the first colon. For documents using any of those features, use a real YAML parser such as PyYAML or js-yaml."
   }
 ];
 import ToolNav from '@versal/ui/ToolNav.astro';
@@ -71,7 +75,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     </div>
     <div class="row mt-1" style="gap:8px;">
       <button class="primary" id="run">Format</button>
-      <button class="ghost" id="validateOnly">Validate only</button>
+      <button class="ghost" id="validateOnly">Show parse result</button>
       <button class="ghost" id="copy">Copy</button>
       <button class="ghost" id="clear">Clear</button>
     </div>
@@ -84,13 +88,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
   <h2>How it works</h2>
   <ul>
-    <li>The tool parses YAML using a browser-compatible subset of the YAML 1.2 specification.</li>
-    <li>Supports multi-document YAML streams with --- and ... delimiters, anchors and aliases, and flow style.</li>
-    <li>Error messages include the line and column of the parse failure.</li>
+    <li>The tool scans block mappings — <code>key: value</code> lines nested by leading-space count — and re-emits them at the indent you choose.</li>
+    <li>It is a structural subset, not a YAML 1.2 implementation: anchors, aliases, block sequences and multi-document streams are not supported (see the notes above).</li>
+    <li>There is no error reporting. Malformed input does not raise a diagnostic, it produces silently wrong output.</li>
+    <li>Set <strong>Output</strong> to <strong>JSON</strong> to serialise the same parsed structure as JSON — the more reliable path for piping into other tools.</li>
   </ul>
 
   <h2>About YAML</h2>
-  <p class="text-muted">YAML is the dominant human-readable data format for Kubernetes manifests, Docker Compose, GitHub Actions, Terraform, Ansible, and most CI and CD systems. Its whitespace-sensitive syntax is both its greatest strength and its most frequent source of mistakes. This tool acts as both validator and pretty-printer.</p>
+  <p class="text-muted">YAML is the dominant human-readable data format for Kubernetes manifests, Docker Compose, GitHub Actions, Terraform, Ansible, and most CI and CD systems. Its whitespace-sensitive syntax is both its greatest strength and its most frequent source of mistakes. This tool is a pretty-printer for the block-mapping subset of that format: use it to normalise indentation, and use a real YAML parser whenever you need validation, sequences, anchors, or multi-document streams.</p>
 </ToolPage>
 
 <style>
@@ -252,7 +257,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     var raw = $('input').value;
     if (!raw.trim()) return;
     run();
-    $('output').value = 'Valid YAML (structural parse completed). Check output above.';
+    $('output').value = 'Scanned. This is not a validation pass - malformed input is accepted silently, so compare the output above with your input.';
   });
   $('indent').addEventListener('change', run);
   $('outputMode').addEventListener('change', run);

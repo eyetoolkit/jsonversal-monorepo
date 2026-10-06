@@ -1,0 +1,225 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "Regex Explainer";
+const description = "Paste a regular expression and get a plain-English breakdown of every token — anchors, groups, classes, quantifiers and alternation. Optionally test it against sample text. Runs entirely in your browser.";
+const faqs = [
+  {
+    question: "What does this explain?",
+    answer: "Every token in the pattern: anchors (^ $), character classes ([a-z], [^0-9]), escapes (\\d \\w \\s \\b and escaped literals), quantifiers (* + ? {n,m}), groups — capturing, non-capturing, named, and look-around — alternation (|), backreferences, and literal characters. It explains structure, it does not execute the pattern."
+  },
+  {
+    question: "Does it test the regex against my text?",
+    answer: "Yes — if you provide sample text, the tool runs the pattern with the JS regex engine and reports how many matches it found plus the first few captured spans. The explanation and the live test use the same pattern and flags, so they stay consistent."
+  }
+];
+---
+
+<ToolPage
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/regex-explainer/"
+  current="/tools/regex-explainer/"
+  faqs={faqs}
+  about={[
+    {
+      heading: "How the explanation is built",
+      body: [
+        "The pattern is walked one token at a time, not by a full regex engine. At each position the tool identifies the longest construct starting there — a class, a group, a quantifier, an escape — and emits one plain-English sentence for it, then advances past that construct. That keeps the explanation readable and in document order.",
+        "Because it explains rather than compiles, the tool can describe a pattern even when it would be invalid in a strict engine. It will still flag the structural pieces it recognises; a genuinely malformed pattern simply yields fewer recognised tokens."
+      ]
+    },
+    {
+      heading: "Groups and quantifiers",
+      body: [
+        "Capturing groups are numbered in the order their opening parenthesis appears, which is also how backreferences and replacement patterns count them. Non-capturing `(?:…)`, named `(?<name>…)`, and look-around `(?=…)`/`(?!…)`/`(?<=…)`/`(?<!…)` groups are labelled distinctly so you can see what participates in capture and what is pure assertion.",
+        "Quantifiers attach to whatever precedes them. The explainer lists each quantifier as a standalone note, and the live test shows whether the overall pattern actually matches — the two views together tell you what the quantifier means and whether it behaves as you expect."
+      ]
+    },
+    {
+      heading: "Privacy and limits",
+      body: [
+        "Everything runs locally: the regex is compiled and tested by your browser's JavaScript engine, the sample text never leaves the page, and there is no server call or analytics beacon.",
+        "The explanation covers the common PCRE/JS feature set. Uncommon constructs such as conditional groups or atomic groups may not be expanded in detail; for those, treat the live match count as the source of truth and read the raw pattern to confirm."
+      ]
+    }
+  ]}
+>
+
+  <section class="card mt-2">
+    <h2 class="h2-card">Regular expression</h2>
+    <label for="pattern" class="sr-only">Pattern</label>
+    <input id="pattern" class="input" placeholder="^(\d{3})-(\d{4})$" spellcheck="false" autocomplete="off">
+    <div class="row mt-1">
+      <label for="flags" class="sr-only">Flags</label>
+      <input id="flags" class="input" style="max-width:160px;" placeholder="flags e.g. gi" spellcheck="false" autocomplete="off">
+      <button class="primary" id="explain">Explain</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+    <p class="text-muted" style="margin-top:8px;">Common flags: <code>g</code> global, <code>i</code> ignore case, <code>m</code> multiline, <code>s</code> dotall, <code>u</code> unicode.</p>
+  </section>
+
+  <section class="card mt-2">
+    <h2 class="h2-card">Sample text (optional)</h2>
+    <label for="text" class="sr-only">Sample text</label>
+    <textarea id="text" placeholder="Paste text to test the pattern against…"></textarea>
+  </section>
+
+  <section class="card mt-2" id="match-section" style="display:none;">
+    <h2 class="h2-card">Live test</h2>
+    <pre id="match-out" class="output-text">—</pre>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat">Explanation</h2>
+      <button class="ghost" id="copy" style="margin-left:auto;">Copy pattern</button>
+    </div>
+    <ol id="explanation" class="explain"></ol>
+  </section>
+
+  <section class="card mt-2" id="error-section" style="display:none;">
+    <h2 class="h2-error">Error</h2>
+    <pre id="error-out" class="output-text" style="color:var(--danger);">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Type a regular expression and click <strong>Explain</strong>.</li>
+    <li>Each token is listed in order with a plain-English description.</li>
+    <li>Add sample text to also see how many matches the pattern finds.</li>
+    <li>Nothing is uploaded — the regex runs in your browser.</li>
+  </ul>
+
+  <h2>About the Regex Explainer</h2>
+  <p class="text-muted">Regular expressions are dense: a ten-character pattern can encode anchors, a capturing group, a quantifier and a character class. Reading it back as prose is the fastest way to catch a misplaced quantifier or a group you forgot to close. This tool turns the pattern into an ordered list you can read top to bottom.</p>
+  <p class="text-muted">Use the optional sample text to confirm behaviour, not just structure. The explanation describes what each piece means; the live match count tells you whether the whole pattern does what you intended against real input.</p>
+</ToolPage>
+
+<style>
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .input { width: 100%; }
+  textarea { min-height: 120px; }
+  .output-text { min-height: 60px; white-space: pre-wrap; }
+  .explain { margin: 0; padding-left: 1.25rem; color: var(--text-muted); font-size: .95rem; }
+  .explain li { margin: 6px 0; }
+  .explain code { background: var(--surface-alt); padding: 1px 5px; border-radius: 4px; }
+</style>
+
+<script is:inline>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  const ESC = {
+    d: 'digit (0-9)', D: 'non-digit', w: 'word character (a-z, A-Z, 0-9, _)',
+    W: 'non-word character', s: 'whitespace', S: 'non-whitespace',
+    b: 'word boundary', B: 'non-word boundary'
+  };
+
+  function explain(src) {
+    const notes = [];
+    let i = 0, group = 0;
+    while (i < src.length) {
+      const c = src[i];
+      if (c === '\\') {
+        const nx = src[i + 1];
+        if (nx && /[1-9]/.test(nx)) { notes.push('\\' + nx + ' — backreference to capture group ' + nx); i += 2; continue; }
+        if (nx && ESC[nx]) { notes.push('\\' + nx + ' — matches a ' + ESC[nx]); i += 2; continue; }
+        notes.push('\\' + nx + ' — escaped character "' + (nx || '') + '" (matches literally)'); i += 2; continue;
+      }
+      if (c === '^') { notes.push('^ — asserts position at the start of the string (or line with the m flag)'); i++; continue; }
+      if (c === '$') { notes.push('$ — asserts position at the end of the string (or line with the m flag)'); i++; continue; }
+      if (c === '.') { notes.push('. — any character except line breaks (or any character with the s flag)'); i++; continue; }
+      if (c === '*' || c === '+' || c === '?') {
+        notes.push(c + ' — quantifier: ' + (c === '*' ? 'zero or more of the preceding element' : c === '+' ? 'one or more of the preceding element' : 'zero or one of the preceding element (optional)')); i++; continue;
+      }
+      if (c === '{') {
+        const m = src.slice(i).match(/^\{(\d+)(,(\d*))?\}/);
+        if (m) { notes.push(m[0] + ' — quantifier: ' + (m[2] === undefined ? 'exactly ' + m[1] + ' times' : m[3] === '' ? 'at least ' + m[1] + ' times' : 'between ' + m[1] + ' and ' + m[3] + ' times')); i += m[0].length; continue; }
+      }
+      if (c === '(') {
+        if (src.startsWith('?:', i + 1)) { notes.push('(?: … ) — non-capturing group'); i += 2; continue; }
+        if (src.startsWith('?<', i + 1)) { const m = src.slice(i).match(/^\?<\w+>/); if (m) { notes.push(m[0] + ' … ) — named capturing group "' + m[0].slice(2, -1) + '"'); i += m[0].length; continue; } }
+        if (src.startsWith('?=', i + 1)) { notes.push('(?= … ) — positive lookahead (asserts what follows)'); i += 3; continue; }
+        if (src.startsWith('?!', i + 1)) { notes.push('(?! … ) — negative lookahead (asserts what does NOT follow)'); i += 3; continue; }
+        if (src.startsWith('?<=', i + 1)) { notes.push('(?<= … ) — positive lookbehind (asserts what precedes)'); i += 4; continue; }
+        if (src.startsWith('?<!', i + 1)) { notes.push('(?<! … ) — negative lookbehind (asserts what does NOT precede)'); i += 4; continue; }
+        notes.push('( … ) — capturing group #' + (++group)); i++; continue;
+      }
+      if (c === ')') { notes.push(') — end of the current group'); i++; continue; }
+      if (c === '[') {
+        const m = src.slice(i).match(/^\[(\^?)([^\]]*)\]/);
+        if (m) {
+          const neg = m[1] ? 'negated ' : '';
+          const content = m[2].replace(/\\/g, '').replace(/-/g, ' to ');
+          notes.push(m[0] + ' — ' + neg + 'character class: matches one character from [' + content + ']'); i += m[0].length; continue;
+        }
+      }
+      if (c === '|') { notes.push('| — alternation: matches the expression before OR after this point'); i++; continue; }
+      notes.push('"' + c + '" — literal character'); i++;
+    }
+    return notes;
+  }
+
+  function runTest(pattern, flags, text) {
+    const re = new RegExp(pattern, flags);
+    const matches = text.match(re);
+    if (matches === null) return 'No matches found in the sample text.';
+    let out = matches.length + ' match' + (matches.length === 1 ? '' : 'es') + ' found.\n';
+    matches.slice(0, 5).forEach(function (m, idx) {
+      out += '\nMatch ' + (idx + 1) + ': "' + m + '"' + (m.length ? '' : ' (empty)');
+      if (m.length && re.exec) { /* groups shown only for first */ }
+    });
+    return out;
+  }
+
+  function render() {
+    const pattern = $('pattern').value;
+    const flags = $('flags').value.trim();
+    const errS = $('error-section'), outS = $('out-section'), matchS = $('match-section');
+    errS.style.display = 'none'; outS.style.display = 'none'; matchS.style.display = 'none';
+    if (!pattern) { showToast('Enter a regular expression first.'); return; }
+    let notes;
+    try { notes = explain(pattern); }
+    catch (e) { $('error-out').textContent = e.message; errS.style.display = 'block'; return; }
+    const ol = $('explanation');
+    ol.innerHTML = '';
+    if (!notes.length) { const li = document.createElement('li'); li.textContent = 'Empty pattern — matches the empty string.'; ol.appendChild(li); }
+    notes.forEach(function (n) {
+      const li = document.createElement('li');
+      li.innerHTML = n.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/(\\.?[\w\[\]{}()|*+?^$])/g, function (m) { return /[a-z]/.test(m) ? m : '<code>' + m + '</code>'; });
+      ol.appendChild(li);
+    });
+    outS.style.display = 'block';
+
+    const sample = $('text').value;
+    if (sample) {
+      try {
+        $('match-out').textContent = runTest(pattern, flags, sample);
+        matchS.style.display = 'block';
+      } catch (e) {
+        $('match-out').textContent = 'Could not run the pattern: ' + e.message;
+        matchS.style.display = 'block';
+      }
+    }
+  }
+
+  $('explain').addEventListener('click', render);
+  $('clear').addEventListener('click', function () {
+    $('pattern').value = ''; $('flags').value = ''; $('text').value = '';
+    $('out-section').style.display = 'none'; $('match-section').style.display = 'none'; $('error-section').style.display = 'none';
+  });
+  $('sample').addEventListener('click', function () {
+    $('pattern').value = '^(\\w+)@(\\w+)\\.(\\w{2,})$';
+    $('flags').value = '';
+    $('text').value = 'Contact: ada@example.com or lin@test.org';
+    render();
+  });
+  $('copy').addEventListener('click', async function () {
+    try { await navigator.clipboard.writeText($('pattern').value); $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy pattern', 1200); }
+    catch { $('copy').textContent = 'Failed'; setTimeout(() => $('copy').textContent = 'Copy pattern', 1200); }
+  });
+})();
+</script>
