@@ -162,6 +162,33 @@ const PAGES = [
 const escape = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 function render(p) {
+  // FAQPage + SoftwareApplication structured data. Comparison pages are the
+  // most likely thing an assistant cites for an "X vs Y" question, so making
+  // the Q&A explicit in JSON-LD measurably improves the odds of being quoted.
+  const faqLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'SoftwareApplication',
+        name: `jsonversal — ${p.title.split('—')[0].trim()}`,
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Any',
+        url: 'https://jsonversal.com/compare/',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: `When should I use jsonversal's ${p.title.split('—')[0].trim().toLowerCase()} instead of the alternative?`,
+            acceptedAnswer: { '@type': 'Answer', text: p.verdict.replace(/<[^>]+>/g, '') },
+          },
+        ],
+      },
+    ],
+  };
+
   const rowsHtml = p.rows.map(r => {
     const [cap, ...cells] = r;
     return `    <tr><td>${cap}</td>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
@@ -174,6 +201,8 @@ function render(p) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${escape(p.title)}</title>
 <meta name="description" content="${escape(p.lede)}">
+<link rel="canonical" href="https://jsonversal.com/compare/${p.slug}/">
+<script type="application/ld+json" is:inline>${JSON.stringify(faqLd)}</script>
 <style>${CSS}</style>
 </head>
 <body>
