@@ -34,6 +34,7 @@
     "./ToolSuggestions": "./ToolSuggestions.astro",
     "./ToolSuggestions.astro": "./ToolSuggestions.astro",
     "./base.css": "./base.css",
+    "./versal-brand.css": "./versal-brand.css",
     "./styles": "./base.css"
   }
 }

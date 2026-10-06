@@ -13,7 +13,7 @@ import '@versal/ui/versal-brand.css';
 <meta property="og:description" content="Format, validate, transform. Web Crypto API. We see nothing.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jsonversal.com/">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"versal json","url":"https://jsonversal.com/","publisher":{"@type":"Organization","name":"versal","url":"https://jsonversal.com/"}}</script>
+<script type="application/ld+json" is:inline>{"@context":"https://schema.org","@type":"WebSite","name":"versal json","url":"https://jsonversal.com/","publisher":{"@type":"Organization","name":"versal","url":"https://jsonversal.com/"}}</script>
 </head>
 <body data-site="json" data-theme="light">
 
@@ -64,7 +64,7 @@ import '@versal/ui/versal-brand.css';
     <div class="v-demo__grid" style="grid-template-columns:1fr 24px 1fr">
       <div class="v-demo__field">
         <label for="jin">Input JSON</label>
-        <textarea id="jin" rows="7" style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:13px var(--v-mono);color:var(--v-ink);background:var(--v-paper);resize:vertical">{"name":"versal","version":4,"products":["everyday","finance","health","cover","json","devops","codegen","sec"],"features":{"local":true,"signup":false,"tracking":false}}</textarea>
+        <textarea id="jin" rows="7" style="width:100%;padding:10px;border:1px solid var(--v-line);border-radius:var(--v-r-md);font:13px var(--v-mono);color:var(--v-ink);background:var(--v-paper);resize:vertical">&#123;"name":"versal","version":4,"products":["everyday","finance","health","cover","json","devops","codegen","sec"],"features":&#123;"local":true,"signup":false,"tracking":false&#125;&#125;</textarea>
       </div>
       <div class="v-demo__arrow" aria-hidden="true">→</div>
       <div class="v-demo__field">
@@ -299,7 +299,7 @@ import '@versal/ui/versal-brand.css';
   </div>
 </footer>
 
-<script>
+<script is:inline>
 (function(){
   var KEY='versal-theme';
   var saved=localStorage.getItem(KEY);
