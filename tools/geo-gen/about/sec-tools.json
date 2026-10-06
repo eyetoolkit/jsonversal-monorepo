@@ -1,0 +1,278 @@
+{
+  "/sec/tools/aes/": [
+    {
+      "heading": "GCM versus CBC, and what actually protects you",
+      "body": [
+        "GCM is a counter-mode cipher that produces ciphertext plus a 128-bit authentication tag computed over the ciphertext and any additional authenticated data. Web Crypto appends that tag to the ciphertext, so flipping one bit of the stored blob makes `decrypt` reject it outright instead of returning garbage. This page passes no AAD, so it authenticates the ciphertext and nothing else — you cannot bind the plaintext to a version number, a record ID, or a filename.",
+        "CBC is only encryption. Each block is XORed with the previous ciphertext block, and Web Crypto adds PKCS#7 padding on the way out and validates it on the way in. That padding check is not authentication: a wrong key occasionally produces valid padding by chance, and you get plausible-looking plaintext with no error. Every encryption run here draws a fresh 16-byte salt and a fresh IV from `crypto.getRandomValues`, which is the minimum you owe CBC."
+      ]
+    },
+    {
+      "heading": "What PBKDF2 is doing to your passphrase",
+      "body": [
+        "There is no raw-key field on this page: the encryption key is always derived. `deriveKey` runs PBKDF2-HMAC-SHA256 with 100,000 iterations over a 16-byte random salt, both hardcoded in the source rather than exposed as options, then hands the result to Web Crypto as an AES-GCM or AES-CBC key of the size you selected. That is why the blob is self-contained — salt, IV and ciphertext travel together, so the same passphrase reproduces the same key.",
+        "The layout is `salt(16) || iv(12 or 16) || ciphertext`, base64-encoded as one blob. The salt is why encrypting the same text twice yields different output, which is why you must keep it if you store only part of the blob. Note that mode and key size live in the UI rather than the blob, so re-select both when decrypting or the failure message stays generic."
+      ]
+    },
+    {
+      "heading": "Limits worth knowing before you build on this",
+      "body": [
+        "The single most important rule in GCM is that a nonce must never repeat under the same key. Reusing one lets an attacker recover the authentication subkey and XOR two plaintexts to read their difference. This page generates a fresh IV per click so it cannot happen here — but if you copy this blob format into your own code and derive the IV from a counter or a timestamp, you are one bug away from catastrophe. The nonce must be unique; it does not need to be secret.",
+        "Beyond that: the input is a single string in memory, encrypted in one `crypto.subtle` call, so there is no streaming path for large payloads — and a web form is not a key management system. PBKDF2 at 100,000 iterations is a reasonable floor in 2026, but it is still a general-purpose KDF with a fixed work factor. To derive keys from human-chosen passphrases, prefer Argon2id or scrypt with a tunable cost."
+      ]
+    }
+  ],
+  "/sec/tools/bcrypt/": [
+    {
+      "heading": "Reading the cost factor back out of the hash",
+      "body": [
+        "A bcrypt hash is a 60-character string of the form `$2b$12$` plus 22 salt characters and 31 digest characters. The cost is stored inside the hash, which is why the Verify tab needs only the password and the hash string — `bcrypt.compare` reads the salt and the iteration count out of the value you paste and recomputes with them. Nothing about the cost has to be kept in a separate column in your database.",
+        "Hashes produced here always carry the `$2b$` prefix, because `bcryptjs` v3 unconditionally emits that revision in `genSaltSync`; verification accepts `$2a$` and `$2y$` as well, which is what you want when migrating hashes written by older libraries. The revision letter matters to other implementations — some native bindings reject `$2b$` outright — so it is worth knowing which prefix your verification path will tolerate."
+      ]
+    },
+    {
+      "heading": "What the cost factor actually costs",
+      "body": [
+        "The cost parameter is a base-2 logarithm: the key schedule runs 2^n times, so cost 10 is 1,024 iterations, cost 12 is 4,096, and cost 15 is 32,768. Each increment doubles the work and roughly doubles latency. It is a dial you have to keep turning as hardware improves — a cost that felt appropriately slow in 2015 is a sub-millisecond operation on a modern GPU rig, which is the entire reason bcrypt exists.",
+        "The UI accepts 4 through 15 and defaults to 10; the underlying library clamps to the 4–31 range but rejects anything outside its own bounds first. `bcryptjs` also yields to the event loop every 100ms of work, so hashing does not freeze the tab the way a naive synchronous loop would. The 16-byte salt comes from `crypto.getRandomValues`, so two users with the same password never end up with the same digest — identical passwords produce identical hashes only by coincidence of cost and salt."
+      ]
+    },
+    {
+      "heading": "The 72-byte ceiling, and what bcrypt is not for",
+      "body": [
+        "bcrypt silently truncates the password at 72 bytes of UTF-8. The library exposes a `truncates()` predicate for this, but this page never calls it, so a 90-character passphrase and its first 72 characters produce byte-identical hashes and both verify against the same stored value. For any input that can exceed 72 bytes — a long passphrase, an encoded API key — pre-hash with SHA-256 and base64 the digest, or move to Argon2id or scrypt, neither of which has this ceiling.",
+        "There is also no second input, so bcrypt cannot apply a pepper held separately from the database, and it cannot verify a one-time code against a server-side secret distinct from the hash. Because it is deliberately slow, it is the wrong tool for high-entropy material: running a 32-byte random token through bcrypt adds latency to every request without adding any security, since there is nothing to brute-force. Use it for human-chosen passwords, and pick a fast digest for tokens."
+      ]
+    }
+  ],
+  "/sec/tools/file-checksum/": [
+    {
+      "heading": "Fixed-length output, and what that tells you",
+      "body": [
+        "SHA-2 compresses input of any length into a fixed-width state: 160 bits for SHA-1, 256 for SHA-256, 384 and 512 for the wider variants. The digest length carries no information about the file — not its size, not how many bits differ, only whether the bytes match what you expected. In practice an accidental single-bit flip during transfer, a truncated download, or a stray line-ending conversion all produce a completely different digest with overwhelming probability.",
+        "MD5 and SHA-1 stay available because release manifests, package indexes and legacy artifacts still reference them, and reproducing those values is a legitimate reason to compute them. Both have practical collision attacks against motivated adversaries, so they remain appropriate for detecting accidental corruption and inappropriate for anything adversarial — a checksum that an attacker can deliberately collide is not an integrity control."
+      ]
+    },
+    {
+      "heading": "How the file is read, and what that costs",
+      "body": [
+        "The implementation calls `file.arrayBuffer()` and hands the entire result to `crypto.subtle.digest`, which is a one-shot API — Web Crypto has no streaming digest interface. Peak memory therefore tracks file size, and a multi-gigabyte disk image will throw a `RangeError` or kill the tab rather than hash. Note also that `crypto.subtle` only exists in a secure context: over plain `http://` on a non-localhost origin the whole tool is inert, which is a confusing failure if you are testing on a LAN address.",
+        "For files too large to hold in memory, the workable approaches are an incremental implementation such as `hash-wasm`, or verifying on the machine that already holds the reference digest. When comparing text files across platforms, remember that the hash covers raw bytes — a UTF-8 BOM, CRLF line endings, or a trailing newline all change the digest, which is the usual explanation for a checksum that —should— match and does not."
+      ]
+    },
+    {
+      "heading": "Integrity is not authenticity, and not malware detection",
+      "body": [
+        "A checksum answers exactly one question: is this byte-identical to the value I was given? An attacker who controls the distribution point can publish a matching digest for a payload they modified, because the digest is not a signature. Closing that gap needs detached signatures — GPG, minisign, Sigstore — or a registry that signs what it serves, where the trust anchor is the key rather than the file.",
+        "Nor does a checksum say anything about whether the content is malicious. Malware has whatever checksum the vendor published, because the checksum describes the file rather than judging it. Detection is a different job: antivirus engines, YARA rules, sandbox detonation. Use this page to answer —did the transfer corrupt or did I get the file I meant to get— and nothing beyond that."
+      ]
+    }
+  ],
+  "/sec/tools/hash/": [
+    {
+      "heading": "One pass, every digest, no key",
+      "body": [
+        "This page is the unkeyed view. It takes one input and produces every digest of those exact bytes at once — MD5, SHA-1, SHA-256, SHA-384 and SHA-512 — with optional hex and Base64 formatting, and it accepts a local file as the input source. Nothing is keyed and nothing is uploaded. Producing all five in one pass is the practical reason to prefer it when checking an integrity manifest: the digests must all come from the same bytes, and hashing the file five times separately invites a mismatch if it changes between reads.",
+        "The four SHA digests come straight from `crypto.subtle.digest`, which is non-incremental and one-shot; SHA-1 and SHA-2 are implemented by every modern browser engine, which is why they need no bundled code. Hex and base64 output can be shown together, hex lowercase. That case detail is not cosmetic when you are string-matching a digest against a reference — half the world's manifests use uppercase hex."
+      ]
+    },
+    {
+      "heading": "Text and files are hashed differently",
+      "body": [
+        "Typed text is encoded with `TextEncoder`, so you get the UTF-8 bytes of that exact string; an uploaded file is read with `arrayBuffer()` and hashed as raw bytes, with no normalisation in either direction. This is the distinction behind most —why are these two files different— moments: a trailing newline, a BOM, or a tab versus spaces are all part of the input, and every one of them changes the digest completely.",
+        "The practical consequence is that a checksum is only reproducible if the byte sequence is pinned. If you are hashing structured data to detect unauthorised edits, hash a canonical serialisation — sorted keys, fixed separators, no incidental whitespace — or the pretty-printed form will produce a different value on every reformat, and the check becomes noise. The avalanche effect is the flip side of the same property: change one character anywhere and every output bit is equally likely to flip."
+      ]
+    },
+    {
+      "heading": "Where this page stops",
+      "body": [
+        "There is one difference between this page and the hash-generator, and it concerns only MD5. SubtleCrypto does not implement MD5, so that digest comes from a bundled pure-JavaScript implementation of RFC 1321 rather than the browser's own. It runs over the same bytes as the SHA family, so the MD5 row is a real digest of your input — which matters when you are matching a checksum that a legacy system published. The other four rows go straight through SubtleCrypto, which is constant-time by design and considerably faster for large inputs.",
+        "A plain digest proves nothing about origin, because anyone can recompute it. Tamper-evidence needs a keyed construction or a signature; a password store needs a deliberately slow, salted function. And no fast digest belongs in a credential path regardless of how it is obtained — use this page for content fingerprinting, cache keys, deduplication and verifying downloads, and choose the tool that matches the job."
+      ]
+    }
+  ],
+  "/sec/tools/hash-generator/": [
+    {
+      "heading": "The keyed half: what HMAC mode changes",
+      "body": [
+        "In Hash mode this is a plain digest with a single-algorithm selector. Flip Mode to HMAC and a key field appears; the output then comes from `crypto.subtle.sign('HMAC', key, data)`, which is a keyed construction rather than a bare hash. The key is imported with `extractable=false` and `usages:['sign']`, so the raw secret cannot be read back out of the CryptoKey object even in the same page context.",
+        "Structurally, HMAC pads the key out to the block size and XORs it into two constants to produce an inner and an outer pad, then computes `H(outer || H(inner || message))`. That nesting is why the output is always exactly as long as the underlying hash no matter how long the message or key is, and why the tag is unforgeable without the secret even though the hash function itself is public."
+      ]
+    },
+    {
+      "heading": "Where this differs from the plain hash view",
+      "body": [
+        "Three differences are worth knowing if you use both pages. This one computes one algorithm at a time and you choose which, where the sibling page computes all of them simultaneously. This one outputs hex only. And this one bundles a working MD5 implementation, because Web Crypto has no MD5 — that is a compatibility feature, not an endorsement, so keep confining it to reproducing legacy checksums.",
+        "Text is encoded as UTF-8 through `TextEncoder`, and results recompute as you type in Hash mode, which makes the avalanche effect visible as you hold the Shift key: one character in, a completely unrelated digest out. Switching algorithm or mode also recomputes immediately, so you can watch SHA-256 and SHA-512 diverge on identical input rather than taking the difference on faith."
+      ]
+    },
+    {
+      "heading": "Two caveats in the file path",
+      "body": [
+        "File input takes the same route as typed text, which is the point: every algorithm, keyed or unkeyed, reads the raw bytes rather than a UTF-8 decoding of them. The distinction is invisible for ASCII and decisive for everything else, because decoding a binary file to text replaces every invalid byte sequence with U+FFFD and produces a digest of the wrong data while looking perfectly successful. SubtleCrypto's digest is a one-shot API rather than a stream, so the whole file is read into memory before hashing; for inputs in the hundreds of megabytes a native command-line tool is the better choice.",
+        "One consequence of routing every algorithm through the same byte path is that a loaded file cannot be re-hashed from the input field, because the field holds a description rather than the content. Hashing that description instead would silently produce a digest of a placeholder string, so re-running is a no-op until you load the file again. For the same reason a very large file is held in memory as a single ArrayBuffer; everything smaller is byte-exact."
+      ]
+    }
+  ],
+  "/sec/tools/hmac/": [
+    {
+      "heading": "Why HMAC-SHA256 became the default",
+      "body": [
+        "A plain digest is public knowledge: anyone can recompute SHA-256 over your payload, so it detects corruption but offers no protection against forgery. HMAC folds a shared secret into the computation, which means producing a valid tag requires a value the verifier alone holds. That combination — keyed, fixed-length, no key exchange, cheap to verify — is why Stripe, GitHub and Slack webhook signatures all settled on HMAC-SHA256.",
+        "The key is zero-padded to the 64-byte block size, or hashed first if it is longer, and the two XOR pads are what make the construction resistant to length-extension style attacks that would break a naive `hash(key || message)`. The result is always 256 bits for SHA-256 regardless of message size, and any single-bit change anywhere in the input yields an unrelated tag."
+      ]
+    },
+    {
+      "heading": "Details that break real integrations",
+      "body": [
+        "Encoding is part of the contract, not a presentation choice. This page prints lowercase hex and standard base64, and base64 of a tag contains `+` and `/`, both of which need percent-encoding in a query string or a URL path segment. Most libraries default to lowercase hex, so match whatever your provider documents rather than assuming the base64 form is interchangeable.",
+        "Any key length is accepted because Web Crypto pads to the block size internally — a short key works, and a short key is still a weak key. Use at least 32 random bytes drawn from a CSPRNG. Whitespace is part of the message: signing a JSON string signs the exact bytes including spaces and newlines, so both sides must serialise identically or the tags will never match."
+      ]
+    },
+    {
+      "heading": "Signing is not verifying",
+      "body": [
+        "This page signs and does not verify, and verification is where the subtle bug lives. Comparing two tags with `===` short-circuits at the first differing byte, leaking through response timing how much of a forged tag was correct — enough to recover a valid tag one byte at a time. Use `crypto.subtle.verify('HMAC', key, tag, message)`, which compares in constant time internally and returns the boolean without you writing the loop.",
+        "One boundary condition to note: the UI rejects an empty message, so a zero-length body cannot be signed here. If a provider allows one, sign it with your own code. And keep the two properties separate in your head — an HMAC proves the message came from someone holding the secret and was not altered, but says nothing about confidentiality. For that, combine HMAC with an authenticated cipher such as AES-GCM."
+      ]
+    }
+  ],
+  "/sec/tools/jwt-generator/": [
+    {
+      "heading": "What is actually signed",
+      "body": [
+        "The signature covers the ASCII bytes of `base64url(header) + \".\" + base64url(payload)`, keyed with your secret through HMAC-SHA2. This tool signs the raw JSON text from the textareas verbatim — it does not re-serialise — so the exact whitespace, indentation and key order you typed become part of the signed message. Reformatting the JSON after signing invalidates the token even though nothing semantically changed.",
+        "base64url drops `=` padding and maps `+` to `-` and `/` to `_`, which is what lets a JWT survive a query string, a cookie or an Authorization header unmangled. The algorithm is read from `header.alg` in your input and validated against a whitelist of HS256, HS384 and HS512. That whitelist is the defence against `alg: none` and against algorithm-confusion downgrades — never remove it."
+      ]
+    },
+    {
+      "heading": "What HS256 commits you to",
+      "body": [
+        "HMAC-signed tokens are symmetric: the same secret issues and verifies, so every party that needs to validate a token must also be able to mint one. That is fine inside a single trust boundary — your API plus your own backend services — and structurally wrong the moment a third party must verify without being able to issue, such as a partner integration or a public API consumed by many clients. Those cases need RS256 or ES256, which this tool does not implement.",
+        "Header and payload are base64url, not encrypted. Anyone holding the token can read every claim with no key at all, so keep passwords, tokens and personal data out of both. Short lifetimes matter more than signing strength in practice: the `Insert exp` button sets `exp` to now plus 3600 seconds, a sensible ceiling for a short-lived access token and far too generous for a refresh token."
+      ]
+    },
+    {
+      "heading": "Sharp edges in the workflow",
+      "body": [
+        "The two timestamp buttons re-serialise your payload through `JSON.stringify` with two-space indentation. That changes the signed bytes, so a signature produced before you clicked `Insert exp` no longer matches the payload sitting in the textarea — always sign again after editing. This is the single most common way to end up with a token that verifies nowhere.",
+        "The page signs whatever header you hand it, including `kid`, `jku` or `x5u`. A verifier that fetches key material referenced by an untrusted token header is exposed to SSRF and key substitution, so never take the expected algorithm or key location from the token you are verifying. Finally, this tool builds tokens but validates nothing — it will happily sign a token whose `exp` is in the past, so run the output through the JWT decoder to confirm the claims before you trust it."
+      ]
+    }
+  ],
+  "/sec/tools/passphrase-generator/": [
+    {
+      "heading": "Where the bits come from",
+      "body": [
+        "The list holds exactly 256 short words, so each draw carries log2(256) = 8 bits and the estimate scales as words × 8. Words are drawn with `crypto.getRandomValues` plus rejection sampling: any value at or above the largest multiple of 256 is discarded and redrawn, which keeps all 256 words exactly equally likely. Reducing a 32-bit draw with a plain modulo would instead bias the low indices toward extra probability.",
+        "That is a smaller alphabet than the EFF long list, which carries 7,776 entries at roughly 12.9 bits per word. Five words from the EFF list is about 65 bits; five from this list is 40. If you need equivalent strength, budget roughly 1.6 times as many words — eight here lands near 64 bits."
+      ]
+    },
+    {
+      "heading": "What the toggles actually add",
+      "body": [
+        "The two-digit suffix is a draw from 0 through 99, which is log2(100) ≈ 6.6 bits. The symbol is a draw from eight characters, so it is 3 bits, plus a small amount from its random insertion position — not 6 bits, and not the difference between a weak and a strong passphrase. Both are marginal next to the word count.",
+        "The separator and capitalisation options add exactly zero bits. They are display choices you make, not random draws, so they change how the passphrase looks and types but nothing an attacker can measure. Pick hyphen or space for legibility and longer word counts for strength; conflating the two is the usual reason people settle for four words when six cost nothing extra to type."
+      ]
+    },
+    {
+      "heading": "What the entropy figure assumes",
+      "body": [
+        "The number is computed as if an attacker knows the word list, the word count and every toggle you set. That is the right conservative assumption, and it is what makes the estimate comparable across generators. What it does not capture is your own memory: entropy measures resistance to guessing, not to recall, and a phrase you have typed into a dozen sites is already burned no matter how many bits it nominally holds.",
+        "Word count is the only real dial. Three words is 24 bits, which is thin for anything an adversary can reach offline, so use six to eight for a master password or encryption key and treat the shorter settings as throwaway test material. Generate a batch when you need several candidates, but remember each row is an independent draw — ten rows are not one stronger secret, they are ten secrets to keep track of."
+      ]
+    }
+  ],
+  "/sec/tools/random-token/": [
+    {
+      "heading": "The length sets the strength, not the encoding",
+      "body": [
+        "The length field is in bytes, and it alone determines the entropy: 16 bytes is 128 bits, 32 bytes is 256. Everything else here is presentation. Hex renders two characters per byte, so 16 bytes becomes 32 characters; base64 renders four characters per three bytes, giving 24 characters with padding or 22 without; base64url additionally swaps `+` and `/` for `-` and `_` so the value survives a URL, a query string or a filename unchanged.",
+        "This page offers lowercase hex, uppercase hex, standard base64, base64url and a UUID-style layout, in sizes from 4 to 128 bytes, producing one to ten values per run. 128 bits is already far past any practical brute-force concern — the realistic failure mode for a token is leakage through logs, analytics or a shared screen, not guessing, so spend your effort on storage and expiry rather than on adding bytes."
+      ]
+    },
+    {
+      "heading": "Why not Math.random",
+      "body": [
+        "`Math.random()` is a fast non-cryptographic generator — V8 implements xorshift128+ — designed to be cheap, not to be unpredictable. Its internal state is small enough that observing a handful of consecutive outputs is enough to reconstruct the state and predict every value that comes after, which means anything derived from it has to be treated as public the moment it is used for a secret.",
+        "`crypto.getRandomValues` draws from the platform CSPRNG instead. Its one real constraint is a quota of 65,536 bytes per call, raised as a `QuotaExceededError` — nothing you will hit at these sizes. Use it for session identifiers, CSRF tokens, API keys, reset links and email verification codes, and if you need something shorter than 16 bytes, prefer a dedicated tool for the format rather than truncating a longer token."
+      ]
+    },
+    {
+      "heading": "Storing and retiring what you generate",
+      "body": [
+        "Store bearer tokens hashed. Because a token already carries 128 bits of entropy there is nothing to slow down, so a fast digest such as SHA-256 is the correct storage function here — unlike a password, wrapping it in bcrypt or Argon2 adds latency on every authenticated request without adding any security, since the search space is not the bottleneck.",
+        "Expiry and single-use behaviour matter more than length. A password-reset token should be invalidated after one redemption and after minutes rather than hours, and the presented value should be compared against the stored hash in constant time rather than with `===`. One formatting note: the UUID option here lays out 16 random bytes as 8-4-4-4-12 without setting the RFC 4122 version and variant nibbles, so hand it to code expecting an opaque random string, not a spec-compliant v4 UUID."
+      ]
+    }
+  ],
+  "/sec/tools/rsa-keygen/": [
+    {
+      "heading": "The parameters the page fixes for you",
+      "body": [
+        "`crypto.subtle.generateKey` is called with `RSA-OAEP`, SHA-256 as the hash, and public exponent 65537 — the standard choice, since small exponents like 3 make OAEP's modular inversion easier to attack. The modulus length is yours to pick from 2048, 3072 and 4096. Generation is a pure software operation on your machine, which is why a 4096-bit pair can take several seconds rather than returning instantly.",
+        "Both keys are exported through `exportKey`: the public key as SPKI, the private key as PKCS#8, each wrapped in PEM armour with 64-character lines. SPKI carries the algorithm OID together with the key bytes, so it feeds straight into `openssl pkey -pubin`; PKCS#8 is the format that can optionally carry a passphrase, though this page exports it unencrypted."
+      ]
+    },
+    {
+      "heading": "Key length in terms of real strength",
+      "body": [
+        "RSA modulus bits are not security bits. NISTSP 800-57 puts 2048-bit RSA at about 112 bits of equivalent symmetric strength, 3072 at about 128, and 4096 at roughly 150 and above. That gap is why 2048 is now a floor to migrate off rather than a comfortable default, and why an equivalent-strength EC P-256 key is dramatically smaller and faster than RSA-3072.",
+        "OAEP also imposes a hard ceiling on a single message: with a 2048-bit modulus and SHA-256 you get 190 bytes of plaintext, 382 at 3072 and 446 at 4096 — the rest is consumed by the digest and the padding. That is why RSA earns its place by wrapping a randomly generated symmetric key, never by encrypting file contents directly."
+      ]
+    },
+    {
+      "heading": "Where the private key actually is",
+      "body": [
+        "The key pair lives in a JavaScript variable on this page and nowhere else. It is never transmitted, and it is discarded the moment you reload or close the tab — which is genuinely the property you want from a demo, and genuinely a hazard if you close the tab before copying the private key out. There is no keyring, no passphrase prompt and no encrypted-at-rest option, so storing the exported PEM somewhere sensible is your responsibility.",
+        "One more thing to keep straight: this pair is generated with `usages: ['encrypt', 'decrypt']`, so Web Crypto will refuse to use it for signing. The FAQ's mention of verifying signatures does not apply to these keys — generating an `RSASSA-PKCS1-v1_5` or `RSA-PSS` pair would be a separate call with different usages. Encrypt and decrypt here exercise OAEP only, and there is no signature, no key fingerprint and no certificate wrapping in this tool."
+      ]
+    }
+  ],
+  "/sec/tools/secret-scanner/": [
+    {
+      "heading": "Pattern matching, not understanding",
+      "body": [
+        "The scan is a list of anchored regular expressions over the text you pasted: `AKIA` plus 16 uppercase characters for AWS access key IDs, `ghp_` and `github_pat_` for GitHub, `glpat-` for GitLab, `sk_live_` and `sk_test_` for Stripe, `sk-` for OpenAI, `AIza` for Google, `xox[baprs]-` for Slack, PEM private key blocks up to 4,000 characters, and JWTs shaped like three dot-separated base64url segments starting `eyJ`. These prefixes are vendor-issued and stable over time, which is precisely what makes them reliable regex targets.",
+        "AWS secret access keys carry no prefix, so they get a contextual rule: a 40-character base64-ish token with non-alphanumeric characters on both sides, appearing within 160 characters of the words *aws*, *secret access* or *access key*. The optional high-entropy pass adds generic detection — hex runs of 32+ characters scoring at least 3.5 bits per character, base64-ish runs of 32+ scoring at least 4.0 — but only for candidates whose boundaries are alphanumeric-delimited."
+      ]
+    },
+    {
+      "heading": "How to read the output",
+      "body": [
+        "Overlapping hits are resolved by taking the longest match at each offset, so a JWT containing a long base64 blob reports one finding rather than three fragments of the same secret. Redaction rewrites each match to `[REDACTED:Label]` by splicing from the end of the string backwards, which keeps all earlier offsets valid as the text shrinks — the reason that direction matters, since replacing front to back would invalidate every position after the first edit.",
+        "Findings are listed with line and column numbers so you can jump to the source. The mask checkbox affects only the display — clicking any row copies the complete, unmasked secret to your clipboard regardless, and that is how you confirm a finding is real. Treat the findings list as sensitive as the text you pasted, and be deliberate about clicking rows in anything you then paste elsewhere."
+      ]
+    },
+    {
+      "heading": "Limits, and the order to respond in",
+      "body": [
+        "False negatives are the larger risk. A credential whose format none of the patterns know will not be flagged, and neither will one that has been encrypted, base64-encoded twice, split across lines, or replaced by an indirection like `${{ secrets.API_KEY }}` — the reference is a secret dependency, not a leak. The entropy pass cannot close this gap either, since many real credentials are low-entropy strings while most high-entropy hex in a config file is an innocuous content hash.",
+        "When something real turns up, rotate and revoke it first, then read the provider's audit log to see whether it was used and by whom, then purge it from git history and CI logs, and only afterwards fix the pipeline that exposed it. Rotation comes first because every hour you wait is an hour the credential stays live, and rewriting history afterwards does not un-leak a key that was already cloned."
+      ]
+    }
+  ],
+  "/sec/tools/x509-decoder/": [
+    {
+      "heading": "What DER actually is",
+      "body": [
+        "A certificate is a binary ASN.1 structure — a SEQUENCE of tagged, length-prefixed values — and DER is the canonical encoding of it: definite lengths only, minimal length octets, none of the indefinite-length forms BER permits. PEM is simply that DER base64-encoded between BEGIN and END lines, which is why this tool strips the armour with a header regex and hands the raw bytes to the parser.",
+        "The reader itself is short: read the tag byte, read the length (short form, or long form with one to four length octets, with zero rejected as indefinite), then check that the value does not run past the buffer and raise `Truncated DER` or `DER length overruns buffer` if it does. Every read carries explicit start and end bounds rather than slicing, so offsets stay absolute within the whole buffer and a nested structure can be handed to a fresh reader without copying."
+      ]
+    },
+    {
+      "heading": "Walking the structure",
+      "body": [
+        "Decoding descends Certificate → tbsCertificate → optional `[0]` version, where an absent tag means v1 and the tool reports the parsed value plus one, then serial, signature algorithm, issuer, validity, subject, SubjectPublicKeyInfo, and finally any `[3]` extensions. Names nest twice over — SEQUENCE of SET of SEQUENCE of an OID and a value — and values are decoded by tag, including BMPString read as UTF-16BE rather than as bytes.",
+        "The SPKI is opened one level deeper: for RSA the tool skips the BIT STRING's unused-bits octet and reports the modulus length and exponent, for EC it reads the named-curve OID from the algorithm parameters. Extensions get real renderers rather than hex dumps — subjectAltName split by general-name tag (`0x82` DNS, `0x81` email, `0x86` URI, `0x87` raw IP bytes), keyUsage unpacked from its bit string into the nine named usages, basicConstraints as CA plus pathLen, and extendedKeyUsage resolved to serverAuth, clientAuth, codeSigning and the rest."
+      ]
+    },
+    {
+      "heading": "What this parser does not tell you",
+      "body": [
+        "It verifies no signature, builds no chain to a trust anchor, matches no hostname, and makes no network calls at all — so it cannot tell you whether a certificate has been revoked, because CRL distribution points and OCSP responders would both require fetching. The validity dates shown mean the window is well-formed and in the future, not that anyone vouches for the certificate. Trust decisions belong to a real TLS stack with a populated root store.",
+        "Two parsing limits are worth knowing. Only the first certificate in a pasted chain is decoded, because the surrounding bytes are ignored after the outermost SEQUENCE, so a full chain is silently truncated to its first entry rather than reported as an error. And the PEM stripper only matches uppercase-letter header text, so blocks whose label contains digits or whose body carries parameters such as `Proc-Type:` will confuse it."
+      ]
+    }
+  ]
+}

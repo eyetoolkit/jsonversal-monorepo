@@ -1,0 +1,374 @@
+{
+  "/codegen/tools/base64-image/": [
+    {
+      "heading": "What a data URI actually contains",
+      "body": [
+        "A base64 data URI has the shape `data:[<mediatype>][;base64],<data>`. The parser requires the `;base64` token and takes the segment before the comma as the MIME type. Paste bare base64 with no prefix and the type has to be sniffed from magic bytes instead:\n  PNG   iVBORw0KGgo\n  JPEG  /9j/\n  GIF   R0lGOD\n  WebP  UklGR\n  SVG   PHN2Zy\n  PDF   JVBERi",
+        "Sniffing is a convenience, not an authority. A declared type is trusted verbatim and never cross-checked against the bytes, so a mislabelled payload previews as whatever the browser decides to do with it. PDF is rejected explicitly and anything not starting with `image/` is refused. One branch is worth knowing: raw SVG markup pasted directly, starting with `<svg`, is encoded in the page via `TextEncoder` plus `btoa` rather than rejected. Input is validated against the standard alphabet, at most two padding characters and a length that is a multiple of four, so base64url variants using `-` and `_`, or unpadded output, are refused rather than silently mangled."
+      ]
+    },
+    {
+      "heading": "How the byte count is derived without decoding",
+      "body": [
+        "The reported size is arithmetic, not measurement: `floor(length × 3 / 4)` minus two for `==` padding or one for `=` padding. That is correct for well-formed base64 and never touches the decoded bytes, which is why it is instant even for a multi-megabyte payload. Whitespace is stripped before both the length calculation and the alphabet check, so MIME-wrapped base64 with hard line breaks at 76 characters — still common in email and in `Content-Transfer-Encoding` output — measures correctly instead of being rejected.",
+        "Inline images earn their keep in a narrow set of cases: a favicon, a tiny placeholder, an icon embedded in a CSS `background-image`, or an HTML email that has to be self-contained because the client blocks remote images. Past a few kilobytes the arithmetic works against you. Every four characters of base64 carry three bytes of image, so a 40 KB PNG becomes roughly 54 KB of markup, and it is re-sent on every request instead of being fetched once and cached."
+      ]
+    },
+    {
+      "heading": "Compression, caching and CSP make inlining a last resort",
+      "body": [
+        "Base64 cannot compress anything: it is a 6-bits-per-byte encoding that spends a third more space to avoid the transport problems of raw binary. PNG, JPEG and WebP arrive already deflated or DCT-compressed, so the encoder has nothing left to remove, and GIF is LZW-compressed and behaves the same way. SVG is the interesting case, being text, so it compresses well under gzip and a base64 SVG is often larger than the original file while still being unreadable as markup.",
+        "Two operational costs are easy to forget. A data URI has no independent cache entry — it cannot be revalidated with an ETag, and it is re-downloaded every time the containing document is. And a Content Security Policy without `data:` in `img-src` blocks it outright, which is a common reason an inlined image works in a prototype and disappears in production. The download button reconstructs the original bytes from the last previewed URI into a `Blob`, which is the fastest way to get the payload back out and into a real file."
+      ]
+    }
+  ],
+  "/codegen/tools/csv-to-json/": [
+    {
+      "heading": "What the state machine implements from RFC 4180",
+      "body": [
+        "The parser walks the input character by character with a single `inQuotes` flag, which is the whole reason quoted fields survive. Outside quotes, a delimiter ends the current field and a line break ends the record. Inside quotes, delimiters and newlines are ordinary characters, and a doubled `\"\"` collapses to one literal quote — the escape mechanism RFC 4180 specifies for fields containing their own delimiter, quote, or newline.",
+        "`RFC 4180` mandates CRLF as the record separator, but this parser also treats a lone `\\n` and a lone `\\r` as terminators, and specifically consumes `\\r\\n` as one break rather than two. That tolerance is why output from Unix tools, Windows tools and old Mac files all parse without a preprocessing step. A CRLF inside a multi-line quoted field is preserved as-is; only record separators are consumed."
+      ]
+    },
+    {
+      "heading": "Delimiter inference reads one line and picks a winner",
+      "body": [
+        "Auto-detect scores four candidates — comma, tab, semicolon, pipe — by counting occurrences outside quotes in the first physical line only, then picks the highest count. The comparison is strict, so ties resolve to comma, as does a single-column file where every count is zero. Restricting the scan to one line has one failure mode: if the first field is a quoted multi-line value the line is truncated mid-field and the counts describe a fragment, which can select the wrong delimiter for the whole file. Choosing the delimiter explicitly removes the guess.",
+        "Type inference is a fixed pattern list rather than a general coercion. An empty cell becomes `null`. The exact strings `true`, `TRUE`, `True` and their false counterparts become booleans — `tRUE` does not qualify. Integers match `^[+-]?\\d+$` with a length under 16, and floats match `^[+-]?\\d*\\.\\d+([eE][+-]?\\d+)?$`."
+      ]
+    },
+    {
+      "heading": "Where inference helps and where it quietly corrupts",
+      "body": [
+        "Two consequences follow. `00123` matches the integer rule and becomes `123`, silently losing the leading zeros that make it a zip code or a product code — the value survives, the semantics do not. And `1e5` fails the float rule for lack of a decimal point, so scientific notation stays a string. The 16-character cutoff exists for a real reason: integers at or beyond 2^53 lose precision in JavaScript numbers, so they are left as text rather than rounded.",
+        "Dates and email addresses are left alone, which is the correct default. `2024-01-01` and `ada@example.com` fail both numeric patterns and stay strings, with no attempt to detect ISO dates or RFC 5322 addresses, so no timezone is assumed and no mailto link fabricated. Turn inference off when the source column is a numeric-looking identifier.",
+        "Row shape is positional and unvalidated. With the header option on, cells beyond the header count are dropped without warning, and a short row pads with `null` under inference or an empty string without it. With the header off you get an array of arrays — honest for a file with no header, but a mis-detected header row becomes a data row. Duplicate header names collide, since later columns overwrite earlier ones under the same key. A UTF-8 BOM from Excel is not stripped, so the first header reads as `\\ufeffname`."
+      ]
+    }
+  ],
+  "/codegen/tools/curl-to-fetch/": [
+    {
+      "heading": "What the generated call actually contains",
+      "body": [
+        "Output is a bare `fetch(url)` when the parsed command has no method, headers or body, and an options object otherwise. The body appears only when `-d` or a variant was present, and only when it parses as JSON after trimming — the payload is re-serialised through `JSON.stringify`, so key order and number formatting come from a JSON round trip rather than from your text. A `Content-Type: application/json` header is added only when you supplied none, and the output carries a comment marking that the tool made that decision.",
+        "Authentication and cookies are folded in. `-u user:pass` becomes an `Authorization: Basic <base64>` header computed from the UTF-8 bytes of the credential, and it is skipped when an `Authorization` header already exists so an explicit bearer token is never overwritten. A `-b` cookie string is appended to an existing `Cookie` header or added as a new one, and header casing is preserved exactly as typed rather than normalized."
+      ]
+    },
+    {
+      "heading": "Two headers in the output are forbidden to browsers",
+      "body": [
+        "The Fetch specification designates certain names as forbidden header names, and the browser strips them from the request before it leaves. `User-Agent` is the important one: curl's `-A` has no client-side equivalent in a page, because a script cannot set it and the browser replaces it with its own value. `Cookie` is on the same list — setting it from `fetch` is ignored, which means the merged `Cookie` header in generated code is effectively documentation of what curl would have sent, not something a page can actually deliver.",
+        "Credentials are governed separately. `credentials` defaults to `same-origin`, so a cross-origin request drops cookies and any `Authorization`-derived session silently, and you need `credentials: 'include'` plus a matching `Access-Control-Allow-Credentials` header and a specific origin rather than a wildcard. That option is not emitted, so treat the generated call as same-origin unless you add it yourself."
+      ]
+    },
+    {
+      "heading": "CORS, timeouts and status handling are left to you",
+      "body": [
+        "Nothing in the output can bypass CORS, and a preflight is triggered by the request itself: a `POST` with `Content-Type: application/json` is not a simple request, so the browser sends an `OPTIONS` probe first and the server must answer it with the right `Access-Control-Allow-*` headers. The generated code also has no `try`/`catch` around the promise, so a rejected fetch surfaces as an unhandled rejection.",
+        "Three gaps matter when the source command was more careful than fetch. There is no timeout — fetch has no timeout option, so a hung request hangs, and curl's `--max-time` needs an `AbortSignal.timeout()` or a manual `AbortController` to be equivalent. A form-encoded `-d 'a=1&b=2'` is emitted as a plain string body with no content type, where curl sends `application/x-www-form-urlencoded`. And the tail calls `response.json()` unconditionally, which throws on a 204 or an HTML error page where curl would print whatever body arrived. In Node 18 and later the same code runs without CORS enforcement or forbidden-header filtering, so it behaves considerably closer to the original command than it does in a page."
+      ]
+    }
+  ],
+  "/codegen/tools/curl-to-python/": [
+    {
+      "heading": "Tokenizing the shell, and what the shell already destroyed",
+      "body": [
+        "The tokenizer honours single quotes as fully literal and double quotes with backslash escapes resolved, discarding standalone continuation backslashes. The information loss starts before the text reaches the page: `$(command)` substitution, `$VAR` expansion, brace expansion like `{1..3}`, tilde expansion and globbing have all been performed by the shell. A pasted command with a variable arrives as whatever the shell substituted, or as a literal `$VAR` if the paste came from documentation.",
+        "Flags are mapped by explicit table rather than pattern guessing. `-X/--request` sets the method; `-H/--header` collects entries and merges repeats by joining values with `; `; the six data flags all write one slot, so the last wins; `-u`, `-b`, `-o` and `-A` each take one value, with `-A` folded into the header dict under its canonical name."
+      ]
+    },
+    {
+      "heading": "How the body is classified, and where requests and httpx diverge",
+      "body": [
+        "Three signals decide the body form, checked in order: the `--json` flag, a `Content-Type` containing `application/json`, or a payload whose first non-whitespace character is `{` or `[`. When any holds, the raw string goes through a real `JSON.parse`, and only a successful parse produces a `json=payload` argument. A payload that looks like JSON but does not parse falls back to a raw `data=` string — the safe outcome, since the bytes go out verbatim rather than through a re-serialisation that would mangle them. Form encoding applies only when the content type says `application/x-www-form-urlencoded`.",
+        "Multipart is the one genuine approximation. `-F name=value` becomes `files={'name': 'value'}` and `-F name=@path` becomes `open('path', 'rb')`. But curl's non-`@` form value is a plain field, while `requests` sends anything in `files=` as a file part with its own `Content-Disposition`, so the request is not byte-identical. `-L` and `--compressed` become comments, which is correct rather than lossy: both libraries follow redirects and advertise gzip by default. `-k` maps to `verify=False`, and that one does change behaviour — it disables certificate verification outright.",
+        "The two library targets differ only where the source differs. `requests` and `httpx` take the same arguments in the same call shape, and the generated code is synchronous either way. The real difference is the exception class in the `except` line."
+      ]
+    },
+    {
+      "heading": "Flags that change meaning, and the ones that get dropped",
+      "body": [
+        "The dangerous case is not an unknown flag — those are collected and printed as a `# Skipped flags:` comment, which is exactly right. It is a known flag whose semantics change. `-G/--get` tells curl to move the body into the query string rather than send it as a payload; it is unhandled, so it lands in the skipped list while the body is still transmitted. `--data-urlencode` is treated identically to `--data-raw`, so percent-encoding curl would have performed is not reproduced.",
+        "Two guards stop the conversion rather than producing something subtly wrong. A URL containing a brace template such as `{id}` is rejected, because the correct Python equivalent depends on which value curl would have substituted. A payload beginning with `@` is rejected, since `@file` reads from disk. The method defaults to `POST` whenever a body is present, matching curl's own rule, and a 30-second timeout is hardcoded into every call."
+      ]
+    }
+  ],
+  "/codegen/tools/docker-compose/": [
+    {
+      "heading": "The exact shape of the emitted YAML",
+      "body": [
+        "Each service block emits `image`, then `ports`, `volumes` and `environment` only when the corresponding form fields are filled. Ports are written as a quoted scalar, `\"8080:80\"`, which matters because YAML would otherwise read an unquoted `8080:80` as a sexagesimal number. Volumes are written as one unquoted string such as `data:/var/lib/example`, which Compose reads as a named volume. Environment entries come from a single comma-separated field split on commas and then on the first `=`, so a value containing a comma is silently broken in two — and a fragment with no `=` raises an error naming the service rather than emitting broken YAML.",
+        "Values are quoted defensively whenever they contain a YAML-significant character, a leading or trailing space, or a newline, with backslashes and inner quotes escaped. Unquoted scalars pass through, so `NODE_ENV=production` stays the string a container expects. Version selection covers `3.9`, `3.8` and `2.24`; the key is emitted in the classic position for older tooling, and current Compose ignores it with a deprecation warning."
+      ]
+    },
+    {
+      "heading": "The default network is the part that matters most",
+      "body": [
+        "Services on the same Compose file join one bridge network and resolve each other by service name as a DNS hostname, so `postgres://user@db:5432/app` works with no host-side configuration at all. For local development this often makes the `ports` block unnecessary — a database that is only spoken to by other containers has no reason to be published to the host, and not publishing it removes it from the reach of anything else on the network. Reserve host ports for the things a human or a browser needs to reach.",
+        "Ordering is the other half. Without `depends_on`, Compose starts containers in declaration order and does not wait for readiness, so an application that connects at startup fails until the database finishes initialising — usually resolving on a retry rather than as a clean dependency. A `healthcheck` on the database plus `condition: service_healthy` is what actually encodes the wait, and neither is generated here because neither is expressible as a single text field in this form."
+      ]
+    },
+    {
+      "heading": "Environment handling and production hygiene",
+      "body": [
+        "Compose reads a `.env` file next to the project for `${VAR}` substitution inside the compose file itself, a different mechanism from `env_file`, which passes variables into the container. Writing literal values into the YAML, as this does, means the secret is in the file you commit. The production-shaped pattern is to reference the variable — `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}` — and keep the value in an ignored `.env`, so rotating a credential is an edit to an untracked file.",
+        "The remaining omissions are deliberate: no `restart` policy, so containers stay down across a daemon restart unless you add `restart: unless-stopped`; no `build` context, so services must exist in a registry; no resource limits; and no `depends_on`, healthchecks or networks beyond the implicit default. The file is a correct local-development starting point, and the gap to production is where all of those live."
+      ]
+    }
+  ],
+  "/codegen/tools/env-generator/": [
+    {
+      "heading": "The key conversion, and where it stops being reversible",
+      "body": [
+        "Normalisation runs three steps in order: insert an underscore at every lower-or-digit to upper transition, collapse every run of non-alphanumeric characters into a single underscore, trim leading and trailing underscores, then upper-case. `apiKey` becomes `API_KEY`; `user-id`, `user.id` and `user id` all become `USER_ID`. The consequence is that the mapping is many-to-one, so two distinct keys can normalise to the same name — `apiKey` and `api_key` both produce `API_KEY`, and the output then contains that name twice with no warning. Deduplicate before generating, or the loader's last-wins behaviour decides for you.",
+        "Acronyms are where the heuristic breaks down. Because the split only fires between a lower-case character and an upper-case one, `APIKey` becomes `APIKEY` and `HTTPServer` becomes `HTTPSERVER` — the internal capital is not a boundary it can see. `userID` does split correctly, to `USER_ID`. Keys are not otherwise validated, so a key made only of symbols normalises to an empty string and emits a line beginning with `=`."
+      ]
+    },
+    {
+      "heading": "Values are written unquoted, which is a real constraint",
+      "body": [
+        "Booleans become bare `true` and `false`, numbers become digits, `null` becomes an empty value, and strings are written unquoted after escaping backslashes and turning real newlines, carriage returns and tabs into escape sequences. Arrays and nested objects are serialised as compact JSON. Because nothing is quoted, a value containing a space, a `#`, or a leading character YAML would reinterpret can be read differently by different parsers — and inline comment stripping after an unquoted `#` is one of the genuine differences between dotenv implementations, so a value with a hash may or may not survive.",
+        "Multi-line values are the clearest limitation. There is no heredoc syntax, and an escaped `\\n` inside an unquoted value is not universally interpreted as a newline, so a PEM key or JSON blob with real newlines cannot be expressed reliably. Variable interpolation is a second: `${OTHER_VAR}` is not expanded by most dotenv libraries, and by Compose only when it appears in the compose file rather than in `env_file`. Write the interpolation yourself rather than assuming the loader does it."
+      ]
+    },
+    {
+      "heading": "Generate the template, never the secret",
+      "body": [
+        "The output is a template, and the header comment says so. The intended artefact is a `.env.example` — committed, with empty or placeholder values — so that a new contributor can see which variables the code reads and in what shape, without any credential entering version control. A real `.env` should be ignored, and should never be produced by pasting live secrets into a page, even one that runs locally.",
+        "Two details are easy to get wrong at the template level. Values that must be unique per environment belong in the template as empty strings rather than as working defaults, because a default that works on your machine becomes the value someone forgets to change. And a variable that is required in one code path but optional in another is better listed with a commented-out line than omitted, so the file documents the full surface the application expects to read."
+      ]
+    }
+  ],
+  "/codegen/tools/gitignore/": [
+    {
+      "heading": "Ten bundled templates, concatenated not merged",
+      "body": [
+        "Node, Python, Go, Java, Rust, React, Vue, Docker, Terraform and iOS are each a fixed inline string, and selecting several concatenates them under `# ── name ──` headers in template order. There is no deduplication step, so overlapping rules appear twice: the Node template's `.next/` and the React template's `.next/` are both emitted, as is `.env` from the Node and Docker templates. Duplicates are harmless to Git, but they make the file look broken when it is not.",
+        "Because each template is a snapshot rather than a live view, the opinions inside it are the ones true when the string was written, and some are contestable. The Rust template ignores `Cargo.lock`, right for a library and wrong for a binary, where the lockfile is what makes a build reproducible. The Node template's bare `logs` pattern is unanchored, so it matches any file or directory named `logs` at any depth, not only a log directory you created."
+      ]
+    },
+    {
+      "heading": "The four syntax rules these files depend on",
+      "body": [
+        "A trailing slash restricts a pattern to directories, which is why `node_modules/` will not hide a file called `node_modules`. A slash anywhere except the end anchors the pattern to the directory containing the `.gitignore`, so `/dist/` matches only the top-level `dist` while `dist/` matches at any depth — the anchored form is the stronger of the two and is what you want for build output. Within a path segment `*` matches any run of characters but never crosses a `/`, while `**` crosses directory boundaries.",
+        "A leading `!` negates a pattern, and the last matching pattern wins, so order is what decides whether an exception takes effect. The rule with no escape hatch: Git does not descend into an excluded directory, so a file inside one cannot be re-included by a later `!` pattern. If you need to keep one file from an ignored directory, the directory itself must not be excluded."
+      ]
+    },
+    {
+      "heading": "Ignoring is not the same as untracking",
+      "body": [
+        "A `.gitignore` only affects paths Git is not already tracking. Once a file is committed, adding a matching rule changes nothing: it keeps showing up in status and keeps being pushed. Removing it from the index while leaving the working copy alone is the fix.\n  git rm --cached .env\n  git commit -m 'stop tracking .env'",
+        "The word on that line is `cached` — without it Git deletes the file from disk too. History is a separate matter: the secret is still in every earlier commit, and rotating the credential is the only real remedy, since rewriting history does not un-clone anything anyone already fetched.",
+        "Three scopes exist. The committed `.gitignore` is shared with the team. `.git/info/exclude` applies to one clone only and is never committed, which makes it right for machine-specific noise. `core.excludesFile` is a per-user global list applied to every repository you own. When a pattern misbehaves, `git check-ignore -v <path>` names the exact rule responsible. The trap in these templates specifically: `.env` as an exact name does not match `app.env`, so a stray suffixed environment file is not covered and will be committed."
+      ]
+    }
+  ],
+  "/codegen/tools/html-escaper/": [
+    {
+      "heading": "Five characters, one pass",
+      "body": [
+        "Exactly five characters are replaced: `&`, `<`, `>`, `\"` and `'`. The implementation is a single regular expression pass with a replacement function, which is the detail that matters. The common advice to escape `&` first is a warning about sequential `.replace()` chains, where each call re-scans text the previous call already transformed — replace `<` first, then `&`, and the ampersand you just introduced as part of `&lt;` gets escaped again, yielding `&amp;lt;`. One pass with a lookup cannot double-escape, because no output is ever re-examined.",
+        "The apostrophe goes to the numeric reference `&#39;` rather than the named `&apos;`, which is deliberate and worth keeping: `&apos;` is not defined in HTML 4, so older parsers and several XML-adjacent toolchains render it literally. `&quot;` and the three named references are HTML 4 safe."
+      ]
+    },
+    {
+      "heading": "Escaping is context-dependent, and three contexts ignore it",
+      "body": [
+        "In normal text content and in a quoted attribute value these five characters are sufficient — the quote forms are what stop a value breaking out of `attr=\"...\"`. Inside `<script>` and `<style>` the content is raw text where character references are not decoded at all, so escaping there achieves nothing: `&lt;` stays five literal characters. For JavaScript use `\\u003c`, or let `JSON.stringify` handle it; for CSS use `\\3c`. `<textarea>` and `<title>` are escapable raw text where entities are decoded normally, so plain escaping works. `<pre>` and `<code>` are ordinary text content, which is the case this tool is aimed at.",
+        "The URL case is a different encoding layer. HTML entities and percent-encoding are not interchangeable: an `&` separating query parameters should be `&amp;` in the source so the parser does not begin an entity, and the browser then sends a literal `&` on the wire. Writing `%26` means something else again — a literal ampersand character. Reach for percent-encoding when building a URL in code, and for entities when embedding text in markup."
+      ]
+    },
+    {
+      "heading": "Why escaping is the last line of defence, not the first",
+      "body": [
+        "Escaping neutralises markup syntax, and that is the whole of its scope. It does not help when the value lands in a script context, an unquoted attribute, a `javascript:` URL, a `style` attribute, or a URL the page will navigate to. An attacker controlling a value can still reach those positions with a payload containing none of the five characters. Output encoding per context is the real control; a Content Security Policy refusing inline script is what stops the rest.",
+        "The reason to prefer the DOM API is that `textContent` and `createElement` perform the encoding for you, correctly and for the context they are in, with no chance of forgetting a character or applying the wrong table. Use this escaper where you must produce markup as text — documentation, a `<pre>` block, a code sample, a log viewer — and prefer `textContent` everywhere else. Note also that the unescape direction only knows the five references it emits: `&nbsp;`, `&copy;` and numeric forms such as `&#x27;` pass through untouched, so it is a reverse of this escaper rather than a general entity decoder."
+      ]
+    }
+  ],
+  "/codegen/tools/json-to-csv/": [
+    {
+      "heading": "Column order comes from first appearance, not from a schema",
+      "body": [
+        "Every element is walked in order and each unseen key is appended to a running column list, so the header is the union of all keys in first-appearance order. That is deterministic — the same input always yields the same header, which matters for diffs and checksums — but a key appearing only in the last record becomes the last column, after a run of empty cells, rather than sorted next to its siblings. There is no type inference and no schema: column widths do not exist in CSV, so a number and its stringified form are indistinguishable once written.",
+        "Each row is emitted by looking up every column in that object, so a row missing a key produces an empty cell in that position rather than shifting the remaining values left. Positional integrity holds even when the input objects have different shapes, which is what makes the union approach safe here."
+      ]
+    },
+    {
+      "heading": "Cell serialisation and the quoting rule",
+      "body": [
+        "Four cases, in order: `null` and `undefined` both become an empty cell; objects and arrays become `JSON.stringify` output; everything else is stringified and quoted only if it contains a comma, double quote, carriage return or newline, with inner quotes doubled. Nesting therefore produces a quoted cell containing escaped JSON, which is exactly what the `RFC 4180` escaping rule is for. Note that leading and trailing spaces are not in that trigger set, so ` padded ` is written bare — legal and tolerated by mainstream parsers, but not preserved by the strictest readers.",
+        "Rows are joined with `\\r\\n` and a trailing `\\r\\n` appended, the line ending RFC 4180 requires and what Excel expects. A newline inside a value is emitted as a bare `\\n` because that is what the JSON string contained, so a multi-line value inside a quoted field carries lone line feeds rather than CRLF — readable by any conforming parser, though not byte-identical to a strict exporter's output."
+      ]
+    },
+    {
+      "heading": "The two ways this output can hurt you",
+      "body": [
+        "A JSON `null`, a missing key, and an empty string all land in the cell as nothing at all. Once written, those three states are indistinguishable, and the CSV cannot be inverted without guessing. If the distinction matters — and it usually does, since `null` and `\"\"` mean different things to a database import — normalise it before converting.",
+        "The other hazard is that nothing here neutralises a leading `=`, `+`, `-` or `@`. Those four characters are the ones Excel, LibreOffice and Google Sheets treat as the start of a formula when importing CSV, so a value like `=1+1` is executed rather than displayed, and `@SUM(...)` or a DDE payload in a file that a colleague opens becomes code running with their privileges. Prefixing the cell with a single quote is the standard mitigation. This tool emits the value as given, which is the right default for a converter and the wrong default for untrusted input."
+      ]
+    }
+  ],
+  "/codegen/tools/json-to-python/": [
+    {
+      "heading": "Identifier rules and the reserved-word list",
+      "body": [
+        "A key is written bare only when it matches `^[A-Za-z_][A-Za-z0-9_]*$` and is not a Python keyword; everything else becomes a single-quoted string. So `name` and `_internal` stay bare while `retry-count`, `2fa`, `class` and `user.name` get quoted. Quoting a keyword is not a workaround — `{'class': 1}` is a perfectly ordinary dict and is what the output produces. The reserved-word set is the soft-keyword-complete version, including `match` and `case`, which are contextual in Python but reserved by this check.",
+        "Values follow a separate path and are always quoted strings, with backslashes, single quotes, newlines, carriage returns, tabs, form feeds and the two Unicode line separators escaped. Nesting is indented four spaces per level, and empty containers collapse to `{}` and `[]` rather than being spread over three lines each."
+      ]
+    },
+    {
+      "heading": "The literal mapping, and where the number type shifts underneath it",
+      "body": [
+        "Three substitutions happen on every value: `true`, `false` and `null` become `True`, `False` and `None`, at any depth. Numbers are emitted through JavaScript's own string conversion, and this is where the type of the literal can change. A JSON `1.0` has already lost its decimal point by the time it is a JavaScript number, so it is written as `1` and evaluates in Python as an `int` rather than a `float`. That is invisible in the output and shows up later as a type surprise.",
+        "Integers beyond 2^53 are a related problem with no good solution at this layer. The input was parsed by `JSON.parse`, so precision was already lost before the generator saw it — a 64-bit identifier such as `9007199254740993` arrives as `...992`. If exactness matters, the value has to stay a string in the source JSON."
+      ]
+    },
+    {
+      "heading": "Why a round trip is not guaranteed",
+      "body": [
+        "Parsing the output with `ast.literal_eval` gives you back the structure, and for most fixtures that is the whole job. It is not an identity transform, though. JSON has one array type and Python has two, so every array comes back as a `list` and there is nothing in the source that says whether a tuple was intended. Float-versus-int collapses as described above. And a non-identifier key round-trips correctly only because it was quoted, which is to say the round trip works by accident of the quoting rule rather than by any encoding of the original key.",
+        "The top level must be a JSON object — an array or a bare scalar is rejected with a message asking for an object, which is the right call since the output is a dict literal and nothing else. Deeply nested payloads are the practical limit rather than a correctness one: indentation grows by four spaces per level, so a response four levels deep is already visually unwieldy in a test file. For fixtures, the output is meant to be read and edited by a human, and a generated fixture nobody reads is a fixture nobody updates."
+      ]
+    }
+  ],
+  "/codegen/tools/json-xml/": [
+    {
+      "heading": "Why the two structures do not line up",
+      "body": [
+        "JSON has objects, arrays and scalars. XML has elements, attributes, text and namespaces. There is no array in XML, so an array has to be expressed as repetition: the same element name appearing as several siblings, which is what this converter emits for `{\"items\": [...]}` — one `<items>` per element, at the same indent level. There is also no attribute concept in JSON, so on the way out nothing becomes an attribute; the mapping stays element-only in that direction.",
+        "The reverse direction has more room, and it uses the two conventions real tools settle on: an attribute becomes a key prefixed with `@`, and a name that appears more than once becomes an array. Both are conventions, not parts of XML — the parser accepts any key — so a document that already contains keys starting with `@` will collide with them on the way in."
+      ]
+    },
+    {
+      "heading": "Reading XML back, and the one asymmetry to watch",
+      "body": [
+        "Parsing uses the browser's own `DOMParser` in `text/xml` mode, so malformed input surfaces as a parser error rather than a silent misread. An element with no element children collapses to its trimmed text, or to `null` when that text is empty. Text and CDATA nodes are both read as node types 3 and 4 and concatenated before trimming, so a CDATA section becomes an ordinary string with no record that it was one. The root element's name becomes the single top-level key of the resulting object.",
+        "The asymmetry is the array rule. A name that appears exactly once stays a scalar, and only the second occurrence promotes the value to an array — so `<items><item>a</item></items>` comes back as a scalar rather than a one-element list, and a document whose item count is data-dependent produces a shape that changes with the data. Whitespace-only text between child elements is dropped by the trim, which is what keeps pretty-printed XML from producing noise keys."
+      ]
+    },
+    {
+      "heading": "Name sanitising, and the collisions it creates",
+      "body": [
+        "Element names are filtered against `[^a-zA-Z0-9._-]`, with anything else replaced by an underscore and an empty result becoming `item`. That keeps output well-formed for most inputs, but it is many-to-one, so `user name` and `user_name` both become `user_name` and their contents merge into one element on the way back. A key like `@type` becomes `_type`, losing the marker that would have made it an attribute. The filter also permits a leading digit, which XML does not, so a key of `1st` produces a document no strict parser accepts.",
+        "The genuine losses are worth stating plainly. `null`, `[]` and `{}` all serialise to the same empty element and all read back as `null`, so three distinct inputs are indistinguishable in the XML. Namespaces are not resolved — a prefixed name is read using its prefixed `nodeName`, so `soap:Envelope` becomes a literal key containing a colon, and `xmlns` declarations appear as ordinary attributes. Mixed content, where text and elements interleave, keeps the text only when there are no element children. For typical API payloads the round trip is clean; for documents relying on any of the above, check the output against the real consumer."
+      ]
+    }
+  ],
+  "/codegen/tools/llm-structured-output-validator/": [
+    {
+      "heading": "The keyword set this walker actually enforces",
+      "body": [
+        "Validation is a recursive descent over the parsed output with errors accumulated rather than thrown, each carrying a keyword badge and a path like `entities[0].confidence`. The enforced set is: `type`, including `integer` via a numeric check rather than a range; `enum` and `const`, both compared by JSON serialisation; `minLength`, `maxLength`, `minimum`, `maximum`; `minItems`, `maxItems` with per-item recursion; `required`; recursion through `properties`; and `additionalProperties: false`, which reports each unexpected key.",
+        "A structural detail worth knowing: the extra-property check sits inside the branch that also requires `properties` to be present. A schema written as `additionalProperties: false` with no `properties` block therefore accepts arbitrary extra keys without complaint. And because `enum` and `const` compare serialised forms, two object members that differ only in key order serialise differently — `{\"a\":1,\"b\":2}` and `{\"b\":2,\"a\":1}` will not match each other, which matters if an enum ever holds objects."
+      ]
+    },
+    {
+      "heading": "Vendor schema dialects differ more than the marketing suggests",
+      "body": [
+        "The presets target three different mechanisms. OpenAI's structured outputs compile the schema into a constrained decoder, and the API rejects schemas it cannot honour: `additionalProperties: false` is required on every object, every property must appear in `required` with optionality expressed as a nullable union, and composition keywords are unavailable, so `anyOf` in a prompt-side schema is a rejection rather than a union. Gemini's `responseSchema` accepts a narrower subset still and rejects `$ref` outright. Anthropic tool `input_schema` is closest to ordinary JSON Schema, but nothing constrains generation — the model is asked to conform, not forced to, which is why post-hoc validation like this earns its keep. The consequence is practical: the schema you validate locally is not always the schema you can send. Keep the local copy as the source of truth, and expect to narrow it until the provider accepts."
+      ]
+    },
+    {
+      "heading": "Mock generation, token cost, and a retry strategy that converges",
+      "body": [
+        "Generating a mock walks the schema and fills it: `const` and a random `enum` member are used verbatim, numbers land randomly inside the `minimum`/`maximum` range and are rounded, `format: email` and `date-time` produce plausible values, array length follows `minItems`, and optional object properties are included most of the time. A passing mock proves the schema is not self-contradictory; it does not prove it is satisfiable in practice, since required properties with unsatisfiable constraints still generate something arbitrary. Use it as a prompt reference and a sanity check, not as a fixture.",
+        "The schema travels with every request, so a 900-token schema costs 900 input tokens per call, forever, before any completion is generated — which is why descriptions earn their place despite adding tokens, and why a strict schema that eliminates retries is often cheaper than a permissive one that gets repaired. The retry loop that converges: validate, and on failure re-ask with the exact error message and the failing path quoted back. If the same violation survives two attempts, it is nearly always the schema's fault rather than the model's, so widen the schema rather than retrying again."
+      ]
+    }
+  ],
+  "/codegen/tools/schema-to-typescript/": [
+    {
+      "heading": "The draft-07 to TypeScript mapping",
+      "body": [
+        "`object` becomes an interface, everything else becomes a type alias or an inline type. `string` maps to `string`, `boolean` to `boolean`, `null` to `null`. `integer` and `number` both map to `number` — TypeScript has one numeric type, so an integer constraint is not representable and `1.5` would type-check against an `integer` field. `array` with one `items` schema becomes `T[]`, and with an array of schemas a tuple `[A, B]`. An `enum` becomes a union of literal types.",
+        "Nullability comes from two places. A `type` array containing `null` produces `T | null`, with the null branch filtered out and re-appended. OpenAPI's `nullable: true` is honoured too. Draft-07 has no `nullable` keyword of its own, which is why the `type` array form is the portable one — a schema using a vendor extension like `x-nullable` is not recognised, and the field comes out non-nullable."
+      ]
+    },
+    {
+      "heading": "How $ref resolution stays finite",
+      "body": [
+        "Only local pointers are followed, resolved by walking the parsed document: `#/$defs/Address` and `#/definitions/Address` both work, each segment percent-decoded first. Remote refs are not fetched. Recursion terminates because of ordering: an object schema's name is registered in a cache keyed on the schema object itself before its properties are walked, so a self-referential tree emits the interface's own name instead of descending again. A depth counter backstops anything that slips past, returning `any` past sixty levels.",
+        "Naming is handled rather than hoped for: the prefix is prepended to the root name and to every ref-derived name, characters outside `[A-Za-z0-9_$]` are stripped, a leading digit gets an `S`, and a collision appends an incrementing `2`, `3`. Inline nested objects are not prefixed — they are named by parent name plus capitalised property name, inheriting their parent's identity."
+      ]
+    },
+    {
+      "heading": "What the toggles change, and what the mapping loses",
+      "body": [
+        "The default is the surprising one. With strict mode off, every property is emitted optional — including the ones listed in `required` — because the assumption is that a required field can still be missing off the wire. Turn strict mode on and only `required` members lose the question mark.",
+        "Some schema information has no TypeScript counterpart and is dropped: `format`, `pattern`, `minimum`, `maxLength` and their siblings do not affect the emitted type, so an `email` field is just `string`. Several keywords are not implemented at all, and a schema relying on them will not error — it quietly produces something weaker than you wrote. `allOf` is the important omission, because intersection is the standard way to compose a base object with an extension, and an unhandled `allOf` yields a type that does not constrain what it should.",
+        "One combination produces code that does not compile. An `additionalProperties` schema emits `[key: string]: T`, and TypeScript then requires every named property to be assignable to `T` — so `name?: string` alongside `additionalProperties: { type: 'number' }` is an error, not a warning. `additionalProperties: false` is accepted and ignored. When a schema mixes declared properties with a typed index signature, check whether the types actually unify before committing the output."
+      ]
+    }
+  ],
+  "/codegen/tools/sql-formatter/": [
+    {
+      "heading": "Lexing is the part that has to be right",
+      "body": [
+        "Everything runs off a token stream produced by a character scanner that classifies whitespace, single-quoted strings with `''` doubling, double-quoted and backtick and bracketed identifiers as opaque tokens, line comments, block comments, numbers including a decimal point and an exponent, words starting with a letter or `_`, `$` or `#`, and single-character punctuation. Nothing after that stage looks at raw characters again.",
+        "This is why a regular expression cannot do the job. `SELECT` inside a string literal, a `--` inside a quoted value, a comma inside a bracketed identifier — a regex that inserts a newline before each keyword corrupts all three, and the corruption is silent because the result still looks like SQL. Scanners also differ on dialect quoting in a way that matters: backticks and square brackets are treated as identifier delimiters even though only SQL Server uses the latter, so a MySQL query survives a round trip intact."
+      ]
+    },
+    {
+      "heading": "Layout comes from a clause table, not from a grammar",
+      "body": [
+        "Line breaks are driven by a list of multi-word clause phrases matched greedily longest-first, so `LEFT OUTER JOIN` wins over `LEFT JOIN` wins over `JOIN`. Indentation is parenthesis depth times the indent width, plus one extra level inside a top-level select list. Commas end a line, so each selected column sits on its own row. Minify reuses the same token stream, re-inserting a space only where two word-like tokens would otherwise merge into one identifier.",
+        "`AND` and `OR` break onto a new indented line only while a logical context flag is set, turned on by `WHERE`, `ON` and `HAVING` and cleared by the next main clause — so boolean structure is indented where it is meaningful and left alone inside a `CASE` expression. Parentheses are inspected rather than assumed: a `(` is a subquery boundary only when the next token is `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `WITH` or `VALUES`, which is why `IN (SELECT ...)` splits across lines while `COUNT(*)` stays inline."
+      ]
+    },
+    {
+      "heading": "Limits worth knowing before you paste production SQL",
+      "body": [
+        "There is no dialect selector, and the keyword table is generic. A column named `key`, `order` or `end` is recognised as a keyword and upper-cased when that option is on — harmless, since SQL keywords are case-insensitive. Identifier case and string contents are never altered, so quoted identifiers come through unchanged.",
+        "Two lexical gaps are real. MySQL's `#` line comment is not recognised, because `#` is treated as a word character: `# note` lexes as the word `#` followed by `note` and gets laid out as code. And backslash escapes inside string literals are unhandled — under MySQL defaults `'a\\'b'` is one string containing an escaped quote, but the scanner ends the literal at the backslash-quote pair, so the remainder is re-tokenised and the layout goes wrong.",
+        "Finally, this tool does not validate. It will happily lay out a statement with a syntax error and produce well-formatted nonsense, because its only failure mode is an internal exception rather than a grammar check. Comments survive both directions, including `--` line comments in minified output where a newline is forced so the rest of the statement is not swallowed."
+      ]
+    }
+  ],
+  "/codegen/tools/sql-generator/": [
+    {
+      "heading": "Type inference scans every row, in a fixed precedence",
+      "body": [
+        "Columns are the union of keys across all objects in first-appearance order, and each column's type is decided by looking at every value in it, not just the first. The precedence is: any string anywhere makes the column text; otherwise any boolean makes it boolean; otherwise any non-integer number makes it float; otherwise any number makes it integer. That ordering is the behaviour to understand, because it is one-way — a single stray string among numbers widens the column to text, and no amount of numeric data narrows it back.",
+        "The mapping is `VARCHAR(255)` for text on MySQL and `TEXT` elsewhere, `REAL` on SQLite and `DOUBLE` elsewhere for float, `INTEGER`, `BOOLEAN`. The MySQL text case is the one to watch: `VARCHAR(255)` truncates or errors depending on the server's SQL mode, so a longer string that looked like plain text becomes a data-loss event. Boolean is checked before numeric, so a column mixing `true` and `1` is typed boolean while the `1` is still emitted as a bare integer literal."
+      ]
+    },
+    {
+      "heading": "Identifiers and values are handled by two different mechanisms",
+      "body": [
+        "Identifiers are sanitised, then quoted. Every character outside `[A-Za-z0-9_]` becomes an underscore, and the result is wrapped in backticks for MySQL or double quotes for SQLite and PostgreSQL. That makes injection through a column or table name impossible, which is the right priority — but it is lossy without saying so: `user-name` and `user_name` both become `user_name`, two distinct keys collide into one column, and the generated `CREATE TABLE` contains the duplicate. Check the column names before running the DDL.",
+        "Values take the other path. String literals are escaped by doubling single quotes and nothing else — no backslash is escaped. That is correct for PostgreSQL and standard SQL, where backslash is ordinary. It is not correct for MySQL in default mode, where backslash escapes: a value ending in a backslash produces a literal whose closing quote is escaped, and everything after is parsed as SQL rather than data. A trailing `\\` from untrusted input is enough to break the statement."
+      ]
+    },
+    {
+      "heading": "What is missing, and what the numbers do",
+      "body": [
+        "There is no primary key, foreign key, unique constraint, check, index, `NOT NULL` or default in the output, and no auto-incrementing column — no `AUTO_INCREMENT`, `SERIAL` or `IDENTITY` for any dialect, so an integer key arrives as a plain `INTEGER` you must populate yourself. There is also no `CREATE TABLE IF NOT EXISTS` and no multi-row batching: one `INSERT` per object. Nested objects and arrays become text columns holding JSON, worth promoting to `jsonb` on PostgreSQL.",
+        "Numbers are written through JavaScript's string conversion, so a large integer beyond 2^53 is emitted already precision-damaged and a float such as `1.0` is emitted as `1`. Three dialects are offered — MySQL, SQLite and PostgreSQL — and booleans are bare `TRUE` and `FALSE`, accepted by all three in current versions but not by older SQLite builds. Treat the result as a draft: run it against a scratch database, then add the keys, constraints and indexes that make it a schema."
+      ]
+    }
+  ],
+  "/codegen/tools/sql-validator/": [
+    {
+      "heading": "This is a heuristic linter, not a parser",
+      "body": [
+        "The implementation is a tokenizer followed by a small set of structural checks, and being precise about that matters. There is no grammar, no symbol table and no schema, so the tool cannot tell you a column does not exist or that two types are incompatible — it reports positions and phrases, not semantic errors. What it does check is unbalanced parentheses in both directions, a `WHERE`, `GROUP` or `ORDER` with no `SELECT` anywhere before it, and a statement whose first recognised keyword is not a statement starter.",
+        "That last check is weaker than it sounds, because the test is presence rather than position: a `SELECT` anywhere earlier in the token stream satisfies it, so `WHERE x = 1 SELECT 1` passes. Error positions are approximate too — line numbers only advance when a token itself contains a newline, and the column counter accumulates token lengths across the statement rather than resetting per line, so treat the reported position as a region to look at rather than an exact caret."
+      ]
+    },
+    {
+      "heading": "Dialect differences are a word blacklist",
+      "body": [
+        "There is no per-dialect grammar. Each dialect carries a short list of individual words that are wrong for it, and the check matches a token against that list rather than parsing anything: MySQL rejects `SERIAL`, `RETURNING`, `::` and `CURRENT_SCHEMA`; PostgreSQL rejects `AUTO_INCREMENT`; SQLite rejects `RETURNING`, which it only gained in 3.35; SQL Server rejects `LIMIT` and `SERIAL`. Deliberately absent are `NOW()` and `GETDATE()` — both are ordinary functions in MySQL and SQL Server, and flagging them would be a false positive rather than a warning.",
+        "Matching on the token instead of searching the raw statement matters for two reasons. A word inside a string literal or a comment no longer triggers, because the tokenizer has already classified it as text rather than a keyword. And a single occurrence produces one report rather than one per word in the query, so the output no longer needs deduplicating before you read it. The trade-off is narrower coverage: a blacklist that only matches whole words cannot see multi-word shapes, so anything depending on a phrase is not checked at all."
+      ]
+    },
+    {
+      "heading": "Known blind spots, and how to use the output",
+      "body": [
+        "Only `--` comments are skipped. `#` comments and `/* */` blocks are not recognised, so a commented-out query in a block comment is tokenised as live SQL and can produce errors for code that is not running. String scanning follows the JavaScript convention of a backslash before the closing quote rather than SQL's doubled quote, so `'it''s'` — valid SQL — is read as two adjacent literals, and an unterminated string swallows the remainder without an error.",
+        "The Format button here is regex-based rather than token-based: it upper-cases keywords with word-boundary patterns and inserts newlines by substituting whitespace before a keyword, which will break a line inside a string literal or a comment. That is precisely the failure the dedicated SQL formatter exists to avoid — use this page for structural checks and the formatter for layout. A clean run means no unbalanced parentheses and no obvious keyword mismatch; it does not mean the query is correct, efficient, or runnable."
+      ]
+    }
+  ]
+}

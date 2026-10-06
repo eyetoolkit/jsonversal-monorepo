@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-schema-builder/"
   current="/tools/json-schema-builder/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The tree model behind the canvas",
+      "body": [
+        "State is a plain object tree: a root node with `properties` and `required` arrays, where each node carries an id, a name, a type, a constraints bag, an optional enum, and — for objects — its own `properties` and `required`. Paths are arrays of child indices, resolved fresh on each render. Because the whole tree re-renders on every keystroke, a rename or a type change propagates into the generated JSON immediately rather than on blur.",
+        "Constraints are offered per type rather than globally. Strings get `minLength`, `maxLength`, `pattern` and a `format` dropdown limited to email, date, date-time, uri and uuid. Numbers and integers get `minimum` and `maximum`, with `multipleOf` offered for numbers only. Arrays get `minItems` and `maxItems`. Anything outside that set has to be typed into the output by hand afterwards."
+      ]
+    },
+    {
+      "heading": "How draft selection and export work",
+      "body": [
+        "The draft selector affects exactly one thing: the `$schema` string that the `Export with $schema` button writes into the document. It is assembled by string concatenation, which yields correct metaschema URIs for 2019-09 and 2020-12 but a malformed one for draft-07 — `https://json-schema.org/draft/draft-07/schema` instead of the registered `http://json-schema.org/draft-07/schema#`. The body of the schema is identical across all three choices.",
+        "That is possible because the generator emits a conservative keyword subset: `type`, `properties`, `required`, `items`, and the string and numeric constraints above. There is no `$ref`, no `definitions`, and no `prefixItems`, so nothing produced here depends on a draft-specific feature and the emitted document validates under any of the three.",
+        "One behaviour is worth knowing before you rely on enums. Setting an enum replaces the property schema outright: the output becomes `{ \"enum\": [...] }` with the `type` and every constraint dropped, because the enum path short-circuits the normal branch."
+      ]
+    },
+    {
+      "heading": "Limits of the visual model",
+      "body": [
+        "Enums are entered in one comma-separated text field and split on commas, so a value containing a comma cannot be expressed, and every member is treated as a string even when it looks numeric. Despite what the page description says, no `allOf`, `anyOf` or `oneOf` is ever emitted.",
+        "Required tracking is by name, and renaming a property rewrites only the root `required` array. Rename a field inside a nested object and that object's `required` list keeps pointing at the old name, producing a schema demanding a property that no longer exists — a fault that surfaces as a validation error rather than as anything visible in the editor."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

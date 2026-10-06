@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = "Random Token Generator";
-const description = "Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser\\";
+const description = "Generate cryptographically secure random tokens in hex, base64, base64url, or UUID format, using the browser's crypto.getRandomValues. Runs locally.";
 const faqs = [
   {
     "question": "How do I generate a random token?",
@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/random-token/"
   current="/sec/tools/random-token/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The length sets the strength, not the encoding",
+      "body": [
+        "The length field is in bytes, and it alone determines the entropy: 16 bytes is 128 bits, 32 bytes is 256. Everything else here is presentation. Hex renders two characters per byte, so 16 bytes becomes 32 characters; base64 renders four characters per three bytes, giving 24 characters with padding or 22 without; base64url additionally swaps `+` and `/` for `-` and `_` so the value survives a URL, a query string or a filename unchanged.",
+        "This page offers lowercase hex, uppercase hex, standard base64, base64url and a UUID-style layout, in sizes from 4 to 128 bytes, producing one to ten values per run. 128 bits is already far past any practical brute-force concern — the realistic failure mode for a token is leakage through logs, analytics or a shared screen, not guessing, so spend your effort on storage and expiry rather than on adding bytes."
+      ]
+    },
+    {
+      "heading": "Why not Math.random",
+      "body": [
+        "`Math.random()` is a fast non-cryptographic generator — V8 implements xorshift128+ — designed to be cheap, not to be unpredictable. Its internal state is small enough that observing a handful of consecutive outputs is enough to reconstruct the state and predict every value that comes after, which means anything derived from it has to be treated as public the moment it is used for a secret.",
+        "`crypto.getRandomValues` draws from the platform CSPRNG instead. Its one real constraint is a quota of 65,536 bytes per call, raised as a `QuotaExceededError` — nothing you will hit at these sizes. Use it for session identifiers, CSRF tokens, API keys, reset links and email verification codes, and if you need something shorter than 16 bytes, prefer a dedicated tool for the format rather than truncating a longer token."
+      ]
+    },
+    {
+      "heading": "Storing and retiring what you generate",
+      "body": [
+        "Store bearer tokens hashed. Because a token already carries 128 bits of entropy there is nothing to slow down, so a fast digest such as SHA-256 is the correct storage function here — unlike a password, wrapping it in bcrypt or Argon2 adds latency on every authenticated request without adding any security, since the search space is not the bottleneck.",
+        "Expiry and single-use behaviour matter more than length. A password-reset token should be invalidated after one redemption and after minutes rather than hours, and the presented value should be compared against the stored hash in constant time rather than with `===`. One formatting note: the UUID option here lays out 16 random bytes as 8-4-4-4-12 without setting the RFC 4122 version and variant nibbles, so hand it to code expecting an opaque random string, not a spec-compliant v4 UUID."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

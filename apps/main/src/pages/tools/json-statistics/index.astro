@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-statistics/"
   current="/tools/json-statistics/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the walk counts",
+      "body": [
+        "A single recursive pass visits every node, incrementing a node counter, tracking maximum depth, and recording the type of each value. Depth starts at zero for the root, so a flat object reports depth 1 and each nested level adds one — a useful number when you are about to write a recursive consumer and need to know whether its recursion will be shallow.",
+        "Key totals count object keys only, not array indices, so a 100-element array of objects reports 100 nodes and zero keys. String lengths, numeric values and array lengths are each accumulated into their own list, which is what makes the min, max and average rows possible. Booleans get no length statistics, because neither a minimum nor a maximum would tell you anything."
+      ]
+    },
+    {
+      "heading": "Reading the output",
+      "body": [
+        "Type distribution bars are scaled relative to the most frequent type, not to the document total, so the largest bar is always full width. Read the counts rather than the bar lengths: a document that is 90% string and 10% object looks like a ten-to-one bar ratio rather than the nine-to-one the raw numbers represent. This is a shape comparison across types, not a share-of-total chart.",
+        "The numeric and length sections usually carry the actionable signal. A maximum string length far above the mean suggests an embedded blob or a base64 payload that will behave differently under a size limit. A wide spread in the array-length min, max and average across sibling keys means the payload is irregular in a way that complicates buffer sizing. Maximum depth is the one number to check before trusting a recursive parser."
+      ]
+    },
+    {
+      "heading": "Limits of the analysis",
+      "body": [
+        "The parse is a single blocking `JSON.parse` followed by a synchronous walk, not a streaming parser, so a very large document will block the interface instead of being processed incrementally. Deeply nested input is additionally bounded by the JavaScript call stack, since the walk recurses per level.",
+        "Minima and maxima are computed by spreading each accumulated list into `Math.min.apply`, which raises a stack range error once a list reaches roughly two hundred thousand entries — a document containing an enormous array of numbers can therefore fail at the summary stage after parsing succeeded. Averages are rounded to one decimal, which is fine for sizing decisions and too coarse for anything else. Per-key frequency is gathered internally but never surfaced in the report."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

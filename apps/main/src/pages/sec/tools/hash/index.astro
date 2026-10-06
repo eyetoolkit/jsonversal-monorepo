@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/hash/"
   current="/sec/tools/hash/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "One pass, every digest, no key",
+      "body": [
+        "This page is the unkeyed view. It takes one input and produces every digest of those exact bytes at once — MD5, SHA-1, SHA-256, SHA-384 and SHA-512 — with optional hex and Base64 formatting, and it accepts a local file as the input source. Nothing is keyed and nothing is uploaded. Producing all five in one pass is the practical reason to prefer it when checking an integrity manifest: the digests must all come from the same bytes, and hashing the file five times separately invites a mismatch if it changes between reads.",
+        "The four SHA digests come straight from `crypto.subtle.digest`, which is non-incremental and one-shot; SHA-1 and SHA-2 are implemented by every modern browser engine, which is why they need no bundled code. Hex and base64 output can be shown together, hex lowercase. That case detail is not cosmetic when you are string-matching a digest against a reference — half the world's manifests use uppercase hex."
+      ]
+    },
+    {
+      "heading": "Text and files are hashed differently",
+      "body": [
+        "Typed text is encoded with `TextEncoder`, so you get the UTF-8 bytes of that exact string; an uploaded file is read with `arrayBuffer()` and hashed as raw bytes, with no normalisation in either direction. This is the distinction behind most —why are these two files different— moments: a trailing newline, a BOM, or a tab versus spaces are all part of the input, and every one of them changes the digest completely.",
+        "The practical consequence is that a checksum is only reproducible if the byte sequence is pinned. If you are hashing structured data to detect unauthorised edits, hash a canonical serialisation — sorted keys, fixed separators, no incidental whitespace — or the pretty-printed form will produce a different value on every reformat, and the check becomes noise. The avalanche effect is the flip side of the same property: change one character anywhere and every output bit is equally likely to flip."
+      ]
+    },
+    {
+      "heading": "Where this page stops",
+      "body": [
+        "There is one difference between this page and the hash-generator, and it concerns only MD5. SubtleCrypto does not implement MD5, so that digest comes from a bundled pure-JavaScript implementation of RFC 1321 rather than the browser's own. It runs over the same bytes as the SHA family, so the MD5 row is a real digest of your input — which matters when you are matching a checksum that a legacy system published. The other four rows go straight through SubtleCrypto, which is constant-time by design and considerably faster for large inputs.",
+        "A plain digest proves nothing about origin, because anyone can recompute it. Tamper-evidence needs a keyed construction or a signature; a password store needs a deliberately slow, salted function. And no fast digest belongs in a credential path regardless of how it is obtained — use this page for content fingerprinting, cache keys, deduplication and verifying downloads, and choose the tool that matches the job."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">
@@ -59,54 +82,23 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <p class="text-muted">Use a hash when you need integrity verification  — for example, confirming that a downloaded file matches its published checksum. Never rely on MD5 or SHA-1 to protect passwords or sign data, and choose SHA-256 or SHA-512 for any new system. Note that a hash proves data was not accidentally corrupted, but it does not authenticate who the data came from.</p>
 </ToolPage>
 
-<script is:inline>
-(function(){
+<script>
+  import { md5Bytes } from '../../../../lib/md5.js';
+  (function(){
   const $ = id => document.getElementById(id);
 
-  // Minimal MD5 (pure JS, for client-side only)
-  async function md5(str) {
-    // Using RFC-compliant MD5 implementation
-    function md5cycle(x,k) {
-      let a=x[0],b=x[1],c=x[2],d=x[3];
-      a=fff(a,b,c,d,k[0],-680876936);d=fff(d,a,b,c,k[1],-389564586);c=fff(c,d,a,b,k[2],606105819);b=fff(b,c,d,a,k[3],-1044525330);
-      a=fff(a,b,c,d,k[4],-176418897);d=fff(d,a,b,c,k[5],1200080426);c=fff(c,d,a,b,k[6],-1473231341);b=fff(b,c,d,a,k[7],-45705983);
-      a=fff(a,b,c,d,k[8],1770035416);d=fff(d,a,b,c,k[9],-1958414417);c=fff(c,d,a,b,k[10],-42063);b=fff(b,c,d,a,k[11],-1990404162);
-      a=fff(a,b,c,d,k[12],1804603682);d=fff(d,a,b,c,k[13],-40341101);c=fff(c,d,a,b,k[14],-1502002290);b=fff(b,c,d,a,k[15],1236535329);
-      a=ggg(a,b,c,d,k[16],-165796510);d=ggg(d,a,b,c,k[17],-1069501632);c=ggg(c,d,a,b,k[18],643717713);b=ggg(b,c,d,a,k[19],-373897302);
-      a=ggg(a,b,c,d,k[20],-701558691);d=ggg(d,a,b,c,k[21],38016083);c=ggg(c,d,a,b,k[22],-660478335);b=ggg(b,c,d,a,k[23],-405537848);
-      a=ggg(a,b,c,d,k[24],568446438);d=ggg(d,a,b,c,k[25],-1019803690);c=ggg(c,d,a,b,k[26],-187363961);b=ggg(b,c,d,a,k[27],1163531501);
-      a=ggg(a,b,c,d,k[28],-1444681467);d=ggg(d,a,b,c,k[29],-51403784);c=ggg(c,d,a,b,k[30],1735328473);b=ggg(b,c,d,a,k[31],-1926607734);
-      a=hhh(a,b,c,d,k[32],-378558);d=hhh(d,a,b,c,k[33],-2022574463);c=hhh(c,d,a,b,k[34],1839030562);b=hhh(b,c,d,a,k[35],-35309556);
-      a=hhh(a,b,c,d,k[36],-1530992060);d=hhh(d,a,b,c,k[37],1272893353);c=hhh(c,d,a,b,k[38],-155497632);b=hhh(b,c,d,a,k[39],-1094730640);
-      a=hhh(a,b,c,d,k[40],681279174);d=hhh(d,a,b,c,k[41],-358537222);c=hhh(c,d,a,b,k[42],-722521979);b=hhh(b,c,d,a,k[43],76029189);
-      a=hhh(a,b,c,d,k[44],-640364487);d=hhh(d,a,b,c,k[45],-421815835);c=hhh(c,d,a,b,k[46],530742520);b=hhh(b,c,d,a,k[47],-995338651);
-      a=iii(a,b,c,d,k[48],-198630844);d=iii(d,a,b,c,k[49],1126891415);c=iii(c,d,a,b,k[50],-1416354905);b=iii(b,c,d,a,k[51],-57434055);
-      a=iii(a,b,c,d,k[52],1700485571);d=iii(d,a,b,c,k[53],-1894986606);c=iii(c,d,a,b,k[54],-1051523);b=iii(b,c,d,a,k[55],-2054922799);
-      a=iii(a,b,c,d,k[56],1873313359);d=iii(d,a,b,c,k[57],-30611744);c=iii(c,d,a,b,k[58],-1560198380);b=iii(b,c,d,a,k[59],1309151649);
-      a=iii(a,b,c,d,k[60],-145523070);d=iii(d,a,b,c,k[61],-1120210379);c=iii(c,d,a,b,k[62],718787259);b=iii(b,c,d,a,k[63],-343485551);
-      x[0]=(x[0]+a)|0;x[1]=(x[1]+b)|0;x[2]=(x[2]+c)|0;x[3]=(x[3]+d)|0;
-    }
-    function ff(a,b,c,d,x,s,t){return (a+((b&c)|((~b)&d))+x+t)|0<<s|((a+((b&c)|((~b)&d))+x+t)|0)>>>32-s>>>0;}
-    function fff(a,b,c,d,x,s,t){return ff(a,b,c,d,x,s,t);}
-    function ggg(a,b,c,d,x,s,t){return (a+((b&d)|(c&(~d)))+x+t)|0<<s|((a+((b&d)|(c&(~d)))+x+t)|0)>>>32-s>>>0;}
-    function hhh(a,b,c,d,x,s,t){return (a+(b^c^d)+x+t)|0<<s|((a+(b^c^d)+x+t)|0)>>>32-s>>>0;}
-    function iii(a,b,c,d,x,s,t){return (a+(c^(b|(~d)))+x+t)|0<<s|((a+(c^(b|(~d)))+x+t)|0)>>>32-s>>>0;}
-    function md5str(s){return md5b(new TextEncoder().encode(s));}
-    function md5b(bytes){
-      // ... full impl omitted for brevity  — using a simpler approach
-    }
-    // For simplicity, fall back to Web Crypto-compatible hashes only and skip MD5
-    return null;
+  // MD5 is not part of SubtleCrypto, so it comes from the shared pure-JS
+  // implementation in src/lib/md5.js. It exists for interoperability with legacy
+  // systems, not as a recommendation for new work.
+  function computeMD5(bytes) {
+    if (typeof md5Bytes === 'function') return md5Bytes(bytes);
+    return '[MD5 unavailable]';
   }
 
   const enc = new TextEncoder();
 
   async function compute(algo, bytes) {
-    if (algo === 'MD5') {
-      // MD5 not in SubtleCrypto  — use a tiny bundled impl (avoid large deps)
-      // We accept MD5 is a bonus; show warning if not available
-      return '[MD5 skipped  — use SHA-256 or SHA-512]';
-    }
+    if (algo === 'MD5') return computeMD5(bytes);
     const map = { 'SHA-1': 'SHA-1', 'SHA-256': 'SHA-256', 'SHA-384': 'SHA-384', 'SHA-512': 'SHA-512' };
     const buf = await crypto.subtle.digest(map[algo], bytes);
     return new Uint8Array(buf);
@@ -151,5 +143,5 @@ import BaseLayout from '@versal/ui/BaseLayout';
   // 默认跑一次
   $('input').value = 'hello world';
   $('hash').click();
-})();
+  })();
 </script>

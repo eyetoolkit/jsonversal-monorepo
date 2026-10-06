@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = ".env Template Generator";
-const description = "Generate a .env template from a JSON object or ";
+const description = "Generate a .env template from a JSON object or key: value lines. Keys are normalised to UPPER_SNAKE_CASE and every variable is commented out so the file is safe to commit.";
 const faqs = [
   {
     "question": "How do I generate a .env file?",
@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/env-generator/"
   current="/codegen/tools/env-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The key conversion, and where it stops being reversible",
+      "body": [
+        "Normalisation runs three steps in order: insert an underscore at every lower-or-digit to upper transition, collapse every run of non-alphanumeric characters into a single underscore, trim leading and trailing underscores, then upper-case. `apiKey` becomes `API_KEY`; `user-id`, `user.id` and `user id` all become `USER_ID`. The consequence is that the mapping is many-to-one, so two distinct keys can normalise to the same name — `apiKey` and `api_key` both produce `API_KEY`, and the output then contains that name twice with no warning. Deduplicate before generating, or the loader's last-wins behaviour decides for you.",
+        "Acronyms are where the heuristic breaks down. Because the split only fires between a lower-case character and an upper-case one, `APIKey` becomes `APIKEY` and `HTTPServer` becomes `HTTPSERVER` — the internal capital is not a boundary it can see. `userID` does split correctly, to `USER_ID`. Keys are not otherwise validated, so a key made only of symbols normalises to an empty string and emits a line beginning with `=`."
+      ]
+    },
+    {
+      "heading": "Values are written unquoted, which is a real constraint",
+      "body": [
+        "Booleans become bare `true` and `false`, numbers become digits, `null` becomes an empty value, and strings are written unquoted after escaping backslashes and turning real newlines, carriage returns and tabs into escape sequences. Arrays and nested objects are serialised as compact JSON. Because nothing is quoted, a value containing a space, a `#`, or a leading character YAML would reinterpret can be read differently by different parsers — and inline comment stripping after an unquoted `#` is one of the genuine differences between dotenv implementations, so a value with a hash may or may not survive.",
+        "Multi-line values are the clearest limitation. There is no heredoc syntax, and an escaped `\\n` inside an unquoted value is not universally interpreted as a newline, so a PEM key or JSON blob with real newlines cannot be expressed reliably. Variable interpolation is a second: `${OTHER_VAR}` is not expanded by most dotenv libraries, and by Compose only when it appears in the compose file rather than in `env_file`. Write the interpolation yourself rather than assuming the loader does it."
+      ]
+    },
+    {
+      "heading": "Generate the template, never the secret",
+      "body": [
+        "The output is a template, and the header comment says so. The intended artefact is a `.env.example` — committed, with empty or placeholder values — so that a new contributor can see which variables the code reads and in what shape, without any credential entering version control. A real `.env` should be ignored, and should never be produced by pasting live secrets into a page, even one that runs locally.",
+        "Two details are easy to get wrong at the template level. Values that must be unique per environment belong in the template as empty strings rather than as working defaults, because a default that works on your machine becomes the value someone forgets to change. And a variable that is required in one code path but optional in another is better listed with a commented-out line than omitted, so the file documents the full surface the application expects to read."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/jwt-generator/"
   current="/sec/tools/jwt-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What is actually signed",
+      "body": [
+        "The signature covers the ASCII bytes of `base64url(header) + \".\" + base64url(payload)`, keyed with your secret through HMAC-SHA2. This tool signs the raw JSON text from the textareas verbatim — it does not re-serialise — so the exact whitespace, indentation and key order you typed become part of the signed message. Reformatting the JSON after signing invalidates the token even though nothing semantically changed.",
+        "base64url drops `=` padding and maps `+` to `-` and `/` to `_`, which is what lets a JWT survive a query string, a cookie or an Authorization header unmangled. The algorithm is read from `header.alg` in your input and validated against a whitelist of HS256, HS384 and HS512. That whitelist is the defence against `alg: none` and against algorithm-confusion downgrades — never remove it."
+      ]
+    },
+    {
+      "heading": "What HS256 commits you to",
+      "body": [
+        "HMAC-signed tokens are symmetric: the same secret issues and verifies, so every party that needs to validate a token must also be able to mint one. That is fine inside a single trust boundary — your API plus your own backend services — and structurally wrong the moment a third party must verify without being able to issue, such as a partner integration or a public API consumed by many clients. Those cases need RS256 or ES256, which this tool does not implement.",
+        "Header and payload are base64url, not encrypted. Anyone holding the token can read every claim with no key at all, so keep passwords, tokens and personal data out of both. Short lifetimes matter more than signing strength in practice: the `Insert exp` button sets `exp` to now plus 3600 seconds, a sensible ceiling for a short-lived access token and far too generous for a refresh token."
+      ]
+    },
+    {
+      "heading": "Sharp edges in the workflow",
+      "body": [
+        "The two timestamp buttons re-serialise your payload through `JSON.stringify` with two-space indentation. That changes the signed bytes, so a signature produced before you clicked `Insert exp` no longer matches the payload sitting in the textarea — always sign again after editing. This is the single most common way to end up with a token that verifies nowhere.",
+        "The page signs whatever header you hand it, including `kid`, `jku` or `x5u`. A verifier that fetches key material referenced by an untrusted token header is exposed to SSRF and key substitution, so never take the expected algorithm or key location from the token you are verifying. Finally, this tool builds tokens but validates nothing — it will happily sign a token whose `exp` is in the past, so run the output through the JWT decoder to confirm the claims before you trust it."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

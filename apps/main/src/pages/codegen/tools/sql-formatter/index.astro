@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/sql-formatter/"
   current="/codegen/tools/sql-formatter/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Lexing is the part that has to be right",
+      "body": [
+        "Everything runs off a token stream produced by a character scanner that classifies whitespace, single-quoted strings with `''` doubling, double-quoted and backtick and bracketed identifiers as opaque tokens, line comments, block comments, numbers including a decimal point and an exponent, words starting with a letter or `_`, `$` or `#`, and single-character punctuation. Nothing after that stage looks at raw characters again.",
+        "This is why a regular expression cannot do the job. `SELECT` inside a string literal, a `--` inside a quoted value, a comma inside a bracketed identifier — a regex that inserts a newline before each keyword corrupts all three, and the corruption is silent because the result still looks like SQL. Scanners also differ on dialect quoting in a way that matters: backticks and square brackets are treated as identifier delimiters even though only SQL Server uses the latter, so a MySQL query survives a round trip intact."
+      ]
+    },
+    {
+      "heading": "Layout comes from a clause table, not from a grammar",
+      "body": [
+        "Line breaks are driven by a list of multi-word clause phrases matched greedily longest-first, so `LEFT OUTER JOIN` wins over `LEFT JOIN` wins over `JOIN`. Indentation is parenthesis depth times the indent width, plus one extra level inside a top-level select list. Commas end a line, so each selected column sits on its own row. Minify reuses the same token stream, re-inserting a space only where two word-like tokens would otherwise merge into one identifier.",
+        "`AND` and `OR` break onto a new indented line only while a logical context flag is set, turned on by `WHERE`, `ON` and `HAVING` and cleared by the next main clause — so boolean structure is indented where it is meaningful and left alone inside a `CASE` expression. Parentheses are inspected rather than assumed: a `(` is a subquery boundary only when the next token is `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `WITH` or `VALUES`, which is why `IN (SELECT ...)` splits across lines while `COUNT(*)` stays inline."
+      ]
+    },
+    {
+      "heading": "Limits worth knowing before you paste production SQL",
+      "body": [
+        "There is no dialect selector, and the keyword table is generic. A column named `key`, `order` or `end` is recognised as a keyword and upper-cased when that option is on — harmless, since SQL keywords are case-insensitive. Identifier case and string contents are never altered, so quoted identifiers come through unchanged.",
+        "Two lexical gaps are real. MySQL's `#` line comment is not recognised, because `#` is treated as a word character: `# note` lexes as the word `#` followed by `note` and gets laid out as code. And backslash escapes inside string literals are unhandled — under MySQL defaults `'a\\'b'` is one string containing an escaped quote, but the scanner ends the literal at the backslash-quote pair, so the remainder is re-tokenised and the layout goes wrong.",
+        "Finally, this tool does not validate. It will happily lay out a statement with a syntax error and produce well-formatted nonsense, because its only failure mode is an internal exception rather than a grammar check. Comments survive both directions, including `--` line comments in minified output where a newline is forced so the rest of the statement is not swallowed."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

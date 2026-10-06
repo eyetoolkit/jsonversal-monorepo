@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-to-pydantic/"
   current="/tools/json-to-pydantic/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Names, aliases and annotation mapping",
+      "body": [
+        "Field names are sanitised for Python: invalid characters become underscores, a leading digit gets an underscore prefix, and a name colliding with one of thirty-seven Python keywords gains a trailing underscore, so `class` becomes `class_` and `match` becomes `match_`. Whenever the sanitised name differs from the JSON key, the field is annotated `Field(alias=\"original\")` so parsing still matches the wire format exactly.",
+        "Types map as expected: integers to `int`, fractional numbers to `float`, strings to `str`, booleans to `bool`. A `null` value produces `Optional[...]` with a `= None` default, which makes the field genuinely optional rather than required-but-nullable — a distinction that matters if a missing key should be an error rather than a silent `None`."
+      ]
+    },
+    {
+      "heading": "How arrays and nested models are emitted",
+      "body": [
+        "Nested objects each become their own `BaseModel` class, declared before the model that references them, and the root becomes `RootModel`. Arrays are annotated `List[...]`, with heterogeneous element types collapsed into a `Union`. An empty array becomes `List[Any]`, since an empty sample carries no element type at all — fill it in yourself rather than leaving it unvalidated.",
+        "There is a real limitation in how arrays of objects are handled: the element type is named `ItemModel`, but the class body for that element is never emitted, so the annotation references a name the file does not define and the module fails at import. If your payload contains an array of objects, add the missing `ItemModel` by hand, or model that shape with the TypeScript or Go generator instead."
+      ]
+    },
+    {
+      "heading": "Before you rely on it",
+      "body": [
+        "No constraints are inferred. There are no `Field` bounds, no `Literal` enums, no `default_factory` for list fields, and no discriminated unions — a field that is a string in one record and an object in another is typed from whichever the sample happened to show, with no signal that the other case exists.",
+        "The generated header imports `BaseModel`, `Field` and the typing names, so the file is self-contained and works unchanged under Pydantic v2 with `model_validate`. FastAPI accepts these models directly as response models. Add your own validators for anything a single sample cannot express, and prefer an explicit JSON Schema when the contract needs to be enforceable rather than merely descriptive."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

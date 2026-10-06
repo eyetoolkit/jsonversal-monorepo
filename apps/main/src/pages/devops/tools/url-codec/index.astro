@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/url-codec/"
   current="/devops/tools/url-codec/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Two encoders, and the set each one spares",
+      "body": [
+        "The JavaScript unreserved set is `A-Za-z0-9-_.!~*'()` — note that `!~*'()` survive, which is slightly wider than the RFC 3986 unreserved set. `encodeURIComponent` escapes everything else, including `&`, `=`, `?`, `/` and `#`, which is what you want for a value destined for a query parameter. `encodeURI` preserves the reserved punctuation so the structure of a URL survives intact, which is what you want when the whole URL is the input.",
+        "Choosing between them by position rather than by string: a query value goes through the component encoder, a full URL through the URI encoder, and pasting a full URL into component mode yields a single escaped token with every separator turned into `%26` or `%3F`. That output is technically a valid encoding of the whole string and completely wrong as a URL."
+      ]
+    },
+    {
+      "heading": "Spaces, plus signs, and double encoding",
+      "body": [
+        "A space becomes `%20` in both modes, and nothing here ever produces a `+`. That is correct for a query string under RFC 3986 and wrong for an `application/x-www-form-urlencoded` body, where a space is `+` and `decodeURIComponent` will not convert it back. Form posts decoded with this tool leave `+` sitting in the value, which is the single most common cause of a signature mismatch or a silently wrong query.",
+        "Percent itself is encoded, so `%` becomes `%25`. Encoding a string that is already encoded is therefore not idempotent — a space that was `%20` is now `%2520` — and the failure compounds every round trip. The Swap button moves the output back into the input, which is the fastest way to see it: swap once and a correct value is unchanged, while a double-encoded one visibly grows."
+      ]
+    },
+    {
+      "heading": "Unicode expansion, malformed input, and where errors surface",
+      "body": [
+        "Non-ASCII characters are encoded as UTF-8 first and each byte then written as `%XX`, so a CJK character costs three bytes and becomes nine characters, and an emoji costs four bytes and twelve characters. The size readout counts UTF-16 code units rather than bytes, which means the expansion ratio for emoji is understated by half — the direction that matters when you are checking a URL against a length limit.",
+        "Malformed input throws: a stray `%`, a truncated `%E4%B8`, or a lone `%ZZ` all raise a URIError from `decodeURIComponent`, and the message is written into the output box prefixed with `Error:` rather than into a separate status area — worth knowing before you copy the output. There is no `decodeURI` mode, so decoding a whole URL with the component decoder also turns `%3F` and `%26` back into live delimiters, handing you a string that no longer parses as the URL it came from."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

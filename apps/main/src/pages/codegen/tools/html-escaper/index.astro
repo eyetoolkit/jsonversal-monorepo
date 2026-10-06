@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/html-escaper/"
   current="/codegen/tools/html-escaper/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Five characters, one pass",
+      "body": [
+        "Exactly five characters are replaced: `&`, `<`, `>`, `\"` and `'`. The implementation is a single regular expression pass with a replacement function, which is the detail that matters. The common advice to escape `&` first is a warning about sequential `.replace()` chains, where each call re-scans text the previous call already transformed — replace `<` first, then `&`, and the ampersand you just introduced as part of `&lt;` gets escaped again, yielding `&amp;lt;`. One pass with a lookup cannot double-escape, because no output is ever re-examined.",
+        "The apostrophe goes to the numeric reference `&#39;` rather than the named `&apos;`, which is deliberate and worth keeping: `&apos;` is not defined in HTML 4, so older parsers and several XML-adjacent toolchains render it literally. `&quot;` and the three named references are HTML 4 safe."
+      ]
+    },
+    {
+      "heading": "Escaping is context-dependent, and three contexts ignore it",
+      "body": [
+        "In normal text content and in a quoted attribute value these five characters are sufficient — the quote forms are what stop a value breaking out of `attr=\"...\"`. Inside `<script>` and `<style>` the content is raw text where character references are not decoded at all, so escaping there achieves nothing: `&lt;` stays five literal characters. For JavaScript use `\\u003c`, or let `JSON.stringify` handle it; for CSS use `\\3c`. `<textarea>` and `<title>` are escapable raw text where entities are decoded normally, so plain escaping works. `<pre>` and `<code>` are ordinary text content, which is the case this tool is aimed at.",
+        "The URL case is a different encoding layer. HTML entities and percent-encoding are not interchangeable: an `&` separating query parameters should be `&amp;` in the source so the parser does not begin an entity, and the browser then sends a literal `&` on the wire. Writing `%26` means something else again — a literal ampersand character. Reach for percent-encoding when building a URL in code, and for entities when embedding text in markup."
+      ]
+    },
+    {
+      "heading": "Why escaping is the last line of defence, not the first",
+      "body": [
+        "Escaping neutralises markup syntax, and that is the whole of its scope. It does not help when the value lands in a script context, an unquoted attribute, a `javascript:` URL, a `style` attribute, or a URL the page will navigate to. An attacker controlling a value can still reach those positions with a payload containing none of the five characters. Output encoding per context is the real control; a Content Security Policy refusing inline script is what stops the rest.",
+        "The reason to prefer the DOM API is that `textContent` and `createElement` perform the encoding for you, correctly and for the context they are in, with no chance of forgetting a character or applying the wrong table. Use this escaper where you must produce markup as text — documentation, a `<pre>` block, a code sample, a log viewer — and prefer `textContent` everywhere else. Note also that the unescape direction only knows the five references it emits: `&nbsp;`, `&copy;` and numeric forms such as `&#x27;` pass through untouched, so it is a reverse of this escaper rather than a general entity decoder."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

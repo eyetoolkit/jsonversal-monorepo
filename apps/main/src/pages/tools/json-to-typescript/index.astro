@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-to-typescript/"
   current="/tools/json-to-typescript/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "How interfaces are derived",
+      "body": [
+        "The generator emits named `interface` declarations rather than inline type literals, so a nested object becomes its own interface referenced by name. Names come from capitalising the first character of the key, which leaves `user_name` as `user_name` — unlike the Go and C# generators, underscores and inner casing are preserved exactly, so the output mirrors the wire format without needing a mapping layer.",
+        "Arrays of objects are handled by merging every element into one shape, the first value winning for any key that appears with differing types across elements, then annotating the field with that merged interface. Keys that are not legal identifiers are emitted as quoted string keys, which TypeScript accepts without complaint."
+      ]
+    },
+    {
+      "heading": "Optionality and unions",
+      "body": [
+        "A `null` value produces an optional property typed `null`, so the field is both optional and useless for further access — replace it with the union you actually expect, such as `string | null`. Nothing else is marked optional automatically, and that is the more common failure: a field absent from your sample is simply missing from the interface, and a sample rarely covers every response variant an API can produce.",
+        "The `Make all optional` button rewrites property lines with a regular expression matching an identifier followed by a colon. Quoted keys are skipped, so a schema containing keys like `odd-key` will only have its plain-identifier fields made optional. The button decides which direction to toggle by checking whether the output already contains `?:`, so pressing it twice returns to the original state."
+      ]
+    },
+    {
+      "heading": "A case that produces invalid output",
+      "body": [
+        "When an array of objects appears as a field, the array branch calls the object renderer and appends `[]` to the result — but that renderer returns a complete `interface` declaration, not a type name. The output is an interface declaration in expression position, which will not compile. Arrays of objects therefore need manual correction, or you can convert that particular shape with the Go generator, which emits a named type instead.",
+        "Everything else is sound: heterogeneous arrays become union element types, empty arrays become `unknown[]`, and an empty object becomes `Record<string, unknown>`. Inferring from a sample remains the core caveat — when you need an exact contract rather than a starting point, write the interface against the JSON Schema Validator output."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

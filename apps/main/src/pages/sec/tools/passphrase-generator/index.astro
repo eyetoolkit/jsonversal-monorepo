@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/passphrase-generator/"
   current="/sec/tools/passphrase-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Where the bits come from",
+      "body": [
+        "The list holds exactly 256 short words, so each draw carries log2(256) = 8 bits and the estimate scales as words × 8. Words are drawn with `crypto.getRandomValues` plus rejection sampling: any value at or above the largest multiple of 256 is discarded and redrawn, which keeps all 256 words exactly equally likely. Reducing a 32-bit draw with a plain modulo would instead bias the low indices toward extra probability.",
+        "That is a smaller alphabet than the EFF long list, which carries 7,776 entries at roughly 12.9 bits per word. Five words from the EFF list is about 65 bits; five from this list is 40. If you need equivalent strength, budget roughly 1.6 times as many words — eight here lands near 64 bits."
+      ]
+    },
+    {
+      "heading": "What the toggles actually add",
+      "body": [
+        "The two-digit suffix is a draw from 0 through 99, which is log2(100) ≈ 6.6 bits. The symbol is a draw from eight characters, so it is 3 bits, plus a small amount from its random insertion position — not 6 bits, and not the difference between a weak and a strong passphrase. Both are marginal next to the word count.",
+        "The separator and capitalisation options add exactly zero bits. They are display choices you make, not random draws, so they change how the passphrase looks and types but nothing an attacker can measure. Pick hyphen or space for legibility and longer word counts for strength; conflating the two is the usual reason people settle for four words when six cost nothing extra to type."
+      ]
+    },
+    {
+      "heading": "What the entropy figure assumes",
+      "body": [
+        "The number is computed as if an attacker knows the word list, the word count and every toggle you set. That is the right conservative assumption, and it is what makes the estimate comparable across generators. What it does not capture is your own memory: entropy measures resistance to guessing, not to recall, and a phrase you have typed into a dozen sites is already burned no matter how many bits it nominally holds.",
+        "Word count is the only real dial. Three words is 24 bits, which is thin for anything an adversary can reach offline, so use six to eight for a master password or encryption key and treat the shorter settings as throwaway test material. Generate a batch when you need several candidates, but remember each row is an independent draw — ten rows are not one stronger secret, they are ten secrets to keep track of."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/number-base/"
   current="/devops/tools/number-base/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Exact integers, parsed one digit at a time",
+      "body": [
+        "Input goes through a hand-written Horner loop — `v = v * base + digit` over a `BigInt` — with every character checked against the alphabet `0123456789abcdef` truncated to the selected radix. That per-digit validation is the reason an invalid character is an error instead of a surprise: `parseInt` stops at the first character it cannot use and ignores the rest, so `parseInt('12abc', 10)` is 12 and `parseInt('0x1F', 10)` is 0, both quietly wrong for this purpose.",
+        "A leading `0x`, `0b` or `0o` overrides the base dropdown, matched case-insensitively after lowercasing, so a value pasted straight out of source code is read correctly even when the selector says decimal. Values are bounded at the unsigned 64-bit maximum before the sign is applied, and everything stays in `BigInt` throughout — which is what makes values above 2^53 convert exactly where ordinary JavaScript numbers would round."
+      ]
+    },
+    {
+      "heading": "Two's complement is a reading, not another base",
+      "body": [
+        "The signed row is derived by width, not by base: for each of 8, 16, 32 and 64 bits, if the value fits that width, it is reported as itself or as value-minus-2^width when the top bit is set. So 255 reads as `8-bit: -1, 16-bit: 255, 32-bit: 255, 64-bit: 255`, which is exactly what a debugger and a CPU register show for the same bytes under different widths.",
+        "Negatives take a different path, and it is worth knowing which one you are reading: binary, octal and hex are all rendered from the magnitude with a leading minus, not from the two's complement bit pattern. `-1` therefore displays as binary `1` and hex `0x1`, where a 32-bit register would show `0xFFFFFFFF`. The signed rows are also omitted entirely for negative input, and a signed zero loses its sign during magnitude normalisation and comes back as plain `0`."
+      ]
+    },
+    {
+      "heading": "Text in, bytes out — and where UTF-8 goes missing",
+      "body": [
+        "ASCII mode packs one character per byte, most significant first: `Hi` becomes 0x4869. That one-byte-per-character rule is Latin-1 behaviour, not UTF-8, so `é` contributes a single `0xE9` where UTF-8 would emit the two-byte pair `0xC3 0xA9`. Characters beyond the BMP are worse: iteration yields the whole code point but `charCodeAt(0)` keeps only the high surrogate, so an emoji is packed as its lone `0xD83D` rather than the four UTF-8 bytes `0xF0 0x9F 0x98 0x80`.",
+        "Input longer than eight characters falls back to a per-character code list instead of a packed integer, since eight bytes is what a 64-bit word holds. The `Character` row appears only for non-negative values at or below 0x10FFFF, and in the surrogate range 0xD800-0xDFFF that row renders a lone surrogate rather than an emoji — the pair is what carries the character. There is no floating-point mode at all here, which is why IEEE 754 rounding and negative zero never enter the picture."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

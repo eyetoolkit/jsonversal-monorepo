@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/jsonpath-tester/"
   current="/tools/jsonpath-tester/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "How expressions are parsed",
+      "body": [
+        "The expression is tokenised by a hand-written scanner into four token types — key, wildcard, index, slice — plus a recursive marker for `..`. An expression must begin with `$`, and each `.name` segment must match a JavaScript identifier pattern, so a key containing a hyphen has to be written in bracket form. Anything the scanner does not recognise raises a specific error naming the offending character or bracket content.",
+        "Tokens are applied left to right against a set of current nodes, producing a new set per token, which is what makes multi-segment paths like `$.store.book[*].title` work. Index and slice bounds are clamped to the actual array length rather than erroring, so an out-of-range index yields an empty result instead of a diagnostic."
+      ]
+    },
+    {
+      "heading": "Recursive descent and what it returns",
+      "body": [
+        "Recursive descent is implemented differently from the reference behaviour. Rather than descending one level and retrying, the matcher walks the entire document collecting every node, then matches the following token against the children of all of them. The result is correct for the common `$..price` case, but each match path is reconstructed by searching the document for the parent object by identity and reporting the first hit — so identical sibling structures can display paths that do not correspond to the match you expected.",
+        "Paths for wildcard results under recursion are rendered with a literal `.*` suffix rather than the concrete key, which is a display limitation rather than a matching one. Matches are listed with an index, the path, and the value, with strings truncated at 70 characters and serialised objects at 120 — enough to recognise a value, not enough to read a large one."
+      ]
+    },
+    {
+      "heading": "Unsupported syntax",
+      "body": [
+        "Filter expressions are the notable gap. Bracket contents that are not an index, a slice, a quoted key, or a wildcard raise `Unsupported token inside []`, so `$[?(@.price > 10)]` — the example most often reached for — will not run. Slices accept only `start:end` with non-negative integers, so negative indices and step values such as `[::2]` are rejected, unlike most JSONPath implementations.",
+        "Script expressions, the union and length operators, and parent or sibling selectors are absent for the same reason — the scanner has four token types and no room for an expression evaluator. When you need those, validate the expression against a full JSONPath library inside your own project; this tester covers the core syntax that handles most extraction work, and the error messages will tell you quickly when you have reached past it."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/rsa-keygen/"
   current="/sec/tools/rsa-keygen/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The parameters the page fixes for you",
+      "body": [
+        "`crypto.subtle.generateKey` is called with `RSA-OAEP`, SHA-256 as the hash, and public exponent 65537 — the standard choice, since small exponents like 3 make OAEP's modular inversion easier to attack. The modulus length is yours to pick from 2048, 3072 and 4096. Generation is a pure software operation on your machine, which is why a 4096-bit pair can take several seconds rather than returning instantly.",
+        "Both keys are exported through `exportKey`: the public key as SPKI, the private key as PKCS#8, each wrapped in PEM armour with 64-character lines. SPKI carries the algorithm OID together with the key bytes, so it feeds straight into `openssl pkey -pubin`; PKCS#8 is the format that can optionally carry a passphrase, though this page exports it unencrypted."
+      ]
+    },
+    {
+      "heading": "Key length in terms of real strength",
+      "body": [
+        "RSA modulus bits are not security bits. NISTSP 800-57 puts 2048-bit RSA at about 112 bits of equivalent symmetric strength, 3072 at about 128, and 4096 at roughly 150 and above. That gap is why 2048 is now a floor to migrate off rather than a comfortable default, and why an equivalent-strength EC P-256 key is dramatically smaller and faster than RSA-3072.",
+        "OAEP also imposes a hard ceiling on a single message: with a 2048-bit modulus and SHA-256 you get 190 bytes of plaintext, 382 at 3072 and 446 at 4096 — the rest is consumed by the digest and the padding. That is why RSA earns its place by wrapping a randomly generated symmetric key, never by encrypting file contents directly."
+      ]
+    },
+    {
+      "heading": "Where the private key actually is",
+      "body": [
+        "The key pair lives in a JavaScript variable on this page and nowhere else. It is never transmitted, and it is discarded the moment you reload or close the tab — which is genuinely the property you want from a demo, and genuinely a hazard if you close the tab before copying the private key out. There is no keyring, no passphrase prompt and no encrypted-at-rest option, so storing the exported PEM somewhere sensible is your responsibility.",
+        "One more thing to keep straight: this pair is generated with `usages: ['encrypt', 'decrypt']`, so Web Crypto will refuse to use it for signing. The FAQ's mention of verifying signatures does not apply to these keys — generating an `RSASSA-PKCS1-v1_5` or `RSA-PSS` pair would be a separate call with different usages. Encrypt and decrypt here exercise OAEP only, and there is no signature, no key fingerprint and no certificate wrapping in this tool."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

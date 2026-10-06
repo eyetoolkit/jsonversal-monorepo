@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/yaml-formatter/"
   current="/tools/yaml-formatter/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "A structural subset, not a full YAML parser",
+      "body": [
+        "This is a hand-written line scanner built on an indentation stack, not a YAML 1.2 implementation, and knowing that explains every limitation below. It reads block mappings — `key: value` lines nested by leading-space count — and re-emits them with consistent indentation. Plain block sequences are not modelled at all: under a mapping key, a `- item` list is dropped and the key ends up as an empty object, so a list survives only when written inline in flow style, and even then it stays a string.",
+        "Scalars are recognised by a small pattern table rather than by schema resolution. Integers and decimals are parsed, `true`/`false`/`null`/`~` are honoured with their capitalised forms, and quoted scalars are unwrapped — but the colon split happens before quote handling, so a quoted value containing a colon is truncated at the first one. Sexagesimal and octal forms such as `0o14` and `1:30` are left as strings."
+      ]
+    },
+    {
+      "heading": "Anchors, aliases and multi-document streams",
+      "body": [
+        "Anchors and aliases are not resolved. Because `&anchor` reads as an ordinary scalar and `*alias` as another, an anchor line becomes a string value and the indented block beneath it is reattached at the top level — the structure is genuinely lost, not merely reformatted. The merge key `<<` is treated as a literal key name. Any input relying on anchors to share configuration across trees will not survive.",
+        "Multi-document streams fare worse. A `---` or `...` delimiter resets the result object and the indentation stack rather than starting a new document, so only the final document in the stream is retained: two Kubernetes manifests separated by `---` format down to the second one alone. Comments are dropped rather than preserved — full-line comments are skipped, and a trailing comment on a value line becomes part of the string."
+      ]
+    },
+    {
+      "heading": "Output shape and error reporting",
+      "body": [
+        "Strings containing a colon, a hash, or a newline are emitted as JSON double-quoted scalars, which is valid YAML but looks foreign next to hand-written config. Selecting the JSON output mode runs `JSON.stringify` over the same parsed structure, and that is the more reliable path for piping into anything that consumes JSON. Numbers are re-emitted in their normalised form, so `007` becomes `7`.",
+        "There is no error reporting. The scanner does not throw on malformed input, and the `Validate only` button performs the same lenient parse before reporting success unconditionally — a syntax error surfaces as silently wrong output rather than as a diagnostic. Treat this as a cosmetic normaliser for block-style mappings, and reach for a real YAML parser whenever the document contains sequences, anchors, or multiple documents."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

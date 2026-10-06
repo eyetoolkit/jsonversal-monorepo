@@ -24,6 +24,28 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/basic-auth-generator/"
   current="/devops/tools/basic-auth-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the header actually carries",
+      "body": [
+        "The whole scheme is one line: `Authorization: Basic base64(username:password)`. Credentials become UTF-8 bytes through `TextEncoder`, those bytes become a binary string, and `btoa` produces the token — so the colon in the decoded form is the only delimiter the format has. Decoding splits on the first colon, which makes a password containing colons round-trip cleanly while a username containing one cannot: everything after the first separator becomes the password.",
+        "RFC 7617 leaves the credential charset unstated in the base grammar, and older servers decode those bytes as ISO-8859-1. This generator always emits UTF-8, which is what a server advertising `charset=\"UTF-8\"` expects; against a Latin-1 server a non-ASCII password arrives as mojibake. Base64 output is also padded with `=` to a multiple of four characters, and the scheme is case-sensitive, so a header reflowed or de-padded by an intermediary stops decoding."
+      ]
+    },
+    {
+      "heading": "Encoding is not encryption",
+      "body": [
+        "Base64 is a reversible transport encoding, not a cipher. Anyone who sees the header — a proxy log, a HAR file, a shoulder-surfed screen, a support ticket — has the plaintext password, and can replay the header verbatim for as long as the credential stays valid. Basic Auth carries no nonce, no timestamp, no expiry and no scope, so there is nothing that distinguishes a legitimate request from a replayed one.",
+        "The practical consequences shape how you use the output. Treat a generated header as a live secret: never paste one into an issue tracker, and never commit it. The Copy button in decode mode copies the input string rather than the decoded credentials, which is deliberate but easy to misread as an export of what you just inspected."
+      ]
+    },
+    {
+      "heading": "Where Basic Auth still makes sense",
+      "body": [
+        "It remains defensible for a bootstrap credential on an internal network, a git-over-HTTP remote, or a throwaway device credential where standing up an authorisation server costs more than the risk — and even then only over HTTPS, since the scheme offers no integrity of its own. For anything user-facing or long-lived, prefer a Bearer token or an API key: they can be scoped, rotated, expired and revoked without touching the client, and they do not resend the same secret on every request to every path under the protected space."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

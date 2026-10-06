@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-escape/"
   current="/tools/json-escape/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the two directions actually do",
+      "body": [
+        "Escape mode is a single `JSON.stringify` call on the raw input, so the output is always a complete, quoted JSON string literal rather than a bare fragment. Only what JSON requires is escaped: the double quote, the backslash, and the C0 control range. Tabs become `\\t`, newlines become `\\n`, and any other character below U+0020 becomes a `\\u00XX` escape. Ordinary non-ASCII text is passed through untouched rather than being escaped to `\\u` form.",
+        "Unescape mode is the inverse `JSON.parse`. If the trimmed input starts with a double quote it is parsed as-is; otherwise quotes are wrapped around it first, so you can paste `He said \"hi\"` without supplying the delimiters. A malformed escape produces a parse error instead of a partial result, which is the behaviour you want when auditing log output or a corrupted config value."
+      ]
+    },
+    {
+      "heading": "The JavaScript-source variant and byte counts",
+      "body": [
+        "The second output row additionally escapes U+2028 and U+2029. Both are legal inside a JSON string, but historically rejected by JavaScript parsers in string-literal position, so output pasted into source, a shell argument, or an inline script can break on engines that predate the JSON-superset change. The primary row deliberately leaves them alone, since escaping them would misrepresent the JSON.",
+        "Byte counts are measured with `TextEncoder`, so they report UTF-8 rather than JavaScript string length. That distinction matters for non-ASCII input: a CJK character is one length unit but three bytes, and an emoji outside the basic plane is two units and four bytes. The input and output figures together tell you exactly what the escaping cost."
+      ]
+    },
+    {
+      "heading": "Where escaping goes wrong in practice",
+      "body": [
+        "The common failure is wrong scope rather than wrong characters. Escaping yields a `\"…\"` string literal, not a JSON document, so pasting the output where a document is expected gives you a quoted scalar instead of the object you intended. To embed a value into an existing JSON file, escape only the string fragment and assemble the surrounding punctuation, commas and braces yourself.",
+        "Note also that the forward slash is never escaped, because JSON does not require it. The `</script>` sequence that matters when embedding JSON inside an HTML script block therefore passes through verbatim — escape it by hand if that is your target, and remember that an unescaped newline inside a JSON string is what turns a valid config into a parse error."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

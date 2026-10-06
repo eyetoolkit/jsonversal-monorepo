@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/crontab/"
   current="/devops/tools/crontab/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Field-by-field, with your tokens echoed back",
+      "body": [
+        "The human-readable panel is not a sentence — it is a labelled echo of the tokens you typed, one line per field, which makes an off-by-one shift easy to spot after a six-field expression gets reinterpreted. Arity is strict: anything other than five or six whitespace-separated tokens throws `Need 5 or 6 fields`, so `@daily` and `@hourly` are rejected outright rather than expanded into their numeric equivalents.",
+        "Parsing is bound to the `input` event, so the panel and the run list recompute on every keystroke — no button press, and no way to rest on a half-typed expression without watching it flicker through parse errors. The sample button drops in `0 9 * * 1-5`, the weekday-morning schedule that most real crontab mistakes actually resemble."
+      ]
+    },
+    {
+      "heading": "Ranges, steps, and the two ways to spell a weekday",
+      "body": [
+        "Day-of-week is the only field with a name table, and it holds three-letter lowercase abbreviations. Because the range branch resolves both endpoints through that table, `mon-fri` works here in a way it does not in several other parsers — as does a bare `mon`. That table is also the sharp edge: `monday` yields -1, and -1 is not NaN, so it slips past the guard and becomes a set containing -1. The field looks valid, the schedule matches nothing, and the run list comes back empty.",
+        "The month field is numeric-only, so `jan` parses to NaN, is skipped, and leaves an empty set — the same silent no-op by a different route. Steps apply to an explicit start and end, which means `5/10` without a range means the single value 5 rather than 5, 15, 25.",
+        "A weekday value of 7 is worth calling out separately: it is not Sunday here. The field is parsed over 0-6, so 7 is accepted into the set as an ordinary number that no date ever matches, and the schedule quietly runs one day less often than you intended."
+      ]
+    },
+    {
+      "heading": "The seconds field and other quiet failures",
+      "body": [
+        "In six-field mode the preview advances a second at a time, but the matcher compares only minute, hour, day-of-month, month and weekday; the seconds set is never checked against anything. The listed times are therefore whichever second the walk arrived on, and the sub-minute cadence you asked for is absent. The general rule for this parser is worth keeping: no output and no error almost always means an unmatchable field, not a job with no future."
+      ]
+    }
+  ]}
 >
 
   <div class="card">

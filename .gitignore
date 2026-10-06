@@ -37,3 +37,11 @@ yarn-error.log*
 # Trae sandbox temp
 .ssh/
 .trae-html-share-packages/
+
+# headless-browser profiles created by tools/geo-gen/verify-about.mjs
+.cdp-run-*/
+.tmp-cdp-*/
+
+# one-off local scripts, superseded by the GitHub Actions pipeline
+deploy.js
+install-cloudflared.sh

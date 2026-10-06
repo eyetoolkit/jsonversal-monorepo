@@ -1,0 +1,445 @@
+{
+  "/tools/json-diff/": [
+    {
+      "heading": "What the comparison actually walks",
+      "body": [
+        "Both panels go through `JSON.parse`, then a recursive walk compares them. A pair is first tested with `===`, and descent happens only when both sides are non-null objects of the same kind — an array against an object is reported as a single `changed` row rather than descended into. Key order is irrelevant because the two key sets are merged into one `Set` before iterating, so `{\"a\":1,\"b\":2}` and `{\"b\":2,\"a\":1}` produce no output at all.",
+        "Arrays are compared strictly by index, walking up to the longer of the two lengths. That positional assumption is the most important thing to understand here: inserting one element at the front of a five-item array reports one addition plus four modifications, not one addition. Paths use bracket notation only where a key is not a legal JavaScript identifier, so `$.user.address.city` stays dot-delimited while `$.user[\"first-name\"]` gets quoted."
+      ]
+    },
+    {
+      "heading": "Reading the change list",
+      "body": [
+        "Each row carries a type badge, the full path, and the value from whichever sides exist. Strings longer than 60 characters and serialised objects longer than 80 are truncated with an ellipsis, because the job here is locating a change rather than reading the data — for a large embedded payload, copy the value out of the source document instead.",
+        "The summary badge counts the three categories separately, and that count is the fastest way to characterise a change. A handful of `changed` rows means an edit in place. Hundreds of `added` and `removed` rows converging on one array path usually means an element was inserted or removed near the top, not that the array was rewritten."
+      ]
+    },
+    {
+      "heading": "Comparison semantics worth knowing",
+      "body": [
+        "Differences are structural, not semantic. Because `===` is applied to primitives, `1` and `1.0` are the same JavaScript number and report no change, while `\"1\"` and `1` do differ. A `null` on one side and a missing key on the other are likewise reported as a change to `∅` rather than as a removal.",
+        "One implementation detail matters if your documents use unusual key names: presence is tested with `in` rather than an own-property check, so a key such as `constructor` or `toString` counts as present in the other document because it resolves through the prototype chain. That turns a would-be `added` row into a `changed` row with an undefined old value — an edge case worth knowing before you diff payloads with unusual key names.",
+        "Because the comparison is structural, it is the right tool when both sides are documents and the question is what a deploy changed. When the inputs are source files or logs and the question is which lines moved, the Text Diff page on this site is the better fit, since it aligns on lines rather than on paths — and it will report a moved block as one deletion plus one insertion instead of a change per array index."
+      ]
+    }
+  ],
+  "/tools/json-escape/": [
+    {
+      "heading": "What the two directions actually do",
+      "body": [
+        "Escape mode is a single `JSON.stringify` call on the raw input, so the output is always a complete, quoted JSON string literal rather than a bare fragment. Only what JSON requires is escaped: the double quote, the backslash, and the C0 control range. Tabs become `\\t`, newlines become `\\n`, and any other character below U+0020 becomes a `\\u00XX` escape. Ordinary non-ASCII text is passed through untouched rather than being escaped to `\\u` form.",
+        "Unescape mode is the inverse `JSON.parse`. If the trimmed input starts with a double quote it is parsed as-is; otherwise quotes are wrapped around it first, so you can paste `He said \"hi\"` without supplying the delimiters. A malformed escape produces a parse error instead of a partial result, which is the behaviour you want when auditing log output or a corrupted config value."
+      ]
+    },
+    {
+      "heading": "The JavaScript-source variant and byte counts",
+      "body": [
+        "The second output row additionally escapes U+2028 and U+2029. Both are legal inside a JSON string, but historically rejected by JavaScript parsers in string-literal position, so output pasted into source, a shell argument, or an inline script can break on engines that predate the JSON-superset change. The primary row deliberately leaves them alone, since escaping them would misrepresent the JSON.",
+        "Byte counts are measured with `TextEncoder`, so they report UTF-8 rather than JavaScript string length. That distinction matters for non-ASCII input: a CJK character is one length unit but three bytes, and an emoji outside the basic plane is two units and four bytes. The input and output figures together tell you exactly what the escaping cost."
+      ]
+    },
+    {
+      "heading": "Where escaping goes wrong in practice",
+      "body": [
+        "The common failure is wrong scope rather than wrong characters. Escaping yields a `\"…\"` string literal, not a JSON document, so pasting the output where a document is expected gives you a quoted scalar instead of the object you intended. To embed a value into an existing JSON file, escape only the string fragment and assemble the surrounding punctuation, commas and braces yourself.",
+        "Note also that the forward slash is never escaped, because JSON does not require it. The `</script>` sequence that matters when embedding JSON inside an HTML script block therefore passes through verbatim — escape it by hand if that is your target, and remember that an unescaped newline inside a JSON string is what turns a valid config into a parse error."
+      ]
+    }
+  ],
+  "/tools/json-schema-builder/": [
+    {
+      "heading": "The tree model behind the canvas",
+      "body": [
+        "State is a plain object tree: a root node with `properties` and `required` arrays, where each node carries an id, a name, a type, a constraints bag, an optional enum, and — for objects — its own `properties` and `required`. Paths are arrays of child indices, resolved fresh on each render. Because the whole tree re-renders on every keystroke, a rename or a type change propagates into the generated JSON immediately rather than on blur.",
+        "Constraints are offered per type rather than globally. Strings get `minLength`, `maxLength`, `pattern` and a `format` dropdown limited to email, date, date-time, uri and uuid. Numbers and integers get `minimum` and `maximum`, with `multipleOf` offered for numbers only. Arrays get `minItems` and `maxItems`. Anything outside that set has to be typed into the output by hand afterwards."
+      ]
+    },
+    {
+      "heading": "How draft selection and export work",
+      "body": [
+        "The draft selector affects exactly one thing: the `$schema` string that the `Export with $schema` button writes into the document. It is assembled by string concatenation, which yields correct metaschema URIs for 2019-09 and 2020-12 but a malformed one for draft-07 — `https://json-schema.org/draft/draft-07/schema` instead of the registered `http://json-schema.org/draft-07/schema#`. The body of the schema is identical across all three choices.",
+        "That is possible because the generator emits a conservative keyword subset: `type`, `properties`, `required`, `items`, and the string and numeric constraints above. There is no `$ref`, no `definitions`, and no `prefixItems`, so nothing produced here depends on a draft-specific feature and the emitted document validates under any of the three.",
+        "One behaviour is worth knowing before you rely on enums. Setting an enum replaces the property schema outright: the output becomes `{ \"enum\": [...] }` with the `type` and every constraint dropped, because the enum path short-circuits the normal branch."
+      ]
+    },
+    {
+      "heading": "Limits of the visual model",
+      "body": [
+        "Enums are entered in one comma-separated text field and split on commas, so a value containing a comma cannot be expressed, and every member is treated as a string even when it looks numeric. Despite what the page description says, no `allOf`, `anyOf` or `oneOf` is ever emitted.",
+        "Required tracking is by name, and renaming a property rewrites only the root `required` array. Rename a field inside a nested object and that object's `required` list keeps pointing at the old name, producing a schema demanding a property that no longer exists — a fault that surfaces as a validation error rather than as anything visible in the editor."
+      ]
+    }
+  ],
+  "/tools/json-schema-generator/": [
+    {
+      "heading": "A field list, not a parsed sample",
+      "body": [
+        "Despite the name, this page does not infer a schema from a JSON document. You build a list of fields — name, type, optional description, required checkbox, enum values — and the generator emits an object schema from that list. The root is always `type: object` with your fields as `properties` and a `required` array holding only the fields you marked. Fields with an empty name are skipped silently.",
+        "Each type expands to a fixed shape. `string`, `number` and `boolean` map across directly; `array` becomes an array with `items: { type: \"string\" }` hard-coded, so element types must be edited by hand; `object` becomes an object with empty `properties` and `required` arrays; `enum` becomes a string with an `enum` array split from your comma-separated input. There is no `integer`, no `null`, and no way to nest one field inside another from the UI."
+      ]
+    },
+    {
+      "heading": "Reading the generated document",
+      "body": [
+        "The schema declares `$schema` as draft 2020-12 and carries a `name` field, which is the identifier OpenAI-compatible endpoints expect alongside the schema itself. A top-level `description` is added as the model-level hint. Empty `description` and `required` values are omitted from the output entirely rather than emitted as nulls, so a schema with nothing required has no `required` key at all.",
+        "Duplicate field names are not detected: the second assignment overwrites the first in `properties`, while both names still land in `required`. Give every field a distinct name if the schema is going to be enforced somewhere downstream, and note that field order in the list is preserved in the emitted `properties` object."
+      ]
+    },
+    {
+      "heading": "The inline validator is not a general engine",
+      "body": [
+        "The Validate step next to the output is a purpose-built checker rather than a JSON Schema implementation. It confirms the payload is an object, that every key named in `required` is present, that each declared property has the declared primitive type, and that `enum` members are respected. It does not check nested objects, numeric bounds, string formats, array element types, or unexpected additional properties.",
+        "So passing it is a weaker guarantee than the schema printed beside it, and much weaker than what a real validator would tell you. For draft 2020-12, 2019-09 and draft-07 validation against an arbitrary schema, the JSON Schema Validator elsewhere on this site runs the real thing.",
+        "One structural caveat for LLM use: because optional fields stay out of `required` and `array` is fixed to string items, a model is free to omit what you expected and free to return objects where you described strings. Handle both in code rather than assuming the schema constrains them."
+      ]
+    }
+  ],
+  "/tools/json-schema-sample-generator/": [
+    {
+      "heading": "The order keywords are resolved in",
+      "body": [
+        "Generation is a priority chain, and the order explains most surprising output. `const` wins outright, then the first `enum` member, then `example`, then `default` — all four short-circuit before the declared type is even considered, which is what lets a schema carry illustrative values. Composition comes next: `oneOf` and `anyOf` generate from the first branch only, and `allOf` is merged with a shallow `Object.assign`, so a later subschema overwrites an earlier one on conflicting keys rather than intersecting them.",
+        "Type resolution handles the multi-type form by filtering `null` out and taking what remains first, so `[\"string\", \"null\"]` yields a plain string. A schema with no `type` at all is inferred from context: `properties` or `additionalProperties` implies object, `items` implies array, and anything else falls back to string."
+      ]
+    },
+    {
+      "heading": "How each type gets a plausible value",
+      "body": [
+        "Strings consult a lookup table of thirteen `format` values first, which is why `date-time` yields a full ISO timestamp with a `Z` suffix. Failing that, `pattern` is matched against exactly three shapes — `[a-zA-Z0-9_-]+`, `[0-9]+` and `\\d+` — and everything else falls back to `value123`, which will usually violate the regex you wrote. Length bounds are met by repeating or truncating the string `sample string`.",
+        "Numbers pick a midpoint between the effective bounds, treating `exclusiveMinimum` and `exclusiveMaximum` as one unit either side, then honour `multipleOf` by rounding. Integers return the floor of the minimum plus one, which lands inside the range but overshoots when `minimum` and `maximum` are equal. Arrays generate between one and three items capped by `maxItems`, and a missing `items` yields an empty array."
+      ]
+    },
+    {
+      "heading": "Boundaries of the implementation",
+      "body": [
+        "Recursion stops at depth six, beyond which every value becomes `null`. That keeps a self-referential schema finite, but deeply nested documents quietly degrade at the bottom instead of raising an error. The keyword set is the common draft-07 subset listed on the page: `$ref` and `$defs` are not resolved, so a schema built on references generates empty objects, and conditional keywords such as `if`, `then` and `dependentRequired` are ignored.",
+        "An `additionalProperties` schema contributes a single sample property literally named `extra`, and boolean fields always come out `true`. Optional properties are generated on every record regardless of `required`, since a sample document carries no notion of presence — for a fixture that needs genuine variation, delete the fields you want omitted by hand."
+      ]
+    }
+  ],
+  "/tools/json-sorter/": [
+    {
+      "heading": "Key ordering is locale-aware, not bytewise",
+      "body": [
+        "Object keys are sorted with `localeCompare`, which follows locale collation rules rather than code-point order. That is the right choice for readability — `Zebra` lands after `apple`, and underscore-prefixed keys group together — but it means the output is not a byte-stable canonical form. The same input can produce different key order on a machine with a different locale or ICU version, which defeats the exact case of normalising a file so diffs collapse.",
+        "Numeric mode applies to array values, not keys: a field holding `\"10\"` and `\"2\"` sorts as 2 then 10, because both sides are coerced with the unary plus before comparison. It engages only when both values parse as finite numbers, so a mixed array falls back to string comparison. Key sorting is always alphabetical, with no numeric variant offered."
+      ]
+    },
+    {
+      "heading": "How arrays are ordered and deduplicated",
+      "body": [
+        "Array elements are compared by value, and an object element is reduced to the string form of its first property before comparison — so an array of records sorts by whatever happens to be the first key, which is fragile when the key set varies between records. Two numbers are compared by subtraction; everything else goes through `localeCompare` on its string form. Descending simply negates the comparator result.",
+        "Deduplication is a separate pass that runs after sorting and keeps the first occurrence of each distinct item. Primitives are keyed by `typeof` plus value, so `1` and `\"1\"` survive as separate entries. Objects are keyed by `JSON.stringify`, which means two records with identical content in different key order are treated as distinct and both kept — sort keys first if you want order-insensitive dedupe."
+      ]
+    },
+    {
+      "heading": "Practical limits",
+      "body": [
+        "Dedupe is force-disabled whenever array sorting is set to None, and the checkbox is disabled in that state to make the dependency visible. The two settings interact in a way that surprises people: enabling dedupe while sorting is off silently does nothing.",
+        "Sorting also rebuilds the tree, so whatever the JSON parser could not represent is already gone beforehand — duplicate keys collapse to the last occurrence, and integers beyond IEEE-754 double precision lose accuracy. Very large documents are held in memory twice during the transform, once as the parsed tree and once as the rebuilt output, which is comfortable in a browser tab but not a plan for multi-hundred-megabyte files.",
+        "Finally, sorting destroys array order, which carries meaning far more often than key order does. For a sequence of events, a queue of pending operations, or any list where position is significant, set the `Sort arrays` control to None — that disables the dedupe checkbox too, so only `Sort object keys` applies and the array sequence survives untouched."
+      ]
+    }
+  ],
+  "/tools/json-statistics/": [
+    {
+      "heading": "What the walk counts",
+      "body": [
+        "A single recursive pass visits every node, incrementing a node counter, tracking maximum depth, and recording the type of each value. Depth starts at zero for the root, so a flat object reports depth 1 and each nested level adds one — a useful number when you are about to write a recursive consumer and need to know whether its recursion will be shallow.",
+        "Key totals count object keys only, not array indices, so a 100-element array of objects reports 100 nodes and zero keys. String lengths, numeric values and array lengths are each accumulated into their own list, which is what makes the min, max and average rows possible. Booleans get no length statistics, because neither a minimum nor a maximum would tell you anything."
+      ]
+    },
+    {
+      "heading": "Reading the output",
+      "body": [
+        "Type distribution bars are scaled relative to the most frequent type, not to the document total, so the largest bar is always full width. Read the counts rather than the bar lengths: a document that is 90% string and 10% object looks like a ten-to-one bar ratio rather than the nine-to-one the raw numbers represent. This is a shape comparison across types, not a share-of-total chart.",
+        "The numeric and length sections usually carry the actionable signal. A maximum string length far above the mean suggests an embedded blob or a base64 payload that will behave differently under a size limit. A wide spread in the array-length min, max and average across sibling keys means the payload is irregular in a way that complicates buffer sizing. Maximum depth is the one number to check before trusting a recursive parser."
+      ]
+    },
+    {
+      "heading": "Limits of the analysis",
+      "body": [
+        "The parse is a single blocking `JSON.parse` followed by a synchronous walk, not a streaming parser, so a very large document will block the interface instead of being processed incrementally. Deeply nested input is additionally bounded by the JavaScript call stack, since the walk recurses per level.",
+        "Minima and maxima are computed by spreading each accumulated list into `Math.min.apply`, which raises a stack range error once a list reaches roughly two hundred thousand entries — a document containing an enormous array of numbers can therefore fail at the summary stage after parsing succeeded. Averages are rounded to one decimal, which is fine for sizing decisions and too coarse for anything else. Per-key frequency is gathered internally but never surfaced in the report."
+      ]
+    }
+  ],
+  "/tools/json-to-csharp/": [
+    {
+      "heading": "How types are chosen",
+      "body": [
+        "Every value maps through a short chain: `null` becomes `object`, and the numeric branch tests `Number.isInteger` to pick `int` or `double`. Because that test runs after JSON parsing, a large identifier written as `9007199254740993` has already lost precision before the type decision is made — and `int` is 32-bit in .NET, so it cannot hold the value even if the digits survived. Anything beyond 2^31 needs `long`.",
+        "Arrays become `List<T>`. An empty array yields `List<object>` because there is nothing to infer from, an array of objects produces a `List<FieldNameItem>` over a synthesised class, and a mixed array degrades to `List<object>`. Nested objects each become their own class, with array element classes named after the field plus an `Item` suffix."
+      ]
+    },
+    {
+      "heading": "Naming, attributes and layout",
+      "body": [
+        "Member names come from a pascal-casing helper that replaces every non-alphanumeric run with a split and uppercases each part. It does not understand C# conventions, so `HTTP-header` becomes `HttpHeader` rather than `HttpHeader` with the acronym preserved, and a JSON key named `class` produces a member that will not compile until you rename it — the generator does not consult the keyword list.",
+        "Because that transformation mangles the key, correctness rests on the `[JsonProperty(\"...\")]` attribute written above every member with the original key verbatim. That attribute is what makes deserialisation land on the right property no matter what the C#-side name became, and it is the one line you must keep if you rename anything."
+      ]
+    },
+    {
+      "heading": "What to fix before compiling",
+      "body": [
+        "Two mappings need attention. A `null` field becomes `object`, which forces a cast on every read; for value types the fix is a nullable annotation such as `int?`, and for a genuinely polymorphic field it is `JsonElement` or a custom converter. And because every whole number becomes `int`, any 64-bit identifier needs `long` instead — a mismatch that surfaces at runtime as an overflow rather than at compile time.",
+        "The attributes target Newtonsoft.Json. On `System.Text.Json` the equivalent is `[JsonPropertyName]`, so either add that package or swap the attribute; the member names themselves are already correct either way. Nested classes are emitted ahead of their referents and `Root` last, so the file reads top-down, and every property is a public auto-property — which suits deserialisation but leaves nowhere to put validation until you add a backing field yourself.",
+        "For a payload that does not match the model exactly, this generator has no way to express the shape the Go or TypeScript tools can: there is no union type, no dictionary escape hatch for arbitrary keys, and no partial-class hook, so a field that is sometimes a string and sometimes an object has to become `object` and be cast at every call site."
+      ]
+    }
+  ],
+  "/tools/json-to-go/": [
+    {
+      "heading": "Struct generation and type selection",
+      "body": [
+        "Whole numbers land on `int64` and fractional ones on `float64`. `int64` is the right default for identifiers and covers the full signed 64-bit range, but Go will refuse a fractional value on the wire for that field, so a number that is sometimes `1` and sometimes `1.5` wants `float64` — or `json.Number` where the exact decimal matters.",
+        "`null` maps to `interface{}`, which accepts anything and asserts nothing. That is honest for a genuinely optional field and useless as a default: every read needs a type assertion. Arrays of objects merge their keys into one `KeyItem` struct and produce a slice of it; an array mixing objects and scalars degrades to `[]interface{}`, and an empty array becomes `[]interface{}` because there is nothing to infer from."
+      ]
+    },
+    {
+      "heading": "Field naming and JSON tags",
+      "body": [
+        "Field names are PascalCase, built by splitting the key on non-alphanumeric runs and capitalising each part. Every field carries a `json:\"...\"` tag holding the original key, so `user_id` maps cleanly onto `UserId` — the tag is what makes decoding lossless regardless of the Go-side name, and it also means renaming the field in Go never breaks the wire format.",
+        "Nested structs are collected into a definition list during traversal and emitted before their referents, with the `Root` type emitted last. Go does not require declaration order, but the layout keeps a nested type visible above the struct that uses it, which matters when a payload nests more than three levels deep."
+      ]
+    },
+    {
+      "heading": "Gaps worth closing by hand",
+      "body": [
+        "A top-level array or scalar is rejected with a clear message, since there is no sensible struct to anchor to. Fields absent from the sample are absent from the struct, so an endpoint that omits a field under some conditions will silently drop it on decode — and because `null` and absent both map to a zero value, the two cases are indistinguishable.",
+        "No `omitempty`, no pointers, and no `json.RawMessage` are emitted. Add `omitempty` where zero values should be skipped, switch genuinely optional fields to pointers so absent is distinguishable from zero, and use `json.RawMessage` for polymorphic fields — a discriminated union has no faithful single-type representation here. For optional-aware output, the Pydantic generator produces nullable fields natively."
+      ]
+    }
+  ],
+  "/tools/json-to-pydantic/": [
+    {
+      "heading": "Names, aliases and annotation mapping",
+      "body": [
+        "Field names are sanitised for Python: invalid characters become underscores, a leading digit gets an underscore prefix, and a name colliding with one of thirty-seven Python keywords gains a trailing underscore, so `class` becomes `class_` and `match` becomes `match_`. Whenever the sanitised name differs from the JSON key, the field is annotated `Field(alias=\"original\")` so parsing still matches the wire format exactly.",
+        "Types map as expected: integers to `int`, fractional numbers to `float`, strings to `str`, booleans to `bool`. A `null` value produces `Optional[...]` with a `= None` default, which makes the field genuinely optional rather than required-but-nullable — a distinction that matters if a missing key should be an error rather than a silent `None`."
+      ]
+    },
+    {
+      "heading": "How arrays and nested models are emitted",
+      "body": [
+        "Nested objects each become their own `BaseModel` class, declared before the model that references them, and the root becomes `RootModel`. Arrays are annotated `List[...]`, with heterogeneous element types collapsed into a `Union`. An empty array becomes `List[Any]`, since an empty sample carries no element type at all — fill it in yourself rather than leaving it unvalidated.",
+        "There is a real limitation in how arrays of objects are handled: the element type is named `ItemModel`, but the class body for that element is never emitted, so the annotation references a name the file does not define and the module fails at import. If your payload contains an array of objects, add the missing `ItemModel` by hand, or model that shape with the TypeScript or Go generator instead."
+      ]
+    },
+    {
+      "heading": "Before you rely on it",
+      "body": [
+        "No constraints are inferred. There are no `Field` bounds, no `Literal` enums, no `default_factory` for list fields, and no discriminated unions — a field that is a string in one record and an object in another is typed from whichever the sample happened to show, with no signal that the other case exists.",
+        "The generated header imports `BaseModel`, `Field` and the typing names, so the file is self-contained and works unchanged under Pydantic v2 with `model_validate`. FastAPI accepts these models directly as response models. Add your own validators for anything a single sample cannot express, and prefer an explicit JSON Schema when the contract needs to be enforceable rather than merely descriptive."
+      ]
+    }
+  ],
+  "/tools/json-to-typescript/": [
+    {
+      "heading": "How interfaces are derived",
+      "body": [
+        "The generator emits named `interface` declarations rather than inline type literals, so a nested object becomes its own interface referenced by name. Names come from capitalising the first character of the key, which leaves `user_name` as `user_name` — unlike the Go and C# generators, underscores and inner casing are preserved exactly, so the output mirrors the wire format without needing a mapping layer.",
+        "Arrays of objects are handled by merging every element into one shape, the first value winning for any key that appears with differing types across elements, then annotating the field with that merged interface. Keys that are not legal identifiers are emitted as quoted string keys, which TypeScript accepts without complaint."
+      ]
+    },
+    {
+      "heading": "Optionality and unions",
+      "body": [
+        "A `null` value produces an optional property typed `null`, so the field is both optional and useless for further access — replace it with the union you actually expect, such as `string | null`. Nothing else is marked optional automatically, and that is the more common failure: a field absent from your sample is simply missing from the interface, and a sample rarely covers every response variant an API can produce.",
+        "The `Make all optional` button rewrites property lines with a regular expression matching an identifier followed by a colon. Quoted keys are skipped, so a schema containing keys like `odd-key` will only have its plain-identifier fields made optional. The button decides which direction to toggle by checking whether the output already contains `?:`, so pressing it twice returns to the original state."
+      ]
+    },
+    {
+      "heading": "A case that produces invalid output",
+      "body": [
+        "When an array of objects appears as a field, the array branch calls the object renderer and appends `[]` to the result — but that renderer returns a complete `interface` declaration, not a type name. The output is an interface declaration in expression position, which will not compile. Arrays of objects therefore need manual correction, or you can convert that particular shape with the Go generator, which emits a named type instead.",
+        "Everything else is sound: heterogeneous arrays become union element types, empty arrays become `unknown[]`, and an empty object becomes `Record<string, unknown>`. Inferring from a sample remains the core caveat — when you need an exact contract rather than a starting point, write the interface against the JSON Schema Validator output."
+      ]
+    }
+  ],
+  "/tools/json-to-zod/": [
+    {
+      "heading": "Inference rules, including the string heuristics",
+      "body": [
+        "Beyond the obvious type mapping, the generator sniffs string contents with three regexes and promotes the result: a bare `YYYY-MM-DD` becomes `z.string().datetime()`, an address-shaped value becomes `.email()`, and an `http` or `https` prefix becomes `.url()`. The first is over-eager — `.datetime()` in Zod requires a full RFC 3339 timestamp with a time component, so a date-only string will fail validation against its own generated schema. Use `.date()` for those instead.",
+        "Numbers become `z.number().int()` when the value is whole, so a field that is sometimes `98` and sometimes `98.5` rejects the fractional case outright. `null` becomes `z.null()` and its property is marked `.nullable()`, which admits null without permitting the key to be missing — add `.optional()` if absence is also legal."
+      ]
+    },
+    {
+      "heading": "How the schema is assembled",
+      "body": [
+        "Nested objects are hoisted into separate `const XSchema` declarations placed before the root schema, each emitted from a flattened one-level view of its object. Arrays merge their object elements the same way, and heterogeneous arrays become `z.union([...])` inside `z.array()`. An empty array becomes `z.array(z.unknown())` and an empty object becomes `z.record(z.unknown())`, both of which validate far more than the sample implies.",
+        "`Make strict` appends `.strict()` to the outermost schema only — the substitution targets the final closing parenthesis of the output — so nested object schemas keep default behaviour and will silently drop unknown keys instead of rejecting them. Toggling off removes every `.strict()` occurrence, including any you added yourself."
+      ]
+    },
+    {
+      "heading": "Nesting depth is the real ceiling",
+      "body": [
+        "Only one level of nesting is actually rendered. A document nested three levels deep produces a reference to an undefined schema, and the generated const declarations chain incorrectly, with the root prefix wrapping a nested `const` statement rather than following it. Two-level structures come out fine; deeper ones need editing by hand, or should be modelled with the TypeScript generator, which handles arbitrary nesting depth without this failure mode.",
+        "Zod is also the strictest of these validators about unknown keys, which is the point of using it — a schema inferred from one sample will reject any field that sample did not contain. Loosen it with `.partial()`, `.passthrough()`, or explicit optional keys before pointing it at live traffic, or every legitimate addition upstream becomes a validation error."
+      ]
+    }
+  ],
+  "/tools/jsonpath-tester/": [
+    {
+      "heading": "How expressions are parsed",
+      "body": [
+        "The expression is tokenised by a hand-written scanner into four token types — key, wildcard, index, slice — plus a recursive marker for `..`. An expression must begin with `$`, and each `.name` segment must match a JavaScript identifier pattern, so a key containing a hyphen has to be written in bracket form. Anything the scanner does not recognise raises a specific error naming the offending character or bracket content.",
+        "Tokens are applied left to right against a set of current nodes, producing a new set per token, which is what makes multi-segment paths like `$.store.book[*].title` work. Index and slice bounds are clamped to the actual array length rather than erroring, so an out-of-range index yields an empty result instead of a diagnostic."
+      ]
+    },
+    {
+      "heading": "Recursive descent and what it returns",
+      "body": [
+        "Recursive descent is implemented differently from the reference behaviour. Rather than descending one level and retrying, the matcher walks the entire document collecting every node, then matches the following token against the children of all of them. The result is correct for the common `$..price` case, but each match path is reconstructed by searching the document for the parent object by identity and reporting the first hit — so identical sibling structures can display paths that do not correspond to the match you expected.",
+        "Paths for wildcard results under recursion are rendered with a literal `.*` suffix rather than the concrete key, which is a display limitation rather than a matching one. Matches are listed with an index, the path, and the value, with strings truncated at 70 characters and serialised objects at 120 — enough to recognise a value, not enough to read a large one."
+      ]
+    },
+    {
+      "heading": "Unsupported syntax",
+      "body": [
+        "Filter expressions are the notable gap. Bracket contents that are not an index, a slice, a quoted key, or a wildcard raise `Unsupported token inside []`, so `$[?(@.price > 10)]` — the example most often reached for — will not run. Slices accept only `start:end` with non-negative integers, so negative indices and step values such as `[::2]` are rejected, unlike most JSONPath implementations.",
+        "Script expressions, the union and length operators, and parent or sibling selectors are absent for the same reason — the scanner has four token types and no room for an expression evaluator. When you need those, validate the expression against a full JSONPath library inside your own project; this tester covers the core syntax that handles most extraction work, and the error messages will tell you quickly when you have reached past it."
+      ]
+    }
+  ],
+  "/tools/llm-token-calculator/": [
+    {
+      "heading": "What the estimate actually measures",
+      "body": [
+        "The counter is not a byte-pair tokenizer. It walks the string two characters at a time and emits one token per pair, with a different arithmetic path for a trailing odd character, so the count is approximately half the character length. Measured against 72 characters of English prose it returns 36 tokens, where `cl100k_base` would return roughly 18 — the figure runs about double throughout.",
+        "That approximation ignores subword structure entirely, so the error is not uniform. Code and JSON, which tokenise densely with many short symbols, come out further from the truth than prose does. CJK text is served particularly badly: eighteen Chinese characters return nine tokens, while a real tokenizer would produce fifteen to twenty, since each ideograph is commonly a token of its own."
+      ]
+    },
+    {
+      "heading": "Reading the pricing table",
+      "body": [
+        "Each row multiplies your token count by that model's input or output rate per million tokens. Because the underlying estimate is inflated, treat the figures as an upper bound on cost rather than a prediction. The Llama rows are listed at zero and render as \"Free\", reflecting that you pay for hosting rather than per token — the row is there for shape comparison, not budgeting.",
+        "Rates are pinned in the page source rather than fetched, and the accompanying note dates them to 2024–2025. Pricing for frontier models moves frequently, so use the table for orientation and confirm the current figure before committing to a number. Displayed cost is rounded to three decimals, which means short inputs show `$0.000` — real money, but not visibly so."
+      ]
+    },
+    {
+      "heading": "Where the breakdown shows up",
+      "body": [
+        "Counting runs on UTF-16 code units, so characters outside the basic multilingual plane — most emoji — count as two, and CJK text is measured per unit rather than per token. Only output-side rates are applied to your input count, so a chat turn with a long system prompt and a short reply is priced as though the entire conversation were generated.",
+        "For an exact number, run the provider's own tokenizer offline: `tiktoken` for OpenAI models, the count-tokens endpoint for Anthropic. Use this page for a fast order-of-magnitude check when choosing between models or deciding whether a document fits inside a context window, then confirm before you commit."
+      ]
+    }
+  ],
+  "/tools/markdown-preview/": [
+    {
+      "heading": "How the parser is structured",
+      "body": [
+        "Rendering happens in two passes. A block pass walks the source line by line, classifying each as a fence, heading, table, blockquote, list item, thematic break, or paragraph, accumulating consecutive lines into a buffer and flushing it into the accumulated block list. An inline pass then handles escaping and emphasis within each block.",
+        "HTML escaping runs before anything else in that inline pass, so no markup in the source can reach the preview as a live tag — a `<script>` tag in your Markdown renders as visible text. Inline code is protected by placeholder substitution: code spans are lifted out first, stored with null-delimited index markers, and restored after emphasis processing, which is why `**` inside backticks stays literal instead of becoming bold."
+      ]
+    },
+    {
+      "heading": "What the block pass recognises",
+      "body": [
+        "Tables require a delimiter row matching `^:?-+:?$` in every cell, so a pipe table needs both a header and a separator before any rows render; cells short of the header count are padded with empty strings. List nesting depth comes from indentation divided by two, and both bullet and ordered markers are accepted at any level, with task-list items rendered as disabled checkboxes reflecting their `[x]` or `[ ]` marker.",
+        "Fenced code blocks capture the info string and emit it as a `lang-*` class, and an unclosed fence still renders its contents at end of input. Inline constructs are matched by deliberately ordered regular expressions — triple emphasis before double, double before single — which is why `***text***` renders as bold-italic rather than as a stray asterisk pair."
+      ]
+    },
+    {
+      "heading": "Where it diverges from a full implementation",
+      "body": [
+        "This is a pragmatic subset, and the gaps matter if you are checking rendering fidelity against GitHub. Setext headings, reference-style links, footnotes, and raw HTML blocks are not supported. Nested emphasis inside a link, and images with title text or angle-bracket destinations, will not match. Autolinking of bare URLs is not implemented either, despite being common on the reference platform.",
+        "Line endings are normalised to `\n` before parsing, so CRLF input renders correctly. Word and character counts under the editor split on whitespace and measure raw string length, which makes them a drafting aid rather than a precise metric. Re-rendering is debounced by 150 milliseconds and always reparses the whole document, so a very large file will feel the pause on every keystroke that lands."
+      ]
+    }
+  ],
+  "/tools/mock-data-generator/": [
+    {
+      "heading": "Sample mode infers from keys, not just values",
+      "body": [
+        "In sample mode each field is inspected twice — once by property name, once by the shape of the value. A key containing `name` yields a full name, one containing `email` yields a synthesised address, `phone` or `tel` yields a formatted number, `company` or `org` yields a company name, and a long string under a key containing `id` becomes a generated identifier. Value-shape detection then handles whatever the key heuristics miss.",
+        "Numbers are generated near the sample value rather than across a wide range: the spread is half the sample magnitude with a floor of one, clamped to stay on the same side of zero. A sample of 100 yields values between 50 and 150, while a sample of 0 yields only 0 or 1 — a real limitation for fields that should span a wider domain. Arrays generate one to five elements using the first element as a template."
+      ]
+    },
+    {
+      "heading": "Schema mode and the constraints it honours",
+      "body": [
+        "Schema mode walks the schema directly: `enum` picks a random member, `const` is emitted verbatim, and the declared type drives generation. String formats email, date, date-time and uri produce matching synthetic values, and numeric `minimum`, `maximum` and `multipleOf` are respected, with the multiple rounded after the random draw. Defaults are −1000 and 1000 when no bounds are given.",
+        "Objects emit every declared property, required or not. Required fields are always present and optional ones appear roughly seventy percent of the time, which gives realistic sparsity without producing records missing too much. A schema-level `additionalProperties` object contributes one to three extra keys with random four-character suffixes."
+      ]
+    },
+    {
+      "heading": "Limits worth knowing",
+      "body": [
+        "String length constraints are approximated rather than enforced. The word count is derived from `maxLength` by dividing by five or four, so `maxLength: 3` can still yield a string around twelve characters, and `minLength` is not consulted at all. `pattern` is ignored in schema mode entirely, so a constrained string will not reliably match its own regex.",
+        "Generated identifiers are UUID-shaped with the version nibble correctly set to `4`, but the variant nibble is left random, so roughly three quarters of them fail strict RFC 4122 validation — fine for fixtures, not for a test asserting format compliance. Generated dates always fall in the past, up to about ten years back. Record count is capped at 500, and the random source is unseeded, so two runs over identical input will differ."
+      ]
+    }
+  ],
+  "/tools/text-diff/": [
+    {
+      "heading": "The alignment algorithm and its budget",
+      "body": [
+        "Lines from both inputs are aligned with a longest-common-subsequence dynamic program, which finds a minimal set of insertions and deletions rather than reporting every shifted line as changed. The table stores only two rolling rows of `Uint32Array`, and the per-cell move direction is packed two bits per cell into a single `Uint8Array` — about a quarter byte per cell, which is what makes the full table affordable in a browser tab.",
+        "Above roughly five thousand lines on either side, or a product of line counts exceeding thirty million, the full table is abandoned for a positional fallback that pairs line *n* of one input with line *n* of the other. That fallback is linear and never blocks, but its output degrades sharply: a single inserted line near the top makes every line beneath it appear modified."
+      ]
+    },
+    {
+      "heading": "Reading the two views",
+      "body": [
+        "The side-by-side view pairs each run of consecutive deletions with the following run of insertions, so replacing two lines shows as two rows with both cells filled and both sides numbered independently. Those numbers count only that side's lines, which makes them usable as positions in the original file rather than as diff offsets.",
+        "The unified output follows the git format with three lines of context and `@@` hunk headers carrying computed line numbers and counts, suitable for pasting into a pull request. Overlapping change runs are merged into a single hunk rather than emitted twice. Headers are labelled `Original` and `Changed` instead of carrying file paths, and identical inputs produce an explicit no-differences message rather than an empty view."
+      ]
+    },
+    {
+      "heading": "Comparison semantics and edge cases",
+      "body": [
+        "Comparison is exact string equality on the split lines, with no whitespace normalisation. A file whose line endings changed from LF to CRLF reports every line as modified, because each line retains a trailing carriage return after splitting on `\n` — normalise the endings first if that is the only difference between the two versions.",
+        "There is no trailing-newline marker, so a file that gained or lost its final newline shows an extra empty added or removed line at the end. The `Swap` button re-runs the comparison immediately, which is the quickest way to check a change in the opposite direction. For structured payloads, the JSON Diff tool reports paths and value changes instead of raw lines."
+      ]
+    }
+  ],
+  "/tools/xml-formatter/": [
+    {
+      "heading": "Parsing and validation",
+      "body": [
+        "Parsing uses the browser's native `DOMParser` with the `application/xml` MIME type, which performs real namespace-aware parsing rather than pattern matching. Malformed markup, unclosed elements, and mismatched attribute quotes are caught by the parser itself, and the resulting `parsererror` node is surfaced with the browser's own message text.",
+        "That message format is engine-specific — Firefox includes line and column numbers, other engines phrase it differently — so do not build tooling on the exact wording. Treat it as a human-readable diagnostic. The formatter is strict about well-formedness but does not validate against a DTD or an XSD, so content that is document-valid but schema-invalid passes silently."
+      ]
+    },
+    {
+      "heading": "How elements are re-serialised",
+      "body": [
+        "The pretty-printer walks the DOM directly rather than calling `XMLSerializer`. Elements are emitted with their attributes in document order, an element with no meaningful children collapses to a self-closing tag, and an element whose only meaningful child is text stays on one line — which keeps leaf content compact instead of spreading it across three lines.",
+        "CDATA sections, processing instructions, and comments are each preserved by node type. The important rule is that whitespace-only text nodes are dropped before printing, which is what stops indentation already present in the source from accumulating on every pass — reformatting an already-formatted document is therefore stable rather than progressively indented."
+      ]
+    },
+    {
+      "heading": "Losses worth knowing about",
+      "body": [
+        "Only the document element is walked, so the XML declaration and any DOCTYPE are absent from the output. A document carrying a DTD with entity declarations, or an encoding declaration, will not survive a round trip. Minify mode additionally discards comments, while pretty mode keeps them.",
+        "Escaping is applied only where the printer itself builds attribute values, replacing a double quote with `&quot;`. Character data is emitted as trimmed text content, so an entity reference such as `&amp;` in the source arrives from the parser as a literal `&` and is written back unescaped — the result is well-formed-looking output that will not re-parse cleanly.",
+        "Mixed content is reshaped for a related reason: in `<p>Hello <b>name</b></p>` the text between the tags keeps its content but the surrounding whitespace is normalised to fit the chosen indent, so rendered spacing can differ from the original even though no characters are lost. Formatting is therefore lossy for any document where whitespace carries meaning."
+      ]
+    }
+  ],
+  "/tools/yaml-formatter/": [
+    {
+      "heading": "A structural subset, not a full YAML parser",
+      "body": [
+        "This is a hand-written line scanner built on an indentation stack, not a YAML 1.2 implementation, and knowing that explains every limitation below. It reads block mappings — `key: value` lines nested by leading-space count — and re-emits them with consistent indentation. Plain block sequences are not modelled at all: under a mapping key, a `- item` list is dropped and the key ends up as an empty object, so a list survives only when written inline in flow style, and even then it stays a string.",
+        "Scalars are recognised by a small pattern table rather than by schema resolution. Integers and decimals are parsed, `true`/`false`/`null`/`~` are honoured with their capitalised forms, and quoted scalars are unwrapped — but the colon split happens before quote handling, so a quoted value containing a colon is truncated at the first one. Sexagesimal and octal forms such as `0o14` and `1:30` are left as strings."
+      ]
+    },
+    {
+      "heading": "Anchors, aliases and multi-document streams",
+      "body": [
+        "Anchors and aliases are not resolved. Because `&anchor` reads as an ordinary scalar and `*alias` as another, an anchor line becomes a string value and the indented block beneath it is reattached at the top level — the structure is genuinely lost, not merely reformatted. The merge key `<<` is treated as a literal key name. Any input relying on anchors to share configuration across trees will not survive.",
+        "Multi-document streams fare worse. A `---` or `...` delimiter resets the result object and the indentation stack rather than starting a new document, so only the final document in the stream is retained: two Kubernetes manifests separated by `---` format down to the second one alone. Comments are dropped rather than preserved — full-line comments are skipped, and a trailing comment on a value line becomes part of the string."
+      ]
+    },
+    {
+      "heading": "Output shape and error reporting",
+      "body": [
+        "Strings containing a colon, a hash, or a newline are emitted as JSON double-quoted scalars, which is valid YAML but looks foreign next to hand-written config. Selecting the JSON output mode runs `JSON.stringify` over the same parsed structure, and that is the more reliable path for piping into anything that consumes JSON. Numbers are re-emitted in their normalised form, so `007` becomes `7`.",
+        "There is no error reporting. The scanner does not throw on malformed input, and the `Validate only` button performs the same lenient parse before reporting success unconditionally — a syntax error surfaces as silently wrong output rather than as a diagnostic. Treat this as a cosmetic normaliser for block-style mappings, and reach for a real YAML parser whenever the document contains sequences, anchors, or multiple documents."
+      ]
+    }
+  ]
+}

@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/json-xml/"
   current="/codegen/tools/json-xml/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Why the two structures do not line up",
+      "body": [
+        "JSON has objects, arrays and scalars. XML has elements, attributes, text and namespaces. There is no array in XML, so an array has to be expressed as repetition: the same element name appearing as several siblings, which is what this converter emits for `{\"items\": [...]}` — one `<items>` per element, at the same indent level. There is also no attribute concept in JSON, so on the way out nothing becomes an attribute; the mapping stays element-only in that direction.",
+        "The reverse direction has more room, and it uses the two conventions real tools settle on: an attribute becomes a key prefixed with `@`, and a name that appears more than once becomes an array. Both are conventions, not parts of XML — the parser accepts any key — so a document that already contains keys starting with `@` will collide with them on the way in."
+      ]
+    },
+    {
+      "heading": "Reading XML back, and the one asymmetry to watch",
+      "body": [
+        "Parsing uses the browser's own `DOMParser` in `text/xml` mode, so malformed input surfaces as a parser error rather than a silent misread. An element with no element children collapses to its trimmed text, or to `null` when that text is empty. Text and CDATA nodes are both read as node types 3 and 4 and concatenated before trimming, so a CDATA section becomes an ordinary string with no record that it was one. The root element's name becomes the single top-level key of the resulting object.",
+        "The asymmetry is the array rule. A name that appears exactly once stays a scalar, and only the second occurrence promotes the value to an array — so `<items><item>a</item></items>` comes back as a scalar rather than a one-element list, and a document whose item count is data-dependent produces a shape that changes with the data. Whitespace-only text between child elements is dropped by the trim, which is what keeps pretty-printed XML from producing noise keys."
+      ]
+    },
+    {
+      "heading": "Name sanitising, and the collisions it creates",
+      "body": [
+        "Element names are filtered against `[^a-zA-Z0-9._-]`, with anything else replaced by an underscore and an empty result becoming `item`. That keeps output well-formed for most inputs, but it is many-to-one, so `user name` and `user_name` both become `user_name` and their contents merge into one element on the way back. A key like `@type` becomes `_type`, losing the marker that would have made it an attribute. The filter also permits a leading digit, which XML does not, so a key of `1st` produces a document no strict parser accepts.",
+        "The genuine losses are worth stating plainly. `null`, `[]` and `{}` all serialise to the same empty element and all read back as `null`, so three distinct inputs are indistinguishable in the XML. Namespaces are not resolved — a prefixed name is read using its prefixed `nodeName`, so `soap:Envelope` becomes a literal key containing a colon, and `xmlns` declarations appear as ordinary attributes. Mixed content, where text and elements interleave, keeps the text only when there are no element children. For typical API payloads the round trip is clean; for documents relying on any of the above, check the output against the real consumer."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

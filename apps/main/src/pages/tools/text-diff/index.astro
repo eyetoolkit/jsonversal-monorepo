@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/text-diff/"
   current="/tools/text-diff/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The alignment algorithm and its budget",
+      "body": [
+        "Lines from both inputs are aligned with a longest-common-subsequence dynamic program, which finds a minimal set of insertions and deletions rather than reporting every shifted line as changed. The table stores only two rolling rows of `Uint32Array`, and the per-cell move direction is packed two bits per cell into a single `Uint8Array` — about a quarter byte per cell, which is what makes the full table affordable in a browser tab.",
+        "Above roughly five thousand lines on either side, or a product of line counts exceeding thirty million, the full table is abandoned for a positional fallback that pairs line *n* of one input with line *n* of the other. That fallback is linear and never blocks, but its output degrades sharply: a single inserted line near the top makes every line beneath it appear modified."
+      ]
+    },
+    {
+      "heading": "Reading the two views",
+      "body": [
+        "The side-by-side view pairs each run of consecutive deletions with the following run of insertions, so replacing two lines shows as two rows with both cells filled and both sides numbered independently. Those numbers count only that side's lines, which makes them usable as positions in the original file rather than as diff offsets.",
+        "The unified output follows the git format with three lines of context and `@@` hunk headers carrying computed line numbers and counts, suitable for pasting into a pull request. Overlapping change runs are merged into a single hunk rather than emitted twice. Headers are labelled `Original` and `Changed` instead of carrying file paths, and identical inputs produce an explicit no-differences message rather than an empty view."
+      ]
+    },
+    {
+      "heading": "Comparison semantics and edge cases",
+      "body": [
+        "Comparison is exact string equality on the split lines, with no whitespace normalisation. A file whose line endings changed from LF to CRLF reports every line as modified, because each line retains a trailing carriage return after splitting on `\n` — normalise the endings first if that is the only difference between the two versions.",
+        "There is no trailing-newline marker, so a file that gained or lost its final newline shows an extra empty added or removed line at the end. The `Swap` button re-runs the comparison immediately, which is the quickest way to check a change in the opposite direction. For structured payloads, the JSON Diff tool reports paths and value changes instead of raw lines."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

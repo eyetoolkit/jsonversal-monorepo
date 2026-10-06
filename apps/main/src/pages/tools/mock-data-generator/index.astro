@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/mock-data-generator/"
   current="/tools/mock-data-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Sample mode infers from keys, not just values",
+      "body": [
+        "In sample mode each field is inspected twice — once by property name, once by the shape of the value. A key containing `name` yields a full name, one containing `email` yields a synthesised address, `phone` or `tel` yields a formatted number, `company` or `org` yields a company name, and a long string under a key containing `id` becomes a generated identifier. Value-shape detection then handles whatever the key heuristics miss.",
+        "Numbers are generated near the sample value rather than across a wide range: the spread is half the sample magnitude with a floor of one, clamped to stay on the same side of zero. A sample of 100 yields values between 50 and 150, while a sample of 0 yields only 0 or 1 — a real limitation for fields that should span a wider domain. Arrays generate one to five elements using the first element as a template."
+      ]
+    },
+    {
+      "heading": "Schema mode and the constraints it honours",
+      "body": [
+        "Schema mode walks the schema directly: `enum` picks a random member, `const` is emitted verbatim, and the declared type drives generation. String formats email, date, date-time and uri produce matching synthetic values, and numeric `minimum`, `maximum` and `multipleOf` are respected, with the multiple rounded after the random draw. Defaults are −1000 and 1000 when no bounds are given.",
+        "Objects emit every declared property, required or not. Required fields are always present and optional ones appear roughly seventy percent of the time, which gives realistic sparsity without producing records missing too much. A schema-level `additionalProperties` object contributes one to three extra keys with random four-character suffixes."
+      ]
+    },
+    {
+      "heading": "Limits worth knowing",
+      "body": [
+        "String length constraints are approximated rather than enforced. The word count is derived from `maxLength` by dividing by five or four, so `maxLength: 3` can still yield a string around twelve characters, and `minLength` is not consulted at all. `pattern` is ignored in schema mode entirely, so a constrained string will not reliably match its own regex.",
+        "Generated identifiers are UUID-shaped with the version nibble correctly set to `4`, but the variant nibble is left random, so roughly three quarters of them fail strict RFC 4122 validation — fine for fixtures, not for a test asserting format compliance. Generated dates always fall in the past, up to about ten years back. Record count is capped at 500, and the random source is unseeded, so two runs over identical input will differ."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

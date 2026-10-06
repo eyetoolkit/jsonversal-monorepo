@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-to-go/"
   current="/tools/json-to-go/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Struct generation and type selection",
+      "body": [
+        "Whole numbers land on `int64` and fractional ones on `float64`. `int64` is the right default for identifiers and covers the full signed 64-bit range, but Go will refuse a fractional value on the wire for that field, so a number that is sometimes `1` and sometimes `1.5` wants `float64` — or `json.Number` where the exact decimal matters.",
+        "`null` maps to `interface{}`, which accepts anything and asserts nothing. That is honest for a genuinely optional field and useless as a default: every read needs a type assertion. Arrays of objects merge their keys into one `KeyItem` struct and produce a slice of it; an array mixing objects and scalars degrades to `[]interface{}`, and an empty array becomes `[]interface{}` because there is nothing to infer from."
+      ]
+    },
+    {
+      "heading": "Field naming and JSON tags",
+      "body": [
+        "Field names are PascalCase, built by splitting the key on non-alphanumeric runs and capitalising each part. Every field carries a `json:\"...\"` tag holding the original key, so `user_id` maps cleanly onto `UserId` — the tag is what makes decoding lossless regardless of the Go-side name, and it also means renaming the field in Go never breaks the wire format.",
+        "Nested structs are collected into a definition list during traversal and emitted before their referents, with the `Root` type emitted last. Go does not require declaration order, but the layout keeps a nested type visible above the struct that uses it, which matters when a payload nests more than three levels deep."
+      ]
+    },
+    {
+      "heading": "Gaps worth closing by hand",
+      "body": [
+        "A top-level array or scalar is rejected with a clear message, since there is no sensible struct to anchor to. Fields absent from the sample are absent from the struct, so an endpoint that omits a field under some conditions will silently drop it on decode — and because `null` and absent both map to a zero value, the two cases are indistinguishable.",
+        "No `omitempty`, no pointers, and no `json.RawMessage` are emitted. Add `omitempty` where zero values should be skipped, switch genuinely optional fields to pointers so absent is distinguishable from zero, and use `json.RawMessage` for polymorphic fields — a discriminated union has no faithful single-type representation here. For optional-aware output, the Pydantic generator produces nullable fields natively."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

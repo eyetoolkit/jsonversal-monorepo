@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/markdown-preview/"
   current="/tools/markdown-preview/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "How the parser is structured",
+      "body": [
+        "Rendering happens in two passes. A block pass walks the source line by line, classifying each as a fence, heading, table, blockquote, list item, thematic break, or paragraph, accumulating consecutive lines into a buffer and flushing it into the accumulated block list. An inline pass then handles escaping and emphasis within each block.",
+        "HTML escaping runs before anything else in that inline pass, so no markup in the source can reach the preview as a live tag — a `<script>` tag in your Markdown renders as visible text. Inline code is protected by placeholder substitution: code spans are lifted out first, stored with null-delimited index markers, and restored after emphasis processing, which is why `**` inside backticks stays literal instead of becoming bold."
+      ]
+    },
+    {
+      "heading": "What the block pass recognises",
+      "body": [
+        "Tables require a delimiter row matching `^:?-+:?$` in every cell, so a pipe table needs both a header and a separator before any rows render; cells short of the header count are padded with empty strings. List nesting depth comes from indentation divided by two, and both bullet and ordered markers are accepted at any level, with task-list items rendered as disabled checkboxes reflecting their `[x]` or `[ ]` marker.",
+        "Fenced code blocks capture the info string and emit it as a `lang-*` class, and an unclosed fence still renders its contents at end of input. Inline constructs are matched by deliberately ordered regular expressions — triple emphasis before double, double before single — which is why `***text***` renders as bold-italic rather than as a stray asterisk pair."
+      ]
+    },
+    {
+      "heading": "Where it diverges from a full implementation",
+      "body": [
+        "This is a pragmatic subset, and the gaps matter if you are checking rendering fidelity against GitHub. Setext headings, reference-style links, footnotes, and raw HTML blocks are not supported. Nested emphasis inside a link, and images with title text or angle-bracket destinations, will not match. Autolinking of bare URLs is not implemented either, despite being common on the reference platform.",
+        "Line endings are normalised to `\n` before parsing, so CRLF input renders correctly. Word and character counts under the editor split on whitespace and measure raw string length, which makes them a drafting aid rather than a precise metric. Re-rendering is debounced by 150 milliseconds and always reparses the whole document, so a very large file will feel the pause on every keystroke that lands."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

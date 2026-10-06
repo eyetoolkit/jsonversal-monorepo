@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/json-viewer/"
   current="/devops/tools/json-viewer/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Why the whole tree is built before you see it",
+      "body": [
+        "`buildNode` recurses through the entire parsed document and appends every child element to its parent regardless of whether the node is open, so a collapsed subtree costs exactly as much DOM as an expanded one. Only the root gets `details.open = true`. Expand All and Collapse All then flip the `open` attribute across nodes that already exist — cheap on a small document, and on a large one they touch tens of thousands of elements at once, which is where the pause comes from.",
+        "The practical consequence: the ceiling is node count, not file size. An array of a million small objects parses into a million rows even though you only ever look at the first few, and the browser pays for layout on all of them. The 2 MB ceiling is a guard rail rather than a performance model — it counts UTF-16 code units of the pasted text, so multi-byte characters consume the budget twice as fast as the byte count on disk would suggest."
+      ]
+    },
+    {
+      "heading": "Reading the badges and the colour scheme",
+      "body": [
+        "Each container's summary carries a count badge that differs by kind — `object · N keys` or `array · N items` — so a two-key object and a two-item array are distinguishable at a glance. Array children are labelled `[0]`, `[1]`; object children get their key wrapped by `JSON.stringify`, which adds quotes and escapes anything unusual in the key. Empty containers get no expandable element at all: they collapse to a literal `{}` or `[]` plus an `empty object` / `empty array` badge.",
+        "Scalar values are colour-classed by type, and strings also pass through `JSON.stringify` before display, so embedded quotes, newlines and control characters appear as escapes instead of silently reflowing the layout. Numbers are rendered with `String(value)`, which means anything the JSON parser already rounded shows its rounded form here — the tree is a faithful view of what `JSON.parse` produced, not of what the file said."
+      ]
+    },
+    {
+      "heading": "Where a tree view stops being honest",
+      "body": [
+        "Several classes of damage happen before the first row is drawn, and the tree cannot show them to you. A duplicate key is resolved by `JSON.parse` keeping the last occurrence, so a payload with two `id` fields looks perfectly well-formed here. An integer beyond 2^53 has already lost precision, and a value like `0.1 + 0.2` arrives as its float approximation — the viewer is showing you the parse result, not the author's intent.",
+        "For those cases a raw byte-level look is the honest next step rather than more structure. Treat the tree as a navigation aid over an already-lossy parse: it is excellent for finding the field you need, and silent about the fields that were mangled on the way in."
+      ]
+    }
+  ]}
 >
 
   <div class="card">

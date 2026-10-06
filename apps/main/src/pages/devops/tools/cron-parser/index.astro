@@ -24,6 +24,28 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/cron-parser/"
   current="/devops/tools/cron-parser/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The five-field grammar, field by field",
+      "body": [
+        "Every field expands independently into a sorted set of integers, and a minute fires when all five sets contain the matching component. Expansion runs a small pipeline per comma-separated token: split off a `/step`, rewrite a bare `*` base to the field minimum, then walk the range by `step`. Because only a literal `*` is rewritten, `*/15` yields 0, 15, 30, 45 while `0/15` collapses to the single value 0 — Vixie cron reads that form as 0-59/15.",
+        "Names resolve before any of that, and only as whole tokens. The month and weekday tables hold full English names, so `monday` and `january` resolve while `mon`, `jan` and `mon-fri` do not: the lookup matches the entire token, so `mon-fri` falls through to the numeric range branch, `Number('mon')` is NaN, and the field ends up empty — a schedule that silently never fires."
+      ]
+    },
+    {
+      "heading": "Time zones and the six-field variant",
+      "body": [
+        "The walk starts at the current local minute and steps forward one minute at a time, so every listed time is browser-local wall clock. Each row prints twice — through `toLocaleString()` and as a UTC instant — because a bare local timestamp tells you nothing about the offset a scheduler will really use. Across a DST change the two columns diverge: the UTC instants stay evenly spaced while the local labels jump, and a job pinned to 02:30 either runs once that night or not at all.",
+        "Toggling the seconds field simply prepends `0 `, so `0 2 * * *` becomes `0 0 2 * * *`. The seconds set is built and then never consulted: the next-run walk still advances a minute at a time, so every preview row lands on `:00` seconds regardless of what the first field says. `@reboot` maps to `0 0 0 1 1 0` here, and that is read as six fields — midnight on 1 January, annually — not as the boot-time trigger it means elsewhere."
+      ]
+    },
+    {
+      "heading": "Where cron implementations disagree",
+      "body": [
+        "Field combination is the largest divergence. Standard cron unions day-of-month with day-of-week when both are restricted, so `0 0 13 * 5` fires on the 13th and on every Friday; the intersection used here runs only on 13ths that are also Fridays. Kubernetes CronJob controllers are stricter again: `.spec.schedule` takes five fields, rejects `@daily` and the other shorthands, and evaluates in the controller's own UTC. Out-of-range values slip through too — minute `99` is accepted into the set and never matches, and seven-field input is truncated to the first five."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/csv-to-json/"
   current="/codegen/tools/csv-to-json/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the state machine implements from RFC 4180",
+      "body": [
+        "The parser walks the input character by character with a single `inQuotes` flag, which is the whole reason quoted fields survive. Outside quotes, a delimiter ends the current field and a line break ends the record. Inside quotes, delimiters and newlines are ordinary characters, and a doubled `\"\"` collapses to one literal quote — the escape mechanism RFC 4180 specifies for fields containing their own delimiter, quote, or newline.",
+        "`RFC 4180` mandates CRLF as the record separator, but this parser also treats a lone `\\n` and a lone `\\r` as terminators, and specifically consumes `\\r\\n` as one break rather than two. That tolerance is why output from Unix tools, Windows tools and old Mac files all parse without a preprocessing step. A CRLF inside a multi-line quoted field is preserved as-is; only record separators are consumed."
+      ]
+    },
+    {
+      "heading": "Delimiter inference reads one line and picks a winner",
+      "body": [
+        "Auto-detect scores four candidates — comma, tab, semicolon, pipe — by counting occurrences outside quotes in the first physical line only, then picks the highest count. The comparison is strict, so ties resolve to comma, as does a single-column file where every count is zero. Restricting the scan to one line has one failure mode: if the first field is a quoted multi-line value the line is truncated mid-field and the counts describe a fragment, which can select the wrong delimiter for the whole file. Choosing the delimiter explicitly removes the guess.",
+        "Type inference is a fixed pattern list rather than a general coercion. An empty cell becomes `null`. The exact strings `true`, `TRUE`, `True` and their false counterparts become booleans — `tRUE` does not qualify. Integers match `^[+-]?\\d+$` with a length under 16, and floats match `^[+-]?\\d*\\.\\d+([eE][+-]?\\d+)?$`."
+      ]
+    },
+    {
+      "heading": "Where inference helps and where it quietly corrupts",
+      "body": [
+        "Two consequences follow. `00123` matches the integer rule and becomes `123`, silently losing the leading zeros that make it a zip code or a product code — the value survives, the semantics do not. And `1e5` fails the float rule for lack of a decimal point, so scientific notation stays a string. The 16-character cutoff exists for a real reason: integers at or beyond 2^53 lose precision in JavaScript numbers, so they are left as text rather than rounded.",
+        "Dates and email addresses are left alone, which is the correct default. `2024-01-01` and `ada@example.com` fail both numeric patterns and stay strings, with no attempt to detect ISO dates or RFC 5322 addresses, so no timezone is assumed and no mailto link fabricated. Turn inference off when the source column is a numeric-looking identifier.",
+        "Row shape is positional and unvalidated. With the header option on, cells beyond the header count are dropped without warning, and a short row pads with `null` under inference or an empty string without it. With the header off you get an array of arrays — honest for a file with no header, but a mis-detected header row becomes a data row. Duplicate header names collide, since later columns overwrite earlier ones under the same key. A UTF-8 BOM from Excel is not stripped, so the first header reads as `\\ufeffname`."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

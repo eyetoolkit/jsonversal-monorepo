@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/schema-to-typescript/"
   current="/codegen/tools/schema-to-typescript/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The draft-07 to TypeScript mapping",
+      "body": [
+        "`object` becomes an interface, everything else becomes a type alias or an inline type. `string` maps to `string`, `boolean` to `boolean`, `null` to `null`. `integer` and `number` both map to `number` — TypeScript has one numeric type, so an integer constraint is not representable and `1.5` would type-check against an `integer` field. `array` with one `items` schema becomes `T[]`, and with an array of schemas a tuple `[A, B]`. An `enum` becomes a union of literal types.",
+        "Nullability comes from two places. A `type` array containing `null` produces `T | null`, with the null branch filtered out and re-appended. OpenAPI's `nullable: true` is honoured too. Draft-07 has no `nullable` keyword of its own, which is why the `type` array form is the portable one — a schema using a vendor extension like `x-nullable` is not recognised, and the field comes out non-nullable."
+      ]
+    },
+    {
+      "heading": "How $ref resolution stays finite",
+      "body": [
+        "Only local pointers are followed, resolved by walking the parsed document: `#/$defs/Address` and `#/definitions/Address` both work, each segment percent-decoded first. Remote refs are not fetched. Recursion terminates because of ordering: an object schema's name is registered in a cache keyed on the schema object itself before its properties are walked, so a self-referential tree emits the interface's own name instead of descending again. A depth counter backstops anything that slips past, returning `any` past sixty levels.",
+        "Naming is handled rather than hoped for: the prefix is prepended to the root name and to every ref-derived name, characters outside `[A-Za-z0-9_$]` are stripped, a leading digit gets an `S`, and a collision appends an incrementing `2`, `3`. Inline nested objects are not prefixed — they are named by parent name plus capitalised property name, inheriting their parent's identity."
+      ]
+    },
+    {
+      "heading": "What the toggles change, and what the mapping loses",
+      "body": [
+        "The default is the surprising one. With strict mode off, every property is emitted optional — including the ones listed in `required` — because the assumption is that a required field can still be missing off the wire. Turn strict mode on and only `required` members lose the question mark.",
+        "Some schema information has no TypeScript counterpart and is dropped: `format`, `pattern`, `minimum`, `maxLength` and their siblings do not affect the emitted type, so an `email` field is just `string`. Several keywords are not implemented at all, and a schema relying on them will not error — it quietly produces something weaker than you wrote. `allOf` is the important omission, because intersection is the standard way to compose a base object with an extension, and an unhandled `allOf` yields a type that does not constrain what it should.",
+        "One combination produces code that does not compile. An `additionalProperties` schema emits `[key: string]: T`, and TypeScript then requires every named property to be assignable to `T` — so `name?: string` alongside `additionalProperties: { type: 'number' }` is an error, not a warning. `additionalProperties: false` is accepted and ignored. When a schema mixes declared properties with a typed index signature, check whether the types actually unify before committing the output."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

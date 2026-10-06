@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/json-to-csv/"
   current="/codegen/tools/json-to-csv/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Column order comes from first appearance, not from a schema",
+      "body": [
+        "Every element is walked in order and each unseen key is appended to a running column list, so the header is the union of all keys in first-appearance order. That is deterministic — the same input always yields the same header, which matters for diffs and checksums — but a key appearing only in the last record becomes the last column, after a run of empty cells, rather than sorted next to its siblings. There is no type inference and no schema: column widths do not exist in CSV, so a number and its stringified form are indistinguishable once written.",
+        "Each row is emitted by looking up every column in that object, so a row missing a key produces an empty cell in that position rather than shifting the remaining values left. Positional integrity holds even when the input objects have different shapes, which is what makes the union approach safe here."
+      ]
+    },
+    {
+      "heading": "Cell serialisation and the quoting rule",
+      "body": [
+        "Four cases, in order: `null` and `undefined` both become an empty cell; objects and arrays become `JSON.stringify` output; everything else is stringified and quoted only if it contains a comma, double quote, carriage return or newline, with inner quotes doubled. Nesting therefore produces a quoted cell containing escaped JSON, which is exactly what the `RFC 4180` escaping rule is for. Note that leading and trailing spaces are not in that trigger set, so ` padded ` is written bare — legal and tolerated by mainstream parsers, but not preserved by the strictest readers.",
+        "Rows are joined with `\\r\\n` and a trailing `\\r\\n` appended, the line ending RFC 4180 requires and what Excel expects. A newline inside a value is emitted as a bare `\\n` because that is what the JSON string contained, so a multi-line value inside a quoted field carries lone line feeds rather than CRLF — readable by any conforming parser, though not byte-identical to a strict exporter's output."
+      ]
+    },
+    {
+      "heading": "The two ways this output can hurt you",
+      "body": [
+        "A JSON `null`, a missing key, and an empty string all land in the cell as nothing at all. Once written, those three states are indistinguishable, and the CSV cannot be inverted without guessing. If the distinction matters — and it usually does, since `null` and `\"\"` mean different things to a database import — normalise it before converting.",
+        "The other hazard is that nothing here neutralises a leading `=`, `+`, `-` or `@`. Those four characters are the ones Excel, LibreOffice and Google Sheets treat as the start of a formula when importing CSV, so a value like `=1+1` is executed rather than displayed, and `@SUM(...)` or a DDE payload in a file that a colleague opens becomes code running with their privileges. Prefixing the cell with a single quote is the standard mitigation. This tool emits the value as given, which is the right default for a converter and the wrong default for untrusted input."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

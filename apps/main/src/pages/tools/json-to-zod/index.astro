@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-to-zod/"
   current="/tools/json-to-zod/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Inference rules, including the string heuristics",
+      "body": [
+        "Beyond the obvious type mapping, the generator sniffs string contents with three regexes and promotes the result: a bare `YYYY-MM-DD` becomes `z.string().datetime()`, an address-shaped value becomes `.email()`, and an `http` or `https` prefix becomes `.url()`. The first is over-eager — `.datetime()` in Zod requires a full RFC 3339 timestamp with a time component, so a date-only string will fail validation against its own generated schema. Use `.date()` for those instead.",
+        "Numbers become `z.number().int()` when the value is whole, so a field that is sometimes `98` and sometimes `98.5` rejects the fractional case outright. `null` becomes `z.null()` and its property is marked `.nullable()`, which admits null without permitting the key to be missing — add `.optional()` if absence is also legal."
+      ]
+    },
+    {
+      "heading": "How the schema is assembled",
+      "body": [
+        "Nested objects are hoisted into separate `const XSchema` declarations placed before the root schema, each emitted from a flattened one-level view of its object. Arrays merge their object elements the same way, and heterogeneous arrays become `z.union([...])` inside `z.array()`. An empty array becomes `z.array(z.unknown())` and an empty object becomes `z.record(z.unknown())`, both of which validate far more than the sample implies.",
+        "`Make strict` appends `.strict()` to the outermost schema only — the substitution targets the final closing parenthesis of the output — so nested object schemas keep default behaviour and will silently drop unknown keys instead of rejecting them. Toggling off removes every `.strict()` occurrence, including any you added yourself."
+      ]
+    },
+    {
+      "heading": "Nesting depth is the real ceiling",
+      "body": [
+        "Only one level of nesting is actually rendered. A document nested three levels deep produces a reference to an undefined schema, and the generated const declarations chain incorrectly, with the root prefix wrapping a nested `const` statement rather than following it. Two-level structures come out fine; deeper ones need editing by hand, or should be modelled with the TypeScript generator, which handles arbitrary nesting depth without this failure mode.",
+        "Zod is also the strictest of these validators about unknown keys, which is the point of using it — a schema inferred from one sample will reject any field that sample did not contain. Loosen it with `.partial()`, `.passthrough()`, or explicit optional keys before pointing it at live traffic, or every legitimate addition upstream becomes a validation error."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

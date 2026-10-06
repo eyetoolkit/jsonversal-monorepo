@@ -1,0 +1,184 @@
+{
+  "/devops/tools/cron-parser/": [
+    {
+      "heading": "The five-field grammar, field by field",
+      "body": [
+        "Every field expands independently into a sorted set of integers, and a minute fires when all five sets contain the matching component. Expansion runs a small pipeline per comma-separated token: split off a `/step`, rewrite a bare `*` base to the field minimum, then walk the range by `step`. Because only a literal `*` is rewritten, `*/15` yields 0, 15, 30, 45 while `0/15` collapses to the single value 0 — Vixie cron reads that form as 0-59/15.",
+        "Names resolve before any of that, and only as whole tokens. The month and weekday tables hold full English names, so `monday` and `january` resolve while `mon`, `jan` and `mon-fri` do not: the lookup matches the entire token, so `mon-fri` falls through to the numeric range branch, `Number('mon')` is NaN, and the field ends up empty — a schedule that silently never fires."
+      ]
+    },
+    {
+      "heading": "Time zones and the six-field variant",
+      "body": [
+        "The walk starts at the current local minute and steps forward one minute at a time, so every listed time is browser-local wall clock. Each row prints twice — through `toLocaleString()` and as a UTC instant — because a bare local timestamp tells you nothing about the offset a scheduler will really use. Across a DST change the two columns diverge: the UTC instants stay evenly spaced while the local labels jump, and a job pinned to 02:30 either runs once that night or not at all.",
+        "Toggling the seconds field simply prepends `0 `, so `0 2 * * *` becomes `0 0 2 * * *`. The seconds set is built and then never consulted: the next-run walk still advances a minute at a time, so every preview row lands on `:00` seconds regardless of what the first field says. `@reboot` maps to `0 0 0 1 1 0` here, and that is read as six fields — midnight on 1 January, annually — not as the boot-time trigger it means elsewhere."
+      ]
+    },
+    {
+      "heading": "Where cron implementations disagree",
+      "body": [
+        "Field combination is the largest divergence. Standard cron unions day-of-month with day-of-week when both are restricted, so `0 0 13 * 5` fires on the 13th and on every Friday; the intersection used here runs only on 13ths that are also Fridays. Kubernetes CronJob controllers are stricter again: `.spec.schedule` takes five fields, rejects `@daily` and the other shorthands, and evaluates in the controller's own UTC. Out-of-range values slip through too — minute `99` is accepted into the set and never matches, and seven-field input is truncated to the first five."
+      ]
+    }
+  ],
+  "/devops/tools/crontab/": [
+    {
+      "heading": "Field-by-field, with your tokens echoed back",
+      "body": [
+        "The human-readable panel is not a sentence — it is a labelled echo of the tokens you typed, one line per field, which makes an off-by-one shift easy to spot after a six-field expression gets reinterpreted. Arity is strict: anything other than five or six whitespace-separated tokens throws `Need 5 or 6 fields`, so `@daily` and `@hourly` are rejected outright rather than expanded into their numeric equivalents.",
+        "Parsing is bound to the `input` event, so the panel and the run list recompute on every keystroke — no button press, and no way to rest on a half-typed expression without watching it flicker through parse errors. The sample button drops in `0 9 * * 1-5`, the weekday-morning schedule that most real crontab mistakes actually resemble."
+      ]
+    },
+    {
+      "heading": "Ranges, steps, and the two ways to spell a weekday",
+      "body": [
+        "Day-of-week is the only field with a name table, and it holds three-letter lowercase abbreviations. Because the range branch resolves both endpoints through that table, `mon-fri` works here in a way it does not in several other parsers — as does a bare `mon`. That table is also the sharp edge: `monday` yields -1, and -1 is not NaN, so it slips past the guard and becomes a set containing -1. The field looks valid, the schedule matches nothing, and the run list comes back empty.",
+        "The month field is numeric-only, so `jan` parses to NaN, is skipped, and leaves an empty set — the same silent no-op by a different route. Steps apply to an explicit start and end, which means `5/10` without a range means the single value 5 rather than 5, 15, 25.",
+        "A weekday value of 7 is worth calling out separately: it is not Sunday here. The field is parsed over 0-6, so 7 is accepted into the set as an ordinary number that no date ever matches, and the schedule quietly runs one day less often than you intended."
+      ]
+    },
+    {
+      "heading": "The seconds field and other quiet failures",
+      "body": [
+        "In six-field mode the preview advances a second at a time, but the matcher compares only minute, hour, day-of-month, month and weekday; the seconds set is never checked against anything. The listed times are therefore whichever second the walk arrived on, and the sub-minute cadence you asked for is absent. The general rule for this parser is worth keeping: no output and no error almost always means an unmatchable field, not a job with no future."
+      ]
+    }
+  ],
+  "/devops/tools/basic-auth-generator/": [
+    {
+      "heading": "What the header actually carries",
+      "body": [
+        "The whole scheme is one line: `Authorization: Basic base64(username:password)`. Credentials become UTF-8 bytes through `TextEncoder`, those bytes become a binary string, and `btoa` produces the token — so the colon in the decoded form is the only delimiter the format has. Decoding splits on the first colon, which makes a password containing colons round-trip cleanly while a username containing one cannot: everything after the first separator becomes the password.",
+        "RFC 7617 leaves the credential charset unstated in the base grammar, and older servers decode those bytes as ISO-8859-1. This generator always emits UTF-8, which is what a server advertising `charset=\"UTF-8\"` expects; against a Latin-1 server a non-ASCII password arrives as mojibake. Base64 output is also padded with `=` to a multiple of four characters, and the scheme is case-sensitive, so a header reflowed or de-padded by an intermediary stops decoding."
+      ]
+    },
+    {
+      "heading": "Encoding is not encryption",
+      "body": [
+        "Base64 is a reversible transport encoding, not a cipher. Anyone who sees the header — a proxy log, a HAR file, a shoulder-surfed screen, a support ticket — has the plaintext password, and can replay the header verbatim for as long as the credential stays valid. Basic Auth carries no nonce, no timestamp, no expiry and no scope, so there is nothing that distinguishes a legitimate request from a replayed one.",
+        "The practical consequences shape how you use the output. Treat a generated header as a live secret: never paste one into an issue tracker, and never commit it. The Copy button in decode mode copies the input string rather than the decoded credentials, which is deliberate but easy to misread as an export of what you just inspected."
+      ]
+    },
+    {
+      "heading": "Where Basic Auth still makes sense",
+      "body": [
+        "It remains defensible for a bootstrap credential on an internal network, a git-over-HTTP remote, or a throwaway device credential where standing up an authorisation server costs more than the risk — and even then only over HTTPS, since the scheme offers no integrity of its own. For anything user-facing or long-lived, prefer a Bearer token or an API key: they can be scoped, rotated, expired and revoked without touching the client, and they do not resend the same secret on every request to every path under the protected space."
+      ]
+    }
+  ],
+  "/devops/tools/json-viewer/": [
+    {
+      "heading": "Why the whole tree is built before you see it",
+      "body": [
+        "`buildNode` recurses through the entire parsed document and appends every child element to its parent regardless of whether the node is open, so a collapsed subtree costs exactly as much DOM as an expanded one. Only the root gets `details.open = true`. Expand All and Collapse All then flip the `open` attribute across nodes that already exist — cheap on a small document, and on a large one they touch tens of thousands of elements at once, which is where the pause comes from.",
+        "The practical consequence: the ceiling is node count, not file size. An array of a million small objects parses into a million rows even though you only ever look at the first few, and the browser pays for layout on all of them. The 2 MB ceiling is a guard rail rather than a performance model — it counts UTF-16 code units of the pasted text, so multi-byte characters consume the budget twice as fast as the byte count on disk would suggest."
+      ]
+    },
+    {
+      "heading": "Reading the badges and the colour scheme",
+      "body": [
+        "Each container's summary carries a count badge that differs by kind — `object · N keys` or `array · N items` — so a two-key object and a two-item array are distinguishable at a glance. Array children are labelled `[0]`, `[1]`; object children get their key wrapped by `JSON.stringify`, which adds quotes and escapes anything unusual in the key. Empty containers get no expandable element at all: they collapse to a literal `{}` or `[]` plus an `empty object` / `empty array` badge.",
+        "Scalar values are colour-classed by type, and strings also pass through `JSON.stringify` before display, so embedded quotes, newlines and control characters appear as escapes instead of silently reflowing the layout. Numbers are rendered with `String(value)`, which means anything the JSON parser already rounded shows its rounded form here — the tree is a faithful view of what `JSON.parse` produced, not of what the file said."
+      ]
+    },
+    {
+      "heading": "Where a tree view stops being honest",
+      "body": [
+        "Several classes of damage happen before the first row is drawn, and the tree cannot show them to you. A duplicate key is resolved by `JSON.parse` keeping the last occurrence, so a payload with two `id` fields looks perfectly well-formed here. An integer beyond 2^53 has already lost precision, and a value like `0.1 + 0.2` arrives as its float approximation — the viewer is showing you the parse result, not the author's intent.",
+        "For those cases a raw byte-level look is the honest next step rather than more structure. Treat the tree as a navigation aid over an already-lossy parse: it is excellent for finding the field you need, and silent about the fields that were mangled on the way in."
+      ]
+    }
+  ],
+  "/devops/tools/k8s-generator/": [
+    {
+      "heading": "Deployment, Service, Ingress and the label contract",
+      "body": [
+        "The three objects are three different jobs, and the generator's real contribution is making the one thing that commonly breaks agree across all of them. A Deployment needs a selector that matches its own pod template; a Service needs a selector that matches pods it should route to. Both are filled from the same single label input, which is emitted three times in the Deployment — `metadata.labels`, `spec.selector.matchLabels`, and `spec.template.metadata.labels` — so a mismatch is structurally impossible here rather than merely unlikely.",
+        "Ingress does not use labels at all. It names a backend service and a backend port, which is why its fields are separate from the Service's: the object it points at is a Service, and the port it names is that Service's `port`, not the container's."
+      ]
+    },
+    {
+      "heading": "Ports, naming, and what each number means",
+      "body": [
+        "Three port numbers appear in a working stack and they are not interchangeable. `containerPort` is documentation plus a default for named targets; the Service's `port` is what clients and an Ingress reference; `targetPort` is where the Service forwards. This tool emits numeric `containerPort` and numeric `targetPort`, which always resolve — but if you later switch to a named `targetPort` to decouple the Service from a container port, remember that a named target requires the container port to carry a matching `name`, and the generated manifests leave both unnamed.",
+        "The Ingress backend port field is independent of the Service fields and is not cross-checked against them. Point an Ingress at `app.example.com` with backend port 80 while the Service exposes 8080 and the rule returns 503 with no obvious cause — the object is valid, it just has nothing listening on the port it names."
+      ]
+    },
+    {
+      "heading": "What the generated YAML leaves out",
+      "body": [
+        "There is no `resources` block, which means every pod is BestEffort QoS: first in line for eviction under node pressure, and invisible to a scheduler that bin-packs on requests. There are no probes either, so a rolling update will happily route traffic to a container that is running but not ready. Neither is fatal for a manifest you apply while learning; both matter the moment replicas actually serve traffic.",
+        "The Ingress is inert YAML until an ingress controller with a matching `ingressClassName` is watching that namespace — the object alone does nothing. And the namespace is written into `metadata.namespace` but never created, so `kubectl apply` fails outright if it does not already exist."
+      ]
+    }
+  ],
+  "/devops/tools/log-parser/": [
+    {
+      "heading": "What the built-in patterns actually pin down",
+      "body": [
+        "The nginx and Apache patterns are fully anchored with `^` and a trailing `$`, and the three quoted fields — request, referer, user agent — are matched as `[^\\\"]*`. That single decision is the parser's sharpest limit: a user-agent string containing a literal double quote, which real agents do send, terminates the field early and the whole line fails to match. The same applies to a space inside any of the three leading `\\S+` tokens, since whitespace is the field separator.",
+        "nginx accepts one extra optional quoted group after the user agent, which is why a trailing `\"-\"` on the end of a line is tolerated there and not in the Apache pattern. Once matched, the request string is split on spaces after the fact: element zero is the method, element one the path, and the HTTP version is discarded. A request line with an embedded space in the target therefore shifts the path column rather than failing."
+      ]
+    },
+    {
+      "heading": "Timestamps stay strings, so nothing gets sorted",
+      "body": [
+        "`time_local` holds the raw bracketed text, `08/Sep/2026:14:23:11 +0000`, exactly as captured. It is never parsed into a date, never normalised to UTC, and never compared — the offset is carried along as decoration. Rows come out in paste order, so a rotated-and-concatenated file keeps its out-of-order timestamps, and no column of these results is sortable by time without a second pass.",
+        "Two other fields resist arithmetic for similar reasons. `body_bytes_sent` keeps the literal `-` that nginx writes when no body was sent, so the column mixes strings and numbers. The status histogram only counts values matching three digits exactly, which quietly excludes any status a custom pattern captured with surrounding text."
+      ]
+    },
+    {
+      "heading": "Custom patterns and very large pastes",
+      "body": [
+        "Custom mode builds a JavaScript `RegExp` from your source with no flags, so `^` and `$` anchor a single line, and the named groups become the table columns — the union of group names across all parsed rows, in first-seen order. There is no execution timeout, which means a pattern with nested quantifiers can backtrack pathologically and lock the tab rather than fail. A loose source-level test checks that at least one `(?<name>` appears, so an invalid group name surfaces as a constructor error instead.",
+        "Display is capped at 200 rows with a note about the remainder, while the statistics cover every non-blank line you pasted. The catch is memory: the whole paste lives in one string, is split into an array of line strings, and every successfully parsed object is retained in an array for the JSON export. Multi-megabyte pastes are handled in one blocking synchronous pass, so for real log files a streaming command-line tool is the better instrument."
+      ]
+    }
+  ],
+  "/devops/tools/number-base/": [
+    {
+      "heading": "Exact integers, parsed one digit at a time",
+      "body": [
+        "Input goes through a hand-written Horner loop — `v = v * base + digit` over a `BigInt` — with every character checked against the alphabet `0123456789abcdef` truncated to the selected radix. That per-digit validation is the reason an invalid character is an error instead of a surprise: `parseInt` stops at the first character it cannot use and ignores the rest, so `parseInt('12abc', 10)` is 12 and `parseInt('0x1F', 10)` is 0, both quietly wrong for this purpose.",
+        "A leading `0x`, `0b` or `0o` overrides the base dropdown, matched case-insensitively after lowercasing, so a value pasted straight out of source code is read correctly even when the selector says decimal. Values are bounded at the unsigned 64-bit maximum before the sign is applied, and everything stays in `BigInt` throughout — which is what makes values above 2^53 convert exactly where ordinary JavaScript numbers would round."
+      ]
+    },
+    {
+      "heading": "Two's complement is a reading, not another base",
+      "body": [
+        "The signed row is derived by width, not by base: for each of 8, 16, 32 and 64 bits, if the value fits that width, it is reported as itself or as value-minus-2^width when the top bit is set. So 255 reads as `8-bit: -1, 16-bit: 255, 32-bit: 255, 64-bit: 255`, which is exactly what a debugger and a CPU register show for the same bytes under different widths.",
+        "Negatives take a different path, and it is worth knowing which one you are reading: binary, octal and hex are all rendered from the magnitude with a leading minus, not from the two's complement bit pattern. `-1` therefore displays as binary `1` and hex `0x1`, where a 32-bit register would show `0xFFFFFFFF`. The signed rows are also omitted entirely for negative input, and a signed zero loses its sign during magnitude normalisation and comes back as plain `0`."
+      ]
+    },
+    {
+      "heading": "Text in, bytes out — and where UTF-8 goes missing",
+      "body": [
+        "ASCII mode packs one character per byte, most significant first: `Hi` becomes 0x4869. That one-byte-per-character rule is Latin-1 behaviour, not UTF-8, so `é` contributes a single `0xE9` where UTF-8 would emit the two-byte pair `0xC3 0xA9`. Characters beyond the BMP are worse: iteration yields the whole code point but `charCodeAt(0)` keeps only the high surrogate, so an emoji is packed as its lone `0xD83D` rather than the four UTF-8 bytes `0xF0 0x9F 0x98 0x80`.",
+        "Input longer than eight characters falls back to a per-character code list instead of a packed integer, since eight bytes is what a 64-bit word holds. The `Character` row appears only for non-negative values at or below 0x10FFFF, and in the surrogate range 0xD800-0xDFFF that row renders a lone surrogate rather than an emoji — the pair is what carries the character. There is no floating-point mode at all here, which is why IEEE 754 rounding and negative zero never enter the picture."
+      ]
+    }
+  ],
+  "/devops/tools/url-codec/": [
+    {
+      "heading": "Two encoders, and the set each one spares",
+      "body": [
+        "The JavaScript unreserved set is `A-Za-z0-9-_.!~*'()` — note that `!~*'()` survive, which is slightly wider than the RFC 3986 unreserved set. `encodeURIComponent` escapes everything else, including `&`, `=`, `?`, `/` and `#`, which is what you want for a value destined for a query parameter. `encodeURI` preserves the reserved punctuation so the structure of a URL survives intact, which is what you want when the whole URL is the input.",
+        "Choosing between them by position rather than by string: a query value goes through the component encoder, a full URL through the URI encoder, and pasting a full URL into component mode yields a single escaped token with every separator turned into `%26` or `%3F`. That output is technically a valid encoding of the whole string and completely wrong as a URL."
+      ]
+    },
+    {
+      "heading": "Spaces, plus signs, and double encoding",
+      "body": [
+        "A space becomes `%20` in both modes, and nothing here ever produces a `+`. That is correct for a query string under RFC 3986 and wrong for an `application/x-www-form-urlencoded` body, where a space is `+` and `decodeURIComponent` will not convert it back. Form posts decoded with this tool leave `+` sitting in the value, which is the single most common cause of a signature mismatch or a silently wrong query.",
+        "Percent itself is encoded, so `%` becomes `%25`. Encoding a string that is already encoded is therefore not idempotent — a space that was `%20` is now `%2520` — and the failure compounds every round trip. The Swap button moves the output back into the input, which is the fastest way to see it: swap once and a correct value is unchanged, while a double-encoded one visibly grows."
+      ]
+    },
+    {
+      "heading": "Unicode expansion, malformed input, and where errors surface",
+      "body": [
+        "Non-ASCII characters are encoded as UTF-8 first and each byte then written as `%XX`, so a CJK character costs three bytes and becomes nine characters, and an emoji costs four bytes and twelve characters. The size readout counts UTF-16 code units rather than bytes, which means the expansion ratio for emoji is understated by half — the direction that matters when you are checking a URL against a length limit.",
+        "Malformed input throws: a stray `%`, a truncated `%E4%B8`, or a lone `%ZZ` all raise a URIError from `decodeURIComponent`, and the message is written into the output box prefixed with `Error:` rather than into a separate status area — worth knowing before you copy the output. There is no `decodeURI` mode, so decoding a whole URL with the component decoder also turns `%3F` and `%26` back into live delimiters, handing you a string that no longer parses as the URL it came from."
+      ]
+    }
+  ]
+}

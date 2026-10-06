@@ -24,6 +24,28 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/llm-structured-output-validator/"
   current="/codegen/tools/llm-structured-output-validator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The keyword set this walker actually enforces",
+      "body": [
+        "Validation is a recursive descent over the parsed output with errors accumulated rather than thrown, each carrying a keyword badge and a path like `entities[0].confidence`. The enforced set is: `type`, including `integer` via a numeric check rather than a range; `enum` and `const`, both compared by JSON serialisation; `minLength`, `maxLength`, `minimum`, `maximum`; `minItems`, `maxItems` with per-item recursion; `required`; recursion through `properties`; and `additionalProperties: false`, which reports each unexpected key.",
+        "A structural detail worth knowing: the extra-property check sits inside the branch that also requires `properties` to be present. A schema written as `additionalProperties: false` with no `properties` block therefore accepts arbitrary extra keys without complaint. And because `enum` and `const` compare serialised forms, two object members that differ only in key order serialise differently — `{\"a\":1,\"b\":2}` and `{\"b\":2,\"a\":1}` will not match each other, which matters if an enum ever holds objects."
+      ]
+    },
+    {
+      "heading": "Vendor schema dialects differ more than the marketing suggests",
+      "body": [
+        "The presets target three different mechanisms. OpenAI's structured outputs compile the schema into a constrained decoder, and the API rejects schemas it cannot honour: `additionalProperties: false` is required on every object, every property must appear in `required` with optionality expressed as a nullable union, and composition keywords are unavailable, so `anyOf` in a prompt-side schema is a rejection rather than a union. Gemini's `responseSchema` accepts a narrower subset still and rejects `$ref` outright. Anthropic tool `input_schema` is closest to ordinary JSON Schema, but nothing constrains generation — the model is asked to conform, not forced to, which is why post-hoc validation like this earns its keep. The consequence is practical: the schema you validate locally is not always the schema you can send. Keep the local copy as the source of truth, and expect to narrow it until the provider accepts."
+      ]
+    },
+    {
+      "heading": "Mock generation, token cost, and a retry strategy that converges",
+      "body": [
+        "Generating a mock walks the schema and fills it: `const` and a random `enum` member are used verbatim, numbers land randomly inside the `minimum`/`maximum` range and are rounded, `format: email` and `date-time` produce plausible values, array length follows `minItems`, and optional object properties are included most of the time. A passing mock proves the schema is not self-contradictory; it does not prove it is satisfiable in practice, since required properties with unsatisfiable constraints still generate something arbitrary. Use it as a prompt reference and a sanity check, not as a fixture.",
+        "The schema travels with every request, so a 900-token schema costs 900 input tokens per call, forever, before any completion is generated — which is why descriptions earn their place despite adding tokens, and why a strict schema that eliminates retries is often cheaper than a permissive one that gets repaired. The retry loop that converges: validate, and on failure re-ask with the exact error message and the failing path quoted back. If the same violation survives two attempts, it is nearly always the schema's fault rather than the model's, so widen the schema rather than retrying again."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

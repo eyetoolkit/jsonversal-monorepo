@@ -2,7 +2,7 @@
 import ToolPage from '@versal/ui/ToolPage.astro';
 
 const title = ".gitignore Generator";
-const description = "Generate a .gitignore file by selecting your language and frameworks. Templated from GitHub\\";
+const description = "Generate a .gitignore file by selecting your language and frameworks. Pick from bundled Node, Python, Go, Java, Rust, React, Vue, Docker, Terraform and iOS templates. Runs in your browser.";
 const faqs = [
   {
     "question": "How do I generate a .gitignore file?",
@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/gitignore/"
   current="/codegen/tools/gitignore/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Ten bundled templates, concatenated not merged",
+      "body": [
+        "Node, Python, Go, Java, Rust, React, Vue, Docker, Terraform and iOS are each a fixed inline string, and selecting several concatenates them under `# ── name ──` headers in template order. There is no deduplication step, so overlapping rules appear twice: the Node template's `.next/` and the React template's `.next/` are both emitted, as is `.env` from the Node and Docker templates. Duplicates are harmless to Git, but they make the file look broken when it is not.",
+        "Because each template is a snapshot rather than a live view, the opinions inside it are the ones true when the string was written, and some are contestable. The Rust template ignores `Cargo.lock`, right for a library and wrong for a binary, where the lockfile is what makes a build reproducible. The Node template's bare `logs` pattern is unanchored, so it matches any file or directory named `logs` at any depth, not only a log directory you created."
+      ]
+    },
+    {
+      "heading": "The four syntax rules these files depend on",
+      "body": [
+        "A trailing slash restricts a pattern to directories, which is why `node_modules/` will not hide a file called `node_modules`. A slash anywhere except the end anchors the pattern to the directory containing the `.gitignore`, so `/dist/` matches only the top-level `dist` while `dist/` matches at any depth — the anchored form is the stronger of the two and is what you want for build output. Within a path segment `*` matches any run of characters but never crosses a `/`, while `**` crosses directory boundaries.",
+        "A leading `!` negates a pattern, and the last matching pattern wins, so order is what decides whether an exception takes effect. The rule with no escape hatch: Git does not descend into an excluded directory, so a file inside one cannot be re-included by a later `!` pattern. If you need to keep one file from an ignored directory, the directory itself must not be excluded."
+      ]
+    },
+    {
+      "heading": "Ignoring is not the same as untracking",
+      "body": [
+        "A `.gitignore` only affects paths Git is not already tracking. Once a file is committed, adding a matching rule changes nothing: it keeps showing up in status and keeps being pushed. Removing it from the index while leaving the working copy alone is the fix.\n  git rm --cached .env\n  git commit -m 'stop tracking .env'",
+        "The word on that line is `cached` — without it Git deletes the file from disk too. History is a separate matter: the secret is still in every earlier commit, and rotating the credential is the only real remedy, since rewriting history does not un-clone anything anyone already fetched.",
+        "Three scopes exist. The committed `.gitignore` is shared with the team. `.git/info/exclude` applies to one clone only and is never committed, which makes it right for machine-specific noise. `core.excludesFile` is a per-user global list applied to every repository you own. When a pattern misbehaves, `git check-ignore -v <path>` names the exact rule responsible. The trap in these templates specifically: `.env` as an exact name does not match `app.env`, so a stray suffixed environment file is not covered and will be committed."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

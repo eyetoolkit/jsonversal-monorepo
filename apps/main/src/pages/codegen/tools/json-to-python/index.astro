@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/json-to-python/"
   current="/codegen/tools/json-to-python/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Identifier rules and the reserved-word list",
+      "body": [
+        "A key is written bare only when it matches `^[A-Za-z_][A-Za-z0-9_]*$` and is not a Python keyword; everything else becomes a single-quoted string. So `name` and `_internal` stay bare while `retry-count`, `2fa`, `class` and `user.name` get quoted. Quoting a keyword is not a workaround — `{'class': 1}` is a perfectly ordinary dict and is what the output produces. The reserved-word set is the soft-keyword-complete version, including `match` and `case`, which are contextual in Python but reserved by this check.",
+        "Values follow a separate path and are always quoted strings, with backslashes, single quotes, newlines, carriage returns, tabs, form feeds and the two Unicode line separators escaped. Nesting is indented four spaces per level, and empty containers collapse to `{}` and `[]` rather than being spread over three lines each."
+      ]
+    },
+    {
+      "heading": "The literal mapping, and where the number type shifts underneath it",
+      "body": [
+        "Three substitutions happen on every value: `true`, `false` and `null` become `True`, `False` and `None`, at any depth. Numbers are emitted through JavaScript's own string conversion, and this is where the type of the literal can change. A JSON `1.0` has already lost its decimal point by the time it is a JavaScript number, so it is written as `1` and evaluates in Python as an `int` rather than a `float`. That is invisible in the output and shows up later as a type surprise.",
+        "Integers beyond 2^53 are a related problem with no good solution at this layer. The input was parsed by `JSON.parse`, so precision was already lost before the generator saw it — a 64-bit identifier such as `9007199254740993` arrives as `...992`. If exactness matters, the value has to stay a string in the source JSON."
+      ]
+    },
+    {
+      "heading": "Why a round trip is not guaranteed",
+      "body": [
+        "Parsing the output with `ast.literal_eval` gives you back the structure, and for most fixtures that is the whole job. It is not an identity transform, though. JSON has one array type and Python has two, so every array comes back as a `list` and there is nothing in the source that says whether a tuple was intended. Float-versus-int collapses as described above. And a non-identifier key round-trips correctly only because it was quoted, which is to say the round trip works by accident of the quoting rule rather than by any encoding of the original key.",
+        "The top level must be a JSON object — an array or a bare scalar is rejected with a message asking for an object, which is the right call since the output is a dict literal and nothing else. Deeply nested payloads are the practical limit rather than a correctness one: indentation grows by four spaces per level, so a response four levels deep is already visually unwieldy in a test file. For fixtures, the output is meant to be read and edited by a human, and a generated fixture nobody reads is a fixture nobody updates."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">
@@ -75,7 +98,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       .replace(/\n/g, '\\n')
       .replace(/\r/g, '\\r')
       .replace(/\t/g, '\\t')
-      .replace(/\b/g, '\\b')
+      .replace(/\u0008/g, '\\b')
       .replace(/\f/g, '\\f')
       .replace(/\u2028/g, '\\u2028')
       .replace(/\u2029/g, '\\u2029') + "'";

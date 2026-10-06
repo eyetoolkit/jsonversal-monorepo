@@ -28,6 +28,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/llm-token-calculator/"
   current="/tools/llm-token-calculator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the estimate actually measures",
+      "body": [
+        "The counter is not a byte-pair tokenizer. It walks the string two characters at a time and emits one token per pair, with a different arithmetic path for a trailing odd character, so the count is approximately half the character length. Measured against 72 characters of English prose it returns 36 tokens, where `cl100k_base` would return roughly 18 — the figure runs about double throughout.",
+        "That approximation ignores subword structure entirely, so the error is not uniform. Code and JSON, which tokenise densely with many short symbols, come out further from the truth than prose does. CJK text is served particularly badly: eighteen Chinese characters return nine tokens, while a real tokenizer would produce fifteen to twenty, since each ideograph is commonly a token of its own."
+      ]
+    },
+    {
+      "heading": "Reading the pricing table",
+      "body": [
+        "Each row multiplies your token count by that model's input or output rate per million tokens. Because the underlying estimate is inflated, treat the figures as an upper bound on cost rather than a prediction. The Llama rows are listed at zero and render as \"Free\", reflecting that you pay for hosting rather than per token — the row is there for shape comparison, not budgeting.",
+        "Rates are pinned in the page source rather than fetched, and the accompanying note dates them to 2024–2025. Pricing for frontier models moves frequently, so use the table for orientation and confirm the current figure before committing to a number. Displayed cost is rounded to three decimals, which means short inputs show `$0.000` — real money, but not visibly so."
+      ]
+    },
+    {
+      "heading": "Where the breakdown shows up",
+      "body": [
+        "Counting runs on UTF-16 code units, so characters outside the basic multilingual plane — most emoji — count as two, and CJK text is measured per unit rather than per token. Only output-side rates are applied to your input count, so a chat turn with a long system prompt and a short reply is priced as though the entire conversation were generated.",
+        "For an exact number, run the provider's own tokenizer offline: `tiktoken` for OpenAI models, the count-tokens endpoint for Anthropic. Use this page for a fast order-of-magnitude check when choosing between models or deciding whether a document fits inside a context window, then confirm before you commit."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

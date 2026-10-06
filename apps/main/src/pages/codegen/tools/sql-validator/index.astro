@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/sql-validator/"
   current="/codegen/tools/sql-validator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "This is a heuristic linter, not a parser",
+      "body": [
+        "The implementation is a tokenizer followed by a small set of structural checks, and being precise about that matters. There is no grammar, no symbol table and no schema, so the tool cannot tell you a column does not exist or that two types are incompatible — it reports positions and phrases, not semantic errors. What it does check is unbalanced parentheses in both directions, a `WHERE`, `GROUP` or `ORDER` with no `SELECT` anywhere before it, and a statement whose first recognised keyword is not a statement starter.",
+        "That last check is weaker than it sounds, because the test is presence rather than position: a `SELECT` anywhere earlier in the token stream satisfies it, so `WHERE x = 1 SELECT 1` passes. Error positions are approximate too — line numbers only advance when a token itself contains a newline, and the column counter accumulates token lengths across the statement rather than resetting per line, so treat the reported position as a region to look at rather than an exact caret."
+      ]
+    },
+    {
+      "heading": "Dialect differences are a word blacklist",
+      "body": [
+        "There is no per-dialect grammar. Each dialect carries a short list of individual words that are wrong for it, and the check matches a token against that list rather than parsing anything: MySQL rejects `SERIAL`, `RETURNING`, `::` and `CURRENT_SCHEMA`; PostgreSQL rejects `AUTO_INCREMENT`; SQLite rejects `RETURNING`, which it only gained in 3.35; SQL Server rejects `LIMIT` and `SERIAL`. Deliberately absent are `NOW()` and `GETDATE()` — both are ordinary functions in MySQL and SQL Server, and flagging them would be a false positive rather than a warning.",
+        "Matching on the token instead of searching the raw statement matters for two reasons. A word inside a string literal or a comment no longer triggers, because the tokenizer has already classified it as text rather than a keyword. And a single occurrence produces one report rather than one per word in the query, so the output no longer needs deduplicating before you read it. The trade-off is narrower coverage: a blacklist that only matches whole words cannot see multi-word shapes, so anything depending on a phrase is not checked at all."
+      ]
+    },
+    {
+      "heading": "Known blind spots, and how to use the output",
+      "body": [
+        "Only `--` comments are skipped. `#` comments and `/* */` blocks are not recognised, so a commented-out query in a block comment is tokenised as live SQL and can produce errors for code that is not running. String scanning follows the JavaScript convention of a backslash before the closing quote rather than SQL's doubled quote, so `'it''s'` — valid SQL — is read as two adjacent literals, and an unterminated string swallows the remainder without an error.",
+        "The Format button here is regex-based rather than token-based: it upper-cases keywords with word-boundary patterns and inserts newlines by substituting whitespace before a keyword, which will break a line inside a string literal or a comment. That is precisely the failure the dedicated SQL formatter exists to avoid — use this page for structural checks and the formatter for layout. A clean run means no unbalanced parentheses and no obvious keyword mismatch; it does not mean the query is correct, efficient, or runnable."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">
@@ -141,21 +164,24 @@ import BaseLayout from '@versal/ui/BaseLayout';
     'DATETIME','BLOB','JSON','CONSTRAINT','IF','REPLACE','TRUNCATE','GRANT','REVOKE'
   ]);
 
+  // Each entry is a word the dialect genuinely does not accept as-is.
+  // NOW()/GETDATE() are deliberately absent: both are valid in MySQL and SQL Server,
+  // so flagging them would be a false positive.
   const DIALECT_QUIRKS = {
     mysql: {
-     bad: ['SERIAL','RETURNING','::','NOW()','CURRENT_SCHEMA()'],
+      bad: ['SERIAL', 'RETURNING', '::', 'CURRENT_SCHEMA'],
       note: 'MySQL uses AUTO_INCREMENT, backtick identifiers, and LIMIT without OFFSET in older versions.'
     },
     postgres: {
-      bad: ['AUTO_INCREMENT','LIMIT 100 FOR UPDATE'],
+      bad: ['AUTO_INCREMENT'],
       note: 'PostgreSQL uses SERIAL, RETURNING, and dollar-quoted strings. Use LIMIT ... OFFSET for pagination.'
     },
     sqlite: {
-      bad: ['FOREIGN KEY REFERENCES','DROP COLUMN','RENAME COLUMN'],
-      note: 'SQLite has limited ALTER TABLE support. Some syntax differs from other databases.'
+      bad: ['RETURNING'],
+      note: 'SQLite gained RETURNING in 3.35 and has limited ALTER TABLE support.'
     },
     sqlserver: {
-      bad: ['LIMIT','SERIAL','NOW()'],
+      bad: ['LIMIT', 'SERIAL'],
       note: 'SQL Server uses TOP(n) instead of LIMIT, square-bracket [] identifiers, and nvarchar strings.'
     }
   };
@@ -246,10 +272,14 @@ import BaseLayout from '@versal/ui/BaseLayout';
         lastWord = t;
 
         // Check dialect quirks
+        // Compare against this token only. A substring search over the whole
+        // statement would also fire on words inside comments and string
+        // literals, and would report the same quirk once per keyword occurrence.
         const quirks = DIALECT_QUIRKS[dialect] || {};
         for (const bad of (quirks.bad || [])) {
-          if (sql.includes(bad)) {
+          if (u === bad.toUpperCase()) {
             errors.push({ msg: `Syntax not supported in ${dialect}: "${bad}"`, line, col });
+            break;
           }
         }
 
@@ -262,6 +292,11 @@ import BaseLayout from '@versal/ui/BaseLayout';
         }
         if (u === 'ORDER' && !tokens.slice(0,i).some(tk => tk.type === 'word' && tk.upper === 'SELECT')) {
           errors.push({ msg: 'ORDER BY without SELECT.', line, col });
+        }
+
+        // PostgreSQL cast operator: outside of quotes it only appears as ::
+        if (dialect === 'postgres' && u === 'COLON' && tokens[i + 1] && tokens[i + 1].value === ':') {
+          errors.push({ msg: ':: cast syntax requires PostgreSQL; MySQL and SQL Server use CAST().', line, col });
         }
       }
 

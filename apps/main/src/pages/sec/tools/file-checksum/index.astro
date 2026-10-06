@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/file-checksum/"
   current="/sec/tools/file-checksum/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Fixed-length output, and what that tells you",
+      "body": [
+        "SHA-2 compresses input of any length into a fixed-width state: 160 bits for SHA-1, 256 for SHA-256, 384 and 512 for the wider variants. The digest length carries no information about the file — not its size, not how many bits differ, only whether the bytes match what you expected. In practice an accidental single-bit flip during transfer, a truncated download, or a stray line-ending conversion all produce a completely different digest with overwhelming probability.",
+        "MD5 and SHA-1 stay available because release manifests, package indexes and legacy artifacts still reference them, and reproducing those values is a legitimate reason to compute them. Both have practical collision attacks against motivated adversaries, so they remain appropriate for detecting accidental corruption and inappropriate for anything adversarial — a checksum that an attacker can deliberately collide is not an integrity control."
+      ]
+    },
+    {
+      "heading": "How the file is read, and what that costs",
+      "body": [
+        "The implementation calls `file.arrayBuffer()` and hands the entire result to `crypto.subtle.digest`, which is a one-shot API — Web Crypto has no streaming digest interface. Peak memory therefore tracks file size, and a multi-gigabyte disk image will throw a `RangeError` or kill the tab rather than hash. Note also that `crypto.subtle` only exists in a secure context: over plain `http://` on a non-localhost origin the whole tool is inert, which is a confusing failure if you are testing on a LAN address.",
+        "For files too large to hold in memory, the workable approaches are an incremental implementation such as `hash-wasm`, or verifying on the machine that already holds the reference digest. When comparing text files across platforms, remember that the hash covers raw bytes — a UTF-8 BOM, CRLF line endings, or a trailing newline all change the digest, which is the usual explanation for a checksum that —should— match and does not."
+      ]
+    },
+    {
+      "heading": "Integrity is not authenticity, and not malware detection",
+      "body": [
+        "A checksum answers exactly one question: is this byte-identical to the value I was given? An attacker who controls the distribution point can publish a matching digest for a payload they modified, because the digest is not a signature. Closing that gap needs detached signatures — GPG, minisign, Sigstore — or a registry that signs what it serves, where the trust anchor is the key rather than the file.",
+        "Nor does a checksum say anything about whether the content is malicious. Malware has whatever checksum the vendor published, because the checksum describes the file rather than judging it. Detection is a different job: antivirus engines, YARA rules, sandbox detonation. Use this page to answer —did the transfer corrupt or did I get the file I meant to get— and nothing beyond that."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/secret-scanner/"
   current="/sec/tools/secret-scanner/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Pattern matching, not understanding",
+      "body": [
+        "The scan is a list of anchored regular expressions over the text you pasted: `AKIA` plus 16 uppercase characters for AWS access key IDs, `ghp_` and `github_pat_` for GitHub, `glpat-` for GitLab, `sk_live_` and `sk_test_` for Stripe, `sk-` for OpenAI, `AIza` for Google, `xox[baprs]-` for Slack, PEM private key blocks up to 4,000 characters, and JWTs shaped like three dot-separated base64url segments starting `eyJ`. These prefixes are vendor-issued and stable over time, which is precisely what makes them reliable regex targets.",
+        "AWS secret access keys carry no prefix, so they get a contextual rule: a 40-character base64-ish token with non-alphanumeric characters on both sides, appearing within 160 characters of the words *aws*, *secret access* or *access key*. The optional high-entropy pass adds generic detection — hex runs of 32+ characters scoring at least 3.5 bits per character, base64-ish runs of 32+ scoring at least 4.0 — but only for candidates whose boundaries are alphanumeric-delimited."
+      ]
+    },
+    {
+      "heading": "How to read the output",
+      "body": [
+        "Overlapping hits are resolved by taking the longest match at each offset, so a JWT containing a long base64 blob reports one finding rather than three fragments of the same secret. Redaction rewrites each match to `[REDACTED:Label]` by splicing from the end of the string backwards, which keeps all earlier offsets valid as the text shrinks — the reason that direction matters, since replacing front to back would invalidate every position after the first edit.",
+        "Findings are listed with line and column numbers so you can jump to the source. The mask checkbox affects only the display — clicking any row copies the complete, unmasked secret to your clipboard regardless, and that is how you confirm a finding is real. Treat the findings list as sensitive as the text you pasted, and be deliberate about clicking rows in anything you then paste elsewhere."
+      ]
+    },
+    {
+      "heading": "Limits, and the order to respond in",
+      "body": [
+        "False negatives are the larger risk. A credential whose format none of the patterns know will not be flagged, and neither will one that has been encrypted, base64-encoded twice, split across lines, or replaced by an indirection like `${{ secrets.API_KEY }}` — the reference is a secret dependency, not a leak. The entropy pass cannot close this gap either, since many real credentials are low-entropy strings while most high-entropy hex in a config file is an innocuous content hash.",
+        "When something real turns up, rotate and revoke it first, then read the provider's audit log to see whether it was used and by whom, then purge it from git history and CI logs, and only afterwards fix the pipeline that exposed it. Rotation comes first because every hour you wait is an hour the credential stays live, and rewriting history afterwards does not un-leak a key that was already cloned."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

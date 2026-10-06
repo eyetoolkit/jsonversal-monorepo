@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/xml-formatter/"
   current="/tools/xml-formatter/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Parsing and validation",
+      "body": [
+        "Parsing uses the browser's native `DOMParser` with the `application/xml` MIME type, which performs real namespace-aware parsing rather than pattern matching. Malformed markup, unclosed elements, and mismatched attribute quotes are caught by the parser itself, and the resulting `parsererror` node is surfaced with the browser's own message text.",
+        "That message format is engine-specific — Firefox includes line and column numbers, other engines phrase it differently — so do not build tooling on the exact wording. Treat it as a human-readable diagnostic. The formatter is strict about well-formedness but does not validate against a DTD or an XSD, so content that is document-valid but schema-invalid passes silently."
+      ]
+    },
+    {
+      "heading": "How elements are re-serialised",
+      "body": [
+        "The pretty-printer walks the DOM directly rather than calling `XMLSerializer`. Elements are emitted with their attributes in document order, an element with no meaningful children collapses to a self-closing tag, and an element whose only meaningful child is text stays on one line — which keeps leaf content compact instead of spreading it across three lines.",
+        "CDATA sections, processing instructions, and comments are each preserved by node type. The important rule is that whitespace-only text nodes are dropped before printing, which is what stops indentation already present in the source from accumulating on every pass — reformatting an already-formatted document is therefore stable rather than progressively indented."
+      ]
+    },
+    {
+      "heading": "Losses worth knowing about",
+      "body": [
+        "Only the document element is walked, so the XML declaration and any DOCTYPE are absent from the output. A document carrying a DTD with entity declarations, or an encoding declaration, will not survive a round trip. Minify mode additionally discards comments, while pretty mode keeps them.",
+        "Escaping is applied only where the printer itself builds attribute values, replacing a double quote with `&quot;`. Character data is emitted as trimmed text content, so an entity reference such as `&amp;` in the source arrives from the parser as a literal `&` and is written back unescaped — the result is well-formed-looking output that will not re-parse cleanly.",
+        "Mixed content is reshaped for a related reason: in `<p>Hello <b>name</b></p>` the text between the tags keeps its content but the surrounding whitespace is normalised to fit the chosen indent, so rendered spacing can differ from the original even though no characters are lost. Formatting is therefore lossy for any document where whitespace carries meaning."
+      ]
+    }
+  ]}
 >
 
   <div class="card mt-2">

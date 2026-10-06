@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/log-parser/"
   current="/devops/tools/log-parser/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the built-in patterns actually pin down",
+      "body": [
+        "The nginx and Apache patterns are fully anchored with `^` and a trailing `$`, and the three quoted fields — request, referer, user agent — are matched as `[^\\\"]*`. That single decision is the parser's sharpest limit: a user-agent string containing a literal double quote, which real agents do send, terminates the field early and the whole line fails to match. The same applies to a space inside any of the three leading `\\S+` tokens, since whitespace is the field separator.",
+        "nginx accepts one extra optional quoted group after the user agent, which is why a trailing `\"-\"` on the end of a line is tolerated there and not in the Apache pattern. Once matched, the request string is split on spaces after the fact: element zero is the method, element one the path, and the HTTP version is discarded. A request line with an embedded space in the target therefore shifts the path column rather than failing."
+      ]
+    },
+    {
+      "heading": "Timestamps stay strings, so nothing gets sorted",
+      "body": [
+        "`time_local` holds the raw bracketed text, `08/Sep/2026:14:23:11 +0000`, exactly as captured. It is never parsed into a date, never normalised to UTC, and never compared — the offset is carried along as decoration. Rows come out in paste order, so a rotated-and-concatenated file keeps its out-of-order timestamps, and no column of these results is sortable by time without a second pass.",
+        "Two other fields resist arithmetic for similar reasons. `body_bytes_sent` keeps the literal `-` that nginx writes when no body was sent, so the column mixes strings and numbers. The status histogram only counts values matching three digits exactly, which quietly excludes any status a custom pattern captured with surrounding text."
+      ]
+    },
+    {
+      "heading": "Custom patterns and very large pastes",
+      "body": [
+        "Custom mode builds a JavaScript `RegExp` from your source with no flags, so `^` and `$` anchor a single line, and the named groups become the table columns — the union of group names across all parsed rows, in first-seen order. There is no execution timeout, which means a pattern with nested quantifiers can backtrack pathologically and lock the tab rather than fail. A loose source-level test checks that at least one `(?<name>` appears, so an invalid group name surfaces as a constructor error instead.",
+        "Display is capped at 200 rows with a note about the remainder, while the statistics cover every non-blank line you pasted. The catch is memory: the whole paste lives in one string, is split into an array of line strings, and every successfully parsed object is retained in an array for the JSON export. Multi-megabyte pastes are handled in one blocking synchronous pass, so for real log files a streaming command-line tool is the better instrument."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

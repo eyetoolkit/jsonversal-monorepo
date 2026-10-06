@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/sql-generator/"
   current="/codegen/tools/sql-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Type inference scans every row, in a fixed precedence",
+      "body": [
+        "Columns are the union of keys across all objects in first-appearance order, and each column's type is decided by looking at every value in it, not just the first. The precedence is: any string anywhere makes the column text; otherwise any boolean makes it boolean; otherwise any non-integer number makes it float; otherwise any number makes it integer. That ordering is the behaviour to understand, because it is one-way — a single stray string among numbers widens the column to text, and no amount of numeric data narrows it back.",
+        "The mapping is `VARCHAR(255)` for text on MySQL and `TEXT` elsewhere, `REAL` on SQLite and `DOUBLE` elsewhere for float, `INTEGER`, `BOOLEAN`. The MySQL text case is the one to watch: `VARCHAR(255)` truncates or errors depending on the server's SQL mode, so a longer string that looked like plain text becomes a data-loss event. Boolean is checked before numeric, so a column mixing `true` and `1` is typed boolean while the `1` is still emitted as a bare integer literal."
+      ]
+    },
+    {
+      "heading": "Identifiers and values are handled by two different mechanisms",
+      "body": [
+        "Identifiers are sanitised, then quoted. Every character outside `[A-Za-z0-9_]` becomes an underscore, and the result is wrapped in backticks for MySQL or double quotes for SQLite and PostgreSQL. That makes injection through a column or table name impossible, which is the right priority — but it is lossy without saying so: `user-name` and `user_name` both become `user_name`, two distinct keys collide into one column, and the generated `CREATE TABLE` contains the duplicate. Check the column names before running the DDL.",
+        "Values take the other path. String literals are escaped by doubling single quotes and nothing else — no backslash is escaped. That is correct for PostgreSQL and standard SQL, where backslash is ordinary. It is not correct for MySQL in default mode, where backslash escapes: a value ending in a backslash produces a literal whose closing quote is escaped, and everything after is parsed as SQL rather than data. A trailing `\\` from untrusted input is enough to break the statement."
+      ]
+    },
+    {
+      "heading": "What is missing, and what the numbers do",
+      "body": [
+        "There is no primary key, foreign key, unique constraint, check, index, `NOT NULL` or default in the output, and no auto-incrementing column — no `AUTO_INCREMENT`, `SERIAL` or `IDENTITY` for any dialect, so an integer key arrives as a plain `INTEGER` you must populate yourself. There is also no `CREATE TABLE IF NOT EXISTS` and no multi-row batching: one `INSERT` per object. Nested objects and arrays become text columns holding JSON, worth promoting to `jsonb` on PostgreSQL.",
+        "Numbers are written through JavaScript's string conversion, so a large integer beyond 2^53 is emitted already precision-damaged and a float such as `1.0` is emitted as `1`. Three dialects are offered — MySQL, SQLite and PostgreSQL — and booleans are bare `TRUE` and `FALSE`, accepted by all three in current versions but not by older SQLite builds. Treat the result as a draft: run it against a scratch database, then add the keys, constraints and indexes that make it a schema."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

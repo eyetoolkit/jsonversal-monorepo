@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-diff/"
   current="/tools/json-diff/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the comparison actually walks",
+      "body": [
+        "Both panels go through `JSON.parse`, then a recursive walk compares them. A pair is first tested with `===`, and descent happens only when both sides are non-null objects of the same kind — an array against an object is reported as a single `changed` row rather than descended into. Key order is irrelevant because the two key sets are merged into one `Set` before iterating, so `{\"a\":1,\"b\":2}` and `{\"b\":2,\"a\":1}` produce no output at all.",
+        "Arrays are compared strictly by index, walking up to the longer of the two lengths. That positional assumption is the most important thing to understand here: inserting one element at the front of a five-item array reports one addition plus four modifications, not one addition. Paths use bracket notation only where a key is not a legal JavaScript identifier, so `$.user.address.city` stays dot-delimited while `$.user[\"first-name\"]` gets quoted."
+      ]
+    },
+    {
+      "heading": "Reading the change list",
+      "body": [
+        "Each row carries a type badge, the full path, and the value from whichever sides exist. Strings longer than 60 characters and serialised objects longer than 80 are truncated with an ellipsis, because the job here is locating a change rather than reading the data — for a large embedded payload, copy the value out of the source document instead.",
+        "The summary badge counts the three categories separately, and that count is the fastest way to characterise a change. A handful of `changed` rows means an edit in place. Hundreds of `added` and `removed` rows converging on one array path usually means an element was inserted or removed near the top, not that the array was rewritten."
+      ]
+    },
+    {
+      "heading": "Comparison semantics worth knowing",
+      "body": [
+        "Differences are structural, not semantic. Because `===` is applied to primitives, `1` and `1.0` are the same JavaScript number and report no change, while `\"1\"` and `1` do differ. A `null` on one side and a missing key on the other are likewise reported as a change to `∅` rather than as a removal.",
+        "One implementation detail matters if your documents use unusual key names: presence is tested with `in` rather than an own-property check, so a key such as `constructor` or `toString` counts as present in the other document because it resolves through the prototype chain. That turns a would-be `added` row into a `changed` row with an undefined old value — an edge case worth knowing before you diff payloads with unusual key names.",
+        "Because the comparison is structural, it is the right tool when both sides are documents and the question is what a deploy changed. When the inputs are source files or logs and the question is which lines moved, the Text Diff page on this site is the better fit, since it aligns on lines rather than on paths — and it will report a moved block as one deletion plus one insertion instead of a change per array index."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

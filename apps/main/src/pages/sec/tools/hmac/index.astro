@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/hmac/"
   current="/sec/tools/hmac/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Why HMAC-SHA256 became the default",
+      "body": [
+        "A plain digest is public knowledge: anyone can recompute SHA-256 over your payload, so it detects corruption but offers no protection against forgery. HMAC folds a shared secret into the computation, which means producing a valid tag requires a value the verifier alone holds. That combination — keyed, fixed-length, no key exchange, cheap to verify — is why Stripe, GitHub and Slack webhook signatures all settled on HMAC-SHA256.",
+        "The key is zero-padded to the 64-byte block size, or hashed first if it is longer, and the two XOR pads are what make the construction resistant to length-extension style attacks that would break a naive `hash(key || message)`. The result is always 256 bits for SHA-256 regardless of message size, and any single-bit change anywhere in the input yields an unrelated tag."
+      ]
+    },
+    {
+      "heading": "Details that break real integrations",
+      "body": [
+        "Encoding is part of the contract, not a presentation choice. This page prints lowercase hex and standard base64, and base64 of a tag contains `+` and `/`, both of which need percent-encoding in a query string or a URL path segment. Most libraries default to lowercase hex, so match whatever your provider documents rather than assuming the base64 form is interchangeable.",
+        "Any key length is accepted because Web Crypto pads to the block size internally — a short key works, and a short key is still a weak key. Use at least 32 random bytes drawn from a CSPRNG. Whitespace is part of the message: signing a JSON string signs the exact bytes including spaces and newlines, so both sides must serialise identically or the tags will never match."
+      ]
+    },
+    {
+      "heading": "Signing is not verifying",
+      "body": [
+        "This page signs and does not verify, and verification is where the subtle bug lives. Comparing two tags with `===` short-circuits at the first differing byte, leaking through response timing how much of a forged tag was correct — enough to recover a valid tag one byte at a time. Use `crypto.subtle.verify('HMAC', key, tag, message)`, which compares in constant time internally and returns the boolean without you writing the loop.",
+        "One boundary condition to note: the UI rejects an empty message, so a zero-length body cannot be signed here. If a provider allows one, sign it with your own code. And keep the two properties separate in your head — an HMAC proves the message came from someone holding the secret and was not altered, but says nothing about confidentiality. For that, combine HMAC with an authenticated cipher such as AES-GCM."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-to-csharp/"
   current="/tools/json-to-csharp/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "How types are chosen",
+      "body": [
+        "Every value maps through a short chain: `null` becomes `object`, and the numeric branch tests `Number.isInteger` to pick `int` or `double`. Because that test runs after JSON parsing, a large identifier written as `9007199254740993` has already lost precision before the type decision is made — and `int` is 32-bit in .NET, so it cannot hold the value even if the digits survived. Anything beyond 2^31 needs `long`.",
+        "Arrays become `List<T>`. An empty array yields `List<object>` because there is nothing to infer from, an array of objects produces a `List<FieldNameItem>` over a synthesised class, and a mixed array degrades to `List<object>`. Nested objects each become their own class, with array element classes named after the field plus an `Item` suffix."
+      ]
+    },
+    {
+      "heading": "Naming, attributes and layout",
+      "body": [
+        "Member names come from a pascal-casing helper that replaces every non-alphanumeric run with a split and uppercases each part. It does not understand C# conventions, so `HTTP-header` becomes `HttpHeader` rather than `HttpHeader` with the acronym preserved, and a JSON key named `class` produces a member that will not compile until you rename it — the generator does not consult the keyword list.",
+        "Because that transformation mangles the key, correctness rests on the `[JsonProperty(\"...\")]` attribute written above every member with the original key verbatim. That attribute is what makes deserialisation land on the right property no matter what the C#-side name became, and it is the one line you must keep if you rename anything."
+      ]
+    },
+    {
+      "heading": "What to fix before compiling",
+      "body": [
+        "Two mappings need attention. A `null` field becomes `object`, which forces a cast on every read; for value types the fix is a nullable annotation such as `int?`, and for a genuinely polymorphic field it is `JsonElement` or a custom converter. And because every whole number becomes `int`, any 64-bit identifier needs `long` instead — a mismatch that surfaces at runtime as an overflow rather than at compile time.",
+        "The attributes target Newtonsoft.Json. On `System.Text.Json` the equivalent is `[JsonPropertyName]`, so either add that package or swap the attribute; the member names themselves are already correct either way. Nested classes are emitted ahead of their referents and `Root` last, so the file reads top-down, and every property is a public auto-property — which suits deserialisation but leaves nowhere to put validation until you add a backing field yourself.",
+        "For a payload that does not match the model exactly, this generator has no way to express the shape the Go or TypeScript tools can: there is no union type, no dictionary escape hatch for arbitrary keys, and no partial-class hook, so a field that is sometimes a string and sometimes an object has to become `object` and be cast at every call site."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

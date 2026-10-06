@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/aes/"
   current="/sec/tools/aes/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "GCM versus CBC, and what actually protects you",
+      "body": [
+        "GCM is a counter-mode cipher that produces ciphertext plus a 128-bit authentication tag computed over the ciphertext and any additional authenticated data. Web Crypto appends that tag to the ciphertext, so flipping one bit of the stored blob makes `decrypt` reject it outright instead of returning garbage. This page passes no AAD, so it authenticates the ciphertext and nothing else — you cannot bind the plaintext to a version number, a record ID, or a filename.",
+        "CBC is only encryption. Each block is XORed with the previous ciphertext block, and Web Crypto adds PKCS#7 padding on the way out and validates it on the way in. That padding check is not authentication: a wrong key occasionally produces valid padding by chance, and you get plausible-looking plaintext with no error. Every encryption run here draws a fresh 16-byte salt and a fresh IV from `crypto.getRandomValues`, which is the minimum you owe CBC."
+      ]
+    },
+    {
+      "heading": "What PBKDF2 is doing to your passphrase",
+      "body": [
+        "There is no raw-key field on this page: the encryption key is always derived. `deriveKey` runs PBKDF2-HMAC-SHA256 with 100,000 iterations over a 16-byte random salt, both hardcoded in the source rather than exposed as options, then hands the result to Web Crypto as an AES-GCM or AES-CBC key of the size you selected. That is why the blob is self-contained — salt, IV and ciphertext travel together, so the same passphrase reproduces the same key.",
+        "The layout is `salt(16) || iv(12 or 16) || ciphertext`, base64-encoded as one blob. The salt is why encrypting the same text twice yields different output, which is why you must keep it if you store only part of the blob. Note that mode and key size live in the UI rather than the blob, so re-select both when decrypting or the failure message stays generic."
+      ]
+    },
+    {
+      "heading": "Limits worth knowing before you build on this",
+      "body": [
+        "The single most important rule in GCM is that a nonce must never repeat under the same key. Reusing one lets an attacker recover the authentication subkey and XOR two plaintexts to read their difference. This page generates a fresh IV per click so it cannot happen here — but if you copy this blob format into your own code and derive the IV from a counter or a timestamp, you are one bug away from catastrophe. The nonce must be unique; it does not need to be secret.",
+        "Beyond that: the input is a single string in memory, encrypted in one `crypto.subtle` call, so there is no streaming path for large payloads — and a web form is not a key management system. PBKDF2 at 100,000 iterations is a reasonable floor in 2026, but it is still a general-purpose KDF with a fixed work factor. To derive keys from human-chosen passphrases, prefer Argon2id or scrypt with a tunable cost."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

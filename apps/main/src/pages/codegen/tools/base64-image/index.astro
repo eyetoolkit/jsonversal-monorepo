@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/base64-image/"
   current="/codegen/tools/base64-image/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What a data URI actually contains",
+      "body": [
+        "A base64 data URI has the shape `data:[<mediatype>][;base64],<data>`. The parser requires the `;base64` token and takes the segment before the comma as the MIME type. Paste bare base64 with no prefix and the type has to be sniffed from magic bytes instead:\n  PNG   iVBORw0KGgo\n  JPEG  /9j/\n  GIF   R0lGOD\n  WebP  UklGR\n  SVG   PHN2Zy\n  PDF   JVBERi",
+        "Sniffing is a convenience, not an authority. A declared type is trusted verbatim and never cross-checked against the bytes, so a mislabelled payload previews as whatever the browser decides to do with it. PDF is rejected explicitly and anything not starting with `image/` is refused. One branch is worth knowing: raw SVG markup pasted directly, starting with `<svg`, is encoded in the page via `TextEncoder` plus `btoa` rather than rejected. Input is validated against the standard alphabet, at most two padding characters and a length that is a multiple of four, so base64url variants using `-` and `_`, or unpadded output, are refused rather than silently mangled."
+      ]
+    },
+    {
+      "heading": "How the byte count is derived without decoding",
+      "body": [
+        "The reported size is arithmetic, not measurement: `floor(length × 3 / 4)` minus two for `==` padding or one for `=` padding. That is correct for well-formed base64 and never touches the decoded bytes, which is why it is instant even for a multi-megabyte payload. Whitespace is stripped before both the length calculation and the alphabet check, so MIME-wrapped base64 with hard line breaks at 76 characters — still common in email and in `Content-Transfer-Encoding` output — measures correctly instead of being rejected.",
+        "Inline images earn their keep in a narrow set of cases: a favicon, a tiny placeholder, an icon embedded in a CSS `background-image`, or an HTML email that has to be self-contained because the client blocks remote images. Past a few kilobytes the arithmetic works against you. Every four characters of base64 carry three bytes of image, so a 40 KB PNG becomes roughly 54 KB of markup, and it is re-sent on every request instead of being fetched once and cached."
+      ]
+    },
+    {
+      "heading": "Compression, caching and CSP make inlining a last resort",
+      "body": [
+        "Base64 cannot compress anything: it is a 6-bits-per-byte encoding that spends a third more space to avoid the transport problems of raw binary. PNG, JPEG and WebP arrive already deflated or DCT-compressed, so the encoder has nothing left to remove, and GIF is LZW-compressed and behaves the same way. SVG is the interesting case, being text, so it compresses well under gzip and a base64 SVG is often larger than the original file while still being unreadable as markup.",
+        "Two operational costs are easy to forget. A data URI has no independent cache entry — it cannot be revalidated with an ETag, and it is re-downloaded every time the containing document is. And a Content Security Policy without `data:` in `img-src` blocks it outright, which is a common reason an inlined image works in a prototype and disappears in production. The download button reconstructs the original bytes from the last previewed URI into a `Blob`, which is the fastest way to get the payload back out and into a real file."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

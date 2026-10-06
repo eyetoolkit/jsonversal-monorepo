@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/curl-to-fetch/"
   current="/codegen/tools/curl-to-fetch/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What the generated call actually contains",
+      "body": [
+        "Output is a bare `fetch(url)` when the parsed command has no method, headers or body, and an options object otherwise. The body appears only when `-d` or a variant was present, and only when it parses as JSON after trimming — the payload is re-serialised through `JSON.stringify`, so key order and number formatting come from a JSON round trip rather than from your text. A `Content-Type: application/json` header is added only when you supplied none, and the output carries a comment marking that the tool made that decision.",
+        "Authentication and cookies are folded in. `-u user:pass` becomes an `Authorization: Basic <base64>` header computed from the UTF-8 bytes of the credential, and it is skipped when an `Authorization` header already exists so an explicit bearer token is never overwritten. A `-b` cookie string is appended to an existing `Cookie` header or added as a new one, and header casing is preserved exactly as typed rather than normalized."
+      ]
+    },
+    {
+      "heading": "Two headers in the output are forbidden to browsers",
+      "body": [
+        "The Fetch specification designates certain names as forbidden header names, and the browser strips them from the request before it leaves. `User-Agent` is the important one: curl's `-A` has no client-side equivalent in a page, because a script cannot set it and the browser replaces it with its own value. `Cookie` is on the same list — setting it from `fetch` is ignored, which means the merged `Cookie` header in generated code is effectively documentation of what curl would have sent, not something a page can actually deliver.",
+        "Credentials are governed separately. `credentials` defaults to `same-origin`, so a cross-origin request drops cookies and any `Authorization`-derived session silently, and you need `credentials: 'include'` plus a matching `Access-Control-Allow-Credentials` header and a specific origin rather than a wildcard. That option is not emitted, so treat the generated call as same-origin unless you add it yourself."
+      ]
+    },
+    {
+      "heading": "CORS, timeouts and status handling are left to you",
+      "body": [
+        "Nothing in the output can bypass CORS, and a preflight is triggered by the request itself: a `POST` with `Content-Type: application/json` is not a simple request, so the browser sends an `OPTIONS` probe first and the server must answer it with the right `Access-Control-Allow-*` headers. The generated code also has no `try`/`catch` around the promise, so a rejected fetch surfaces as an unhandled rejection.",
+        "Three gaps matter when the source command was more careful than fetch. There is no timeout — fetch has no timeout option, so a hung request hangs, and curl's `--max-time` needs an `AbortSignal.timeout()` or a manual `AbortController` to be equivalent. A form-encoded `-d 'a=1&b=2'` is emitted as a plain string body with no content type, where curl sends `application/x-www-form-urlencoded`. And the tail calls `response.json()` unconditionally, which throws on a 204 or an HTML error page where curl would print whatever body arrived. In Node 18 and later the same code runs without CORS enforcement or forbidden-header filtering, so it behaves considerably closer to the original command than it does in a page."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

@@ -28,6 +28,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/bcrypt/"
   current="/sec/tools/bcrypt/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Reading the cost factor back out of the hash",
+      "body": [
+        "A bcrypt hash is a 60-character string of the form `$2b$12$` plus 22 salt characters and 31 digest characters. The cost is stored inside the hash, which is why the Verify tab needs only the password and the hash string — `bcrypt.compare` reads the salt and the iteration count out of the value you paste and recomputes with them. Nothing about the cost has to be kept in a separate column in your database.",
+        "Hashes produced here always carry the `$2b$` prefix, because `bcryptjs` v3 unconditionally emits that revision in `genSaltSync`; verification accepts `$2a$` and `$2y$` as well, which is what you want when migrating hashes written by older libraries. The revision letter matters to other implementations — some native bindings reject `$2b$` outright — so it is worth knowing which prefix your verification path will tolerate."
+      ]
+    },
+    {
+      "heading": "What the cost factor actually costs",
+      "body": [
+        "The cost parameter is a base-2 logarithm: the key schedule runs 2^n times, so cost 10 is 1,024 iterations, cost 12 is 4,096, and cost 15 is 32,768. Each increment doubles the work and roughly doubles latency. It is a dial you have to keep turning as hardware improves — a cost that felt appropriately slow in 2015 is a sub-millisecond operation on a modern GPU rig, which is the entire reason bcrypt exists.",
+        "The UI accepts 4 through 15 and defaults to 10; the underlying library clamps to the 4–31 range but rejects anything outside its own bounds first. `bcryptjs` also yields to the event loop every 100ms of work, so hashing does not freeze the tab the way a naive synchronous loop would. The 16-byte salt comes from `crypto.getRandomValues`, so two users with the same password never end up with the same digest — identical passwords produce identical hashes only by coincidence of cost and salt."
+      ]
+    },
+    {
+      "heading": "The 72-byte ceiling, and what bcrypt is not for",
+      "body": [
+        "bcrypt silently truncates the password at 72 bytes of UTF-8. The library exposes a `truncates()` predicate for this, but this page never calls it, so a 90-character passphrase and its first 72 characters produce byte-identical hashes and both verify against the same stored value. For any input that can exceed 72 bytes — a long passphrase, an encoded API key — pre-hash with SHA-256 and base64 the digest, or move to Argon2id or scrypt, neither of which has this ceiling.",
+        "There is also no second input, so bcrypt cannot apply a pepper held separately from the database, and it cannot verify a one-time code against a server-side secret distinct from the hash. Because it is deliberately slow, it is the wrong tool for high-entropy material: running a 32-byte random token through bcrypt adds latency to every request without adding any security, since there is nothing to brute-force. Use it for human-chosen passwords, and pick a fast digest for tokens."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-1">

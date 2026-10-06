@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/sec/tools/x509-decoder/"
   current="/sec/tools/x509-decoder/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "What DER actually is",
+      "body": [
+        "A certificate is a binary ASN.1 structure — a SEQUENCE of tagged, length-prefixed values — and DER is the canonical encoding of it: definite lengths only, minimal length octets, none of the indefinite-length forms BER permits. PEM is simply that DER base64-encoded between BEGIN and END lines, which is why this tool strips the armour with a header regex and hands the raw bytes to the parser.",
+        "The reader itself is short: read the tag byte, read the length (short form, or long form with one to four length octets, with zero rejected as indefinite), then check that the value does not run past the buffer and raise `Truncated DER` or `DER length overruns buffer` if it does. Every read carries explicit start and end bounds rather than slicing, so offsets stay absolute within the whole buffer and a nested structure can be handed to a fresh reader without copying."
+      ]
+    },
+    {
+      "heading": "Walking the structure",
+      "body": [
+        "Decoding descends Certificate → tbsCertificate → optional `[0]` version, where an absent tag means v1 and the tool reports the parsed value plus one, then serial, signature algorithm, issuer, validity, subject, SubjectPublicKeyInfo, and finally any `[3]` extensions. Names nest twice over — SEQUENCE of SET of SEQUENCE of an OID and a value — and values are decoded by tag, including BMPString read as UTF-16BE rather than as bytes.",
+        "The SPKI is opened one level deeper: for RSA the tool skips the BIT STRING's unused-bits octet and reports the modulus length and exponent, for EC it reads the named-curve OID from the algorithm parameters. Extensions get real renderers rather than hex dumps — subjectAltName split by general-name tag (`0x82` DNS, `0x81` email, `0x86` URI, `0x87` raw IP bytes), keyUsage unpacked from its bit string into the nine named usages, basicConstraints as CA plus pathLen, and extendedKeyUsage resolved to serverAuth, clientAuth, codeSigning and the rest."
+      ]
+    },
+    {
+      "heading": "What this parser does not tell you",
+      "body": [
+        "It verifies no signature, builds no chain to a trust anchor, matches no hostname, and makes no network calls at all — so it cannot tell you whether a certificate has been revoked, because CRL distribution points and OCSP responders would both require fetching. The validity dates shown mean the window is well-formed and in the future, not that anyone vouches for the certificate. Trust decisions belong to a real TLS stack with a populated root store.",
+        "Two parsing limits are worth knowing. Only the first certificate in a pasted chain is decoded, because the surrounding bytes are ignored after the outermost SEQUENCE, so a full chain is silently truncated to its first entry rather than reported as an error. And the PEM stripper only matches uppercase-letter header text, so blocks whose label contains digits or whose body carries parameters such as `Proc-Type:` will confuse it."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

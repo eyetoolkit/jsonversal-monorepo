@@ -24,6 +24,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-sorter/"
   current="/tools/json-sorter/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Key ordering is locale-aware, not bytewise",
+      "body": [
+        "Object keys are sorted with `localeCompare`, which follows locale collation rules rather than code-point order. That is the right choice for readability — `Zebra` lands after `apple`, and underscore-prefixed keys group together — but it means the output is not a byte-stable canonical form. The same input can produce different key order on a machine with a different locale or ICU version, which defeats the exact case of normalising a file so diffs collapse.",
+        "Numeric mode applies to array values, not keys: a field holding `\"10\"` and `\"2\"` sorts as 2 then 10, because both sides are coerced with the unary plus before comparison. It engages only when both values parse as finite numbers, so a mixed array falls back to string comparison. Key sorting is always alphabetical, with no numeric variant offered."
+      ]
+    },
+    {
+      "heading": "How arrays are ordered and deduplicated",
+      "body": [
+        "Array elements are compared by value, and an object element is reduced to the string form of its first property before comparison — so an array of records sorts by whatever happens to be the first key, which is fragile when the key set varies between records. Two numbers are compared by subtraction; everything else goes through `localeCompare` on its string form. Descending simply negates the comparator result.",
+        "Deduplication is a separate pass that runs after sorting and keeps the first occurrence of each distinct item. Primitives are keyed by `typeof` plus value, so `1` and `\"1\"` survive as separate entries. Objects are keyed by `JSON.stringify`, which means two records with identical content in different key order are treated as distinct and both kept — sort keys first if you want order-insensitive dedupe."
+      ]
+    },
+    {
+      "heading": "Practical limits",
+      "body": [
+        "Dedupe is force-disabled whenever array sorting is set to None, and the checkbox is disabled in that state to make the dependency visible. The two settings interact in a way that surprises people: enabling dedupe while sorting is off silently does nothing.",
+        "Sorting also rebuilds the tree, so whatever the JSON parser could not represent is already gone beforehand — duplicate keys collapse to the last occurrence, and integers beyond IEEE-754 double precision lose accuracy. Very large documents are held in memory twice during the transform, once as the parsed tree and once as the rebuilt output, which is comfortable in a browser tab but not a plan for multi-hundred-megabyte files.",
+        "Finally, sorting destroys array order, which carries meaning far more often than key order does. For a sequence of events, a queue of pending operations, or any list where position is significant, set the `Sort arrays` control to None — that disables the dedupe checkbox too, so only `Sort object keys` applies and the array sequence survives untouched."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

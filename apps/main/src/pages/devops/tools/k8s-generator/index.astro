@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/devops/tools/k8s-generator/"
   current="/devops/tools/k8s-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "Deployment, Service, Ingress and the label contract",
+      "body": [
+        "The three objects are three different jobs, and the generator's real contribution is making the one thing that commonly breaks agree across all of them. A Deployment needs a selector that matches its own pod template; a Service needs a selector that matches pods it should route to. Both are filled from the same single label input, which is emitted three times in the Deployment — `metadata.labels`, `spec.selector.matchLabels`, and `spec.template.metadata.labels` — so a mismatch is structurally impossible here rather than merely unlikely.",
+        "Ingress does not use labels at all. It names a backend service and a backend port, which is why its fields are separate from the Service's: the object it points at is a Service, and the port it names is that Service's `port`, not the container's."
+      ]
+    },
+    {
+      "heading": "Ports, naming, and what each number means",
+      "body": [
+        "Three port numbers appear in a working stack and they are not interchangeable. `containerPort` is documentation plus a default for named targets; the Service's `port` is what clients and an Ingress reference; `targetPort` is where the Service forwards. This tool emits numeric `containerPort` and numeric `targetPort`, which always resolve — but if you later switch to a named `targetPort` to decouple the Service from a container port, remember that a named target requires the container port to carry a matching `name`, and the generated manifests leave both unnamed.",
+        "The Ingress backend port field is independent of the Service fields and is not cross-checked against them. Point an Ingress at `app.example.com` with backend port 80 while the Service exposes 8080 and the rule returns 503 with no obvious cause — the object is valid, it just has nothing listening on the port it names."
+      ]
+    },
+    {
+      "heading": "What the generated YAML leaves out",
+      "body": [
+        "There is no `resources` block, which means every pod is BestEffort QoS: first in line for eviction under node pressure, and invisible to a scheduler that bin-packs on requests. There are no probes either, so a rolling update will happily route traffic to a container that is running but not ready. Neither is fatal for a manifest you apply while learning; both matter the moment replicas actually serve traffic.",
+        "The Ingress is inert YAML until an ingress controller with a matching `ingressClassName` is watching that namespace — the object alone does nothing. And the namespace is written into `metadata.namespace` but never created, so `kubectl apply` fails outright if it does not already exist."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

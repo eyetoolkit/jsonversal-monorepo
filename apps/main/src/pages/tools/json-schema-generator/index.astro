@@ -28,6 +28,30 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-schema-generator/"
   current="/tools/json-schema-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "A field list, not a parsed sample",
+      "body": [
+        "Despite the name, this page does not infer a schema from a JSON document. You build a list of fields — name, type, optional description, required checkbox, enum values — and the generator emits an object schema from that list. The root is always `type: object` with your fields as `properties` and a `required` array holding only the fields you marked. Fields with an empty name are skipped silently.",
+        "Each type expands to a fixed shape. `string`, `number` and `boolean` map across directly; `array` becomes an array with `items: { type: \"string\" }` hard-coded, so element types must be edited by hand; `object` becomes an object with empty `properties` and `required` arrays; `enum` becomes a string with an `enum` array split from your comma-separated input. There is no `integer`, no `null`, and no way to nest one field inside another from the UI."
+      ]
+    },
+    {
+      "heading": "Reading the generated document",
+      "body": [
+        "The schema declares `$schema` as draft 2020-12 and carries a `name` field, which is the identifier OpenAI-compatible endpoints expect alongside the schema itself. A top-level `description` is added as the model-level hint. Empty `description` and `required` values are omitted from the output entirely rather than emitted as nulls, so a schema with nothing required has no `required` key at all.",
+        "Duplicate field names are not detected: the second assignment overwrites the first in `properties`, while both names still land in `required`. Give every field a distinct name if the schema is going to be enforced somewhere downstream, and note that field order in the list is preserved in the emitted `properties` object."
+      ]
+    },
+    {
+      "heading": "The inline validator is not a general engine",
+      "body": [
+        "The Validate step next to the output is a purpose-built checker rather than a JSON Schema implementation. It confirms the payload is an object, that every key named in `required` is present, that each declared property has the declared primitive type, and that `enum` members are respected. It does not check nested objects, numeric bounds, string formats, array element types, or unexpected additional properties.",
+        "So passing it is a weaker guarantee than the schema printed beside it, and much weaker than what a real validator would tell you. For draft 2020-12, 2019-09 and draft-07 validation against an arbitrary schema, the JSON Schema Validator elsewhere on this site runs the real thing.",
+        "One structural caveat for LLM use: because optional fields stay out of `required` and `array` is fixed to string items, a model is free to omit what you expected and free to return objects where you described strings. Handle both in code rather than assuming the schema constrains them."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

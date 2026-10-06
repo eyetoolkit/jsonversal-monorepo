@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/tools/json-schema-sample-generator/"
   current="/tools/json-schema-sample-generator/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The order keywords are resolved in",
+      "body": [
+        "Generation is a priority chain, and the order explains most surprising output. `const` wins outright, then the first `enum` member, then `example`, then `default` — all four short-circuit before the declared type is even considered, which is what lets a schema carry illustrative values. Composition comes next: `oneOf` and `anyOf` generate from the first branch only, and `allOf` is merged with a shallow `Object.assign`, so a later subschema overwrites an earlier one on conflicting keys rather than intersecting them.",
+        "Type resolution handles the multi-type form by filtering `null` out and taking what remains first, so `[\"string\", \"null\"]` yields a plain string. A schema with no `type` at all is inferred from context: `properties` or `additionalProperties` implies object, `items` implies array, and anything else falls back to string."
+      ]
+    },
+    {
+      "heading": "How each type gets a plausible value",
+      "body": [
+        "Strings consult a lookup table of thirteen `format` values first, which is why `date-time` yields a full ISO timestamp with a `Z` suffix. Failing that, `pattern` is matched against exactly three shapes — `[a-zA-Z0-9_-]+`, `[0-9]+` and `\\d+` — and everything else falls back to `value123`, which will usually violate the regex you wrote. Length bounds are met by repeating or truncating the string `sample string`.",
+        "Numbers pick a midpoint between the effective bounds, treating `exclusiveMinimum` and `exclusiveMaximum` as one unit either side, then honour `multipleOf` by rounding. Integers return the floor of the minimum plus one, which lands inside the range but overshoots when `minimum` and `maximum` are equal. Arrays generate between one and three items capped by `maxItems`, and a missing `items` yields an empty array."
+      ]
+    },
+    {
+      "heading": "Boundaries of the implementation",
+      "body": [
+        "Recursion stops at depth six, beyond which every value becomes `null`. That keeps a self-referential schema finite, but deeply nested documents quietly degrade at the bottom instead of raising an error. The keyword set is the common draft-07 subset listed on the page: `$ref` and `$defs` are not resolved, so a schema built on references generates empty objects, and conditional keywords such as `if`, `then` and `dependentRequired` are ignored.",
+        "An `additionalProperties` schema contributes a single sample property literally named `extra`, and boolean fields always come out `true`. Optional properties are generated on every record regardless of `required`, since a sample document carries no notion of presence — for a fixture that needs genuine variation, delete the fields you want omitted by hand."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">

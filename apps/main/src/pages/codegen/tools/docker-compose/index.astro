@@ -24,6 +24,29 @@ import BaseLayout from '@versal/ui/BaseLayout';
   canonical="https://jsonversal.com/codegen/tools/docker-compose/"
   current="/codegen/tools/docker-compose/"
   faqs={faqs}
+  about={[
+    {
+      "heading": "The exact shape of the emitted YAML",
+      "body": [
+        "Each service block emits `image`, then `ports`, `volumes` and `environment` only when the corresponding form fields are filled. Ports are written as a quoted scalar, `\"8080:80\"`, which matters because YAML would otherwise read an unquoted `8080:80` as a sexagesimal number. Volumes are written as one unquoted string such as `data:/var/lib/example`, which Compose reads as a named volume. Environment entries come from a single comma-separated field split on commas and then on the first `=`, so a value containing a comma is silently broken in two — and a fragment with no `=` raises an error naming the service rather than emitting broken YAML.",
+        "Values are quoted defensively whenever they contain a YAML-significant character, a leading or trailing space, or a newline, with backslashes and inner quotes escaped. Unquoted scalars pass through, so `NODE_ENV=production` stays the string a container expects. Version selection covers `3.9`, `3.8` and `2.24`; the key is emitted in the classic position for older tooling, and current Compose ignores it with a deprecation warning."
+      ]
+    },
+    {
+      "heading": "The default network is the part that matters most",
+      "body": [
+        "Services on the same Compose file join one bridge network and resolve each other by service name as a DNS hostname, so `postgres://user@db:5432/app` works with no host-side configuration at all. For local development this often makes the `ports` block unnecessary — a database that is only spoken to by other containers has no reason to be published to the host, and not publishing it removes it from the reach of anything else on the network. Reserve host ports for the things a human or a browser needs to reach.",
+        "Ordering is the other half. Without `depends_on`, Compose starts containers in declaration order and does not wait for readiness, so an application that connects at startup fails until the database finishes initialising — usually resolving on a retry rather than as a clean dependency. A `healthcheck` on the database plus `condition: service_healthy` is what actually encodes the wait, and neither is generated here because neither is expressible as a single text field in this form."
+      ]
+    },
+    {
+      "heading": "Environment handling and production hygiene",
+      "body": [
+        "Compose reads a `.env` file next to the project for `${VAR}` substitution inside the compose file itself, a different mechanism from `env_file`, which passes variables into the container. Writing literal values into the YAML, as this does, means the secret is in the file you commit. The production-shaped pattern is to reference the variable — `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}` — and keep the value in an ignored `.env`, so rotating a credential is an edit to an untracked file.",
+        "The remaining omissions are deliberate: no `restart` policy, so containers stay down across a daemon restart unless you add `restart: unless-stopped`; no `build` context, so services must exist in a registry; no resource limits; and no `depends_on`, healthchecks or networks beyond the implicit default. The file is a correct local-development starting point, and the gap to production is where all of those live."
+      ]
+    }
+  ]}
 >
 
   <section class="card mt-2">
