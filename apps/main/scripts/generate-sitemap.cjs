@@ -20,6 +20,7 @@ const BUCKETS = {
   sec:     { file: 'sitemap-sec.xml',     label: 'sec',    match: (url) => url.startsWith('/sec/') },
   devops:  { file: 'sitemap-devops.xml',  label: 'devops', match: (url) => url.startsWith('/devops/') },
   codegen: { file: 'sitemap-codegen.xml', label: 'codegen',match: (url) => url.startsWith('/codegen/') },
+  compare: { file: 'sitemap-compare.xml', label: 'compare', match: (url) => url.startsWith('/compare/') },
   legal:   { file: 'sitemap-legal.xml',   label: 'legal',  match: (url) => ['/privacy/', '/terms/', '/licenses/', '/404', '/offline.html'].includes(url) },
 };
 
