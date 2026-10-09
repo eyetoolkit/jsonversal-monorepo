@@ -19,6 +19,26 @@ const tools = [
   { title: 'SQL Formatter', description: 'Format messy SQL into clean, indented statements or minify to a single line.', href: '/codegen/tools/sql-formatter/' },
   { title: 'SQL Validator', description: 'Validate SQL syntax for MySQL, PostgreSQL, SQLite, and SQL Server instantly.', href: '/codegen/tools/sql-validator/' },
 ];
+
+const pageMeta = {
+  title: 'versal codegen — Type a config, copy the file',
+  description: 'Generate .gitignore, docker-compose, JSON Schema to TypeScript, SQL, CSV/JSON, cURL to fetch — all in your browser. No sign-up, no upload.',
+  url: 'https://jsonversal.com/codegen/'
+};
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: pageMeta.title,
+  description: pageMeta.description,
+  url: pageMeta.url,
+  isPartOf: { '@type': 'WebSite', name: 'JSONversal', url: 'https://jsonversal.com' },
+  itemListElement: tools.map((t, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: t.title,
+    url: 'https://jsonversal.com' + t.href
+  }))
+};
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -32,6 +52,7 @@ const tools = [
 <meta property="og:description" content="Type a config, copy the file. 100% client-side.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jsonversal.com/codegen/">
+<script type="application/ld+json" set:html={JSON.stringify(collectionSchema)}></script>
 </head>
 <body data-site="codegen" data-theme="light">
 

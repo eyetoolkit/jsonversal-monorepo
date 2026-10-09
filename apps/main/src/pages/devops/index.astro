@@ -18,6 +18,26 @@ const tools = [
   { title: 'YAML ↔ JSON Converter', description: 'Convert YAML to JSON and JSON to YAML. Pretty-print, validate, minify.', href: '/devops/tools/yaml-json/' },
   { title: 'JSON Tree Viewer', description: 'Paste any JSON and explore it as a collapsible, colour-coded tree.', href: '/devops/tools/json-viewer/' },
 ];
+
+const pageMeta = {
+  title: 'versal devops — Convert, decode & inspect, in your browser',
+  description: 'YAML/JSON, Base64, JWT, crontab, regex, CIDR, Kubernetes — all in your browser. No sign-up, no upload; your configs and secrets never leave your device.',
+  url: 'https://jsonversal.com/devops/'
+};
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: pageMeta.title,
+  description: pageMeta.description,
+  url: pageMeta.url,
+  isPartOf: { '@type': 'WebSite', name: 'JSONversal', url: 'https://jsonversal.com' },
+  itemListElement: tools.map((t, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: t.title,
+    url: 'https://jsonversal.com' + t.href
+  }))
+};
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -31,6 +51,7 @@ const tools = [
 <meta property="og:description" content="Convert, decode, inspect. 100% client-side. Your configs and logs never leave your device.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jsonversal.com/devops/">
+<script type="application/ld+json" set:html={JSON.stringify(collectionSchema)}></script>
 </head>
 <body data-site="devops" data-theme="light">
 

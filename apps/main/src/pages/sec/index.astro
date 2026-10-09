@@ -17,6 +17,26 @@ const tools = [
   { title: 'Secret & API Key Scanner', description: 'Detect leaked credentials — AWS, GitHub, GitLab, Stripe, Slack, OpenAI, JWTs, private keys.', href: '/sec/tools/secret-scanner/' },
   { title: 'X.509 Certificate Decoder', description: 'Decode PEM X.509 certificates — subject, issuer, validity, public key, SANs and extensions.', href: '/sec/tools/x509-decoder/' },
 ];
+
+const pageMeta = {
+  title: 'versal sec — Cryptography that runs in your browser. We see nothing.',
+  description: 'Hash, encrypt, sign, decode — AES, bcrypt, HMAC, JWT, X.509, password & token generators. Web Crypto API. No upload, no sign-up, no server logs.',
+  url: 'https://jsonversal.com/sec/'
+};
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: pageMeta.title,
+  description: pageMeta.description,
+  url: pageMeta.url,
+  isPartOf: { '@type': 'WebSite', name: 'JSONversal', url: 'https://jsonversal.com' },
+  itemListElement: tools.map((t, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: t.title,
+    url: 'https://jsonversal.com' + t.href
+  }))
+};
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -30,6 +50,7 @@ const tools = [
 <meta property="og:description" content="Keys, secrets, passwords — none of it leaves your device.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jsonversal.com/sec/">
+<script type="application/ld+json" set:html={JSON.stringify(collectionSchema)}></script>
 </head>
 <body data-site="sec" data-theme="light">
 
