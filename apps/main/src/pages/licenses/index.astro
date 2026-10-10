@@ -5,16 +5,17 @@ import BaseLayout from '@versal/ui/BaseLayout';
 <BaseLayout
   site="main"
   title="Licenses & Third-Party Notices"
-  description="Font, library and infrastructure attributions for jsonversal.com — including our self-hosted Geist fonts and the third-party code we ship."
+  description="Font, library and infrastructure attributions for jsonversal.com — including our self-hosted Geist fonts, the third-party code we ship, and our advertising partner."
   canonical="https://jsonversal.com/licenses/"
 >
   <h1>Licenses &amp; Third-Party Notices</h1>
-  <p class="text-muted">Last updated: 2026-09-10</p>
+  <p class="text-muted">Last updated: 2026-10-10</p>
 
   <p class="lead">
-    jsonversal ships no advertising, no trackers and no third-party front-end CDNs.
     This page lists every font, library and service the site relies on, together with
-    its license and where to find the full license text.
+    its license and where to find the full license text. jsonversal's own assets are
+    self-hosted; the only third party that receives a request at runtime is our
+    advertising partner, described below.
   </p>
 
   <h2>Fonts</h2>
@@ -79,7 +80,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     </tbody>
   </table>
 
-  <h2>Infrastructure</h2>
+  <h2>Infrastructure and advertising</h2>
   <table class="lic-table">
     <thead>
       <tr><th>Service</th><th>Purpose</th><th>Data involved</th></tr>
@@ -90,26 +91,39 @@ import BaseLayout from '@versal/ui/BaseLayout';
         <td>Hosting and content delivery</td>
         <td>Connection metadata (IP) processed to serve the request</td>
       </tr>
+      <tr>
+        <td>Google AdSense</td>
+        <td>Advertising — funds the free tools</td>
+        <td>
+          IP address, page URL, device and browser, and coarse location inferred
+          from IP, used by Google and its partners to serve and measure ads.
+          Never your tool input.
+        </td>
+      </tr>
     </tbody>
   </table>
   <p class="text-muted">
-    Cloudflare acts as our hosting provider. See the
-    <a href="/privacy/">Privacy Policy</a> for the full description of data handling,
-    the legal bases we rely on, and your rights.
+    Cloudflare acts as our hosting provider and Google AdSense as our advertising partner.
+    Ad serving is subject to Google's own privacy policies and to the opt-out links in the
+    <a href="/privacy/">Privacy Policy</a>. We do not receive your name, email address, or
+    the contents of anything you enter into a tool.
   </p>
 
-  <h2>No third-party requests at runtime</h2>
+  <h2>What this site does and does not send</h2>
   <ul class="note-list">
     <li>No external font CDN — fonts are served from this domain.</li>
     <li>No third-party JavaScript CDN — libraries are bundled or self-hosted.</li>
-    <li>No analytics beacon — the site runs zero analytics, not even cookieless ones.</li>
-    <li>No cookies, no advertising, no tracking pixels, no social widgets.</li>
+    <li>No analytics beacon of our own — the site runs no first-party analytics.</li>
+    <li>No social widgets and no embedded third-party media.</li>
+    <li>Advertising is served by Google AdSense; see the table above for exactly what that involves.</li>
   </ul>
   <p class="text-muted">
     This matters beyond performance: loading an asset from a third-party CDN discloses the
     visitor's IP address to that provider. Under the GDPR that is a personal-data transfer
-    requiring a legal basis — which is why we avoid it. The tools themselves run entirely in
-    your browser, so the data you paste never leaves your device at all.
+    requiring a legal basis — which is why we keep our own assets self-hosted and limit
+    third-party contact to the advertising we disclose. The tools themselves run entirely
+    in your browser, so the data you paste never leaves your device and is never sent to us,
+    to Google, or to any ad partner.
   </p>
 
   <h2>Reporting an attribution problem</h2>

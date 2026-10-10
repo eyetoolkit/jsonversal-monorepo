@@ -311,10 +311,13 @@ const jsonLd = schemaEntries.length > 1
     <Footer site={site} />
 
     {/*
-      本站刻意不加载任何分析脚本：全站零 cookie、零第三方请求。
-      这一事实同时写在 /privacy/ 与 /licenses/ 上，属于对外法律声明。
-      若将来要接入分析（如 Cloudflare Web Analytics），必须先一并更新
-      这两页的披露（含法律依据与保留期限），再在此处注入信标。
+      本站不加载任何自有分析脚本：不设自有 cookie、不做自有追踪。
+      （广告由 Google AdSense 提供，属第三方请求，已在 /privacy/ 与 /licenses/
+      上作为对外法律声明披露。）
+
+      若将来要接入自有分析（如 Cloudflare Web Analytics），必须先一并更新
+      /privacy/、/licenses/ 与 /trust/ 的披露（含法律依据与保留期限），
+      再在此处注入信标。
     */}
 
     {/* 全站搜索 Modal（Ctrl/Cmd+K 唤起） */}

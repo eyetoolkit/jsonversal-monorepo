@@ -5,6 +5,7 @@
 //   dist/sitemap-sec.xml      （/sec/ + /sec/tools/）
 //   dist/sitemap-devops.xml   （/devops/ + /devops/tools/）
 //   dist/sitemap-codegen.xml  （/codegen/ + /codegen/tools/）
+//   dist/sitemap-trust.xml    （/trust/ + /trust/* 信任与安全说明页）
 //   dist/sitemap-legal.xml    （/privacy/ + /terms/ + /licenses/ + /404 + /offline.html）
 //
 // 在 astro build 之后运行：node scripts/generate-sitemap.cjs
@@ -21,6 +22,7 @@ const BUCKETS = {
   devops:  { file: 'sitemap-devops.xml',  label: 'devops', match: (url) => url.startsWith('/devops/') },
   codegen: { file: 'sitemap-codegen.xml', label: 'codegen',match: (url) => url.startsWith('/codegen/') },
   compare: { file: 'sitemap-compare.xml', label: 'compare', match: (url) => url.startsWith('/compare/') },
+  trust:   { file: 'sitemap-trust.xml',   label: 'trust',   match: (url) => url.startsWith('/trust/') },
   legal:   { file: 'sitemap-legal.xml',   label: 'legal',  match: (url) => ['/privacy/', '/terms/', '/licenses/', '/404', '/offline.html'].includes(url) },
 };
 

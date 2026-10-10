@@ -2,39 +2,60 @@
 import BaseLayout from '@versal/ui/BaseLayout';
 ---
 
-<BaseLayout site="main" title="Privacy Policy — We Never Collect Your Data" description="All jsonversal tools run in your browser — we collect no data, log nothing and set no cookies. Read the full privacy policy for our free developer tools." canonical="https://jsonversal.com/privacy/">
+<BaseLayout site="main" title="Privacy Policy — Tool Data Never Leaves Your Browser" description="All jsonversal tools process your input in your browser — the data you paste never reaches us. Read the full privacy policy, including what our hosting and ad partners can see." canonical="https://jsonversal.com/privacy/">
   <h1>Privacy Policy</h1>
-  <p class="text-muted">Effective date: 2026-09-10 · Last updated: 2026-09-10</p>
+  <p class="text-muted">Effective date: 2026-09-10 · Last updated: 2026-10-10</p>
 
   <h2>Summary</h2>
   <ul>
-    <li>All tools run 100% on your device. We do not collect, log, or transmit the data you process.</li>
-    <li>We run no analytics and set no cookies.</li>
-    <li>The site makes no third-party requests at runtime — no CDN, no analytics beacon, no tracking pixels.</li>
-    <li>The only thing we store is your light/dark theme preference, held locally on your device.</li>
-    <li>We do not sell or share your personal information.</li>
+    <li><strong>Your tool input never reaches us.</strong> Every tool runs 100% in your browser — the JSON, XML, YAML, secrets and API keys you paste are processed on your device and never transmitted to our servers.</li>
+    <li>We set no cookies and run no analytics of our own.</li>
+    <li><strong>Advertising.</strong> This site is supported by Google AdSense. Google and its partners may use cookies and similar technologies to serve ads based on your prior visits to this and other websites. Your tool input is <em>never</em> part of an ad request — see <a href="#advertising">Advertising</a> below for exactly what an ad partner can and cannot see.</li>
+    <li>The only thing we store in your browser is your light/dark theme preference, held locally on your device.</li>
+    <li>We do not sell your personal information. Ad partners may use it for their own purposes as described below.</li>
   </ul>
 
-  <p class="text-muted">Prefer a plain-language version? See the <a href="/trust/">Trust Center</a> — including a 10-second test you can run in your browser to confirm no data leaves your device.</p>
+  <p class="text-muted">Prefer a plain-language version? See the <a href="/trust/">Trust Center</a> — including a 10-second test you can run in your browser to confirm your tool data never leaves your device.</p>
 
   <h2>Information collected</h2>
-  <p>None of the data you submit to our tools leaves your browser. We have no server-side processing for tool inputs. There are no accounts, no sign-up and no user profiles.</p>
+  <p><strong>Tool input: none.</strong> There is no server-side processing for tool inputs and no endpoint that receives what you type or paste. There are no accounts, no sign-up and no user profiles.</p>
+  <p><strong>Advertising data: see below.</strong> Our ad partner receives the ordinary information any website delivers to an ad network — connection metadata and page context — which is separate from anything you put into a tool.</p>
+
+  <h2>Advertising</h2>
+  <p id="advertising">
+    This site displays advertising supplied by Google AdSense. To fund the free tools, our page loads
+    Google's ad script, which lets Google and its advertising partners use cookies and device identifiers
+    to serve and measure ads. This includes the possibility of personalised advertising based on your prior
+    browsing across this and other websites.
+  </p>
+  <p>What an advertising partner can see: your IP address, the page you are viewing, your device and browser, and coarse location inferred from your IP. What it <strong>cannot</strong> see: anything you type into a tool. Our tools have no server-side processing, so the contents of a text box, an uploaded file, or a pasted secret are never available to us, to Google, or to any ad partner — there is no request carrying them.</p>
+  <p>
+    Google's use of advertising cookies enables it and its partners to serve ads based on your visits to
+    this and other sites. You may opt out of personalised advertising at
+    <a href="https://www.google.com/settings/ads" rel="nofollow noopener" target="_blank">Google Ads Settings</a>,
+    or opt out of third-party vendor cookies for personalised advertising at
+    <a href="https://www.aboutads.info/choices/" rel="nofollow noopener" target="_blank">aboutads.info</a>.
+    Third-party vendors' use of cookies is governed by their own policies, not this site.
+  </p>
+  <p>You can also read how Google handles data in publisher pages:
+    <a href="https://policies.google.com/technologies/partner-sites" rel="nofollow noopener" target="_blank">How Google uses data from sites that use our services</a>.</p>
 
   <h2>Analytics and cookies</h2>
-  <p>We run no analytics of any kind, and this site sets no cookies. There is no visitor counting, no fingerprinting and no cross-site tracking — not even in aggregate form. Because nothing is collected, there is nothing to consent to and nothing to opt out of.</p>
+  <p>We run no analytics of our own and this site sets no first-party cookies. Advertising cookies are set by Google under the policies linked above, which you can opt out of. Because we collect nothing about tool input, there is no consent required for the tools themselves — any data access that does occur is limited to what is described under <a href="#advertising">Advertising</a>.</p>
 
   <h2>Local storage</h2>
-  <p>We store a single item in your browser's local storage: your light/dark theme preference. It stays on your device, is never transmitted to us, and can be cleared at any time from your browser settings. This falls under the "strictly necessary" exemption of ePrivacy Article 5(3), which is why no consent banner is shown.</p>
+  <p>We store a single item in your browser's local storage: your light/dark theme preference. It stays on your device, is never transmitted to us, and can be cleared at any time from your browser settings. This falls under the "strictly necessary" exemption of ePrivacy Article 5(3), which is why no consent banner is shown for it.</p>
 
   <h2>Third-party requests</h2>
   <p>
-    Loading an asset from a third-party CDN discloses your IP address to that provider. We avoid this
-    entirely:
+    Loading an asset from a third-party CDN discloses your IP address to that provider. We keep the site's
+    own assets self-hosted and limit third-party contact to the advertising described above:
   </p>
   <ul>
     <li><strong>Fonts</strong> — Geist and Geist Mono are self-hosted from this domain. We do not use Google Fonts or any other font CDN.</li>
     <li><strong>JavaScript libraries</strong> — bundled or self-hosted; none are fetched from a public CDN at runtime.</li>
-    <li><strong>Everything else</strong> — there is none. No analytics beacon, no advertising, no social widgets, no embedded third-party media.</li>
+    <li><strong>Advertising</strong> — Google AdSense, which does contact third parties as described under <a href="#advertising">Advertising</a>. It never receives your tool input.</li>
+    <li><strong>Everything else</strong> — no social widgets, no embedded third-party media.</li>
   </ul>
   <p>See <a href="/licenses/">Licenses &amp; Third-Party Notices</a> for the full attribution list.</p>
 
@@ -44,7 +65,11 @@ import BaseLayout from '@versal/ui/BaseLayout';
     involves processing connection metadata (including your IP address) on infrastructure that may be
     located outside your country. For transfers out of the EEA/UK we rely on Cloudflare's data processing
     addendum incorporating the European Commission's Standard Contractual Clauses, together with the
-    technical measures described above. We do not sell personal data and do not use it for advertising.
+    technical measures described above.
+  </p>
+  <p>
+    Our advertising partner processes data under its own legal bases and privacy notices, which govern
+    that processing. Where we cannot make a tool-related assertion on their behalf, we do not make one.
   </p>
 
   <h2>Your rights</h2>
@@ -52,9 +77,9 @@ import BaseLayout from '@versal/ui/BaseLayout';
     If you are in the European Economic Area, the UK or Switzerland, you have the right to access, rectify
     or erase your personal data, to restrict or object to processing, and to data portability. If you are a
     California resident, you have the right to know what personal information is collected and to opt out of
-    its sale or sharing — we do neither. Because we hold no personal data about you at all, most requests
-    resolve to confirming we hold nothing. You may contact us at any time to exercise
-    these rights, and you may lodge a complaint with your local supervisory authority.
+    its sale or sharing — we do not sell personal information. Google and its partners may process data under
+    their own policies and offer their own opt-outs, as linked above. You may contact us at any time to
+    exercise these rights, and you may lodge a complaint with your local supervisory authority.
   </p>
 
   <h2>Children</h2>

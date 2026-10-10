@@ -15,12 +15,12 @@ const faqs = [
   {
     question: "Do you use analytics, cookies, or third-party trackers?",
     answer:
-      "No. The site runs no analytics of any kind and sets no tracking cookies. No requests go to third-party CDNs, ad networks, or social widgets at runtime. The only thing stored locally is your light/dark theme preference.",
+      "We run no analytics of our own and set no first-party cookies. This site is funded by Google AdSense, so Google and its partners may use cookies and similar technologies to serve and measure ads — that is the one third party that receives a request at runtime. Your tool input is never part of it. You can opt out of personalised ads at Google Ads Settings or aboutads.info; the links are in our Privacy Policy.",
   },
   {
-    question: "If you don't collect data, what about Cloudflare / hosting?",
+    question: "If you don't collect data, what about Cloudflare / hosting and ads?",
     answer:
-      "The site is served by Cloudflare Pages, so connection metadata such as your IP address is processed by the host — as it is for any website. What we avoid is processing the content you submit: tool inputs are never sent to a server, so there is nothing about your payloads for us or our host to collect.",
+      "The site is served by Cloudflare Pages, so connection metadata such as your IP address is processed by the host — as it is for any website. Our ad partner likewise receives ordinary page-visit information (IP, page, device) as any ad network does. What neither ever sees is the content you submit: tool inputs are never sent to a server, so there is nothing about your payloads for us, our host, or our ad partner to collect.",
   },
   {
     question: "Can I inspect the code that runs my data?",
@@ -59,7 +59,7 @@ const howtos = [
 <BaseLayout
   site="main"
   title="Trust Center — your data never leaves your browser"
-  description="Every jsonversal tool runs 100% in your browser: no upload, no account, no cookies, no analytics. Verify it yourself in 10 seconds with your browser's DevTools."
+  description="Every jsonversal tool runs 100% in your browser: no upload, no account. Verify it yourself in 10 seconds with your browser's DevTools."
   canonical="https://jsonversal.com/trust/"
   faqs={faqs}
   howtos={howtos}
@@ -68,15 +68,14 @@ const howtos = [
     <span class="trust-hero__kicker">Trust Center</span>
     <h1>Your data never leaves your browser.</h1>
     <p class="trust-hero__sub">
-      All 69 jsonversal tools run entirely on your device. We have no server that receives your input, no
-      accounts, no cookies, and no analytics. Paste an API key, a <code>.env</code> file, or a production payload —
-      it stays on your machine.
+      All 76 jsonversal tools run entirely on your device. We have no server that receives your input and no
+      accounts. Paste an API key, a <code>.env</code> file, or a production payload —
+      it stays on your machine, and never reaches us or our ad partner.
     </p>
     <div class="trust-hero__badges">
       <span class="tbadge">🔒 Zero upload</span>
       <span class="tbadge">👤 No account</span>
-      <span class="tbadge">🍪 No cookies</span>
-      <span class="tbadge">📡 No third-party requests</span>
+      <span class="tbadge">📡 Ad partner sees no tool data</span>
     </div>
   </section>
 
@@ -131,13 +130,13 @@ const howtos = [
       </div>
       <div class="t-card">
         <div class="t-card__ic">🍪</div>
-        <h3>No cookies or analytics</h3>
-        <p>We run no analytics and set no tracking cookies — not even in aggregate form.</p>
+        <h3>No analytics of our own</h3>
+        <p>We run no first-party analytics and set no first-party cookies. Our ad partner uses its own cookies, opt-outable as described in the Privacy Policy.</p>
       </div>
       <div class="t-card">
         <div class="t-card__ic">🌐</div>
-        <h3>No third-party CDN</h3>
-        <p>Fonts and libraries are self-hosted. At runtime the site makes no calls to ad, social, or tracking networks.</p>
+        <h3>Self-hosted assets</h3>
+        <p>Fonts and libraries are served from this domain, not a public CDN. The only third-party request at runtime is the ad script — it never receives your tool input.</p>
       </div>
     </div>
   </section>
