@@ -1,3 +1,0 @@
-# NOTE: Build is now handled directly by Cloudflare Pages GitHub App.
-# CF Pages reads build commands from apps/*/wrangler.toml and builds automatically.
-# This workflow is kept for reference only - all builds/deploys happen via CF Pages.
