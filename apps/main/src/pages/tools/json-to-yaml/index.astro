@@ -93,13 +93,27 @@ const faqs = [
 (function () {
   const $ = (id) => document.getElementById(id);
 
+  // YAML 1.1/1.2 core schema resolves scientific notation only when the
+  // mantissa carries a decimal point: `5e-324` parses back as a *string*,
+  // silently changing the value's type on a round trip.
+  const scientific = (n) => {
+    if (!Number.isFinite(n)) return 'null';
+    const t = String(n);
+    if (/e/i.test(t) && t.split(/e/i)[0].indexOf('.') === -1) return t.replace(/e/i, '.0e');
+    return t;
+  };
+
+  // A leading `- ` makes the parser expect a sequence entry, so "- not a list"
+  // unquoted is invalid YAML. Other indicators are already covered below.
+  const YAML_INDICATOR = /^[-?:,[\]{}#&*!|>'"%@`]/;
+
   function scalar(v) {
     if (v === null) return 'null';
     if (typeof v === 'boolean') return v ? 'true' : 'false';
-    if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'null';
+    if (typeof v === 'number') return scientific(v);
     const s = String(v);
     if (s === '') return '""';
-    if (/^[+-]?[\d.]/.test(s) || /^(true|false|null|yes|no|~)$/i.test(s) ||
+    if (YAML_INDICATOR.test(s) || /^[+-]?[\d.]/.test(s) || /^(true|false|null|yes|no|~)$/i.test(s) ||
         /[:#\[\]{}&*?|<>=!%@`"',]/.test(s) || s.indexOf('\n') >= 0 || s !== s.trim()) {
       return JSON.stringify(s);
     }
