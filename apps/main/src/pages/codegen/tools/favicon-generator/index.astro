@@ -1,0 +1,208 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+const title="Favicon Generator — SVG to ICO, PNG Multi-Size";
+const description="Upload an SVG or paste an image URL and download it as a Windows ICO file, or generate PNGs at all standard favicon sizes (16, 32, 48, 64, 128, 180, 192, 512). Runs in your browser with no upload.";
+const faqs=[
+  {question:"What image formats does this tool accept?",answer:"It accepts SVG (recommended: scale-independent, smallest file size), PNG, and JPEG. For best results use a square SVG with a viewBox of 0 0 512 512 or 32 32."},
+  {question:"Why ICO and not just PNG?",answer:"Windows requires .ico files for the browser tab icon, the taskbar shortcut, and the Windows Explorer detail pane. A single .ico file can embed multiple resolutions (16×16, 32×32, 48×48). Modern browsers also accept PNG directly via the <link rel='icon'> tag, which is why PNG sizes are also generated."}
+];
+---
+<ToolPage site="codegen" title={title} description={description} canonical="https://jsonversal.com/codegen/tools/favicon-generator/" current="/codegen/tools/favicon-generator/" faqs={faqs}
+about={[
+  {heading:"How the ICO file is generated",body:["ICO files embed multiple PNG images at different resolutions. The tool draws your source image onto an offscreen canvas at each target size, then encodes the PNG data and wraps it in the ICO binary format (which is just a container with a header and directory entries). The output is a valid .ico file that Windows and most applications can read."]},
+  {heading:"The HTML snippet",body:["After generation, a ready-to-paste HTML snippet is shown. It uses the modern <link rel='icon'> and <link rel='apple-touch-icon'> pattern with multiple sizes. Replace the placeholder href values with your actual file paths. The sizes array covers all common contexts: browser tab (16×16, 32×32), bookmarks bar (16×16), retina displays (180×180), Android Chrome (192×192), and PWA (512×512)."]}
+]}
+>
+<section class="card mt-2">
+  <h2 class="h2-card">Source image</h2>
+  <div class="row mb-2" style="flex-wrap:wrap;gap:8px;align-items:center">
+    <button class="primary" id="pick">Choose file</button>
+    <span class="text-dim" id="file-name" style="font-size:.85rem">No file selected</span>
+    <input type="file" id="file-input" accept="image/svg+xml,image/png,image/jpeg" style="display:none" aria-label="Upload image" />
+  </div>
+  <div id="preview-wrap" style="display:none;margin-bottom:12px">
+    <img id="preview-img" style="max-width:160px;max-height:160px;border:1px solid var(--border);border-radius:var(--radius-sm);display:block" alt="Preview" />
+  </div>
+  <div id="url-input-wrap">
+    <label for="img-url" class="text-muted">Or paste an image URL</label>
+    <div class="row mb-2" style="margin-top:6px">
+      <input id="img-url" type="url" placeholder="https://example.com/icon.svg" style="flex:1" aria-label="Image URL" />
+      <button class="ghost" id="load-url">Load</button>
+    </div>
+  </div>
+  <div id="canvas-wrap" style="display:none">
+    <button class="primary" id="generate">Generate favicons</button>
+  </div>
+</section>
+
+<section class="card mt-2" id="out-section" style="display:none">
+  <div class="row" style="margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <h2 class="h2-flat">Downloads</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px" id="dl-grid"></div>
+  <div style="margin-top:20px">
+    <h3 class="h2-flat" style="font-size:1rem;margin-bottom:8px">HTML snippet</h3>
+    <pre id="html-snippet" style="font-size:.82rem;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:auto;white-space:pre-wrap;word-break:break-all;font-family:var(--font-mono)"></pre>
+    <button class="ghost mt-2" id="copy-snippet">Copy HTML</button>
+  </div>
+</section>
+
+<h2>How it works</h2>
+<ul>
+  <li>Choose an SVG, PNG, or JPEG file from your computer, or paste an image URL.</li>
+  <li>The image is drawn onto HTML canvas elements at each required size and encoded as PNG data.</li>
+  <li>The ICO file is built by combining multiple PNG images into the binary ICO container format.</li>
+  <li>Download all sizes individually, or grab the ready-to-paste HTML snippet.</li>
+  <li>Everything runs locally — the image is never uploaded to any server.</li>
+</ul>
+</ToolPage>
+
+<style>
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.mb-2{margin-bottom:10px}
+.mt-2{margin-top:10px}
+input[type="url"]{padding:10px 14px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);font:500 14px var(--font-body);width:100%;box-sizing:border-box}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.dl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;text-align:center;transition:.15s}
+.dl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dl-card img{max-width:80px;max-height:80px;margin:0 auto 8px;display:block;border-radius:4px;background:#fff}
+.dl-card .sz{font-size:.78rem;color:var(--text-muted);margin-bottom:6px}
+.dl-card a{display:inline-block;padding:6px 12px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);font-size:.8rem;font-weight:600;text-decoration:none}
+.dl-card a:hover{background:var(--accent-dark);color:#fff}
+</style>
+
+<script is:inline>
+(function(){
+  function $(id){return document.getElementById(id)}
+  var SIZES=[16,32,48,64,128,180,192,512];
+  var sourceImg=null;
+
+  function flash(btn,orig){
+    btn.textContent='Copied!';
+    setTimeout(function(){btn.textContent=orig},1200);
+  }
+
+  $('pick').addEventListener('click',function(){$('file-input').click()});
+  $('file-input').addEventListener('change',function(e){
+    var f=e.target.files[0];
+    if(!f)return;
+    $('file-name').textContent=f.name;
+    var reader=new FileReader();
+    reader.onload=function(ev){loadImg(ev.target.result)};
+    reader.readAsDataURL(f);
+  });
+
+  $('load-url').addEventListener('click',function(){
+    var url=$('img-url').value.trim();
+    if(!url){return}
+    $('file-name').textContent=url.split('/').pop();
+    loadImg(url);
+  });
+
+  function loadImg(src){
+    var img=new Image();
+    img.onload=function(){
+      sourceImg=img;
+      $('preview-img').src=src;
+      $('preview-wrap').style.display='block';
+      $('canvas-wrap').style.display='block';
+    };
+    img.onerror=function(){$('file-name').textContent='Failed to load image'};
+    img.src=src;
+  }
+
+  $('generate').addEventListener('click',function(){
+    if(!sourceImg){return}
+    var grid=$('dl-grid');
+    grid.innerHTML='';
+    var pngBlobs=[];
+    var canvas=document.createElement('canvas');
+    var ctx=canvas.getContext('2d');
+    var snips=['<!-- Favicon HTML snippet -->','<link rel=icon type=image/png sizes=32x32 href=favicon-32.png>','<link rel=icon type=image/png sizes=16x16 href=favicon-16.png>','<link rel=apple-touch-icon href=apple-touch-icon.png>','<meta name=msapplication-TileImage content=mstile-150x150.png>'];
+    SIZES.forEach(function(sz){
+      canvas.width=sz;canvas.height=sz;
+      ctx.clearRect(0,0,sz,sz);
+      ctx.drawImage(sourceImg,0,0,sz,sz);
+      var dataUrl=canvas.toDataURL('image/png');
+      // Save blob for ICO
+      canvas.toBlob(function(blob){
+        pngBlobs.push({sz:sz,blob:blob,dataUrl:dataUrl});
+        if(pngBlobs.length===SIZES.length){
+          renderDownloads(pngBlobs,snips);
+        }
+      },'image/png');
+      // Show preview
+      var card=document.createElement('div');
+      card.className='dl-card';
+      card.innerHTML='<div class=sz>'+sz+'x'+sz+'</div><img src="'+dataUrl+'" alt="'+sz+'px"><a href="'+dataUrl+'" download="favicon-'+sz+'.png">PNG</a>';
+      grid.appendChild(card);
+    });
+    // ICO download from PNG blobs
+    var icoBtn=document.createElement('div');
+    icoBtn.className='dl-card';
+    icoBtn.innerHTML='<div class=sz>All sizes</div><div style="height:80px;display:flex;align-items:center;justify-content:center;font-size:2rem">📦</div><a id="dl-ico" href="#">ICO</a>';
+    grid.appendChild(icoBtn);
+    $('out-section').style.display='block';
+    $('dl-ico').addEventListener('click',function(e){
+      e.preventDefault();
+      buildIco(pngBlobs,function(blob){
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='favicon.ico';
+        a.click();
+      });
+    });
+  });
+
+  function renderDownloads(pngBlobs,snips){
+    $('html-snippet').textContent=snips.join('\n');
+    $('out-section').style.display='block';
+  }
+
+  function buildIco(blobs,cb){
+    var sizes=[16,32,48,64];
+    var pngs=blobs.filter(function(b){return sizes.indexOf(b.sz)!==-1}).sort(function(a,b){return a.sz-b.sz});
+    if(pngs.length===0){cb(new Blob());return}
+    var offsets=[];
+    var headerSize=6;
+    var dirEntrySize=16;
+    var dataOffset=headerSize+pngs.length*dirEntrySize;
+    var offset=dataOffset;
+    var parts=[new Uint8Array([0,0,1,0,pngs.length&0xff,0])];
+    // dir entries
+    pngs.forEach(function(p){
+      var w=p.sz>=256?0:p.sz;
+      var h=p.sz>=256?0:p.sz;
+      offsets.push(offset);
+      parts.push(new Uint8Array([w,h,0,0,1,0,32,0]));
+      var sizeBuf=new Uint8Array(4);
+      var view=new DataView(sizeBuf.buffer);
+      view.setUint32(0,p.blob.size,true);
+      parts.push(sizeBuf);
+      var offBuf=new Uint8Array(4);
+      var offView=new DataView(offBuf.buffer);
+      offView.setUint32(0,offset,true);
+      parts.push(offBuf);
+      offset+=p.blob.size;
+    });
+    // PNG data
+    var allParts=[];
+    parts.forEach(function(p){allParts.push(p)});
+    pngs.forEach(function(p){
+      p.blob.arrayBuffer().then(function(buf){
+        allParts.push(new Uint8Array(buf));
+        if(allParts.length===1+pngs.length*5+pngs.length){
+          var total=0;allParts.forEach(function(p){total+=p.byteLength});
+          var out=new Uint8Array(total);
+          var pos=0;allParts.forEach(function(p){out.set(p,pos);pos+=p.byteLength});
+          cb(new Blob([out],{type:'image/x-icon'}));
+        }
+      });
+    });
+  }
+
+  $('copy-snippet').addEventListener('click',function(){
+    navigator.clipboard.writeText($('html-snippet').textContent).then(function(){flash($('copy-snippet'),'Copy HTML')});
+  });
+})();
+</script>

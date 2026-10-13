@@ -37,6 +37,8 @@ export const allTools = [
   { title: 'Text Diff', description: 'Compare two texts line by line.', href: '/tools/text-diff/', section: 'tools', keywords: ['text diff', 'compare text', 'lcs'] },
   { title: 'UUID v7 Generator', description: 'Generate RFC 9562 UUID v7.', href: '/tools/uuid-v7/', section: 'tools', keywords: ['uuid', 'uuid v7', 'rfc 9562'] },
   { title: 'XML Formatter & Validator', description: 'Pretty-print, validate XML.', href: '/tools/xml-formatter/', section: 'tools', keywords: ['xml', 'formatter'] },
+  { title: 'CSS Formatter & Minifier', description: 'Format, beautify, and minify CSS in your browser.', href: '/tools/css-formatter/', section: 'tools', keywords: ['css formatter', 'css minifier', 'beautify css'] },
+  { title: 'JavaScript Beautifier & Minifier', description: 'Format and minify JavaScript in your browser.', href: '/tools/javascript-beautifier/', section: 'tools', keywords: ['javascript beautifier', 'js formatter', 'minify js'] },
   { title: 'YAML Formatter', description: 'Format, pretty-print and convert block-style YAML. A structural subset, not a full YAML 1.2 parser.', href: '/tools/yaml-formatter/', section: 'tools', keywords: ['yaml', 'formatter'] },
 
   // ===== Security (14) =====
@@ -69,6 +71,7 @@ export const allTools = [
   { title: 'Regex Tester', description: 'Test regular expressions with live match highlighting.', href: '/devops/tools/regex/', section: 'devops', keywords: ['regex', 'regexp', 'pattern'] },
   { title: 'Regex Tester with Explanations', description: 'Test regex with groups, indices, captured values.', href: '/devops/tools/regex-advanced/', section: 'devops', keywords: ['regex advanced', 'explanations'] },
   { title: 'Regex Explainer', description: 'Explain a regular expression in plain English, token by token, with a live test.', href: '/tools/regex-explainer/', section: 'devops', keywords: ['regex explainer', 'regex explanation', 'regular expression'] },
+  { title: 'Regex Pattern Library', description: 'Copy-ready regular expressions for email, URL, IP, phone, credit card, UUID, date, and more. Click to copy.', href: '/devops/tools/regex-patterns/', section: 'devops', keywords: ['regex patterns', 'regex library', 'common regex', 'regex cheatsheet'] },
   { title: 'Unix Timestamp Converter', description: 'Convert Unix timestamps to dates and back.', href: '/devops/tools/timestamp/', section: 'devops', keywords: ['timestamp', 'unix', 'date'] },
   { title: 'URL Encoder & Decoder', description: 'Percent-encode or decode URLs.', href: '/devops/tools/url-codec/', section: 'devops', keywords: ['url encode', 'url decode', 'percent encoding'] },
   { title: 'UUID v4 Generator', description: 'Generate RFC 4122 UUID v4 identifiers.', href: '/devops/tools/uuid-generator/', section: 'devops', keywords: ['uuid v4', 'uuid generator'] },
@@ -83,6 +86,8 @@ export const allTools = [
   { title: 'cURL to Python (requests)', description: 'Convert curl to Python requests.', href: '/codegen/tools/curl-to-python/', section: 'codegen', keywords: ['curl', 'python', 'requests'] },
   { title: 'Docker Compose Generator', description: 'Scaffold docker-compose.yml.', href: '/codegen/tools/docker-compose/', section: 'codegen', keywords: ['docker', 'docker-compose'] },
   { title: 'HTML Entity Escaper', description: 'Escape text into HTML entities.', href: '/codegen/tools/html-escaper/', section: 'codegen', keywords: ['html escape', 'html entities'] },
+  { title: 'HTML Prettifier & Minifier', description: 'Format and minify HTML in your browser.', href: '/codegen/tools/html-prettifier/', section: 'codegen', keywords: ['html formatter', 'html minifier', 'prettify html'] },
+  { title: 'Favicon Generator', description: 'Upload SVG or image to generate ICO and multi-size PNG favicons.', href: '/codegen/tools/favicon-generator/', section: 'codegen', keywords: ['favicon', 'ico generator', 'apple touch icon'] },
   { title: 'JSON ↔ XML Converter', description: 'Convert JSON to XML and back.', href: '/codegen/tools/json-xml/', section: 'codegen', keywords: ['json', 'xml', 'converter'] },
   { title: 'XML to JSON Converter', description: 'Convert XML to JSON and JSON to XML, client-side.', href: '/tools/xml-to-json/', section: 'tools', keywords: ['xml', 'json', 'xml to json', 'converter'] },
   { title: 'JSON to YAML Converter', description: 'Convert JSON to clean indented YAML.', href: '/tools/json-to-yaml/', section: 'tools', keywords: ['json to yaml', 'yaml', 'converter'] },

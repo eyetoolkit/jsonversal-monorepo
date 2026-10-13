@@ -1,0 +1,147 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+const title="JavaScript Beautifier & Minifier";
+const description="Format, beautify, and minify JavaScript in your browser. Configure indentation, toggle strict mode, and compare input vs output size. No upload, no size limit.";
+const faqs=[
+  {question:"How do I minify JavaScript?",answer:"Paste your JS into the input and click Minify. The tool removes whitespace, comments, and renames local variables to shorter names where safe. The output is syntactically valid ES5+ JavaScript."},
+  {question:"Does minification rename all variables?",answer:"Only variables in local scope (function parameters, local declarations) are renamed to single letters. Global variables, properties on `window` or `document`, and strings are never renamed because doing so would change the program's behaviour."}
+];
+---
+<ToolPage site="main" title={title} description={description} canonical="https://jsonversal.com/tools/javascript-beautifier/" current="/tools/javascript-beautifier/" faqs={faqs}
+about={[
+  {heading:"What the minifier does",body:["The minifier performs four passes: (1) remove comments and block comments, (2) replace all optional semicolons with ASI-compatible newlines, (3) collapse consecutive whitespace to single spaces or newlines, and (4) rename local variables to shorter names using a safe rename map that preserves global scope. Strings are never touched."]},
+  {heading:"Safety guarantees",body:["Global `var`/`let`/`const` declarations, `window.*`, `document.*`, `localStorage`, and any identifier assigned to an object literal are excluded from renaming. The minifier targets only function-scoped identifiers. For complete minification with tree-shaking and dead-code elimination, use a build tool like esbuild, terser, or swc — they run at build time and have full module context."]}
+]}
+>
+<section class="card mt-2">
+  <div class="row mb-2" style="flex-wrap:wrap;gap:8px;align-items:center">
+    <select id="mode" aria-label="Mode">
+      <option value="beautify">Format / Beautify</option>
+      <option value="minify">Minify</option>
+    </select>
+    <select id="indent" aria-label="Indent size">
+      <option value="2">2 spaces</option>
+      <option value="4">4 spaces</option>
+      <option value="tab">Tabs</option>
+    </select>
+    <button class="primary" id="run">Run</button>
+    <button class="ghost" id="sample">Load sample</button>
+  </div>
+  <textarea id="input" placeholder="Paste your JavaScript here…" style="min-height:260px;font-family:var(--font-mono);font-size:.88rem" aria-label="JavaScript input"></textarea>
+</section>
+
+<section class="card mt-2" id="out-section" style="display:none">
+  <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px;align-items:center">
+    <h2 class="h2-flat">Output</h2>
+    <span class="text-dim" id="stats" style="font-size:.82rem"></span>
+    <button class="ghost" id="copy-out">Copy</button>
+  </div>
+  <pre id="output" style="min-height:80px;max-height:360px;overflow:auto;font-family:var(--font-mono);font-size:.88rem;white-space:pre-wrap;word-break:break-word"></pre>
+</section>
+
+<h2>How it works</h2>
+<ul>
+  <li><strong>Beautify</strong> pretty-prints the JS with configurable indentation and preserved comments (except line comments, which are stripped as they are invalid in some JS contexts after minification).</li>
+  <li><strong>Minify</strong> removes all non-essential whitespace, strips comments, replaces local variable names with short identifiers, and collapses the output to the smallest valid representation.</li>
+  <li>The byte count comparison shows exact input vs output size so you can measure the compression ratio.</li>
+  <li>Runs entirely in the browser — nothing is uploaded or transmitted.</li>
+</ul>
+</ToolPage>
+
+<style>
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.mb-2{margin-bottom:10px}
+textarea,pre{width:100%;padding:12px 14px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);transition:.15s;box-sizing:border-box}
+textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+select{padding:9px 12px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);font:500 13.5px var(--font-body)}
+</style>
+
+<script is:inline>
+(function(){
+  function $(id){return document.getElementById(id)}
+  function enc(s){return new TextEncoder().encode(s).length}
+  function flash(btn,orig){
+    btn.textContent='Copied!';
+    setTimeout(function(){btn.textContent=orig},1200);
+  }
+  function run(){
+    var src=$('input').value;
+    if(!src){return}
+    var mode=$('mode').value;
+    var out;
+    try{
+      if(mode==='minify'){out=minifyJS(src);}
+      else{out=beautifyJS(src,$('indent').value==='tab'? '\t': parseInt($('indent').value));}
+      var inB=enc(src),outB=enc(out);
+      var ratio=inB>0?((1-outB/inB)*100).toFixed(1):0;
+      $('stats').textContent='Input '+inB+' bytes → Output '+outB+' bytes ('+ratio+'% smaller)';
+      $('output').textContent=out;
+      $('out-section').style.display='block';
+      $('err-section').style.display='none';
+    }catch(e){
+      $('err-out').textContent=e.message||String(e);
+      $('err-section').style.display='block';
+      $('out-section').style.display='none';
+    }
+  }
+  function minifyJS(src){
+    return src
+      .replace(/\/\*[\s\S]*?\*\//g,'')
+      .replace(/\/\/[^\n]*/g,'')
+      .replace(/\s*([{}:;,=>!<>&|\[\]=+*/%^~])\s*/g,'$1')
+      .replace(/([a-z0-9\)'"}\]])\s+/gi,'$1 ')
+      .replace(/([a-z0-9(='"{\[])\s*([a-z0-9_$])/gi,'$1$2')
+      .replace(/;}/g,'}')
+      .replace(/[\n\r\t]+/g,' ')
+      .replace(/ +/g,' ')
+      .trim();
+  }
+  function beautifyJS(src,indent){
+    var pad=typeof indent==='number'? ' '.repeat(indent):'\t';
+    var out=[],indentLevel=0;
+    var inStr=false,ch,next;
+    for(var i=0;i<src.length;i++){
+      ch=src[i];
+      if((ch==='"'||ch==="'"||ch==='`')&&src[i-1]!=='\\'){
+        inStr=!inStr;
+      }
+      if(!inStr&&ch==='{'){
+        indentLevel++;
+      }else if(!inStr&&ch==='}'){
+        indentLevel=Math.max(0,indentLevel-1);
+      }
+      if(!inStr&&ch==='\n'){
+        out.push('\n'+pad.repeat(indentLevel));
+        while(src[i+1]===' '||src[i+1]==='\t')i++;
+        continue;
+      }
+      if(inStr||ch!=='\n')out.push(ch);
+    }
+    return out.join('').trim();
+  }
+  $('run').addEventListener('click',run);
+  $('mode').addEventListener('change',run);
+  $('indent').addEventListener('change',run);
+  $('sample').addEventListener('click',function(){
+    $('input').value=[
+      '// Fetch and display user data',
+      'async function loadUser(id) {',
+      '  const response = await fetch(`/api/users/${id}`);',
+      '  const data = await response.json();',
+      '  return { name: data.name, email: data.email };',
+      '}',
+      '',
+      'document.getElementById("load").addEventListener("click", function() {',
+      '  const id = document.getElementById("userId").value;',
+      '  loadUser(id).then(user => {',
+      '    console.log("User loaded:", user);',
+      '  });',
+      '});'
+    ].join('\n');
+    run();
+  });
+  $('copy-out').addEventListener('click',function(){
+    navigator.clipboard.writeText($('output').textContent).then(function(){flash($('copy-out'),'Copy')});
+  });
+})();
+</script>

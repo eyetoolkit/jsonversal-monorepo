@@ -1,0 +1,169 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+const title="HTML Prettifier & Minifier";
+const description="Format, prettify, and minify HTML in your browser. Indent nested tags, remove optional closing tags, strip comments and whitespace. No upload, no size limit.";
+const faqs=[
+  {question:"Does this handle incomplete or malformed HTML?",answer:"The beautifier assumes well-formed HTML. For fragments with missing closing tags it may produce unexpected indentation. For broken HTML, use the JSON Repair tool to fix it first."},
+  {question:"Does minification remove CSS and JS inside the HTML?",answer:"No. This tool only operates on the HTML markup itself. Use the CSS Formatter and JavaScript Beautifier separately for those resources."}
+];
+---
+<ToolPage site="codegen" title={title} description={description} canonical="https://jsonversal.com/codegen/tools/html-prettifier/" current="/codegen/tools/html-prettifier/" faqs={faqs}
+about={[
+  {heading:"What minification removes",body:["HTML minification targets the markup layer: all unnecessary whitespace between tags, leading and trailing whitespace in text nodes, and HTML comments (`<!-- -->`). It does not touch attribute values, inline CSS, or inline JavaScript — those should be minified separately with the CSS and JS tools."]},
+  {heading:"Format options",body:["The beautifier indents nested tags with your chosen indentation size (2 spaces, 4 spaces, or tabs). Optional closing tags like `</p>`, `</li>`, `</tr>`, and `</td>` are preserved. The output is valid, indented HTML that is easy to read and edit."]}
+]}
+>
+<section class="card mt-2">
+  <div class="row mb-2" style="flex-wrap:wrap;gap:8px;align-items:center">
+    <select id="mode" aria-label="Mode">
+      <option value="beautify">Format / Prettify</option>
+      <option value="minify">Minify</option>
+    </select>
+    <select id="indent" aria-label="Indent size">
+      <option value="2">2 spaces</option>
+      <option value="4">4 spaces</option>
+      <option value="tab">Tabs</option>
+    </select>
+    <button class="primary" id="run">Run</button>
+    <button class="ghost" id="sample">Load sample</button>
+  </div>
+  <textarea id="input" placeholder="Paste your HTML here…" style="min-height:260px;font-family:var(--font-mono);font-size:.88rem" aria-label="HTML input"></textarea>
+</section>
+
+<section class="card mt-2" id="out-section" style="display:none">
+  <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px;align-items:center">
+    <h2 class="h2-flat">Output</h2>
+    <span class="text-dim" id="stats" style="font-size:.82rem"></span>
+    <button class="ghost" id="copy-out">Copy</button>
+  </div>
+  <pre id="output" style="min-height:80px;max-height:360px;overflow:auto;font-family:var(--font-mono);font-size:.88rem;white-space:pre-wrap;word-break:break-word"></pre>
+</section>
+
+<section class="card mt-2" id="err-section" style="display:none">
+  <h2 class="h2-error">Error</h2>
+  <pre id="err-out" style="color:var(--danger)"></pre>
+</section>
+
+<h2>How it works</h2>
+<ul>
+  <li><strong>Format</strong> parses the HTML into a token stream and re-indents each element based on its depth in the DOM tree. Select 2 or 4 spaces, or tabs, from the dropdown.</li>
+  <li><strong>Minify</strong> strips all non-essential whitespace between tags, removes comments, and collapses text nodes to single spaces or nothing where safe.</li>
+  <li>The byte count comparison shows input vs output size so you can see the compression ratio.</li>
+  <li>Runs entirely in the browser — nothing is uploaded or transmitted.</li>
+</ul>
+</ToolPage>
+
+<style>
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.mb-2{margin-bottom:10px}
+textarea,pre{width:100%;padding:12px 14px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);transition:.15s;box-sizing:border-box}
+textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+select{padding:9px 12px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);font:500 13.5px var(--font-body)}
+</style>
+
+<script is:inline>
+(function(){
+  function $(id){return document.getElementById(id)}
+  function enc(s){return new TextEncoder().encode(s).length}
+  function flash(btn,orig){
+    btn.textContent='Copied!';
+    setTimeout(function(){btn.textContent=orig},1200);
+  }
+  function run(){
+    var src=$('input').value;
+    if(!src){return}
+    var mode=$('mode').value;
+    var indent=$('indent').value;
+    var out;
+    try{
+      if(mode==='minify'){
+        out=minifyHTML(src);
+      }else{
+        var pad=indent==='tab'? '\t': ' '.repeat(parseInt(indent));
+        out=beautifyHTML(src,pad);
+      }
+      var inB=enc(src),outB=enc(out);
+      var ratio=inB>0?((1-outB/inB)*100).toFixed(1):0;
+      $('stats').textContent='Input '+inB+' bytes → Output '+outB+' bytes ('+ratio+'% smaller)';
+      $('output').textContent=out;
+      $('out-section').style.display='block';
+      $('err-section').style.display='none';
+    }catch(e){
+      $('err-out').textContent=e.message||String(e);
+      $('err-section').style.display='block';
+      $('out-section').style.display='none';
+    }
+  }
+  var VOID=['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'];
+  function isVoid(tag){return VOID.indexOf(tag.toLowerCase())!==-1}
+  function beautifyHTML(src,pad){
+    var buf=[],depth=0;
+    var inTag=false,inClose=false,inAttr=false,bufTag='',bufAttr='',inComment=false,inCdata=false;
+    var ch,next,tag;
+    var lines=[];
+    var currentLine='';
+    function flushLine(){
+      if(currentLine.trim()){
+        lines.push(pad.repeat(depth)+currentLine.trim());
+      }
+      currentLine='';
+    }
+    var i=0;
+    while(i<src.length){
+      ch=src[i];
+      if(ch==='<'){
+        if(src[i+1]==='!'&&src[i+2]==='-'&&src[i+3]==='-'){
+          flushLine();
+          var end=src.indexOf('-->',i+4);
+          if(end!==-1){lines.push(pad.repeat(depth)+src.slice(i,end+3));i=end+3}else{i++}
+          continue;
+        }
+        if(src[i+1]==='!'){
+          flushLine();
+          var cdend=src.indexOf(']]>',i);
+          if(cdend!==-1){lines.push(pad.repeat(depth)+src.slice(i,cdend+3));i=cdend+3}else{i++}
+          continue;
+        }
+        if(src[i+1]==='/'){
+          flushLine();
+          var closeEnd=src.indexOf('>',i);
+          var closeTag=src.slice(i+2,closeEnd).trim().split(/\s/)[0];
+          depth=Math.max(0,depth-1);
+          lines.push(pad.repeat(depth)+src.slice(i,closeEnd+1));
+          i=closeEnd+1;
+          continue;
+        }
+        flushLine();
+        var tagEnd=src.indexOf('>',i);
+        if(tagEnd===-1){i++;continue}
+        tag=src.slice(i+1,tagEnd).trim().split(/\s/)[0].toLowerCase();
+        if(!isVoid(tag))depth++;
+        lines.push(pad.repeat(depth-1)+src.slice(i,tagEnd+1));
+        i=tagEnd+1;
+        continue;
+      }
+      currentLine+=ch;
+      i++;
+    }
+    flushLine();
+    return lines.join('\n');
+  }
+  function minifyHTML(src){
+    return src
+      .replace(/<!--[\s\S]*?-->/g,'')
+      .replace(/>\s+</g,'><')
+      .replace(/\s{2,}/g,' ')
+      .trim();
+  }
+  $('run').addEventListener('click',run);
+  $('mode').addEventListener('change',run);
+  $('indent').addEventListener('change',run);
+  $('sample').addEventListener('click',function(){
+    $('input').value='<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Example</title>\n  <style>\n    body { margin:0; font-family:sans-serif; }\n  </style>\n</head>\n<body>\n  <!-- Header -->\n  <header>\n    <h1>Hello World</h1>\n    <p>This is a paragraph.</p>\n  </header>\n</body>\n</html>';
+    run();
+  });
+  $('copy-out').addEventListener('click',function(){
+    navigator.clipboard.writeText($('output').textContent).then(function(){flash($('copy-out'),'Copy')});
+  });
+})();
+</script>

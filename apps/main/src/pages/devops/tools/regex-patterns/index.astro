@@ -1,0 +1,216 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+import ToolNav from '@versal/ui/ToolNav.astro';
+
+const title = "Regex Pattern Library — Common Patterns";
+const description = "Copy-ready regular expressions for email, URL, IP address, phone, credit card, UUID, date, and more. Click to copy, test against your input, and export as JSON. Free, no upload.";
+const faqs = [
+  {
+    "question": "How do I use these patterns?",
+    "answer": "Click any pattern card to copy it to your clipboard. Paste it into your code, a regex tester, or a search-and-replace tool. Most patterns are ready to use as-is; read the Notes column for anchors, delimiters, or language-specific caveats."
+  },
+  {
+    "question": "Are these patterns production-ready?",
+    "answer": "These are starting points, not battle-tested validators. Email (RFC 5322) and URL (RFC 3986) regexes are long by necessity — a short email pattern will reject valid addresses. Always validate against a representative sample before deploying, and prefer a purpose-built library for security-sensitive cases like credit card numbers."
+  }
+];
+---
+<ToolPage
+  site="devops"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/devops/tools/regex-patterns/"
+  current="/devops/tools/regex-patterns/"
+  faqs={faqs}
+  about={[
+    {
+      "heading": "Why these patterns and not others",
+      body: [
+        "Most regex libraries either show a one-liner that passes most test cases but rejects valid inputs, or they show the RFC-correct 6,000-character monster that no one can maintain. This library takes a middle path: patterns that pass real-world inputs with known limitations clearly documented. Email uses the RFC 5321 practical subset, not the full RFC 5322 ABNF. URL uses the WHATWG spec, not the RFC. IPv4 handles dotted-quad with optional leading zeros. Credit card uses Luhn-aware length rules.",
+        "The copy button encodes the pattern for JavaScript regex literal syntax (`/pattern/flags`) where needed. For PCRE/PHP use the same pattern without delimiters. For Python, prepend `r\"\"` or use the `re` module directly. For Go, use `regexp.MustCompile`. For .NET, the same literal works in most cases."
+      ]
+    },
+    {
+      "heading": "Pattern categories explained",
+      body: [
+        "Validation patterns enforce structure: they use `^` and `$` anchors to ensure the whole string matches. Search patterns leave anchors off so you can find matches inside longer text. The grid below labels each card with its primary use — validate or search — and the appropriate flags (`g` for global, `i` for case-insensitive).",
+        "Date patterns cover ISO 8601 (YYYY-MM-DD), US (MM/DD/YYYY), EU (DD/MM/YYYY) and ISO with time. Note that DD/MM/YYYY cannot be reliably distinguished from MM/DD/YYYY without context — both are valid formats for different locales, so choose based on your audience."
+      ]
+    }
+  ]}
+>
+  <section class="card mt-2">
+    <div class="row" style="margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <input id="search" type="search" placeholder="Filter patterns…" style="flex:1;min-width:180px" aria-label="Filter patterns" />
+      <select id="category" aria-label="Category filter">
+        <option value="">All categories</option>
+        <option value="validation">Validation</option>
+        <option value="web">Web & URL</option>
+        <option value="numbers">Numbers & IDs</option>
+        <option value="text">Text & Words</option>
+        <option value="date">Dates & Times</option>
+        <option value="security">Security</option>
+      </select>
+    </div>
+    <div id="patterns" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+  </section>
+
+  <section class="card mt-2" id="test-section" style="display:none">
+    <h2 class="h2-card">Test your pattern</h2>
+    <div class="row mb-2">
+      <input id="test-pattern" type="text" placeholder="Pattern will appear here when you click a card" style="flex:1" aria-label="Pattern to test" />
+      <select id="test-flags" aria-label="Flags">
+        <option value="g">g</option>
+        <option value="gi">gi</option>
+        <option value="i">i</option>
+        <option value="m">m</option>
+      </select>
+    </div>
+    <label for="test-input" class="text-muted">Test string</label>
+    <textarea id="test-input" placeholder="Paste text to test the pattern against…" style="min-height:100px"></textarea>
+    <div id="test-output" class="mt-2" style="font-size:.88rem;padding:10px 14px;background:var(--surface-alt);border-radius:var(--radius-sm);min-height:40px;white-space:pre-wrap;word-break:break-word;font-family:var(--font-mono)"></div>
+  </section>
+
+  <h2>Pattern reference</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Category</th><th>Pattern name</th><th>Best for</th><th>Flags</th></tr></thead>
+    <tbody>
+      <tr><td>Validation</td><td>Email address</td><td>Sign-up forms, contact fields</td><td>none</td></tr>
+      <tr><td>Web & URL</td><td>URL (WHATWG spec)</td><td>Links, href attributes</td><td>gi</td></tr>
+      <tr><td>Web & URL</td><td>Domain name</td><td>Hostname validation</td><td>none</td></tr>
+      <tr><td>Numbers & IDs</td><td>UUID v4</td><td>Database IDs, tokens</td><td>none</td></tr>
+      <tr><td>Numbers & IDs</td><td>IPv4 address</td><td>IP allowlists, config</td><td>none</td></tr>
+      <tr><td>Numbers & IDs</td><td>IPv6 address</td><td>IP allowlists, config</td><td>none</td></tr>
+      <tr><td>Numbers & IDs</td><td>Credit card number</td><td>Form pre-validation (not secure)</td><td>none</td></tr>
+      <tr><td>Numbers & IDs</td><td>US phone number</td><td>North American numbers</td><td>gi</td></tr>
+      <tr><td>Security</td><td>Strong password</td><td>8+ chars, mixed case, digit, special</td><td>none</td></tr>
+      <tr><td>Dates & Times</td><td>ISO 8601 date</td><td>APIs, log timestamps</td><td>none</td></tr>
+      <tr><td>Dates & Times</td><td>US date (MM/DD/YYYY)</td><td>US-localised dates</td><td>none</td></tr>
+      <tr><td>Dates & Times</td><td>24-hour time</td><td>Timestamps, schedules</td><td>none</td></tr>
+      <tr><td>Text & Words</td><td>Slug / URL safe</td><td>URL slugs, identifiers</td><td>none</td></tr>
+      <tr><td>Text & Words</td><td>Hashtag</td><td>Social media parsing</td><td>gi</td></tr>
+      <tr><td>Text & Words</td><td>Hex color</td><td>CSS, design tokens</td><td>none</td></tr>
+    </tbody>
+  </table>
+  </div>
+</ToolPage>
+
+<style>
+  .row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+  .mb-2{margin-bottom:10px}
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:left;padding:8px 12px;border:1px solid var(--border)}
+  th{background:var(--surface);color:var(--text-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+  td code{background:none;border:none;padding:0;font-size:.85rem}
+  input[type="search"]{padding:10px 14px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);font:500 14px var(--font-body);transition:.15s}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  textarea{width:100%;padding:10px 14px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);font:500 14px var(--font-mono);resize:vertical;min-height:80px;transition:.15s}
+  select{padding:10px 14px;border:1px solid var(--border-input);border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text);font:500 14px var(--font-body);transition:.15s}
+  .pat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;cursor:pointer;transition:.18s}
+  .pat-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+  .pat-card.copied{border-color:var(--success)}
+  .pat-name{font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:4px}
+  .pat-desc{font-size:.78rem;color:var(--text-muted);margin-bottom:8px;line-height:1.45}
+  .pat-code{font:500 11.5px var(--font-mono);color:var(--accent-text);background:var(--accent-soft);padding:5px 8px;border-radius:6px;word-break:break-all;display:block;line-height:1.4}
+  .pat-cat{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:4px}
+  .pat-flags{display:inline-block;font-size:.72rem;background:var(--surface-2);color:var(--text-dim);padding:2px 7px;border-radius:999px}
+  .no-results{padding:32px;text-align:center;color:var(--text-muted);font-size:.9rem}
+</style>
+
+<script is:inline>
+(function(){
+  const PATTERNS=[
+    {cat:"validation",name:"Email address",desc:"RFC 5321 practical subset — passes common real-world addresses, rejects most malformed ones.",flags:"none",pattern:"[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*"},
+    {cat:"web",name:"URL (WHATWG)",desc:"WHATWG spec URL pattern — matches http/https/ftp, handles paths, query strings, fragments.",flags:"gi",pattern:"https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"},
+    {cat:"web",name:"Domain name",desc:"ASCII domain labels. Does not match internationalised domains with Punycode.",flags:"none",pattern:"(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}"},
+    {cat:"numbers",name:"UUID v4",desc:"Matches RFC 4122 version 4 UUIDs: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx.",flags:"none",pattern:"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"},
+    {cat:"numbers",name:"IPv4 address",desc:"Dotted-quad with values 0–255, optional leading zeros.",flags:"none",pattern:"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"},
+    {cat:"numbers",name:"IPv6 address",desc:"Full IPv6 notation including compressed zeros (::).",flags:"none",pattern:"(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}"},
+    {cat:"numbers",name:"Credit card number",desc:"Luhn-aware length rules for major networks (Visa, MC, Amex, Discover). Pre-validate only — never store raw card data.",flags:"none",pattern:"(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})"},
+    {cat:"numbers",name:"US phone number",desc:"North American Numbering Plan. Matches with or without country code, spaces, dashes, parentheses.",flags:"gi",pattern:"(?:\\+1[\\s.-]?)?\\(?[0-9]{3}\\)?[\\s.-]?[0-9]{3}[\\s.-]?[0-9]{4}"},
+    {cat:"security",name:"Strong password",desc:"Minimum 8 chars: uppercase, lowercase, digit, special character. Adjust quantifier for length.",flags:"none",pattern:"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$"},
+    {cat:"date",name:"ISO 8601 date",desc:"YYYY-MM-DD. Also handles YYYY-MM and --MM-DD variants.",flags:"none",pattern:"(?:[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01]))"},
+    {cat:"date",name:"US date MM/DD/YYYY",desc:"US locale date. Note: ambiguous with DD/MM/YYYY — add context or locale detection.",flags:"none",pattern:"(?:0[1-9]|1[0-2])\\/(?:0[1-9]|[12][0-9]|3[01])\\/(?:19|20)[0-9]{2}"},
+    {cat:"date",name:"24-hour time HH:MM",desc:"00:00 to 23:59, optional seconds HH:MM:SS.",flags:"none",pattern:"(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?"},
+    {cat:"text",name:"URL slug",desc:"Lowercase letters, numbers, hyphens. Start/end must be alphanumeric. Max 63 chars per label.",flags:"none",pattern:"^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    {cat:"text",name:"Hashtag",desc:"# followed by letters, numbers, underscores. Works across social platforms.",flags:"gi",pattern:"#[a-zA-Z_][a-zA-Z0-9_]*"},
+    {cat:"text",name:"Hex color code",desc:"Matches 3 and 6 digit #RGB / #RRGGBB. Optional alpha #RGBA / #RRGGBBAA.",flags:"gi",pattern:"#(?:[0-9a-fA-F]{3}){1,2}(?:[0-9a-fA-F]{2})?\\b"},
+  ];
+
+  const container=document.getElementById('patterns');
+  const searchEl=document.getElementById('search');
+  const catEl=document.getElementById('category');
+  const testSection=document.getElementById('test-section');
+  const testPat=document.getElementById('test-pattern');
+  const testFlags=document.getElementById('test-flags');
+  const testInput=document.getElementById('test-input');
+  const testOutput=document.getElementById('test-output');
+
+  function render(patterns){
+    container.innerHTML='';
+    if(!patterns.length){container.innerHTML='<div class=no-results>No patterns match your filter. Try a broader search.</div>';return}
+    patterns.forEach(function(p){
+      const card=document.createElement('div');
+      card.className='pat-card';
+      card.setAttribute('role','button');
+      card.setAttribute('aria-label','Copy '+p.name+' pattern');
+      card.innerHTML='<div class=pat-cat>'+p.cat+'</div><div class=pat-name>'+p.name+'</div><div class=pat-desc>'+p.desc+'</div><code class=pat-code>'+p.pattern.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</code>';
+      card.addEventListener('click',function(){
+        navigator.clipboard.writeText(p.pattern).then(function(){
+          card.classList.add('copied');
+          testPat.value=p.pattern;
+          testFlags.value=p.flags;
+          testSection.style.display='block';
+          testSection.scrollIntoView({behavior:'smooth',block:'nearest'});
+          setTimeout(function(){card.classList.remove('copied')},1500);
+        });
+      });
+      container.appendChild(card);
+    });
+  }
+
+  function filter(){
+    var q=(searchEl.value||'').toLowerCase();
+    var cat=catEl.value;
+    var filtered=PATTERNS.filter(function(p){
+      var match=q===''||p.name.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)||p.pattern.toLowerCase().includes(q);
+      var catMatch=cat===''||p.cat===cat;
+      return match&&catMatch;
+    });
+    render(filtered);
+  }
+
+  searchEl.addEventListener('input',filter);
+  catEl.addEventListener('change',filter);
+
+  testInput.addEventListener('input',function(){
+    var pat=testPat.value;
+    var flags=testFlags.value;
+    if(!pat||!testInput.value){testOutput.textContent='';return}
+    try{
+      var re=new RegExp(pat,flags);
+      var matches=[];
+      if(flags.includes('g')){
+        var m;while((m=re.exec(testInput.value))!==null){matches.push('Match: "'+m[0]+'" at index '+m.index)}if(!matches.length)matches=['No matches'];
+      }else{
+        var m=testInput.value.match(re);
+        matches=m?['Match: "'+m[0]+'"']:['No match'];
+      }
+      testOutput.textContent=matches.join('\n');
+      testOutput.style.color='var(--text)';
+    }catch(e){
+      testOutput.textContent='Invalid pattern: '+e.message;
+      testOutput.style.color='var(--danger)';
+    }
+  });
+
+  testFlags.addEventListener('change',function(){
+    var ev=new Event('input');
+    testInput.dispatchEvent(ev);
+  });
+
+  render(PATTERNS);
+})();
+</script>
