@@ -388,6 +388,9 @@ button{font:inherit;cursor:pointer}
 @keyframes vRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .v-hero__kicker,.v-hero h1,.v-hero__sub{animation:vRise .55s cubic-bezier(.22,1,.36,1) both}
 .v-hero__sub{animation-delay:.06s}
+.v-hero .v-demo{animation:vRise .55s cubic-bezier(.22,1,.36,1) .14s both}
+.v-hero .v-demo__grid{animation:vRise .5s cubic-bezier(.22,1,.36,1) .18s both}
+.v-hero .v-hero__actions,.v-hero .v-hero__cta{animation:vRise .55s cubic-bezier(.22,1,.36,1) .22s both}
 
 /* ---------- Dark parity ---------- */
 [data-theme="dark"] .v-hero{
