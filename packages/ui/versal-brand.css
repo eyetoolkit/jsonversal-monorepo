@@ -411,3 +411,14 @@ button{font:inherit;cursor:pointer}
 @media (prefers-reduced-motion: reduce){
   .v-hero__kicker,.v-hero h1,.v-hero__sub{animation:none}
 }
+
+/* ---------- P0 foundation: skeleton + empty state (batch-applied) ---------- */
+.v-skel{margin:6px 0 2px}
+.v-skeleton{position:relative;overflow:hidden;background:var(--v-mist);border:1px solid var(--v-line);border-radius:var(--v-r-md);min-height:14px}
+.v-skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--v-accent) 9%,transparent),transparent);transform:translateX(-100%);animation:vShimmer 1.4s infinite}
+@keyframes vShimmer{to{transform:translateX(100%)}}
+.v-empty{padding:28px 20px;text-align:center;border:1px dashed var(--v-line-strong);border-radius:var(--v-r-lg);background:var(--v-mist);color:var(--v-mute)}
+.v-empty .ei{font-size:28px;margin-bottom:8px;opacity:.7}
+.v-empty b{color:var(--v-ink);font-size:15px;display:block;margin-bottom:4px}
+.v-empty small{font-size:13px;color:var(--v-mute)}
+@media (prefers-reduced-motion:reduce){.v-skeleton::after{animation:none}}
