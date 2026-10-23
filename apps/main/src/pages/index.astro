@@ -1,5 +1,7 @@
 ---
 import '@versal/ui/versal-brand.css';
+import { allTools } from '@versal/config/all-tools';
+const toolCount = allTools.length;
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -7,9 +9,9 @@ import '@versal/ui/versal-brand.css';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>versal json — JSON &amp; LLM tools that run in your browser</title>
-<meta name="description" content="JSON formatter, validator, schema generator, LLM token calculator, type converters. 69 tools. No sign-up, no upload, your data never leaves your device.">
+<meta name="description" content={`JSON formatter, validator, schema generator, LLM token calculator, type converters. ${toolCount} tools. No sign-up, no upload, your data never leaves your device.`}>
 <link rel="canonical" href="https://jsonversal.com/">
-<meta property="og:title" content="versal json — 69 JSON &amp; LLM tools in your browser">
+<meta property="og:title" content={`versal json — ${toolCount} JSON &amp; LLM tools in your browser`}>
 <meta property="og:description" content="Format, validate, transform. Web Crypto API. We see nothing.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jsonversal.com/">
@@ -18,7 +20,7 @@ import '@versal/ui/versal-brand.css';
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@versal_json">
-<meta name="twitter:title" content="versal json — 69 JSON &amp; LLM tools in your browser">
+<meta name="twitter:title" content={`versal json — ${toolCount} JSON &amp; LLM tools in your browser`}>
 <meta name="twitter:description" content="Format, validate, transform. Web Crypto API. We see nothing.">
 <meta name="twitter:image" content="https://jsonversal.com/og-image.png">
 <script type="application/ld+json" is:inline>{"@context":"https://schema.org","@type":"WebSite","name":"versal json","url":"https://jsonversal.com/","publisher":{"@type":"Organization","name":"versal","url":"https://jsonversal.com/"}}</script>
@@ -63,7 +65,7 @@ import '@versal/ui/versal-brand.css';
 <main>
 
 <section class="v-hero v-wrap">
-  <span class="v-hero__kicker">69 JSON &amp; LLM tools · Web Crypto API · zero upload</span>
+  <span class="v-hero__kicker">{toolCount} JSON &amp; LLM tools · Web Crypto API · zero upload</span>
   <h1>JSON that runs in your browser.</h1>
   <p class="v-hero__sub">Format, validate, transform, generate schemas, count LLM tokens. No sign-up, no upload, no API key. Your JSON never leaves your tab.</p>
 
@@ -98,7 +100,7 @@ import '@versal/ui/versal-brand.css';
 <section class="v-wrap">
   <div class="v-trust">
     <div class="v-trust__item">
-      <div class="v-trust__num">69<small>tools</small></div>
+      <div class="v-trust__num">{toolCount}<small>tools</small></div>
       <div class="v-trust__lbl">JSON, LLM, schema, validation, conversion.</div>
     </div>
     <div class="v-trust__item">
@@ -244,7 +246,7 @@ import '@versal/ui/versal-brand.css';
 <section class="v-wrap">
   <div class="v-cta">
     <div>
-      <h3>69 tools. Zero upload.</h3>
+      <h3>{toolCount} tools. Zero upload.</h3>
       <p>Paste your JSON, get a TypeScript interface. Paste a curl, get a Python script. Nothing leaves the page.</p>
     </div>
     <a class="v-btn large" href="/tools/json-formatter/">Open JSON formatter</a>
