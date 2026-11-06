@@ -80,7 +80,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <p class="text-muted">Use YAML when humans will hand-edit the file, such as Kubernetes manifests, CI/CD pipelines, or Docker Compose, and use JSON when machines exchange data over HTTP or store it in documents. When converting, watch for YAML-only features that cannot round-trip: anchors and aliases are not representable in JSON, and YAML's type inference can turn unquoted values like yes, on, or 0123 into booleans or numbers. Quote strings explicitly to keep them as text.</p>
 </ToolPage>
 
-<script is:inline client:load>
+<script is:inline>
 (function () {
   const $ = (id) => document.getElementById(id);
   let yamlLib;
