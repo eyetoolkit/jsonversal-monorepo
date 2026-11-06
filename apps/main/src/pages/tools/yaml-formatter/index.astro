@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     "question": "Why does my list disappear?",
-    "answer": "Block sequences written as `- item` under a key are not modelled by the scanner; the key comes back as an empty object. Anchors, aliases and multi-document streams are not resolved either, and a quoted value containing a colon is truncated at the first colon. For documents using any of those features, use a real YAML parser such as PyYAML or js-yaml."
+    "answer": "Block sequences written as `- item` under a key are not modelled by the scanner; the key comes back as an empty object. Anchors, aliases and multi-document streams are not resolved either, and a quoted value containing a colon is truncated at the first colon. A notice is shown above the output whenever one of these constructs is detected, so the loss is never silent. For documents using any of those features, use a real YAML parser such as PyYAML or js-yaml."
   }
 ];
 import ToolNav from '@versal/ui/ToolNav.astro';
@@ -47,7 +47,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
       "heading": "Output shape and error reporting",
       "body": [
         "Strings containing a colon, a hash, or a newline are emitted as JSON double-quoted scalars, which is valid YAML but looks foreign next to hand-written config. Selecting the JSON output mode runs `JSON.stringify` over the same parsed structure, and that is the more reliable path for piping into anything that consumes JSON. Numbers are re-emitted in their normalised form, so `007` becomes `7`.",
-        "There is no error reporting. The scanner does not throw on malformed input, and the `Validate only` button performs the same lenient parse before reporting success unconditionally — a syntax error surfaces as silently wrong output rather than as a diagnostic. Treat this as a cosmetic normaliser for block-style mappings, and reach for a real YAML parser whenever the document contains sequences, anchors, or multiple documents."
+        "The scanner does not throw on malformed input, so a syntax error can still surface as wrong output. Known unsupported constructs now raise a visible notice instead of failing silently — block sequences, anchors, multi-document streams and comments are called out before the result is rendered, so a dropped list can no longer masquerade as a clean format. `Validate only` performs the same lenient parse and is a scan, not a validation pass. Treat this as a cosmetic normaliser for block-style mappings, and reach for a real YAML parser whenever the document contains sequences, anchors, or multiple documents."
       ]
     }
   ]}
@@ -82,15 +82,15 @@ import BaseLayout from '@versal/ui/BaseLayout';
   </div>
 
   <div class="card mt-2" id="err" style="display:none;">
-    <strong style="color:var(--danger);">Error</strong>
-    <pre id="errOut" class="mt-1" style="color:var(--danger);"></pre>
+    <strong>Notice</strong>
+    <pre id="errOut" class="mt-1"></pre>
   </div>
 
   <h2>How it works</h2>
   <ul>
     <li>The tool scans block mappings — <code>key: value</code> lines nested by leading-space count — and re-emits them at the indent you choose.</li>
     <li>It is a structural subset, not a YAML 1.2 implementation: anchors, aliases, block sequences and multi-document streams are not supported (see the notes above).</li>
-    <li>There is no error reporting. Malformed input does not raise a diagnostic, it produces silently wrong output.</li>
+    <li>Malformed input does not raise a syntax error. Known unsupported constructs produce a notice instead of silently dropping data.</li>
     <li>Set <strong>Output</strong> to <strong>JSON</strong> to serialise the same parsed structure as JSON — the more reliable path for piping into other tools.</li>
   </ul>
 
@@ -104,7 +104,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
   pre { white-space: pre-wrap; }
 </style>
 
-<script is:inline client:load>
+<script is:inline>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
 
@@ -160,11 +160,38 @@ import BaseLayout from '@versal/ui/BaseLayout';
     return String(obj);
   }
 
+  // The scanner silently drops whole constructs. Surface them instead of
+  // letting a truncated YAML document look like a successful format.
+  function checkUnsupported(raw) {
+    var notes = [];
+    var lines = raw.split('\n');
+    if (lines.some(function (l) { return /^\s*(---|\.\.\.)\s*$/.test(l); })) {
+      notes.push('Multiple documents (--- / ...) are not supported: only the last document is kept.');
+    }
+    if (/(^|\s)&[A-Za-z0-9_-]+|\s\*[A-Za-z0-9_-]+|(^|\s)<<\s*:/.test(raw)) {
+      notes.push('Anchors, aliases and merge keys (<<) are not resolved, so the structure will change.');
+    }
+    if (lines.some(function (l) { return /^\s*-(?:\s|$)/.test(l); })) {
+      notes.push('Block sequences ("- item") are not modelled: the parent key becomes an empty object and the list items are lost. Use a full YAML parser (js-yaml / PyYAML) for this document.');
+    }
+    if (lines.some(function (l) { return /^\s*#|\s+#/.test(l); })) {
+      notes.push('Comments are dropped during formatting.');
+    }
+    return notes;
+  }
+
+  function showWarn(notes) {
+    $('err').style.display = '';
+    $('errOut').textContent = notes.map(function (n) { return '• ' + n; }).join('\n');
+  }
+
   function run() {
     $('err').style.display = 'none';
     $('output').value = '';
     var raw = $('input').value;
     if (!raw.trim()) return;
+    var notes = checkUnsupported(raw);
+    if (notes.length) showWarn(notes);
     var lines = raw.split('\n');
     var result = {};
     var stack = [{ indent: -1, obj: result, key: null }];
@@ -244,11 +271,6 @@ import BaseLayout from '@versal/ui/BaseLayout';
     var mode = $('outputMode').value;
     var ind = parseInt($('indent').value, 10);
     $('output').value = mode === 'json' ? JSON.stringify(result, null, ind) : formatYaml(result, ind);
-  }
-
-  function showErr(msg) {
-    $('err').style.display = '';
-    $('errOut').textContent = msg;
   }
 
   $('run').addEventListener('click', run);

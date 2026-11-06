@@ -42,7 +42,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     {
       "heading": "What the toggles change, and what the mapping loses",
       "body": [
-        "The default is the surprising one. With strict mode off, every property is emitted optional — including the ones listed in `required` — because the assumption is that a required field can still be missing off the wire. Turn strict mode on and only `required` members lose the question mark.",
+        "Strict mode is on by default: `required` members are emitted without a question mark and everything else stays optional, so the generated interface matches the schema's contract rather than quietly widening it. Turn it off to make every property optional — useful when a required field can still be missing off the wire, but the resulting type no longer describes what the schema guarantees.",
         "Some schema information has no TypeScript counterpart and is dropped: `format`, `pattern`, `minimum`, `maxLength` and their siblings do not affect the emitted type, so an `email` field is just `string`. Several keywords are not implemented at all, and a schema relying on them will not error — it quietly produces something weaker than you wrote. `allOf` is the important omission, because intersection is the standard way to compose a base object with an extension, and an unhandled `allOf` yields a type that does not constrain what it should.",
         "One combination produces code that does not compile. An `additionalProperties` schema emits `[key: string]: T`, and TypeScript then requires every named property to be assignable to `T` — so `name?: string` alongside `additionalProperties: { type: 'number' }` is an error, not a warning. `additionalProperties: false` is accepted and ignored. When a schema mixes declared properties with a typed index signature, check whether the types actually unify before committing the output."
       ]
@@ -68,7 +68,7 @@ import BaseLayout from '@versal/ui/BaseLayout';
     <div class="row mt-1">
       <label class="text-muted" for="prefix">Prefix</label>
       <label for="prefix" class="sr-only">Prefix</label> <input id="prefix" type="text" value="I" style="max-width:70px;" spellcheck="false" />
-      <label class="text-muted" for="strict" style="gap:4px;display:inline-flex;align-items:center;"><input id="strict" type="checkbox" /> Strict mode</label>
+      <label class="text-muted" for="strict" style="gap:4px;display:inline-flex;align-items:center;"><input id="strict" type="checkbox" checked /> Strict mode</label>
       <label class="text-muted" for="export" style="gap:4px;display:inline-flex;align-items:center;"><input id="export" type="checkbox" /> export keyword</label>
       <button class="primary" id="gen">Generate</button>
       <button class="ghost" id="sample">Load sample</button>

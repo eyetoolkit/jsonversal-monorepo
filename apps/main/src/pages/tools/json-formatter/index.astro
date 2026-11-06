@@ -78,7 +78,9 @@ const faqs = [
     </div>
   </section>
 
-  <OutputPanel id="output" title="Output" placeholder="—" minHeight="160px" copyable={true} />
+  <OutputPanel id="output" title="Output" placeholder="—" minHeight="160px" copyable={true} initiallyHidden={true}>
+    <p class="text-dim" id="stats" style="display:none;margin:12px 0 0;font-size:.85rem;" aria-live="polite"></p>
+  </OutputPanel>
 
   <section class="card mt-2" id="err-section" style="display:none;">
     <h2 class="h2-error">Invalid JSON</h2>
@@ -137,9 +139,10 @@ const faqs = [
   function run(mode) {
     const raw = $('input').value;
     if (!raw.trim()) { showToast('Please paste some JSON first.'); return; }
+
+    let obj, out;
     try {
-      const obj = JSON.parse(raw);
-      let out;
+      obj = JSON.parse(raw);
       if (mode === 'minify') {
         out = JSON.stringify(obj);
       } else {
@@ -147,22 +150,29 @@ const faqs = [
         const indent = choice === 'tab' ? '\t' : parseInt(choice, 10);
         out = JSON.stringify(obj, null, indent);
       }
-      $('output-text').textContent = out;
-      const s = stats(obj);
-      $('stats').textContent = `${s.keys} keys · ${s.nodes} nodes · depth ${s.depth} · ${out.length} chars`;
-      $('out-section').style.display = 'block';
-      $('err-section').style.display = 'none';
     } catch (e) {
       let msg = e.message || String(e);
       const m = msg.match(/position (\d+)/);
       if (m) {
-        const lc = lineColAt($('input').value, parseInt(m[1], 10));
+        const lc = lineColAt(raw, parseInt(m[1], 10));
         msg = `${msg}  (line ${lc.line}, column ${lc.col})`;
       }
       $('err-out').textContent = msg;
       $('err-section').style.display = 'block';
-      $('out-section').style.display = 'none';
+      $('output-section').style.display = 'none';
+      $('stats').style.display = 'none';
+      return;
     }
+
+    // Rendering stays outside the try. Previously a missing `stats` node threw
+    // inside the try and was caught by the same handler, so perfectly valid
+    // JSON was reported to the user as "Invalid JSON".
+    $('output-text').textContent = out;
+    const s = stats(obj);
+    $('stats').textContent = `${s.keys} keys · ${s.nodes} nodes · depth ${s.depth} · ${out.length} chars`;
+    $('stats').style.display = 'block';
+    $('output-section').style.display = 'block';
+    $('err-section').style.display = 'none';
   }
 
   $('format').addEventListener('click', () => run('format'));
@@ -183,7 +193,8 @@ const faqs = [
 
   $('clear').addEventListener('click', () => {
     $('input').value = '';
-    $('out-section').style.display = 'none';
+    $('output-section').style.display = 'none';
+    $('stats').style.display = 'none';
     $('err-section').style.display = 'none';
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     // 清除 URL hash

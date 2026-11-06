@@ -6,11 +6,11 @@ const description = "Translate a crontab expression into human-readable schedule
 const faqs = [
   {
     "question": "How do I validate a cron expression?",
-    "answer": "Enter a cron expression (e.g. 0 9 * * 1-5) in the input. The tool immediately shows the next 5 execution times and a human-readable description of when the job runs. It also validates the expression and reports syntax errors."
+    "answer": "Enter a cron expression (e.g. 0 9 * * 1-5) in the input. The tool immediately shows the next 10 execution times and a human-readable description of when the job runs. It also validates the expression, flags unrecognised field values, and explains when no future run can match."
   },
   {
     "question": "What cron format is supported?",
-    "answer": "Standard 5-field cron format: minute (0-59), hour (0-23), day of month (1-31), month (1-12), day of week (0-6). It supports ranges (1-5), steps (*/5), lists (1,3,5), and special strings like @daily and @hourly."
+    "answer": "Standard 5-field cron format: minute (0-59), hour (0-23), day of month (1-31), month (1-12 or jan-dec), day of week (0-6 or sun-sat; 7 also means Sunday), with an optional sixth seconds field. It supports ranges (1-5), steps (*/5) and lists (1,3,5). Shorthand strings such as @daily and @hourly are not supported."
   }
 ];
 import ToolNav from '@versal/ui/ToolNav.astro';
@@ -33,17 +33,17 @@ import BaseLayout from '@versal/ui/BaseLayout';
       ]
     },
     {
-      "heading": "Ranges, steps, and the two ways to spell a weekday",
+      "heading": "Ranges, steps, and name tables",
       "body": [
-        "Day-of-week is the only field with a name table, and it holds three-letter lowercase abbreviations. Because the range branch resolves both endpoints through that table, `mon-fri` works here in a way it does not in several other parsers — as does a bare `mon`. That table is also the sharp edge: `monday` yields -1, and -1 is not NaN, so it slips past the guard and becomes a set containing -1. The field looks valid, the schedule matches nothing, and the run list comes back empty.",
-        "The month field is numeric-only, so `jan` parses to NaN, is skipped, and leaves an empty set — the same silent no-op by a different route. Steps apply to an explicit start and end, which means `5/10` without a range means the single value 5 rather than 5, 15, 25.",
-        "A weekday value of 7 is worth calling out separately: it is not Sunday here. The field is parsed over 0-6, so 7 is accepted into the set as an ordinary number that no date ever matches, and the schedule quietly runs one day less often than you intended."
+        "Both day-of-week and month have name tables of three-letter lowercase abbreviations. Because the range branch resolves both endpoints through those tables, `mon-fri` and `jan-mar` work here in a way they do not in several other parsers, as do bare `mon` and `jan`. A name that is not in the table is reported instead of silently resolving to -1, so a typo produces a note rather than an empty run list.",
+        "Steps apply to an explicit start and end, which means `5/10` without a range means the single value 5 rather than 5, 15, 25. Reversed ranges and invalid steps are reported rather than quietly producing an empty field.",
+        "A weekday value of 7 is Sunday: it is normalised to 0 before matching, because JavaScript's `getDay()` never returns 7. Both spellings are listed in the quick reference below."
       ]
     },
     {
-      "heading": "The seconds field and other quiet failures",
+      "heading": "The seconds field and how failures are reported",
       "body": [
-        "In six-field mode the preview advances a second at a time, but the matcher compares only minute, hour, day-of-month, month and weekday; the seconds set is never checked against anything. The listed times are therefore whichever second the walk arrived on, and the sub-minute cadence you asked for is absent. The general rule for this parser is worth keeping: no output and no error almost always means an unmatchable field, not a job with no future."
+        "In six-field mode the seconds field is part of the match, so a `*/10` cadence produces times ten seconds apart rather than whichever second the walk happened to land on. When a field cannot match any real date the minute-by-minute walk is skipped entirely and the run panel says so explicitly; an empty list is no longer indistinguishable from a broken page."
       ]
     }
   ]}
@@ -84,45 +84,76 @@ import BaseLayout from '@versal/ui/BaseLayout';
   <p class="text-muted">Use it when you are troubleshooting scheduled jobs: jobs that never run, run at the wrong time, or run more often than expected are usually explained by a subtle field mistake. Note that cron interprets times in the local timezone of the daemon rather than the user's, and on most systems there is no per-job timezone field without extensions like CRON_TZ. Also remember that shorthands such as @daily, @hourly, or @reboot are convenience strings supported by cronie and Vixie cron, not part of the standard five-field format.</p>
 </ToolPage>
 
-<script is:inline client:load>
+<script is:inline>
 (function () {
   const $ = (id) => document.getElementById(id);
 
-  function parseField(str, min, max, names) {
+  const DOW_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  // Index 0 is a spacer, so indexOf('jan') === 1 and matches cron's 1-based months.
+  const MONTH_NAMES = ['', 'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+  function fieldValue(token, names) {
+    if (names) {
+      const named = names.indexOf(token.toLowerCase());
+      // names[0] === '' is the month spacer, never a real value.
+      if (named !== -1 && names[named]) return named;
+      // An unknown name used to resolve to -1, which passed the NaN guard
+      // and silently became an unmatchable field value.
+    }
+    return /^-?\d+$/.test(token) ? parseInt(token, 10) : NaN;
+  }
+
+  function parseField(str, min, max, names, warnings, label) {
     const allowed = new Set();
     str.split(',').forEach(part => {
       let [range, step] = part.split('/');
       step = step ? parseInt(step, 10) : 1;
+      if (!Number.isFinite(step) || step < 1) {
+        warnings.push('invalid step in ' + label + ': "' + part + '"');
+        return;
+      }
       let start, end;
       if (range === '*') { start = min; end = max; }
       else if (range.includes('-')) {
         const [a, b] = range.split('-');
-        start = names ? names.indexOf(a.toLowerCase()) : parseInt(a, 10);
-        end   = names ? names.indexOf(b.toLowerCase()) : parseInt(b, 10);
+        start = fieldValue(a, names);
+        end   = fieldValue(b, names);
       } else {
-        start = end = names ? names.indexOf(range.toLowerCase()) : parseInt(range, 10);
+        start = end = fieldValue(range, names);
       }
-      if (isNaN(start) || isNaN(end)) return;
+      if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        warnings.push('unrecognised ' + label + ' value "' + part + '"');
+        return;
+      }
+      if (start > end) {
+        warnings.push('reversed range in ' + label + ': "' + part + '"');
+        return;
+      }
       for (let v = start; v <= end; v += step) allowed.add(v);
     });
     return allowed;
   }
 
   function parseCron(expr) {
+    const warnings = [];
     const parts = expr.trim().split(/\s+/);
     if (parts.length < 5 || parts.length > 6) throw new Error('Need 5 or 6 fields');
     let secSet;
     let [f1, f2, f3, f4, f5, f6] = parts;
-    if (parts.length === 6) { secSet = parseField(f1, 0, 59); f1 = f2; f2 = f3; f3 = f4; f4 = f5; f5 = f6; }
-    const minute = parseField(f1, 0, 59);
-    const hour   = parseField(f2, 0, 23);
-    const dom    = parseField(f3, 1, 31);
-    const month  = parseField(f4, 1, 12);
-    const dow    = parseField(f5, 0, 6, ['sun','mon','tue','wed','thu','fri','sat']);
-    return { secSet, minute, hour, dom, month, dow, six: parts.length === 6 };
+    if (parts.length === 6) { secSet = parseField(f1, 0, 59, null, warnings, 'seconds'); f1 = f2; f2 = f3; f3 = f4; f4 = f5; f5 = f6; }
+    const minute = parseField(f1, 0, 59, null, warnings, 'minute');
+    const hour   = parseField(f2, 0, 23, null, warnings, 'hour');
+    const dom    = parseField(f3, 1, 31, null, warnings, 'day of month');
+    const month  = parseField(f4, 1, 12, MONTH_NAMES, warnings, 'month');
+    const dow    = parseField(f5, 0, 6, DOW_NAMES, warnings, 'day of week');
+    // cron also spells Sunday as 7; JS getDay() never returns 7.
+    if (dow.has(7)) { dow.delete(7); dow.add(0); }
+    return { secSet, minute, hour, dom, month, dow, six: parts.length === 6, warnings };
   }
 
   function matchesFields(d, cron) {
+    if (cron.six && cron.secSet && !cron.secSet.has(d.getSeconds())) return false;
     return cron.minute.has(d.getMinutes())
         && cron.hour.has(d.getHours())
         && cron.dom.has(d.getDate())
@@ -130,8 +161,24 @@ import BaseLayout from '@versal/ui/BaseLayout';
         && cron.dow.has(d.getDay());
   }
 
+  function impossible(cron) {
+    const checks = [
+      [cron.minute, 0, 59], [cron.hour, 0, 23], [cron.dom, 1, 31],
+      [cron.month, 1, 12], [cron.dow, 0, 6]
+    ];
+    if (cron.six && cron.secSet) checks.push([cron.secSet, 0, 59]);
+    // An empty set, or one whose values are all outside the legal range, can
+    // never match. Bail out before walking ~5 million minutes for nothing.
+    return checks.some(([set, min, max]) => {
+      if (!set.size) return true;
+      for (const v of set) if (v >= min && v <= max) return false;
+      return true;
+    });
+  }
+
   function nextRuns(cron, n = 10) {
     const runs = [];
+    if (impossible(cron)) return runs;
     const cursor = new Date();
     cursor.setMilliseconds(0);
     if (cron.six) { cursor.setSeconds(cursor.getSeconds() + 1); }
@@ -146,6 +193,8 @@ import BaseLayout from '@versal/ui/BaseLayout';
     return runs;
   }
 
+  const NO_RUNS_HINT = 'No upcoming runs.\n\nOne or more fields cannot match any real date. Check day-of-month (1-31), month (1-12 or jan-dec), day-of-week (0-6, 7, or sun-sat) and - in 6-field mode - the seconds field.';
+
   function gen() {
     const expr = $('expr').value;
     try {
@@ -154,9 +203,10 @@ import BaseLayout from '@versal/ui/BaseLayout';
       const descParts = ['minute', 'hour', 'dom', 'month', 'dow'];
       let desc = 'Fields:\n';
       for (let i = 0; i < descParts.length; i++) desc += '  ' + descParts[i] + ': ' + (cron.six ? parts[i+1] : parts[i]) + '\n';
-      $('readable').textContent = desc + '\nNext run preview below.';
+      const notes = cron.warnings.length ? '\nNote: ' + cron.warnings.join('; ') + '.' : '';
+      $('readable').textContent = desc + '\nNext run preview below.' + notes;
       const runs = nextRuns(cron, 10);
-      $('next').textContent = runs.map(d => d.toLocaleString()).join('\n');
+      $('next').textContent = runs.length ? runs.map(d => d.toLocaleString()).join('\n') : NO_RUNS_HINT;
     } catch (e) {
       $('readable').textContent = 'Parse error: ' + e.message;
       $('next').textContent = '—';

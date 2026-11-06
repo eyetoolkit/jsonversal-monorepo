@@ -248,17 +248,29 @@ ORDER BY order_count DESC;`;
 
   function clauseAt(toks, i) {
     const words = [];
+    const indices = [];
     let k = i;
     while (k < toks.length && words.length < 3) {
       const t = toks[k];
       if (t.type === 'ws') { k++; continue; }
       if (t.type !== 'keyword' && t.type !== 'ident') break;
       words.push(t.value.toUpperCase());
+      indices.push(k);
       k++;
     }
     for (let len = Math.min(words.length, 3); len >= 1; len--) {
       const phrase = words.slice(0, len).join(' ');
-      if (CLAUSES.indexOf(phrase) !== -1) return { phrase, words: len };
+      if (CLAUSES.indexOf(phrase) !== -1) {
+        // Keep the real token positions. Whitespace tokens sit between the
+        // words of a multi-word clause, so logical word count is NOT the same
+        // as the number of tokens that must be consumed.
+        return {
+          phrase,
+          words: len,
+          indices: indices.slice(0, len),
+          lastIndex: indices[len - 1]
+        };
+      }
     }
     return null;
   }
@@ -318,11 +330,14 @@ ORDER BY order_count DESC;`;
         lineIndent = paren * unit;
         const words = cl.phrase.split(' ');
         for (let w = 0; w < words.length; w++) {
-          const wt = toks[i + w];
+          const wt = toks[cl.indices[w]];
           appendWord(opts.upper ? words[w] : wt.value);
           prevTok = { type: 'keyword', value: words[w] };
         }
-        i += cl.words - 1;
+        // Jump to the last token the phrase actually consumed. Advancing by
+        // `cl.words - 1` left the second word in the stream, so `ORDER BY`
+        // came out as `ORDER BY BY`, `LEFT JOIN` as `LEFT JOIN JOIN`, etc.
+        i = cl.lastIndex;
         continue;
       }
       if (cl && logic) {
@@ -331,7 +346,7 @@ ORDER BY order_count DESC;`;
         lineIndent = paren * unit + unit;
         appendWord(opts.upper ? cl.phrase : toks[i].value);
         prevTok = { type: 'keyword', value: cl.phrase };
-        i += cl.words - 1;
+        i = cl.lastIndex;
         continue;
       }
 

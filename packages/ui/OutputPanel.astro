@@ -46,6 +46,7 @@ const copyId = `${id}-copy`;
     </div>
   )}
   <pre id={textId} class="output-text" style={`min-height:${minHeight}; max-height:${maxHeight};`}>{placeholder}</pre>
+  <slot />
 </section>
 
 <script is:inline define:vars={{ textId, copyId }}>
