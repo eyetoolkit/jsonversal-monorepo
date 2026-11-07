@@ -14,6 +14,7 @@
 import BaseLayout from './BaseLayout.astro';
 import ToolNav from './ToolNav.astro';
 import ToolSuggestions from './ToolSuggestions.astro';
+import CarbonAds from './CarbonAds.astro';
 
 export interface Props {
   site: 'main' | 'devops' | 'codegen' | 'sec';
@@ -152,4 +153,7 @@ const allFaqs = faqs ? [...faqs, ...universalFaqs] : universalFaqs;
 
   {/* 工具流转推荐 —— 当前工具完成后，下一步可能用到的相关工具 */}
   <ToolSuggestions current={current} />
+
+  {/* 变现：Carbon Ads（serve code 配好后自动启用，见 CarbonAds.astro）*/}
+  <CarbonAds />
 </BaseLayout>
