@@ -4,12 +4,12 @@ import BaseLayout from '@versal/ui/BaseLayout';
 
 <BaseLayout site="main" title="Privacy Policy — Tool Data Never Leaves Your Browser" description="All jsonversal tools process your input in your browser — the data you paste never reaches us. Read the full privacy policy, including what our hosting and ad partners can see." canonical="https://jsonversal.com/privacy/">
   <h1>Privacy Policy</h1>
-  <p class="text-muted">Effective date: 2026-09-10 · Last updated: 2026-10-10</p>
+  <p class="text-muted">Effective date: 2026-09-10 · Last updated: 2026-11-08</p>
 
   <h2>Summary</h2>
   <ul>
     <li><strong>Your tool input never reaches us.</strong> Every tool runs 100% in your browser — the JSON, XML, YAML, secrets and API keys you paste are processed on your device and never transmitted to our servers.</li>
-    <li>We set no cookies and run no analytics of our own.</li>
+    <li>We set no cookies and run no advertising or behavioural analytics. We do count anonymous aggregate visits — see <a href="#visit-counting">below</a>.</li>
     <li><strong>Advertising.</strong> This site is supported by Google AdSense. Google and its partners may use cookies and similar technologies to serve ads based on your prior visits to this and other websites. Your tool input is <em>never</em> part of an ad request — see <a href="#advertising">Advertising</a> below for exactly what an ad partner can and cannot see.</li>
     <li>The only thing we store in your browser is your light/dark theme preference, held locally on your device.</li>
     <li>We do not sell your personal information. Ad partners may use it for their own purposes as described below.</li>
@@ -41,7 +41,10 @@ import BaseLayout from '@versal/ui/BaseLayout';
     <a href="https://policies.google.com/technologies/partner-sites" rel="nofollow noopener" target="_blank">How Google uses data from sites that use our services</a>.</p>
 
   <h2>Analytics and cookies</h2>
-  <p>We run no analytics of our own and this site sets no first-party cookies. Advertising cookies are set by Google under the policies linked above, which you can opt out of. Because we collect nothing about tool input, there is no consent required for the tools themselves — any data access that does occur is limited to what is described under <a href="#advertising">Advertising</a>.</p>
+  <p>This site sets no cookies and runs no advertising or behavioural analytics. Advertising cookies are set by Google under the policies linked above, which you can opt out of. We do count anonymous aggregate visits, as described immediately below. Because we collect nothing about tool input, there is no consent required for the tools themselves — any data access that does occur is limited to what is described under <a href="#advertising">Advertising</a> and <a href="#visit-counting">Anonymous visit counting</a>.</p>
+
+  <h3 id="visit-counting">Anonymous visit counting</h3>
+  <p>We count aggregate visits through a first-party endpoint (<code>/__uv</code>) that sets no cookie, writes nothing to your device and loads no third-party script. To avoid counting the same browser twice in one day, our edge stores only a short-lived one-way hash derived from the request's network address and browser type, together with the hostname and date. No IP address, user-agent string or identifier is retained in readable form, and this data is never shared with advertising partners or used to identify you. It is aggregate visit counting only — this endpoint never receives anything you type into a tool.</p>
 
   <h2>Local storage</h2>
   <p>We store a single item in your browser's local storage: your light/dark theme preference. It stays on your device, is never transmitted to us, and can be cleared at any time from your browser settings. This falls under the "strictly necessary" exemption of ePrivacy Article 5(3), which is why no consent banner is shown for it.</p>

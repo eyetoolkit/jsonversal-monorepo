@@ -448,5 +448,18 @@ const jsonLd = schemaEntries.length > 1
       window.showToast = showToast;
     })();
     </script>
+
+    <!-- First-party anonymous visit count (edge endpoint /__uv).
+         Cookieless: no device storage, no third party, no tool input.
+         Only browsers that render a page hit it; curl / monitors do not. -->
+    <script is:inline>
+      (function () {
+        try {
+          var p = new Image(1, 1);
+          p.referrerPolicy = 'no-referrer';
+          p.src = '/__uv?t=' + Date.now();
+        } catch (e) {}
+      })();
+    </script>
   </body>
 </html>
