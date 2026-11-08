@@ -228,6 +228,10 @@ ${rowsHtml}
 </div>
 </div>
 <footer><div class="wrap">© jsonversal — all tools run 100% client-side in your browser. Comparisons are informational; verify each tool's current privacy posture before trusting it with sensitive data.</div></footer>
+<!-- First-party anonymous visit count (edge /__uv); cookieless, no third party. -->
+<script>
+(function(){try{var p=new Image(1,1);p.referrerPolicy="no-referrer";p.src="/__uv?t="+Date.now()}catch(e){}})();
+</script>
 </body>
 </html>
 `;
