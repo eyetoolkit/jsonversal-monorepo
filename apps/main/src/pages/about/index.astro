@@ -1,0 +1,52 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+---
+
+<BaseLayout site="main" title="About — Who Runs jsonversal" description="Who operates jsonversal, where the source lives, how the browser-only developer tools are built and maintained, and how to reach us." canonical="https://jsonversal.com/about/">
+  <h1>About jsonversal</h1>
+  <p class="text-muted">Last updated: 2026-11-08</p>
+
+  <h2>Who operates this site</h2>
+  <p>jsonversal.com is operated by <strong>Jim (Maoming, Guangdong, China)</strong>, publishing under the
+  <a href="https://github.com/eyetoolkit" rel="noopener noreferrer" target="_blank">eyetoolkit</a> GitHub organisation —
+  the same operator named in the footer of our sister sites at mQuickCalc. This is an independent, one-person project:
+  there is no company behind it, no sales team, no accounts and no sign-up.</p>
+  <p>We publish the operator name here so that readers, advertisers and data-protection authorities can identify
+  who is responsible for the site and contact that person directly. See <a href="/contact/">Contact</a> for the
+  channels that currently work.</p>
+
+  <h2>What jsonversal is</h2>
+  <p>A collection of free, browser-based developer tools covering JSON, schemas and typed models, security and
+  hashing, DevOps helpers, and code generation. It is one of the small sites in the <em>versal</em> family, which
+  shares a design language and a single privacy rule: <strong>your input never leaves your device</strong>.</p>
+  <p>Every parser, converter and generator runs as JavaScript in your browser. We have no server-side tool
+  endpoints, so the JSON, tokens, API keys, config files and payloads you paste are never transmitted to us.
+  That makes the tools usable with production data. The <a href="/trust/">Trust Center</a> includes a short test
+  you can run yourself to confirm this.</p>
+
+  <h2>Source, hosting and build</h2>
+  <p>The source code is public at
+  <a href="https://github.com/eyetoolkit/jsonversal-monorepo" rel="noopener noreferrer" target="_blank">github.com/eyetoolkit/jsonversal-monorepo</a>.
+  Pages are generated statically with Astro and served from Cloudflare Pages. Every push to the main branch is
+  built and deployed automatically; there is no manual server step. Fonts, scripts and styles are self-hosted —
+  we do not load assets from a public CDN at runtime.</p>
+
+  <h2>Measurement and privacy</h2>
+  <p>We set no advertising or behavioural analytics cookies and store only your light/dark theme preference
+  locally. We do count anonymous aggregate visits through a first-party, cookieless endpoint
+  (<code>/__uv</code>): the edge keeps a short-lived one-way hash and no readable IP, user-agent or identifier.
+  Tool input is never part of that request. The full disclosure is in the
+  <a href="/privacy/#visit-counting">Privacy Policy</a>.</p>
+
+  <h2>Accuracy, corrections and maintenance</h2>
+  <p>Tool behaviour is checked by an automated regression suite in the repository before changes are published.
+  Calculators and fee estimators on our sister finance site are estimates; they are not financial advice and
+  should be checked against the platform's official schedule. If any tool here returns a wrong result, or if
+  you need to exercise a privacy right, report it through the <a href="/contact/">contact page</a> — corrections
+  are published in the open issue tracker rather than handled privately.</p>
+
+  <h2>Legal and related pages</h2>
+  <p><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a> ·
+  <a href="/trust/">Trust Center</a> · <a href="/licenses/">Licenses &amp; Third-Party Notices</a> ·
+  <a href="/contact/">Contact</a></p>
+</BaseLayout>

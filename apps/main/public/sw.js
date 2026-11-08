@@ -7,7 +7,9 @@
  *
  * 版本号变更时旧缓存自动失效
  */
-const VERSION = 'versal-v1.0.0-2026-09-18';
+// 2026-11-08 (B5): new /about/ + /contact/, legal contact wording, /__uv bypass.
+// HTML is network-first, but bumping evicts any older cached copies on activation.
+const VERSION = 'versal-v1.0.1-2026-11-08';
 const STATIC_CACHE = `${VERSION}-static`;
 const HTML_CACHE = `${VERSION}-html`;
 
@@ -44,6 +46,9 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   // 跨域直接放过（应该没有，但防御一下）
   if (url.origin !== location.origin) return;
+
+  // 第一方匿名访问计数：绝不缓存，否则边缘计数会被 SW 吞掉
+  if (url.pathname === '/__uv') return;
 
   // 字体：cache-first
   if (url.pathname.startsWith('/fonts/')) {
