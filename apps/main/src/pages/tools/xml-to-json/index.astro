@@ -181,7 +181,18 @@ const faqs = [
   });
   $('sample').addEventListener('click', function () {
     if ($('mode').value === 'xml2json') {
-      $('input').value = '<note id="1">\n  <to>Ada</to>\n  <from>Linus</from>\n  <body>Hello!</body>\n</note>';
+      $('input').value = '<note id="1">\n  <to>Ada</to>\n  <from>Linus</from>\n  <body>Hello!
+    <!-- First-party anonymous visit count (edge endpoint /__uv). Cookieless, no third party. -->
+    <script is:inline>
+      (function () {
+        try {
+          var p = new Image(1, 1);
+          p.referrerPolicy = 'no-referrer';
+          p.src = '/__uv?t=' + Date.now();
+        } catch (e) {}
+      })();
+    </script>
+</body>\n</note>';
     } else {
       $('input').value = JSON.stringify({ note: { to: 'Ada', from: 'Linus', body: 'Hello!' } }, null, 2);
     }

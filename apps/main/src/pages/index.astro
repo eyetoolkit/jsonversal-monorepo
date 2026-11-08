@@ -330,5 +330,15 @@ const toolCount = allTools.length;
   ji.addEventListener('input',recalc); recalc();
 })();
 </script>
+    <!-- First-party anonymous visit count (edge endpoint /__uv). Cookieless, no third party. -->
+    <script is:inline>
+      (function () {
+        try {
+          var p = new Image(1, 1);
+          p.referrerPolicy = 'no-referrer';
+          p.src = '/__uv?t=' + Date.now();
+        } catch (e) {}
+      })();
+    </script>
 </body>
 </html>

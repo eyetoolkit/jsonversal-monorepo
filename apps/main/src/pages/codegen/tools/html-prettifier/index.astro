@@ -159,7 +159,18 @@ select{padding:9px 12px;border:1px solid var(--border-input);border-radius:var(-
   $('mode').addEventListener('change',run);
   $('indent').addEventListener('change',run);
   $('sample').addEventListener('click',function(){
-    $('input').value='<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Example</title>\n  <style>\n    body { margin:0; font-family:sans-serif; }\n  </style>\n</head>\n<body>\n  <!-- Header -->\n  <header>\n    <h1>Hello World</h1>\n    <p>This is a paragraph.</p>\n  </header>\n</body>\n</html>';
+    $('input').value='<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Example</title>\n  <style>\n    body { margin:0; font-family:sans-serif; }\n  </style>\n</head>\n<body>\n  <!-- Header -->\n  <header>\n    <h1>Hello World</h1>\n    <p>This is a paragraph.</p>\n  </header>\n
+    <!-- First-party anonymous visit count (edge endpoint /__uv). Cookieless, no third party. -->
+    <script is:inline>
+      (function () {
+        try {
+          var p = new Image(1, 1);
+          p.referrerPolicy = 'no-referrer';
+          p.src = '/__uv?t=' + Date.now();
+        } catch (e) {}
+      })();
+    </script>
+</body>\n</html>';
     run();
   });
   $('copy-out').addEventListener('click',function(){
