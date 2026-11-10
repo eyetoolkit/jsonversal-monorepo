@@ -81,17 +81,12 @@ const productLabel = t.emoji ? `${t.name}`.toLowerCase() : siteKey;
 
 <script is:inline>
   (function(){
-    var KEY='versal-theme';
-    var root=document.body;
-    var saved=localStorage.getItem(KEY);
-    if(saved) root.setAttribute('data-theme', saved);
+    // BaseLayout owns the theme. This button only asks the single owner to
+    // flip it — no second bootstrap, no theme attribute on the body element.
     var btn=document.getElementById('vTheme');
-    if(btn){
-      btn.addEventListener('click',function(){
-        var cur=root.getAttribute('data-theme')==='dark'?'light':'dark';
-        root.setAttribute('data-theme',cur);
-        localStorage.setItem(KEY,cur);
-      });
-    }
+    if(btn){btn.addEventListener('click',function(){
+      var api=window.__versalTheme;
+      if(api) api.set(api.current()==='dark' ? 'light' : 'dark');
+    });}
   })();
 </script>

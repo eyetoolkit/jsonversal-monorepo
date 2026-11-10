@@ -30,8 +30,10 @@ tr:last-child td{border-bottom:none}
 .note{border-left:3px solid var(--brand);background:#fff;padding:14px 16px;border-radius:0 8px 8px 0;margin:20px 0}
 footer{border-top:1px solid var(--line);margin-top:48px;padding:24px 0;color:var(--muted);font-size:14px}
 </style>
+<link rel="stylesheet" href="/css/versal-uifix.css">
+<script>(function(){var k="versal-theme",v=null;try{v=localStorage.getItem(k)}catch(e){}if(!v&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches)v="light";document.documentElement.setAttribute("data-theme",v||"dark")})();</script>
 </head>
-<body>
+<body data-site="json">
 <header class="top"><div class="wrap"><a class="logo" href="https://jsonversal.com/">jsonversal</a> <span style="color:var(--muted)">/ comparisons</span></div></header>
 <div class="wrap">
 <h1>JSON Formatter &amp; Validator: jsonversal vs the alternatives</h1>
@@ -62,5 +64,6 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:24px 0;color:var
 <script>
 (function(){try{var p=new Image(1,1);p.referrerPolicy="no-referrer";p.src="/__uv?t="+Date.now()}catch(e){}})();
 </script>
+<script src="/js/versal-uifix.js" defer></script>
 </body>
 </html>

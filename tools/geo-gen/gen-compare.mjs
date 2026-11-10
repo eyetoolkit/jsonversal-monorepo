@@ -16,33 +16,37 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, '../../apps/main/public/compare');
 
-const CSS = `:root{--brand:#4f46e5;--ink:#0b1220;--muted:#5a6780;--line:#e6e9f0;--bg:#f7f8fb;--ok:#059669;--warn:#b45309}
+const CSS = `:root{--cmp-brand:#4f46e5;--cmp-ink:#0b1220;--cmp-muted:var(--text-dim,#475569);--cmp-line:#e6e9f0;--cmp-bg:#fff;--cmp-soft:#f7f8fb;--cmp-ok:var(--success-ink,#047857);--cmp-no:var(--danger-ink,#b91c1c);--cmp-warn:#92400e}
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+html,body{overflow-x:clip}
+body{margin:0;font-family:var(--font-sans,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif);color:var(--cmp-ink);background:var(--cmp-soft);line-height:1.65}
 .wrap{max-width:920px;margin:0 auto;padding:32px 20px 64px}
-header.top{border-bottom:1px solid var(--line);background:#fff}
-header.top .wrap{padding:16px 20px;display:flex;align-items:center;gap:10px}
-.logo{font-weight:700;color:var(--brand);font-size:18px;text-decoration:none}
-h1{font-size:28px;line-height:1.25;margin:8px 0}
-h2{font-size:20px;margin:32px 0 10px}
-p.lede{color:var(--muted);font-size:17px;margin-top:0}
-a{color:var(--brand)}
-table{width:100%;border-collapse:collapse;margin:18px 0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;font-size:14.5px}
+header.top{border-bottom:1px solid var(--cmp-line);background:var(--cmp-bg)}
+header.top .wrap{padding:14px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+header.top nav{display:flex;align-items:center;gap:4px;margin-left:auto;flex-wrap:wrap}
+header.top nav a{min-height:44px;display:inline-flex;align-items:center;padding:8px 12px;border-radius:12px;font-size:14px;font-weight:600;color:var(--cmp-muted)}
+header.top nav a:hover{color:var(--cmp-brand);background:#eef2ff}
+.logo{font-weight:800;color:var(--cmp-brand);font-size:18px;text-decoration:none}
+h1{font-size:clamp(32px,4.6vw,48px);font-weight:800;line-height:1.12;letter-spacing:-.025em;margin:8px 0}
+h2{font-size:clamp(21px,2.2vw,25px);margin:32px 0 10px}
+p.lede{color:var(--cmp-muted);font-size:17px;margin-top:0}
+a{color:var(--cmp-brand)}
+table{width:100%;border-collapse:collapse;margin:18px 0;background:var(--cmp-bg);border:1px solid var(--cmp-line);border-radius:12px;overflow:hidden;display:block;overflow-x:auto}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--cmp-line);vertical-align:top;font-size:14.5px}
 th{background:#f1f5f9;font-weight:600}
 tr:last-child td{border-bottom:none}
-.yes{color:var(--ok);font-weight:600}
-.no{color:#b91c1c;font-weight:600}
-.mid{color:var(--warn);font-weight:600}
-.cta{display:inline-block;margin-top:8px;background:var(--brand);color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600}
-.note{border-left:3px solid var(--brand);background:#fff;padding:14px 16px;border-radius:0 8px 8px 0;margin:20px 0}
+.yes{color:var(--cmp-ok);font-weight:700}
+.no{color:var(--cmp-no);font-weight:700}
+.mid{color:var(--cmp-warn);font-weight:700}
+.cta{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;background:var(--cmp-brand);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600}
+.note{border-left:3px solid var(--cmp-brand);background:var(--cmp-bg);padding:14px 16px;border-radius:0 12px 12px 0;margin:20px 0}
 .related{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:16px 0}
-.related a{border:1px solid var(--line);background:#fff;border-radius:10px;padding:14px 16px;text-decoration:none;color:inherit}
-.related a:hover{border-color:var(--brand)}
-.related strong{display:block;color:var(--brand);font-size:15px;margin-bottom:2px}
-.related span{font-size:13.5px;color:var(--muted)}
-footer{border-top:1px solid var(--line);margin-top:48px;padding:24px 0;color:var(--muted);font-size:14px}
-@media(max-width:640px){h1{font-size:22px}th,td{padding:10px;font-size:13.5px}}`;
+.related a{border:1px solid var(--cmp-line);background:var(--cmp-bg);border-radius:12px;padding:14px 16px;text-decoration:none;color:inherit}
+.related a:hover{border-color:var(--cmp-brand)}
+.related strong{display:block;color:var(--cmp-brand);font-size:15px;margin-bottom:2px}
+.related span{font-size:13.5px;color:var(--cmp-muted)}
+footer{border-top:1px solid var(--cmp-line);margin-top:48px;padding:24px 0;color:var(--cmp-muted);font-size:14px}
+@media(max-width:640px){h1{font-size:30px}th,td{padding:10px;font-size:13.5px}header.top nav{width:100%;margin-left:0}}`;
 
 const PAGES = [
   {
@@ -203,11 +207,13 @@ function render(p) {
 <meta name="description" content="${escape(p.lede)}">
 <link rel="canonical" href="https://jsonversal.com/compare/${p.slug}/">
 <script type="application/ld+json" is:inline>${JSON.stringify(faqLd)}</script>
+<link rel="stylesheet" href="/css/versal-uifix.css">
+<script>(function(){var k="versal-theme",v=null;try{v=localStorage.getItem(k)}catch(e){}if(!v&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches)v="light";document.documentElement.setAttribute("data-theme",v||"dark")})();</script>
 <style>${CSS}</style>
 </head>
-<body>
-<header class="top"><div class="wrap"><a class="logo" href="https://jsonversal.com/">jsonversal</a> <span style="color:var(--muted)">/ comparisons</span></div></header>
-<div class="wrap">
+<body data-site="json">
+<header class="top"><div class="wrap"><a class="logo" href="https://jsonversal.com/">jsonversal</a> <span style="color:var(--cmp-muted)">/ comparisons</span><nav aria-label="Comparisons"><a href="/compare/">All comparisons</a><a href="/">Home</a><a href="/tools/">Tools</a></nav></div></header>
+<main class="wrap">
 <h1>${escape(p.title)}</h1>
 <p class="lede">${escape(p.lede)}</p>
 <h2>Feature comparison</h2>
@@ -226,12 +232,13 @@ ${rowsHtml}
   <a href="/compare/json-to-typescript/"><strong>JSON to TypeScript</strong><span>jsonversal vs QuickType</span></a>
   <a href="/compare/"><strong>All comparisons</strong><span>Every side-by-side we publish</span></a>
 </div>
-</div>
+</main>
 <footer><div class="wrap">© jsonversal — all tools run 100% client-side in your browser. Comparisons are informational; verify each tool's current privacy posture before trusting it with sensitive data.</div></footer>
 <!-- First-party anonymous visit count (edge /__uv); cookieless, no third party. -->
 <script>
 (function(){try{var p=new Image(1,1);p.referrerPolicy="no-referrer";p.src="/__uv?t="+Date.now()}catch(e){}})();
 </script>
+<script src="/js/versal-uifix.js" defer></script>
 </body>
 </html>
 `;

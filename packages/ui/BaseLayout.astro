@@ -265,13 +265,16 @@ const jsonLd = schemaEntries.length > 1
       })();
     </script>
 
+    <link rel="stylesheet" href="/css/versal-uifix.css" />
+    <script is:inline src="/js/versal-uifix.js" defer></script>
+
     {/* JSON-LD —— @graph 合并 WebApplication + BreadcrumbList + FAQPage（Rich Results） */}
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 
     {/* 子站可插入额外的 <head> 内容（如页面级结构化数据） */}
     <slot name="head" />
   </head>
-  <body class={`site-${site}`} data-site={versalSiteKey} data-theme="dark">
+  <body class={`site-${site}`} data-site={versalSiteKey}>
     <a class="skip-link" href="#main">Skip to content</a>
 
     {/* Toast 容器 —— 非阻塞通知，替代原生 alert() */}

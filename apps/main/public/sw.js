@@ -9,7 +9,7 @@
  */
 // 2026-11-08 (B5): new /about/ + /contact/, legal contact wording, /__uv bypass.
 // HTML is network-first, but bumping evicts any older cached copies on activation.
-const VERSION = 'versal-v1.0.1-2026-11-08';
+const VERSION = 'versal-v1.0.2-2026-11-10';
 const STATIC_CACHE = `${VERSION}-static`;
 const HTML_CACHE = `${VERSION}-html`;
 

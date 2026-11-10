@@ -53,8 +53,31 @@ const collectionSchema = {
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jsonversal.com/codegen/">
 <script type="application/ld+json" set:html={JSON.stringify(collectionSchema)}></script>
+  <script is:inline>
+      (function () {
+        var KEY = 'versal-theme', root = document.documentElement;
+        function sys(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }
+        function stored(){ try { var v = localStorage.getItem(KEY); return v === 'light' || v === 'dark' ? v : null; } catch (e) { return null; } }
+        function paint(t){ root.setAttribute('data-theme', t); }
+        paint(stored() || sys());
+        window.__versalTheme = {
+          key: KEY,
+          current: function(){ return root.getAttribute('data-theme') || 'dark'; },
+          set: function(t){ paint(t); try { localStorage.setItem(KEY, t); } catch (e) {} },
+          reset: function(){ try { localStorage.removeItem(KEY); } catch (e) {} paint(sys()); }
+        };
+        if (window.matchMedia) {
+          var mq = window.matchMedia('(prefers-color-scheme: light)');
+          var onChange = function(){ if (!stored()) paint(sys()); };
+          if (mq.addEventListener) mq.addEventListener('change', onChange);
+          else if (mq.addListener) mq.addListener(onChange);
+        }
+      })();
+    </script>
+  <link rel="stylesheet" href="/css/versal-uifix.css">
+  <script is:inline src="/js/versal-uifix.js" defer></script>
 </head>
-<body data-site="codegen" data-theme="light">
+<body data-site="codegen">
 
 <header class="v-header">
   <div class="v-header__inner">
@@ -223,11 +246,8 @@ const collectionSchema = {
 
 <script is:inline>
 (function(){
-  var KEY='versal-theme';
-  var saved=localStorage.getItem(KEY);
-  if(saved) document.body.setAttribute('data-theme',saved);
   var btn=document.getElementById('vTheme');
-  if(btn){btn.addEventListener('click',function(){var cur=document.body.getAttribute('data-theme')==='dark'?'light':'dark';document.body.setAttribute('data-theme',cur);localStorage.setItem(KEY,cur);});}
+  if(btn){btn.addEventListener('click',function(){var api=window.__versalTheme;if(api)api.set(api.current()==='dark'?'light':'dark');});}
   var T={
     node:["# Dependencies","/node_modules","/pnp.*.js","","# Build output","/build","/dist","/.next","/.out","","# Logs","npm-debug.log*","yarn-debug.log*","yarn-error.log*","pnpm-debug.log*","","# Env",".env",".env.local",".env.*.local",""],
     python:["# Byte-compiled","__pycache__/","*.py[cod]","*$py.class","","# Virtual env",".venv/","venv/","env/",""],

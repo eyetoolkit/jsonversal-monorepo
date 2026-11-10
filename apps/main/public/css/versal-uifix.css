@@ -1,0 +1,160 @@
+/* ==========================================================================
+   jsonversal — versal-uifix.css  (UI-FIX 2026-11-10)
+   Shared repair layer loaded from /css/ on every BaseLayout page, all four
+   standalone landing pages and every /compare/ static page.
+
+   P0-1 mobile nav | P0-2 theme consistency | P1-3 contrast | P1-4 ad slots
+   P2-4 result emphasis | P2-5 lightweight editor | P2-6 touch targets
+   ========================================================================== */
+:root{
+  --tap-min:44px;
+  --v-ad-h-header:90px;
+  --v-ad-h-incontent:250px;
+  --v-ad-h-mobile:50px;
+  --uifix-ok:var(--success,#047857);
+}
+
+/* ---------- 1. Theme consistency (P0-2) --------------------------------- */
+/* data-theme lives on <html> only. A stray body attribute (older templates)
+   must never re-declare the whole token set a second time.                  */
+html,body{overflow-x:clip}
+html[data-theme="light"]{color-scheme:light}
+html[data-theme="dark"]{color-scheme:dark}
+body[data-theme]{color-scheme:inherit}
+html[data-theme="light"]{
+  --v-hush:#4b5568;      /* was #8593a8 = 3.12:1 on footer */
+  --v-mute:#4b5568;
+  --text-dim:#475569;
+  --text-muted:#3f4859;
+  --accent-btn:#4f46e5;  /* white-on-brand >= 6.29:1 */
+}
+html[data-theme="dark"]{
+  --v-hush:#b9c2d0;
+  --v-mute:#aeb8c8;
+  --text-dim:#c2cad8;
+  --accent-btn:#6366f1;
+}
+html[data-theme="light"] .v-footer__bottom,
+html[data-theme="light"] .v-footer__bottom a,
+html[data-theme="light"] .v-footer__col h4{color:#4b5568}
+html[data-theme="dark"] .v-footer__bottom,
+html[data-theme="dark"] .v-footer__bottom a,
+html[data-theme="dark"] .v-footer__col h4{color:#b9c2d0}
+/* anchors and secondary text that were too pale on either theme */
+html[data-theme="light"] .text-dim,html[data-theme="light"] .text-muted{color:#475569}
+html[data-theme="dark"] .text-dim,html[data-theme="dark"] .text-muted{color:#c2cad8}
+/* #6366f1 on --surface measured 4.24:1 — use the darker accent ink instead */
+html[data-theme="light"] main a:not(.primary):not(.ghost):not(.chip):not(.tool-card){color:var(--accent-text,#4f46e5)}
+html[data-theme="dark"] main a:not(.primary):not(.ghost):not(.chip):not(.tool-card){color:#a5b4fc}
+html[data-theme="light"] .v-logo__sep{color:#4b5568}
+html[data-theme="dark"] .v-logo__sep{color:#aeb8c8}
+.primary,button.primary{min-height:var(--tap-min);color:#fff}
+.ghost,button.ghost{min-height:var(--tap-min);color:var(--text)}
+:focus-visible{outline:3px solid var(--accent,#6366f1);outline-offset:2px}
+
+/* ---------- 2. Mobile navigation: hamburger + drawer (P0-1) ------------- */
+.v-burger,.v-drawer{display:none}
+@media (max-width:760px){
+  .v-header__inner{
+    position:relative;height:56px;gap:10px;padding:0 14px;flex-wrap:nowrap;overflow:visible;
+  }
+  .v-logo{font-size:16px;flex-shrink:1;min-width:0}
+  .v-nav{display:none !important}
+  .v-header__end{display:none !important}
+  .v-burger{
+    display:inline-flex;align-items:center;justify-content:center;
+    margin-left:auto;flex:0 0 var(--tap-min);
+    width:var(--tap-min);height:var(--tap-min);padding:0;
+    border:1px solid var(--v-line-strong,#c5ccd6);border-radius:12px;
+    background:var(--v-paper,#fff);color:var(--v-ink,#0b1220);
+    font-size:20px;line-height:1;cursor:pointer;
+  }
+  .v-burger[aria-expanded="true"]{border-color:var(--v-accent-ink,#4f46e5)}
+  .v-drawer{
+    position:absolute;top:56px;left:0;right:0;
+    display:none;flex-direction:column;gap:2px;
+    max-height:calc(100vh - 56px);overflow-y:auto;
+    padding:12px 14px 18px;
+    background:var(--surface,#14171f);color:var(--text,#e7eaf0);
+    border-bottom:1px solid var(--border,#334155);
+    box-shadow:0 18px 32px -14px rgba(0,0,0,.5);z-index:60;
+  }
+  .v-drawer.is-open{display:flex}
+  .v-drawer a{
+    display:flex;align-items:center;min-height:var(--tap-min);
+    padding:10px 12px;border-radius:12px;
+    color:var(--text,#e7eaf0);font-size:1rem;font-weight:600;
+  }
+  .v-drawer a:hover{background:var(--accent-soft,rgba(99,102,241,.12))}
+  .v-drawer__tools{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    border-top:1px solid var(--border,#334155);margin-top:8px;padding-top:12px;
+  }
+  .v-drawer__tools .v-theme{width:var(--tap-min);height:var(--tap-min)}
+  .v-drawer__tools .v-matrix-btn summary{min-height:var(--tap-min);display:inline-flex;align-items:center}
+}
+/* long code / tables must scroll inside their own box, never the page */
+pre,.output-text,table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+pre:focus-visible,table:focus-visible{outline:3px solid var(--accent,#6366f1);outline-offset:2px}
+
+/* ---------- 3. Ad slot reservation, zero CLS (P1-4) -------------------- */
+/* Empty slots occupy nothing. Once filled, :not(:empty) locks the geometry
+   so wiring ads later never shifts content (CLS < 0.1). No ads are served. */
+.v-ad-slot{display:none;contain:layout style}
+.v-ad-slot:not(:empty){
+  display:flex;align-items:center;justify-content:center;
+  width:100%;max-width:728px;margin:24px auto;
+  border:1px dashed var(--border,#334155);border-radius:12px;
+  background:linear-gradient(110deg,var(--surface,#14171f) 8%,var(--surface-2,#1e293b) 18%,var(--surface,#14171f) 33%);
+  background-size:220% 100%;animation:v-shimmer 1.6s linear infinite;
+  contain-intrinsic-size:auto var(--v-ad-h-incontent);
+}
+.v-ad-slot:not(:empty)::before{content:"Advertisement";font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim,#838c9c)}
+.v-ad-header:not(:empty){height:var(--v-ad-h-header);min-height:var(--v-ad-h-header);aspect-ratio:728/90}
+.v-ad-incontent:not(:empty){height:var(--v-ad-h-incontent);min-height:var(--v-ad-h-incontent);aspect-ratio:728/250}
+@keyframes v-shimmer{to{background-position-x:-220%}}
+@media (max-width:768px){.v-ad-header:not(:empty),.v-ad-incontent:not(:empty){height:auto;min-height:var(--v-ad-h-mobile);aspect-ratio:auto}}
+@media (prefers-reduced-motion:reduce){.v-ad-slot:not(:empty){animation:none}}
+
+/* ---------- 4. Touch targets (P2-6) ------------------------------------- */
+@media (max-width:768px){
+  .v-nav a,.v-footer__col a,.v-footer__bottom a,.tool-card,.chip,
+  .v-matrix-btn summary,.v-theme,.icon-btn,.ghost,.primary{
+    min-height:var(--tap-min);
+  }
+  .v-footer__col a{display:inline-flex;align-items:center;padding:8px 0}
+  .v-theme{width:var(--tap-min);height:var(--tap-min)}
+}
+
+/* ---------- 5. Lightweight editor upgrade (P2-5) ----------------------- */
+.v-editor{display:flex;gap:0;border:1px solid var(--border-input,#475569);border-radius:12px;overflow:hidden;background:var(--surface-alt,#0f172a)}
+.v-editor textarea{
+  flex:1 1 auto;min-width:0;border:0;border-radius:0;outline:none;
+  font-family:var(--font-mono,ui-monospace,"Geist Mono",monospace) !important;
+  font-size:.9rem;line-height:1.55;tab-size:2;
+  white-space:pre;overflow:auto;resize:vertical;
+}
+.v-gutter{
+  flex:0 0 48px;padding:12px 8px 12px 0;text-align:right;
+  font-family:var(--font-mono,ui-monospace,monospace);font-size:.9rem;line-height:1.55;
+  color:var(--text-dim,#838c9c);background:var(--surface-2,#1e293b);
+  border-right:1px solid var(--border,#334155);
+  overflow:hidden;user-select:none;
+}
+.v-gutter span{display:block}
+.v-gutter span.is-error{color:#fca5a5;font-weight:700;background:rgba(248,113,113,.16)}
+.v-editor:focus-within{outline:3px solid var(--accent,#6366f1);outline-offset:1px}
+.v-format-state{font-size:.8rem;margin-left:8px;color:var(--text-dim,#838c9c)}
+.v-format-state.is-done{color:var(--uifix-ok)}
+.v-result-pulse{animation:v-pulse .7s ease}
+@keyframes v-pulse{0%{box-shadow:0 0 0 0 var(--accent-soft,rgba(99,102,241,.3))}50%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+/* ---------- 6. Standalone /compare/ pages ------------------------------- */
+header.top nav a{min-height:var(--tap-min);display:inline-flex;align-items:center}
+header.top table{display:block;overflow-x:auto}
+@media (max-width:640px){header.top .wrap{padding:12px}}
+
+@media (prefers-reduced-motion:reduce){
+  .v-result-pulse{animation:none}
+  .v-ad-slot:not(:empty){animation:none}
+}
