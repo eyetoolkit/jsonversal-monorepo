@@ -39,6 +39,12 @@ const about = [
       "It does not recompute the digest, because it has no original input to hash. It identifies the algorithm by the digest's shape, not by reversing it. To verify that a specific digest was produced by a specific algorithm you need the original message, which is a separate problem.",
       "There is no network access anywhere in this page. Normalisation, entropy, and the optional Web Crypto verification all run on your machine, so very long inputs are processed at whatever speed your browser manages and nothing is ever transmitted."
     ]
+  },
+  {
+    "heading": "When to reach for it",
+    "body": [
+      "Use it whenever a digest appears without a label — a commit hash in a changelog, a file fingerprint in an integrity report, a token in a config file — and you need to know which algorithm produced it before you trust or reuse it. The most common case is deciding whether a stored password hash is a legacy MD5 or SHA-1 that should be migrated, or a modern SHA-256 that is acceptable. Knowing the length first tells you whether the surrounding system is doing something reasonable, and the entropy reading flags digests that are too short or too structured to be real output."
+    ]
   }
 ];
 ---
