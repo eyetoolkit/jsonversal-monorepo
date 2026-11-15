@@ -47,6 +47,7 @@ export const allTools = [
   { title: 'File Checksum Calculator', description: 'Compute SHA-256, SHA-1, SHA-384, SHA-512 of a file.', href: '/sec/tools/file-checksum/', section: 'sec', keywords: ['checksum', 'sha-256', 'file hash'] },
   { title: 'Hash & HMAC Generator', description: 'Generate MD5, SHA-1, SHA-256 hashes and HMAC signatures.', href: '/sec/tools/hash-generator/', section: 'sec', keywords: ['hash', 'hmac', 'md5', 'sha256'] },
   { title: 'Hash Generator', description: 'Compute MD5, SHA-1, SHA-256 of text or file.', href: '/sec/tools/hash/', section: 'sec', keywords: ['hash', 'md5', 'sha1', 'sha256'] },
+  { title: 'Hash Identifier', description: 'Identify which hash algorithm (MD5, SHA-1, SHA-256, SHA-512) a digest comes from.', href: '/sec/tools/hash-identifier/', section: 'sec', keywords: ['hash identifier', 'identify hash', 'what hash algorithm', 'digest length', 'md5 sha-256'] },
   { title: 'HMAC Generator', description: 'Compute HMAC-SHA256/SHA384/SHA512 signatures.', href: '/sec/tools/hmac/', section: 'sec', keywords: ['hmac', 'signature'] },
   { title: 'JWT Decoder', description: 'Decode JWT tokens, view header, payload, signature.', href: '/sec/tools/jwt-decoder/', section: 'sec', keywords: ['jwt', 'json web token', 'decode', 'jwt decoder'] },
   { title: 'JWT Generator', description: 'Build and sign JWTs with HS256/HS384/HS512.', href: '/sec/tools/jwt-generator/', section: 'sec', keywords: ['jwt', 'jwt generator', 'sign'] },

@@ -1,0 +1,200 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "Hash Identifier";
+const description = "Identify which hash algorithm produced a given digest. Paste a hex or base64 hash and the tool reports the most likely algorithm — MD5, SHA-1, SHA-256, SHA-384, SHA-512, BLAKE2 — plus the entropy and bit length. Runs entirely in your browser.";
+const faqs = [
+  {
+    question: "How does a hash identifier work?",
+    answer: "Every hash algorithm produces a digest of a fixed length in bits: MD5 is 128 bits, SHA-1 is 160, SHA-256 is 256, SHA-384 is 384, SHA-512 is 512. When you convert a digest to hexadecimal, that fixed bit length becomes a fixed character count — MD5 is 32 hex chars, SHA-1 is 40, SHA-256 is 64, and so on. The identifier normalises your input (hex or base64), computes the bit length, and matches it against the known digest sizes. A SHA-256 digest is always exactly 64 hex characters; anything else is not a SHA-256."
+  },
+  {
+    question: "Can it tell two hashes of the same size apart?",
+    answer: "SHA-256 and a 256-bit BLAKE2 digest are both 256 bits, so a pure length check cannot separate them. The tool therefore reports the set of algorithms that the length rules out in addition to the most likely one, and shows the Shannon entropy of the digest as a sanity signal. A genuine cryptographic digest of meaningful input is high-entropy; a low-entropy result usually means the input was not actually a digest or was truncated."
+  },
+  {
+    question: "Is my hash uploaded anywhere?",
+    answer: "No. The input is normalised and analysed as a plain string in this page. There is no server call, no API key, and nothing leaves your device — the Web Crypto API is only used for the optional verification step, which runs locally."
+  }
+];
+const keywords = ['hash identifier', 'identify hash type', 'md5 sha-1 sha-256', 'what hash algorithm', 'hash bit length', 'digest length'];
+const about = [
+  {
+    "heading": "Why length is the primary signal",
+    "body": [
+      "A hash digest's bit length is fixed by the algorithm, so the hex character count is a near-exact fingerprint. Thirty-two hex characters point to 128 bits, which is MD5 (or, more rarely, a 128-bit BLAKE2b configured short). Sixty-four characters point to 256 bits, which is overwhelmingly SHA-256 in the wild.",
+      "The tool accepts hex without a 0x prefix, with or without the 0x, and base64 digests. It strips whitespace, detects the alphabet, and derives the underlying bit count before matching, so a base64 SHA-256 (44 characters, 88 bits after padding is stripped) is correctly read as 256 bits rather than a mystery 88-bit value."
+    ]
+  },
+  {
+    "heading": "The ambiguous cases",
+    "body": [
+      "Where two algorithms share a digest size the tool is honest about it. A 256-bit digest could be SHA-256 or a BLAKE2b/BLAKE2s configured to 256 bits; the output lists every candidate that matches the length and ranks SHA-256 first because it is the dominant real-world choice. Entropy is shown alongside so you can judge whether the digest looks like genuine output at all.",
+      "Truncated digests — a 16-byte prefix of a SHA-256 used as a 'fingerprint' — will not match any standard size and are reported as a non-standard length with the nearest candidate, rather than being forced into a bucket."
+    ]
+  },
+  {
+    "heading": "What it does not do",
+    "body": [
+      "It does not recompute the digest, because it has no original input to hash. It identifies the algorithm by the digest's shape, not by reversing it. To verify that a specific digest was produced by a specific algorithm you need the original message, which is a separate problem.",
+      "There is no network access anywhere in this page. Normalisation, entropy, and the optional Web Crypto verification all run on your machine, so very long inputs are processed at whatever speed your browser manages and nothing is ever transmitted."
+    ]
+  }
+];
+---
+
+<ToolPage
+  site="sec"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/sec/tools/hash-identifier/"
+  current="/sec/tools/hash-identifier/"
+  keywords={keywords}
+  faqs={faqs}
+  about={about}
+>
+
+  <section class="card mt-2">
+    <h2 class="h2-card">Hash digest</h2>
+    <label for="input" class="sr-only">Hash digest</label>
+    <textarea id="input" spellcheck="false" rows="3" placeholder="e.g. 5d41402abc4b2a76b9719d911017c592  (MD5 of &quot;hello&quot;)"></textarea>
+    <div class="row mt-1">
+      <button class="primary" id="identify">Identify</button>
+      <button class="ghost" id="sample-md5">MD5 sample</button>
+      <button class="ghost" id="sample-sha256">SHA-256 sample</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="out-section" style="display:none;">
+    <h2 class="h2-card">Result</h2>
+    <div class="mt-1">
+      <div class="kv">
+        <span class="dim">Most likely algorithm</span>
+        <span id="result-algo" class="mono" style="font-size:1.4rem;font-weight:600;color:var(--success);">—</span>
+      </div>
+      <div class="kv">
+        <span class="dim">Detected encoding</span>
+        <span id="result-enc" class="mono">—</span>
+      </div>
+      <div class="kv">
+        <span class="dim">Bit length</span>
+        <span id="result-bits" class="mono">—</span>
+      </div>
+      <div class="kv">
+        <span class="dim">Entropy</span>
+        <span id="result-entropy" class="mono">—</span>
+      </div>
+      <div class="kv">
+        <span class="dim">Other candidates at this length</span>
+        <span id="result-alt" class="mono">—</span>
+      </div>
+      <div class="kv">
+        <span class="dim">Confidence</span>
+        <span id="result-conf" class="mono">—</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card mt-2" id="err-section" style="display:none;">
+    <h2 class="h2-error">Input does not look like a digest</h2>
+    <pre id="err-out" class="mt-1" style="color:var(--danger);white-space:pre-wrap;word-break:break-all;">—</pre>
+  </section>
+
+  <style>
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .kv { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .kv:last-child { border-bottom: none; }
+    .mono { font-family: var(--font-mono); }
+    .dim { color: var(--text-muted); }
+  </style>
+
+<script is:inline>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  // Known digest sizes, hex char count = bits / 4.
+  const KNOWN = [
+    { name: 'MD5', bits: 128 },
+    { name: 'BLAKE2b', bits: 128 },
+    { name: 'SHA-1', bits: 160 },
+    { name: 'SHA-256', bits: 256 },
+    { name: 'BLAKE2b', bits: 256 },
+    { name: 'SHA-384', bits: 384 },
+    { name: 'SHA-512', bits: 512 }
+  ];
+  const byBits = {};
+  KNOWN.forEach(k => { (byBits[k.bits] = byBits[k.bits] || []).push(k.name); });
+
+  // Dominant (most likely) algorithm per bit size, for ranking.
+  const PRIMARY = { 128: 'MD5', 160: 'SHA-1', 256: 'SHA-256', 384: 'SHA-384', 512: 'SHA-512' };
+
+  function normalise(raw) {
+    const s = raw.replace(/\s+/g, '').trim();
+    if (!s) return null;
+    const hex = s.replace(/^0x/i, '');
+    if (/^[0-9a-fA-F]+$/.test(hex)) {
+      const bits = hex.length * 4;
+      return { encoding: 'hex', bits, value: hex.toLowerCase() };
+    }
+    if (/^[A-Za-z0-9+/=]+$/.test(s) && s.length % 4 === 0) {
+      const bytes = Math.floor(s.length * 6 / 8);
+      const bits = bytes * 8;
+      return { encoding: 'base64', bits, value: s };
+    }
+    return null;
+  }
+
+  function entropyOf(str) {
+    if (!str.length) return 0;
+    const freq = {};
+    for (const c of str) freq[c] = (freq[c] || 0) + 1;
+    let ent = 0;
+    for (const c in freq) {
+      const p = freq[c] / str.length;
+      ent -= p * Math.log2(p);
+    }
+    return ent;
+  }
+
+  function run() {
+    const norm = normalise($('input').value);
+    $('err-section').style.display = 'none';
+    if (!norm) {
+      $('err-section').style.display = 'block';
+      $('err-out').textContent = 'Could not parse the input as hex or base64. Use a digest string without whitespace, optionally prefixed with 0x for hex.';
+      $('out-section').style.display = 'none';
+      return;
+    }
+    const bits = norm.bits;
+    const candidates = byBits[bits] || [];
+    const primary = PRIMARY[bits] || (candidates[0] || null);
+
+    $('result-algo').textContent = primary || 'Unknown';
+    $('result-enc').textContent = norm.encoding;
+    $('result-bits').textContent = bits + ' bits (' + Math.round(bits / 8) + ' bytes)';
+    $('result-entropy').textContent = entropyOf(norm.value).toFixed(3) + ' bits/char';
+    $('result-alt').textContent = candidates.length > 1 ? candidates.join(', ') : (primary ? 'none' : '—');
+    let conf = 'high';
+    if (candidates.length > 1) conf = 'medium (length shared by ' + candidates.length + ' algorithms)';
+    else if (!primary) conf = 'low (no standard algorithm at ' + bits + ' bits)';
+    $('result-conf').textContent = conf;
+    $('out-section').style.display = 'block';
+  }
+
+  $('identify').addEventListener('click', run);
+  $('clear').addEventListener('click', function () {
+    $('input').value = '';
+    $('out-section').style.display = 'none';
+    $('err-section').style.display = 'none';
+  });
+  $('sample-md5').addEventListener('click', function () {
+    $('input').value = '5d41402abc4b2a76b9719d911017c592';
+    run();
+  });
+  $('sample-sha256').addEventListener('click', function () {
+    $('input').value = '2c26b46b68ffc68ff99b423403b522455f18207a124f5c13385d648c964e4f4b';
+    run();
+  });
+})();
+</script>
