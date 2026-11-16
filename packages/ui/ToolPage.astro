@@ -125,6 +125,43 @@ const allFaqs = faqs ? [...faqs, ...universalFaqs] : universalFaqs;
 
   <slot />
 
+  {/* P1: 通用结果下载 —— ToolPage 覆盖全部 82 个工具页，从已渲染输出抓文本。
+      不猜工具内部状态：只取可见输出节点的文本，没有结果时给出提示。 */}
+  <div class="p1-download">
+    <button type="button" class="ghost" id="p1-download-btn" aria-label="Download the current result as a text file">Download result</button>
+    <span class="p1-download-hint">Exports the current output as a .txt file — nothing is uploaded.</span>
+  </div>
+  <script is:inline>
+  (function () {
+    var btn = document.getElementById('p1-download-btn');
+    if (!btn) return;
+    function findText() {
+      var selectors = ['#output', '#result', '[id$="-text"]', '.output-text', '.result pre', 'pre'];
+      for (var i = 0; i < selectors.length; i++) {
+        var nodes = document.querySelectorAll(selectors[i]);
+        for (var j = 0; j < nodes.length; j++) {
+          var t = (nodes[j].textContent || '').trim();
+          if (t && t !== '—' && t.length > 1 && !/^(output|result)$/i.test(t)) return t;
+        }
+      }
+      return '';
+    }
+    btn.addEventListener('click', function () {
+      var text = findText();
+      if (!text) {
+        if (window.showToast) window.showToast('Run the tool first — there is no result to download yet.');
+        return;
+      }
+      var name = (location.pathname.split('/').filter(Boolean).pop() || 'result') + '.txt';
+      var url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+      var a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      if (window.showToast) window.showToast('Downloaded ' + name);
+    });
+  })();
+  </script>
+
   {/* 说明正文 —— 只有传入 about 时才渲染。
       TOC 只在有 2 个以上小节时出现：竞品与我们此前都没有目录，
       对 1000+ 词的页面它既提升可读性，也给 AI 提供可引用的章节锚点。 */}
@@ -153,3 +190,17 @@ const allFaqs = faqs ? [...faqs, ...universalFaqs] : universalFaqs;
   {/* 工具流转推荐 —— 当前工具完成后，下一步可能用到的相关工具 */}
   <ToolSuggestions current={current} />
 </BaseLayout>
+
+<style>
+  .p1-download {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 20px 0 4px;
+  }
+  .p1-download-hint {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+</style>

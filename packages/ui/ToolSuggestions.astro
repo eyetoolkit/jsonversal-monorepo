@@ -1,8 +1,10 @@
 ---
 // ToolSuggestions — 工具完成后的"下一步"提示
-// 根据当前工具页 + 常见用户路径，推荐 2-3 个逻辑上顺延的工具
+// curated 路径优先；不足 5 个时从 allTools 单一事实源按关键词重叠自动补齐。
+// P1 2026-11-16：此前只有 ~20 个 slug 配了 curated，60+ 工具页没有任何推荐。
 //
 // 用法：在 ToolPage 内底部自动注入
+import { allTools } from '@versal/config/all-tools';
 
 const { current } = Astro.props as { current: string };
 
@@ -97,12 +99,40 @@ function getSlug(currentPath: string): string {
 }
 
 const slug = getSlug(current);
-const suggestions = SUGGESTIONS[slug] || [];
+const curated = SUGGESTIONS[slug] || [];
 
-// 调试：如果没有建议，什么也不渲染（避免空盒子）
-if (suggestions.length === 0) {
-  // 渲染为空 —— Astro 会跳过空 fragment
-}
+// —— P1：curated 不足 5 条时，从 allTools 单一事实源自动补齐 ——
+const norm = (p: string) => String(p || '').replace(/\/$/, '');
+const STOP = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'tool', 'tools', 'generator', 'generated', 'converter', 'convert', 'data', 'make', 'free', 'online']);
+const words = (s: unknown) => String(s || '').toLowerCase().match(/[a-z0-9+#.]+/g) || [];
+const termSet = (t: any) => new Set(
+  [...words(t.title), ...words(t.description), ...(t.keywords || []).flatMap((k: string) => words(k))]
+    .filter((w: string) => w.length > 2 && !STOP.has(w))
+);
+
+const currentTool = allTools.find((t: any) => norm(t.href) === norm(current));
+const currentTerms = currentTool ? termSet(currentTool) : new Set(words(slug));
+const alreadyPicked = new Set(curated.map((s: any) => norm(s.href)));
+
+const auto = allTools
+  .filter((t: any) => norm(t.href) !== norm(current) && !alreadyPicked.has(norm(t.href)))
+  .map((t: any) => {
+    const ts = termSet(t);
+    const shared = [...currentTerms].filter((w: any) => ts.has(w));
+    const sameSection = currentTool && t.section === currentTool.section ? 1 : 0;
+    return { t, shared, score: shared.length * 2 + sameSection * 3 };
+  })
+  .sort((a: any, b: any) => b.score - a.score)
+  .slice(0, Math.max(0, 5 - curated.length))
+  .map((x: any) => ({
+    title: x.t.title,
+    href: x.t.href,
+    reason: x.shared.length
+      ? `also works with ${x.shared.slice(0, 2).join(' + ')}`
+      : 'another free browser-based tool',
+  }));
+
+const suggestions = [...curated, ...auto];
 ---
 
 {suggestions.length > 0 && (
@@ -119,7 +149,23 @@ if (suggestions.length === 0) {
   </section>
 )}
 
+{/* P1: 反馈入口随工具上下文走，/contact 可预填来源工具 */}
+<p class="p1-feedback">
+  Found a wrong result or a missing case?
+  <a href={`/contact/?tool=${encodeURIComponent(slug)}&subject=result-error`}>Tell us</a>
+  — a human reviews every report.
+</p>
+
 <style>
+  .p1-feedback {
+    margin: 18px 0 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+  .p1-feedback a {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
   .tool-suggestions {
     background: linear-gradient(135deg, var(--accent-soft, transparent), transparent);
     border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
