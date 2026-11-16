@@ -1,0 +1,14 @@
+{
+  "name": "versal matrix",
+  "updated": "2026-11-16",
+  "items": [
+    { "label": "versal everyday", "host": "mquickcalc.com", "href": "https://mquickcalc.com", "color": "#4f46e5", "kind": "external" },
+    { "label": "versal finance", "host": "finance.mquickcalc.com", "href": "https://finance.mquickcalc.com", "color": "#059669", "kind": "external" },
+    { "label": "versal health", "host": "health.mquickcalc.com", "href": "https://health.mquickcalc.com", "color": "#e11d48", "kind": "external" },
+    { "label": "versal cover", "host": "cover.mquickcalc.com", "href": "https://cover.mquickcalc.com", "color": "#0f766e", "kind": "external" },
+    { "label": "versal json", "host": "jsonversal.com", "href": "/", "color": "#4f46e5", "kind": "internal", "site": "main" },
+    { "label": "versal devops", "host": "jsonversal.com/devops", "href": "/devops/", "color": "#14b8a6", "kind": "internal", "site": "devops" },
+    { "label": "versal codegen", "host": "jsonversal.com/codegen", "href": "/codegen/", "color": "#f59e0b", "kind": "internal", "site": "codegen" },
+    { "label": "versal sec", "host": "jsonversal.com/sec", "href": "/sec/", "color": "#ef4444", "kind": "internal", "site": "sec" }
+  ]
+}
