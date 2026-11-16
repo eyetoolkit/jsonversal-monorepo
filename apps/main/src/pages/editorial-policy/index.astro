@@ -1,0 +1,34 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+---
+
+<BaseLayout site="main" title="Editorial policy" description="How jsonversal tools and explanations are written, reviewed, corrected and kept accurate — plus our advertising and measurement disclosures." canonical="https://jsonversal.com/editorial-policy/">
+  <h1>Editorial policy</h1>
+  <p class="text-muted">Last reviewed: 2026-11-16 · Operator: Jim (Maoming, Guangdong, China)</p>
+
+  <p>This policy applies to every page on jsonversal.com and its sister sites (mquickcalc.com, finance/health/cover subdomains). It exists so readers, advertisers and data-protection authorities can see who is responsible for the content and how we keep it accurate.</p>
+
+  <h2>Who writes and reviews</h2>
+  <p>All tools and explanatory text are written and reviewed by the operator, Jim, who is identified by name on our <a href="/about/">About page</a>. This is a one-person independent project: there is no editorial board and no outside contributor. For finance and health calculators on our sister sites, figures are estimates derived from published formulas and public fee schedules — they are not financial, medical or legal advice.</p>
+
+  <h2>How a tool is published</h2>
+  <ol>
+    <li><strong>Specify the behaviour.</strong> Inputs, output format, edge cases and the reference formula (if any) are written down before code.</li>
+    <li><strong>Implement locally.</strong> Every tool runs in the browser; no input is sent to a server.</li>
+    <li><strong>Verify with regression tests.</strong> The repository has an automated tool-check suite; a change that breaks an existing case blocks publication.</li>
+    <li><strong>Review the copy.</strong> Claims about accuracy, privacy and limitations are checked against the actual implementation.</li>
+    <li><strong>Deploy statically.</strong> Pages are generated with Astro and published through Cloudflare Pages; there is no manual server step that could alter content.</li>
+  </ol>
+
+  <h2>Corrections and updates</h2>
+  <p>If a tool returns a wrong result, or a statement on this site is out of date, report it through the <a href="/contact/">contact page</a> with the tool name and a sample input. Corrections to calculation logic are treated as priority. Each page carries a review date; materially changed pages get a new one. We do not silently rewrite published figures.</p>
+
+  <h2>Independence and advertising</h2>
+  <p>This site is not funded by vendors whose products it discusses. Where advertising is present, it is served by third-party ad networks in clearly marked slots; ad content is not written by us and does not influence tool results or rankings. Sponsored placements, if ever added, will be labelled explicitly. We do not accept payment to change a calculator result or a tool description.</p>
+
+  <h2>Measurement and privacy</h2>
+  <p>We use a first-party, cookieless anonymous visit counter (<code>/__uv</code>) and Cloudflare Web Analytics (Privacy Mode, no cookies, no cross-site profiling) to understand aggregate traffic. Neither receives tool input. The full disclosure — including what is stored and for how long — is in the <a href="/privacy/">Privacy Policy</a> and <a href="/trust/">Trust Center</a>.</p>
+
+  <h2>Limitations</h2>
+  <p>Tools are provided "as is". Token counts, exchange rates, fee estimates and health metrics are approximations; always verify against the official source before making a decision that costs money or affects health. See the <a href="/terms/">Terms</a> for the full disclaimer.</p>
+</BaseLayout>

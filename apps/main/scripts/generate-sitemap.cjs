@@ -17,13 +17,13 @@ const DIST = path.join(__dirname, '..', 'dist');
 
 // 按栏自分组的桶
 const BUCKETS = {
-  main:    { file: 'sitemap-main.xml',    label: 'main',   match: (url) => url === '/' || url.startsWith('/tools/') },
+  main:    { file: 'sitemap-main.xml',    label: 'main',   match: (url) => url === '/' || url === '/all-tools/' || url.startsWith('/tools/') },
   sec:     { file: 'sitemap-sec.xml',     label: 'sec',    match: (url) => url.startsWith('/sec/') },
   devops:  { file: 'sitemap-devops.xml',  label: 'devops', match: (url) => url.startsWith('/devops/') },
   codegen: { file: 'sitemap-codegen.xml', label: 'codegen',match: (url) => url.startsWith('/codegen/') },
   compare: { file: 'sitemap-compare.xml', label: 'compare', match: (url) => url.startsWith('/compare/') },
   trust:   { file: 'sitemap-trust.xml',   label: 'trust',   match: (url) => url.startsWith('/trust/') },
-  legal:   { file: 'sitemap-legal.xml',   label: 'legal',  match: (url) => ['/privacy/', '/terms/', '/licenses/', '/about/', '/contact/', '/404', '/offline.html'].includes(url) },
+  legal:   { file: 'sitemap-legal.xml',   label: 'legal',  match: (url) => ['/privacy/', '/terms/', '/licenses/', '/about/', '/contact/', '/editorial-policy/', '/404', '/offline.html'].includes(url) },
 };
 
 function walk(dir, base = '') {

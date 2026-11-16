@@ -1,0 +1,70 @@
+---
+import BaseLayout from '@versal/ui/BaseLayout';
+import { allTools } from '@versal/config/all-tools';
+
+// P0-1: standalone full catalog. Generated from the single source (all-tools.js),
+// so adding a tool in any section automatically appears here. No manual list.
+const SECTIONS = [
+  { key: 'tools',   label: 'JSON & LLM',      href: 'https://jsonversal.com/tools/' },
+  { key: 'devops',  label: 'DevOps',          href: 'https://jsonversal.com/devops/tools/' },
+  { key: 'codegen', label: 'Code generators', href: 'https://jsonversal.com/codegen/tools/' },
+  { key: 'sec',     label: 'Security',        href: 'https://jsonversal.com/sec/tools/' },
+];
+const grouped = SECTIONS.map(s => ({
+  ...s,
+  tools: allTools.filter(t => t.section === s.key),
+}));
+const total = allTools.length;
+---
+
+<BaseLayout site="main" title="All developer tools" description={`Browse all ${total} free browser-based developer tools — JSON, LLM, DevOps, code generation and security. No signup, no upload, nothing leaves your device.`} canonical="https://jsonversal.com/all-tools/" current="/all-tools/">
+  <h1>All {total} tools</h1>
+  <p class="text-muted">Every tool runs 100% in your browser. Use the filter to jump straight to one — nothing is uploaded, tracked or signed up for.</p>
+
+  <div class="dir-search" style="margin:22px 0 8px">
+    <label for="dir-search" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Filter by name or keyword</label>
+    <input id="dir-search" type="search" placeholder="Try json, hash, uuid, schema…" autocomplete="off" aria-label="Filter all tools"
+      style="width:100%;max-width:460px;padding:11px 13px;border:1px solid var(--v-line,#e3e7ed);border-radius:var(--v-r-md,12px);background:var(--v-paper,#fff);color:var(--v-ink,#0b1220);font:15px var(--v-font,inherit)">
+    <p id="dir-empty" hidden style="color:var(--v-mute,#5b6b82);font-size:14px;margin-top:10px">No tool matches — try a shorter keyword.</p>
+  </div>
+
+  {grouped.map(g => (
+    <section class="dir-group" data-group={g.key} style="margin:30px 0">
+      <h2 style="font-size:20px;margin:0 0 4px"><a href={g.href} style="text-decoration:none">{g.label}</a> <small class="text-muted" style="font-size:13px;font-weight:400">— {g.tools.length} tools</small></h2>
+      <ul class="dir-list" style="list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+        {g.tools.map(t => (
+          <li data-search={(t.title + ' ' + t.description + ' ' + ((t.keywords || []).join(' '))).toLowerCase()}
+            style="border:1px solid var(--v-line,#e3e7ed);border-radius:var(--v-r-md,12px);padding:12px 14px;background:var(--v-paper,#fff)">
+            <a href={t.href} style="font-size:14px;font-weight:600;text-decoration:none">{t.title}</a>
+            <div style="font-size:12.5px;color:var(--v-mute,#5b6b82);line-height:1.5;margin-top:4px">{t.description}</div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</BaseLayout>
+
+<script is:inline>
+(function () {
+  var input = document.getElementById('dir-search');
+  var empty = document.getElementById('dir-empty');
+  if (!input) return;
+  var items = Array.prototype.slice.call(document.querySelectorAll('.dir-list li[data-search]'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.dir-group'));
+  function apply() {
+    var q = input.value.trim().toLowerCase();
+    var shown = 0;
+    items.forEach(function (li) {
+      var hit = !q || li.getAttribute('data-search').indexOf(q) >= 0;
+      li.hidden = !hit;
+      if (hit) shown++;
+    });
+    groups.forEach(function (g) {
+      var any = Array.prototype.some.call(g.querySelectorAll('li[data-search]'), function (li) { return !li.hidden; });
+      g.hidden = !any;
+    });
+    if (empty) empty.hidden = shown > 0;
+  }
+  input.addEventListener('input', apply);
+})();
+</script>
