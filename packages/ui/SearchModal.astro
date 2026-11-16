@@ -22,7 +22,7 @@
       <input
         type="search"
         id="search-input"
-        placeholder="Search 69 tools... (try: jwt, uuid, json, hash)"
+        placeholder="Search tools... (try: jwt, uuid, json, hash)"
         autocomplete="off"
         aria-label="Search tools"
         spellcheck="false"
@@ -264,6 +264,13 @@
       { title: 'SQL Formatter', description: 'Format SQL.', href: '/codegen/tools/sql-formatter/', section: 'codegen', keywords: ['sql','format'] },
       { title: 'SQL Validator', description: 'Validate SQL syntax.', href: '/codegen/tools/sql-validator/', section: 'codegen', keywords: ['sql','validator'] },
     ];
+    // 动态填充搜索框提示，避免工具数增长后文案过时（P2 修复）
+    (function(){
+      var input = document.getElementById('search-input');
+      if (input && typeof TOOLS !== 'undefined') {
+        input.setAttribute('placeholder', 'Search ' + TOOLS.length + ' tools... (try: jwt, uuid, json, hash)');
+      }
+    })();
 
     function search(q) {
       const query = (q || '').toLowerCase().trim();

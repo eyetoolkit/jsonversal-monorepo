@@ -44,19 +44,26 @@ const POPULAR: Record<string, Array<{ label: string; href: string }>> = {
   ],
 };
 const popular = POPULAR[site] || POPULAR.main;
+// 产品矩阵圆点色 —— 与 versal-brand.css 的 [data-site] theme 对齐（P2 修复）
+// 视觉真源是 versal-brand.css，此处仅镜像用于 dot，改主题色时两处同步。
+const SITES_BRAND_COLOR = {
+  everyday: '#4f46e5', finance: '#059669', health: '#e11d48', cover: '#0f766e',
+  main: '#4f46e5', devops: '#14b8a6', codegen: '#f59e0b', sec: '#ef4444',
+};
+
 ---
 
 <footer class="v-footer">
   <div class="v-wrap">
     <nav class="v-matrix-strip" aria-label="All versal products">
-      <a href="https://mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal everyday</a>
-      <a href="https://finance.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#059669"></span>versal finance</a>
-      <a href="https://health.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#e11d48"></span>versal health</a>
-      <a href="https://cover.mquickcalc.com"><span class="v-matrix-strip__dot" style="background:#0f766e"></span>versal cover</a>
-      <a href="/" aria-current={site === 'main' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#4f46e5"></span>versal json</a>
-      <a href="/devops/" aria-current={site === 'devops' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#14b8a6"></span>versal devops</a>
-      <a href="/codegen/" aria-current={site === 'codegen' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#f59e0b"></span>versal codegen</a>
-      <a href="/sec/" aria-current={site === 'sec' ? 'page' : undefined}><span class="v-matrix-strip__dot" style="background:#ef4444"></span>versal sec</a>
+      <a href="https://mquickcalc.com"><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.everyday}`}></span>versal everyday</a>
+      <a href="https://finance.mquickcalc.com"><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.finance}`}></span>versal finance</a>
+      <a href="https://health.mquickcalc.com"><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.health}`}></span>versal health</a>
+      <a href="https://cover.mquickcalc.com"><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.cover}`}></span>versal cover</a>
+      <a href="/" aria-current={site === 'main' ? 'page' : undefined}><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.main}`}></span>versal json</a>
+      <a href="/devops/" aria-current={site === 'devops' ? 'page' : undefined}><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.devops}`}></span>versal devops</a>
+      <a href="/codegen/" aria-current={site === 'codegen' ? 'page' : undefined}><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.codegen}`}></span>versal codegen</a>
+      <a href="/sec/" aria-current={site === 'sec' ? 'page' : undefined}><span class="v-matrix-strip__dot" style={`background:${SITES_BRAND_COLOR.sec}`}></span>versal sec</a>
     </nav>
 
     <div class="v-footer__cols">

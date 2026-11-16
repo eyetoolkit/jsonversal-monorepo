@@ -133,6 +133,24 @@ button{font:inherit;cursor:pointer}
 .v-nav a:hover{color:var(--v-ink);background:var(--v-fog)}
 .v-header__end{display:flex;align-items:center;gap:8px;margin-left:auto}
 
+/* ---------- Mobile navigation drawer (P1: no nav adaptation on narrow screens) ---------- */
+.v-mobile-menu{display:none;position:relative}
+.v-mobile-menu summary{list-style:none;cursor:pointer;width:36px;height:36px;border:1px solid var(--v-line);background:var(--v-paper);color:var(--v-ink);border-radius:var(--v-r-md);display:inline-flex;align-items:center;justify-content:center}
+.v-mobile-menu summary::-webkit-details-marker{display:none}
+.v-mobile-menu[open] summary{border-color:var(--v-accent);color:var(--v-accent-ink)}
+.v-mobile-nav{position:absolute;right:0;top:calc(100% + 8px);min-width:200px;background:var(--v-paper);border:1px solid var(--v-line);border-radius:var(--v-r-lg);box-shadow:var(--v-sh-lg);padding:8px;z-index:60;display:flex;flex-direction:column;gap:2px}
+.v-mobile-nav a{display:block;padding:10px 12px;border-radius:var(--v-r-md);color:var(--v-ink);font-size:var(--v-fs-sm);font-weight:500;transition:background .15s,color .15s}
+.v-mobile-nav a:hover,.v-mobile-nav a.is-active{background:var(--v-fog);color:var(--v-accent-ink)}
+.v-mobile-nav__products{border-top:1px solid var(--v-line);margin-top:6px;padding-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.v-mobile-nav__products a{font-size:var(--v-fs-xs);color:var(--v-mute)}
+@media (max-width:720px){
+  .v-nav{display:none}
+  .v-mobile-menu{display:block}
+  .v-header__inner{gap:12px;padding:0 16px}
+  .v-logo__product,.v-logo__sep{display:none}
+  .v-matrix-btn{display:none}
+}
+
 /* Theme toggle */
 .v-theme{width:36px;height:36px;border:1px solid var(--v-line);background:var(--v-paper);color:var(--v-mute);border-radius:var(--v-r-md);display:inline-flex;align-items:center;justify-content:center;transition:.15s}
 .v-theme:hover{color:var(--v-ink);border-color:var(--v-line-strong)}

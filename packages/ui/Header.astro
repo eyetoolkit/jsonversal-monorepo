@@ -43,6 +43,13 @@ const LINKS: Record<string, Array<{ label: string; href: string }>> = {
 };
 const links = LINKS[site] || LINKS.main;
 const productLabel = t.emoji ? `${t.name}`.toLowerCase() : siteKey;
+// 产品矩阵圆点色 —— 与 versal-brand.css 的 [data-site] theme 对齐（P2 修复）
+// 视觉真源是 versal-brand.css，此处仅镜像用于 dot，改主题色时两处同步。
+const SITES_BRAND_COLOR = {
+  everyday: '#4f46e5', finance: '#059669', health: '#e11d48', cover: '#0f766e',
+  main: '#4f46e5', devops: '#14b8a6', codegen: '#f59e0b', sec: '#ef4444',
+};
+
 ---
 
 <header class="v-header">
@@ -59,20 +66,38 @@ const productLabel = t.emoji ? `${t.name}`.toLowerCase() : siteKey;
       ))}
     </nav>
     <div class="v-header__end">
+      <details class="v-mobile-menu">
+        <summary aria-label="Open navigation menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></summary>
+        <nav class="v-mobile-nav" aria-label="Mobile navigation">
+          {links.map(l => (
+            <a href={l.href} class={current && (l.href === current || (l.href !== '/' && current.startsWith(l.href))) ? 'is-active' : ''}>{l.label}</a>
+          ))}
+          <div class="v-mobile-nav__products" aria-label="All versal products">
+            <a href="https://mquickcalc.com">versal everyday</a>
+            <a href="https://finance.mquickcalc.com">versal finance</a>
+            <a href="https://health.mquickcalc.com">versal health</a>
+            <a href="https://cover.mquickcalc.com">versal cover</a>
+            <a href="/" aria-current={site === 'main' ? 'page' : undefined}>versal json</a>
+            <a href="/devops/" aria-current={site === 'devops' ? 'page' : undefined}>versal devops</a>
+            <a href="/codegen/" aria-current={site === 'codegen' ? 'page' : undefined}>versal codegen</a>
+            <a href="/sec/" aria-current={site === 'sec' ? 'page' : undefined}>versal sec</a>
+          </div>
+        </nav>
+      </details>
       <button class="v-theme" id="vTheme" aria-label="Toggle theme">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
       </button>
       <details class="v-matrix-btn">
         <summary>All products <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
         <div class="v-matrix-pop">
-          <a href="https://mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal everyday<small>mquickcalc.com</small></a>
-          <a href="https://finance.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#059669"></span>versal finance<small>finance.mquickcalc.com</small></a>
-          <a href="https://health.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#e11d48"></span>versal health<small>health.mquickcalc.com</small></a>
-          <a href="https://cover.mquickcalc.com"><span class="v-matrix-pop__dot" style="background:#0f766e"></span>versal cover<small>cover.mquickcalc.com</small></a>
-          <a href="/" aria-current={site === 'main' ? 'page' : undefined}><span class="v-matrix-pop__dot" style="background:#4f46e5"></span>versal json<small>jsonversal.com</small></a>
-          <a href="/devops/" aria-current={site === 'devops' ? 'page' : undefined}><span class="v-matrix-pop__dot" style="background:#14b8a6"></span>versal devops<small>jsonversal.com/devops</small></a>
-          <a href="/codegen/" aria-current={site === 'codegen' ? 'page' : undefined}><span class="v-matrix-pop__dot" style="background:#f59e0b"></span>versal codegen<small>jsonversal.com/codegen</small></a>
-          <a href="/sec/" aria-current={site === 'sec' ? 'page' : undefined}><span class="v-matrix-pop__dot" style="background:#ef4444"></span>versal sec<small>jsonversal.com/sec</small></a>
+          <a href="https://mquickcalc.com"><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.everyday}`}></span>versal everyday<small>mquickcalc.com</small></a>
+          <a href="https://finance.mquickcalc.com"><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.finance}`}></span>versal finance<small>finance.mquickcalc.com</small></a>
+          <a href="https://health.mquickcalc.com"><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.health}`}></span>versal health<small>health.mquickcalc.com</small></a>
+          <a href="https://cover.mquickcalc.com"><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.cover}`}></span>versal cover<small>cover.mquickcalc.com</small></a>
+          <a href="/" aria-current={site === 'main' ? 'page' : undefined}><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.main}`}></span>versal json<small>jsonversal.com</small></a>
+          <a href="/devops/" aria-current={site === 'devops' ? 'page' : undefined}><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.devops}`}></span>versal devops<small>jsonversal.com/devops</small></a>
+          <a href="/codegen/" aria-current={site === 'codegen' ? 'page' : undefined}><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.codegen}`}></span>versal codegen<small>jsonversal.com/codegen</small></a>
+          <a href="/sec/" aria-current={site === 'sec' ? 'page' : undefined}><span class="v-matrix-pop__dot" style={`background:${SITES_BRAND_COLOR.sec}`}></span>versal sec<small>jsonversal.com/sec</small></a>
         </div>
       </details>
     </div>
