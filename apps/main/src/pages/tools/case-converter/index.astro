@@ -1,0 +1,168 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "Case Converter";
+const description = "Convert any text between camelCase, PascalCase, snake_case, kebab-case, SCREAMING_SNAKE_CASE, Title Case, dot.case and plain upper/lowercase. Splits acronyms and existing separators correctly, handles multiple lines, and runs entirely in your browser.";
+const keywords = ['case converter', 'camelcase', 'snake case', 'kebab case', 'pascal case', 'string case', 'text case converter'];
+const faqs = [
+  {
+    "question": "What does this case converter do?",
+    "answer": "Paste text and pick a target style. The tool splits your input into words — including camelCase boundaries and acronym runs such as HTTPServer — then rejoins them in the selected style. Each line is converted independently, so a whole list of variable or column names can be converted at once."
+  },
+  {
+    "question": "Does it upload my text anywhere?",
+    "answer": "No. Conversion is plain JavaScript that runs entirely in your browser. Nothing is sent to a server, there is no account, and no API key is needed."
+  }
+];
+---
+
+<ToolPage
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/case-converter/"
+  current="/tools/case-converter/"
+  keywords={keywords}
+  faqs={faqs}
+  about={[
+    {
+      "heading": "Why naming conventions differ",
+      "body": [
+        "A single identifier is written many ways depending on where it lives: a JavaScript variable is usually camelCase, a database column is snake_case, a URL slug is kebab-case, and a constant in Go or Rust is SCREAMING_SNAKE_CASE. Moving a value between layers means rewriting the same words over and over, which is exactly the kind of mechanical work a case converter removes.",
+        "The styles are not merely cosmetic. Some languages and linters enforce one convention, some APIs expect snake_case keys while their consumers expect camelCase, and search engines treat a readable kebab-case slug differently from an underscore-heavy one. Getting the convention right the first time avoids rename churn later."
+      ]
+    },
+    {
+      "heading": "How the word splitting works",
+      "body": [
+        "The hard part is not rejoining words, it is finding where one word ends and the next begins. This tool treats spaces, underscores, hyphens, dots and other punctuation as separators, then additionally splits at lowercase-to-uppercase boundaries (userName becomes user + name) and at the boundary inside an acronym (HTTPServer becomes HTTP + Server, not H + T + T + P + Server).",
+        "Because splitting happens before conversion, existing mixed input is normalized rather than mangled: UserName, user_name, user-name and userName all reduce to the same three words and can be re-emitted in any target style. Empty lines are preserved, so converting a multiline list of names keeps its shape."
+      ]
+    },
+    {
+      "heading": "Picking the right style",
+      "body": [
+        "Use camelCase for JavaScript and TypeScript variables and object keys, PascalCase for class and component names in C#, Java and React, snake_case for Python names and SQL columns, and kebab-case for CSS classes and URL slugs. SCREAMING_SNAKE_CASE is conventional for constants and environment variable names, while dot.case shows up in configuration keys and property paths.",
+        "Title Case and sentence case are for human-facing labels rather than identifiers. When in doubt, follow the dominant convention of the codebase or API you are writing for: consistency inside a project matters more than which convention was chosen."
+      ]
+    }
+  ]}
+>
+
+  <div class="card mt-2">
+    <label class="text-muted" for="caseInput">Input text</label>
+    <textarea id="caseInput" rows="6" spellcheck="false" placeholder="Paste or type text — one name per line" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text);font-family:var(--font-mono);font-size:.9rem;line-height:1.5;resize:vertical;margin-top:4px;">userName2
+HTTPServer_error-code
+alreadyCamelCase</textarea>
+
+    <div class="style-row" style="margin-top:14px;">
+      <span class="text-muted" style="font-size:.85rem;">Convert to</span>
+      <div class="style-btns" role="group" aria-label="Target case style">
+        <button type="button" class="ghost style-btn active" data-style="camel">camelCase</button>
+        <button type="button" class="ghost style-btn" data-style="pascal">PascalCase</button>
+        <button type="button" class="ghost style-btn" data-style="snake">snake_case</button>
+        <button type="button" class="ghost style-btn" data-style="kebab">kebab-case</button>
+        <button type="button" class="ghost style-btn" data-style="constant">SCREAMING_SNAKE</button>
+        <button type="button" class="ghost style-btn" data-style="dot">dot.case</button>
+        <button type="button" class="ghost style-btn" data-style="title">Title Case</button>
+        <button type="button" class="ghost style-btn" data-style="sentence">Sentence case</button>
+        <button type="button" class="ghost style-btn" data-style="lower">lowercase</button>
+        <button type="button" class="ghost style-btn" data-style="upper">UPPERCASE</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="card mt-2">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat">Output</h2>
+      <div class="row" style="gap:8px;margin-left:auto;">
+        <button type="button" class="ghost" id="caseCopy">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="output-text" style="min-height:120px;max-height:480px;">—</pre>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Words are split on punctuation and on camelCase / acronym boundaries, then rebuilt in the selected style.</li>
+    <li>Each line is converted separately, so a list of identifiers keeps its line breaks.</li>
+    <li>Everything runs locally in your browser — your text is never uploaded.</li>
+  </ul>
+</ToolPage>
+
+<style>
+  .style-row { display: flex; flex-direction: column; gap: 8px; }
+  .style-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .style-btn { font-family: var(--font-mono); font-size: .78rem; padding: 5px 9px; }
+  .style-btn.active { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<script is:inline>
+(function () {
+  var input = document.getElementById('caseInput');
+  var output = document.getElementById('output');
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.style-btn'));
+  var style = 'camel';
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function tokenize(s) {
+    return s
+      .replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1 $2')
+      .replace(/(\p{Lu}+)(\p{Lu}\p{Ll})/gu, '$1 $2')
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter(Boolean);
+  }
+
+  function convertLine(line) {
+    var w = tokenize(line);
+    if (!w.length) return '';
+    var lower = w.map(function (x) { return x.toLowerCase(); });
+    switch (style) {
+      case 'camel':    return lower.map(function (x, i) { return i ? cap(x) : x; }).join('');
+      case 'pascal':   return lower.map(cap).join('');
+      case 'snake':    return lower.join('_');
+      case 'kebab':    return lower.join('-');
+      case 'constant': return lower.join('_').toUpperCase();
+      case 'dot':      return lower.join('.');
+      case 'title':    return lower.map(cap).join(' ');
+      case 'sentence': return cap(lower.join(' '));
+      case 'lower':    return lower.join(' ');
+      case 'upper':    return lower.join(' ').toUpperCase();
+      default:         return line;
+    }
+  }
+
+  function render() {
+    var lines = input.value.split(/\r?\n/);
+    output.textContent = lines.map(convertLine).join('\n') || '—';
+  }
+
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      buttons.forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      style = b.getAttribute('data-style');
+      render();
+    });
+  });
+
+  input.addEventListener('input', render);
+
+  document.getElementById('caseCopy').addEventListener('click', async function () {
+    var text = output.textContent;
+    if (!text || text === '—') return;
+    var btn = this;
+    try {
+      await navigator.clipboard.writeText(text);
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = orig; }, 1200);
+    } catch (e) {
+      if (window.showToast) window.showToast('Copy failed', { type: 'error' });
+    }
+  });
+
+  render();
+})();
+</script>

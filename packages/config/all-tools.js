@@ -35,6 +35,7 @@ export const allTools = [
   { title: 'Markdown Editor & Live Preview', description: 'Write Markdown with live preview.', href: '/tools/markdown-preview/', section: 'tools', keywords: ['markdown', 'preview', 'md'] },
   { title: 'Mock Data Generator', description: 'Generate realistic fake JSON.', href: '/tools/mock-data-generator/', section: 'tools', keywords: ['mock data', 'fake data', 'fixture'] },
   { title: 'Text Diff', description: 'Compare two texts line by line.', href: '/tools/text-diff/', section: 'tools', keywords: ['text diff', 'compare text', 'lcs'] },
+  { title: 'Case Converter', description: 'Convert text between camelCase, PascalCase, snake_case, kebab-case, SCREAMING_SNAKE_CASE, Title Case, dot.case and upper/lowercase. Handles acronyms, existing separators and multiple lines.', href: '/tools/case-converter/', section: 'tools', keywords: ['case converter', 'camelcase', 'snake case', 'kebab case', 'pascal case', 'string case'] },
   { title: 'UUID v7 Generator', description: 'Generate RFC 9562 UUID v7.', href: '/tools/uuid-v7/', section: 'tools', keywords: ['uuid', 'uuid v7', 'rfc 9562'] },
   { title: 'XML Formatter & Validator', description: 'Pretty-print, validate XML.', href: '/tools/xml-formatter/', section: 'tools', keywords: ['xml', 'formatter'] },
   { title: 'CSS Formatter & Minifier', description: 'Format, beautify, and minify CSS in your browser.', href: '/tools/css-formatter/', section: 'tools', keywords: ['css formatter', 'css minifier', 'beautify css'] },

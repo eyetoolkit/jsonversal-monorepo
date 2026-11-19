@@ -36,6 +36,7 @@ const ICONS = {
   'text-diff': '↔️',
   'json-escape': '🔣',
   'json-sorter': '🔢',
+  'case-converter': '🔡',
 
   // sec
   'hash': '🔐',
