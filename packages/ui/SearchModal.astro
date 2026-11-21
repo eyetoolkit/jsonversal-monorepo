@@ -177,5 +177,6 @@
   }
 </style>
 
-    <!-- 搜索弹窗逻辑外置到 /js/versal-search-modal.js，跨页共享缓存 -->
+    <!-- 搜索数据单一源：构建时由 all-tools.js 生成；逻辑外置，跨页共享缓存 -->
+    <script is:inline src="/js/versal-tools-data.js" defer></script>
     <script is:inline src="/js/versal-search-modal.js" defer></script>
