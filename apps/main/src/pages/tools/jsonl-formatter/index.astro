@@ -1,0 +1,214 @@
+---
+import ToolPage from '@versal/ui/ToolPage.astro';
+
+const title = "JSONL Formatter & Validator";
+const description = "Format, validate and inspect JSON Lines (NDJSON) in your browser. Check every record line by line, spot errors with line numbers, and convert between JSONL and a JSON array — no upload, no API.";
+const keywords = ['jsonl', 'ndjson', 'json lines', 'jsonl formatter', 'jsonl validator', 'newline delimited json', 'jsonl to json'];
+const sampleInput = [
+  '{"id":1,"user":"alice","active":true}',
+  '{"id":2,"user":"bob","active":false}',
+  '{"id":3,"user":"carol","tags":["admin","beta"],"active":true}'
+].join('\n');
+const faqs = [
+  {
+    "question": "What is JSONL / NDJSON?",
+    "answer": "JSON Lines (also called NDJSON) is a stream where every line is one complete, independent JSON value. There is no surrounding array and no commas between records. This makes it ideal for append-only logs, data pipelines and streaming API responses, because a reader can process one line at a time without loading the whole file."
+  },
+  {
+    "question": "Can I paste pretty-printed JSON into this tool?",
+    "answer": "Only if each record is on a single line. A pretty-printed object spanning several lines is not valid JSONL: each line would be parsed separately and fail. Use the 'Wrap as JSON array' button to turn valid records into one JSON array, or use the JSON Formatter tool for a whole-document view."
+  },
+  {
+    "question": "Does the validator check my schema or duplicate IDs?",
+    "answer": "No. It checks syntax only: every non-empty line must parse as a standalone JSON value. Structural rules such as required fields, value types or unique identifiers need a schema validator. The error list tells you the exact line number and parser message so you can fix the offending record quickly."
+  }
+];
+---
+
+<ToolPage
+  site="main"
+  title={title}
+  description={description}
+  canonical="https://jsonversal.com/tools/jsonl-formatter/"
+  current="/tools/jsonl-formatter/"
+  keywords={keywords}
+  faqs={faqs}
+  about={[
+    {
+      "heading": "Why line-delimited JSON exists",
+      "body": [
+        "A normal JSON array has to be read as a whole: the opening bracket, every element, the separators and the closing bracket all belong to one document. JSON Lines removes that wrapper. Each line is a self-contained JSON value — often an object — so a producer can append a new record with a single write and a consumer can process records as they arrive.",
+        "That is why NDJSON shows up in server access logs, ETL pipelines, database export formats and streaming LLM responses. Partial files remain usable: if a process crashes halfway, every complete line before the failure is still valid data. It also plays well with ordinary command-line tools such as grep, head and split, because lines are the natural unit of work."
+      ]
+    },
+    {
+      "heading": "What this validator actually checks",
+      "body": [
+        "The tool treats the input as a stream of lines. Blank lines are ignored, and every remaining line is passed to the browser's JSON parser on its own. A line that parses is a valid record; a line that does not produces an error with its original line number and the parser's message. Nothing is uploaded — parsing happens locally in your browser.",
+        "This is a syntax check, not a schema check. A line like {\"id\":\"abc\"} is perfectly valid JSONL even if your application expects a numeric id. For required fields, type constraints or relationships between records, export the wrapped JSON array and validate it against a JSON Schema instead."
+      ]
+    },
+    {
+      "heading": "Common mistakes when working with JSONL",
+      "body": [
+        "The most frequent mistake is pretty-printing a record across multiple lines: the indentation and line breaks break the one-record-per-line contract. Trailing commas are another classic — they are invalid in strict JSON even though some configuration dialects allow them. A UTF-8 byte-order mark at the start of a file can also trip up strict parsers; this tool strips one leading BOM before parsing.",
+        "When exchanging data, be explicit about the format. A JSON array and a JSONL stream look similar in an editor but are not interchangeable: an array needs brackets and commas, a stream needs neither. Use the conversion buttons here to move between the two representations without rewriting records by hand."
+      ]
+    }
+  ]}
+>
+
+  <div class="card mt-2" data-tool="jsonl-formatter">
+    <label class="text-muted" for="jsonlInput">JSON Lines input</label>
+    <textarea id="jsonlInput" rows="8" spellcheck="false" placeholder="One JSON value per line" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text);font-family:var(--font-mono);font-size:.9rem;line-height:1.5;resize:vertical;margin-top:4px;">{sampleInput}</textarea>
+
+    <div class="jsonl-controls" style="margin-top:14px;">
+      <span class="text-muted" style="font-size:.85rem;">Output style</span>
+      <button type="button" class="ghost jsonl-mode active" data-mode="lines">One line per record</button>
+      <button type="button" class="ghost jsonl-mode" data-mode="pretty">Pretty records</button>
+      <button type="button" class="ghost" id="jsonlWrap">Wrap as JSON array</button>
+      <button type="button" class="ghost" id="jsonlUnwrap">Unwrap array to JSONL</button>
+    </div>
+    <p class="text-muted" id="jsonlStats" style="font-size:.85rem;margin:12px 0 0;">—</p>
+  </div>
+
+  <section class="card mt-2">
+    <div class="row" style="margin-bottom:12px;">
+      <h2 class="h2-flat">Output</h2>
+      <div class="row" style="gap:8px;margin-left:auto;">
+        <button type="button" class="ghost" id="jsonlCopy">Copy</button>
+      </div>
+    </div>
+    <pre id="output" class="output-text" style="min-height:140px;max-height:480px;">—</pre>
+  </section>
+
+  <section class="card mt-2 jsonl-errors" id="jsonlErrors" hidden>
+    <h2 class="h2-card">Invalid lines</h2>
+    <ul id="jsonlErrorList" style="font-family:var(--font-mono);font-size:.85rem;"></ul>
+  </section>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Each non-empty line is parsed independently with the browser's JSON parser, so a single bad record never hides the others.</li>
+    <li>Blank lines and one leading UTF-8 BOM are ignored; errors are reported with their exact line number.</li>
+    <li>Switch between one-line records, pretty-printed records, a wrapped JSON array and unwrapped JSONL — all locally in your browser.</li>
+  </ul>
+</ToolPage>
+
+<style>
+  .jsonl-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .jsonl-controls .text-muted { margin-right: 4px; }
+  .jsonl-mode { font-family: var(--font-mono); font-size: .78rem; }
+  .jsonl-mode.active { border-color: var(--accent); color: var(--accent); }
+  .jsonl-errors[hidden] { display: none; }
+  .jsonl-errors { border-color: var(--danger, #ef4444); }
+  #jsonlErrorList li { margin-bottom: 4px; color: var(--text-muted); }
+</style>
+
+<script is:inline>
+(function () {
+  var input = document.getElementById('jsonlInput');
+  var output = document.getElementById('output');
+  var stats = document.getElementById('jsonlStats');
+  var errBox = document.getElementById('jsonlErrors');
+  var errList = document.getElementById('jsonlErrorList');
+  var modeButtons = Array.prototype.slice.call(document.querySelectorAll('.jsonl-mode'));
+  var mode = 'lines';
+
+  function parseStream() {
+    var text = input.value.replace(/^\uFEFF/, '');
+    var lines = text.split(/\r?\n/);
+    var records = [];
+    var errors = [];
+    var blanks = 0;
+    lines.forEach(function (line, i) {
+      if (!line.trim()) { blanks++; return; }
+      try {
+        records.push({ lineNo: i + 1, value: JSON.parse(line) });
+      } catch (e) {
+        errors.push({ lineNo: i + 1, message: e.message });
+      }
+    });
+    return { records: records, errors: errors, blanks: blanks };
+  }
+
+  function render() {
+    var result = parseStream();
+    var chunks = result.records.map(function (rec) {
+      return mode === 'pretty' ? JSON.stringify(rec.value, null, 2) : JSON.stringify(rec.value);
+    });
+    output.textContent = chunks.length
+      ? chunks.join(mode === 'pretty' ? '\n\n' : '\n')
+      : '—';
+
+    var plural = function (n) { return n === 1 ? '' : 's'; };
+    stats.textContent = result.records.length + ' valid record' + plural(result.records.length)
+      + ' · ' + result.errors.length + ' invalid line' + plural(result.errors.length)
+      + ' · ' + result.blanks + ' blank line' + plural(result.blanks) + ' skipped';
+
+    errList.textContent = '';
+    if (result.errors.length) {
+      result.errors.forEach(function (err) {
+        var li = document.createElement('li');
+        li.textContent = 'Line ' + err.lineNo + ': ' + err.message;
+        errList.appendChild(li);
+      });
+      errBox.hidden = false;
+    } else {
+      errBox.hidden = true;
+    }
+  }
+
+  modeButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      modeButtons.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      mode = btn.getAttribute('data-mode');
+      render();
+    });
+  });
+
+  document.getElementById('jsonlWrap').addEventListener('click', function () {
+    var result = parseStream();
+    if (!result.records.length) {
+      if (window.showToast) window.showToast('No valid records to wrap', { type: 'error' });
+      return;
+    }
+    var arr = result.records.map(function (rec) { return rec.value; });
+    output.textContent = JSON.stringify(arr, null, 2);
+  });
+
+  document.getElementById('jsonlUnwrap').addEventListener('click', function () {
+    var parsed;
+    try {
+      parsed = JSON.parse(input.value);
+    } catch (e) {
+      if (window.showToast) window.showToast('Input must be one valid JSON array', { type: 'error' });
+      return;
+    }
+    if (!Array.isArray(parsed)) {
+      if (window.showToast) window.showToast('Input must be one valid JSON array', { type: 'error' });
+      return;
+    }
+    input.value = parsed.map(function (v) { return JSON.stringify(v); }).join('\n');
+    render();
+  });
+
+  document.getElementById('jsonlCopy').addEventListener('click', async function () {
+    var text = output.textContent;
+    if (!text || text === '—') return;
+    var btn = this;
+    try {
+      await navigator.clipboard.writeText(text);
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = orig; }, 1200);
+    } catch (e) {
+      if (window.showToast) window.showToast('Copy failed', { type: 'error' });
+    }
+  });
+
+  input.addEventListener('input', render);
+  render();
+})();
+</script>

@@ -41,6 +41,7 @@ export const allTools = [
   { title: 'CSS Formatter & Minifier', description: 'Format, beautify, and minify CSS in your browser.', href: '/tools/css-formatter/', section: 'tools', keywords: ['css formatter', 'css minifier', 'beautify css'] },
   { title: 'JavaScript Beautifier & Minifier', description: 'Format and minify JavaScript in your browser.', href: '/tools/javascript-beautifier/', section: 'tools', keywords: ['javascript beautifier', 'js formatter', 'minify js'] },
   { title: 'YAML Formatter', description: 'Format, pretty-print and convert block-style YAML. A structural subset, not a full YAML 1.2 parser.', href: '/tools/yaml-formatter/', section: 'tools', keywords: ['yaml', 'formatter'] },
+  { title: 'JSONL Formatter & Validator', description: 'Format, validate and inspect JSON Lines (NDJSON) line by line, with error line numbers and JSON array conversion.', href: '/tools/jsonl-formatter/', section: 'tools', keywords: ['jsonl', 'ndjson', 'json lines', 'jsonl formatter', 'jsonl validator', 'newline delimited json'] },
 
   // ===== Security (14) =====
   { title: 'AES Encryption / Decryption', description: 'Encrypt and decrypt with AES-GCM or AES-CBC.', href: '/sec/tools/aes/', section: 'sec', keywords: ['aes', 'encryption', 'decryption', 'aes-gcm', 'aes-cbc'] },
