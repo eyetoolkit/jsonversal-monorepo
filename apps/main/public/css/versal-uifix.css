@@ -158,3 +158,15 @@ header.top table{display:block;overflow-x:auto}
   .v-result-pulse{animation:none}
   .v-ad-slot:not(:empty){animation:none}
 }
+
+/* ---------- Skip link (WCAG 2.4.1) — homepage hand-written HTML ---------- */
+.skip-link{
+  position:absolute;left:12px;top:-64px;z-index:100;
+  padding:10px 16px;border-radius:var(--v-r-sm,8px);
+  background:var(--v-paper,#fff);color:var(--v-ink,#101418);
+  border:1px solid var(--v-line,#d8dee9);box-shadow:0 4px 14px rgba(0,0,0,.12);
+  text-decoration:none!important;font-weight:600;
+  transition:top .15s ease;
+}
+.skip-link:focus{top:12px}
+main:focus-visible{outline:none}
