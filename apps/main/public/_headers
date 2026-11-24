@@ -7,19 +7,21 @@
   Permissions-Policy: geolocation=(), microphone=(), camera=()
   Cache-Control: public, max-age=600, stale-while-revalidate=86400
 
-# HTML & static assets — long-lived immutable for fingerprinted assets
+# HTML
 /*.html
   Cache-Control: public, max-age=600, stale-while-revalidate=86400
 
-# 非指纹化共享 CSS：短缓存，避免 immutable 导致改动永不生效
-/css/versal-uifix.css
-  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+# ============================================================
+# 缓存策略 —— 顺序敏感，勿随意调整！
+#
+# Cloudflare Pages 按文件顺序应用规则；同一条指令被设置多次时，
+# 后面的覆盖前面的。因此：
+#   1) 宽规则（/*.svg、/css/* 等）写在前面
+#   2) 窄规则写在后面，且必须先用 "! Cache-Control" detach 再赋值
+# 曾经把窄规则写在宽规则之前，导致短缓存从未生效（实测仍返回一年 immutable）。
+# ============================================================
 
-/css/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/js/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+# ---------- 宽规则 ----------
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
@@ -32,6 +34,29 @@
 
 /*.svg
   Cache-Control: public, max-age=31536000, immutable
+
+# 构建产物：Astro 输出带 content hash，可放心长缓存
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 手写共享 JS：文件名无指纹，长缓存会让改动迟迟不生效 -> 短缓存
+/js/*
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
+# ---------- 窄规则（必须在上方宽规则之后）----------
+
+# 非指纹化共享 CSS：多页面共用，?v= 与短缓存双保险
+/css/versal-uifix.css
+  ! Cache-Control
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
+# 站点图标：随品牌/分区调整会被替换，不能吃一年 immutable
+/favicon*.svg
+  ! Cache-Control
+  Cache-Control: public, max-age=3600
+
+/*.ico
+  Cache-Control: public, max-age=3600
 
 /sw.js
   Cache-Control: no-cache
