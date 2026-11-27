@@ -14,7 +14,7 @@ const _CATALOG_BRANDS = [
   { key:'main',    name:'versal json',    color:'#4338ca', dark:'#4338ca', moreHref:'/tools/', top:[
       ['/tools/json-formatter/','JSON Formatter'],['/tools/json-schema-generator/','Schema Generator'],
       ['/tools/json-to-zod/','JSON → Zod'],['/tools/json-to-typescript/','JSON → TypeScript'],
-      ['/tools/json-to-python/','JSON → Python'],['/tools/llm-token-calculator/','LLM Token Calculator'],['/tools/uuid-v7/','UUID v7']]},
+      ['/codegen/tools/json-to-python/','JSON → Python'],['/tools/llm-token-calculator/','LLM Token Calculator'],['/tools/uuid-v7/','UUID v7']]},
   { key:'devops',  name:'versal devops',  color:'#0f766e', dark:'#0d5c55', moreHref:'/devops/tools/', top:[
       ['/devops/tools/yaml-json/','YAML ↔ JSON'],['/devops/tools/base64/','Base64'],['/devops/tools/regex/','Regex tester'],
       ['/devops/tools/cidr-calculator/','CIDR'],['/devops/tools/crontab/','Crontab'],['/devops/tools/k8s-generator/','K8s YAML'],['/devops/tools/timestamp/','Timestamp']]},
@@ -154,7 +154,7 @@ const CATALOG_GRID = _CATALOG_BRANDS.map(b => {
     <a class="v-chip" href="/tools/json-schema-generator/"><span class="v-chip__dot"></span>Schema</a>
     <a class="v-chip" href="/tools/json-to-zod/"><span class="v-chip__dot"></span>JSON → Zod</a>
     <a class="v-chip" href="/tools/json-to-typescript/"><span class="v-chip__dot"></span>JSON → TS</a>
-    <a class="v-chip" href="/tools/json-to-python/"><span class="v-chip__dot"></span>JSON → Python</a>
+    <a class="v-chip" href="/codegen/tools/json-to-python/"><span class="v-chip__dot"></span>JSON → Python</a>
     <a class="v-chip" href="/tools/json-schema-validator/"><span class="v-chip__dot"></span>Validator</a>
     <a class="v-chip" href="/tools/llm-token-calculator/"><span class="v-chip__dot"></span>LLM tokens</a>
     <a class="v-chip" href="/tools/uuid-v7/"><span class="v-chip__dot"></span>UUID v7</a>
@@ -235,7 +235,7 @@ const CATALOG_GRID = _CATALOG_BRANDS.map(b => {
       <span class="v-cat__count">6 tools</span>
       <span class="v-cat__cta">Open</span>
     </a>
-    <a class="v-cat" href="/tools/json-xml/">
+    <a class="v-cat" href="/tools/xml-to-json/">
       <div class="v-cat__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-3M8 3v18M16 3v18"/></svg></div>
       <h3 class="v-cat__title">Format bridges</h3>
       <p class="v-cat__desc">JSON ↔ XML, JSON ↔ YAML, JSON ↔ CSV, JSON escape, minify.</p>
@@ -259,7 +259,7 @@ const CATALOG_GRID = _CATALOG_BRANDS.map(b => {
         <li><a href="/tools/json-schema-generator/" style="color:#4338ca;font-size:14px">Schema Generator</a></li>
         <li><a href="/tools/json-to-zod/" style="color:#4338ca;font-size:14px">JSON → Zod</a></li>
         <li><a href="/tools/json-to-typescript/" style="color:#4338ca;font-size:14px">JSON → TypeScript</a></li>
-        <li><a href="/tools/json-to-python/" style="color:#4338ca;font-size:14px">JSON → Python</a></li>
+        <li><a href="/codegen/tools/json-to-python/" style="color:#4338ca;font-size:14px">JSON → Python</a></li>
         <li><a href="/tools/llm-token-calculator/" style="color:#4338ca;font-size:14px">LLM Token Calculator</a></li>
         <li><a href="/tools/uuid-v7/" style="color:#4338ca;font-size:14px">UUID v7</a></li>
         <li><a href="/tools/" style="color:#4338ca;font-size:14px;font-weight:600">…and {CATALOG_REST.main} more</a></li>
